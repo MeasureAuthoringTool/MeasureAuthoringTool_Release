@@ -18,19 +18,34 @@ import org.apache.commons.logging.LogFactory;
 import edu.vt.middleware.dictionary.AbstractWordList;
 import edu.vt.middleware.dictionary.WordListDictionary;
 import edu.vt.middleware.dictionary.WordLists;
+import edu.vt.middleware.dictionary.sort.ArraysSort;
 import edu.vt.middleware.password.Password;
 import edu.vt.middleware.password.PasswordData;
 import edu.vt.middleware.password.PasswordValidator;
 import edu.vt.middleware.password.Rule;
 import edu.vt.middleware.password.RuleResult;
-import edu.vt.middleware.dictionary.sort.ArraysSort;
 
 /**
+ * The Class CheckDictionaryWordInPassword.
+ * 
  * @author jnarang
- *
  */
 public class CheckDictionaryWordInPassword {
+	
+	/** The Constant logger. */
 	private static final Log logger = LogFactory.getLog(CheckDictionaryWordInPassword.class);
+	
+	/**
+	 * Contains dictionary words.
+	 * 
+	 * @param passWord
+	 *            the pass word
+	 * @return true, if successful
+	 * @throws FileNotFoundException
+	 *             the file not found exception
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
 	public static boolean containsDictionaryWords(String passWord) throws FileNotFoundException, IOException{
 		
 		String fileName = "en_US.dic";

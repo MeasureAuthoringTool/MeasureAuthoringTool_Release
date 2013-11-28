@@ -13,25 +13,46 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Widget;
 
+/**
+ * The Class ErrorMessageDisplay.
+ */
 public class ErrorMessageDisplay extends Composite implements ErrorMessageDisplayInterface {
+	
+	/** The h panel. */
 	private HorizontalPanel hPanel;
+	
+	/** The error icon. */
 	private Image errorIcon = new Image(ImageResources.INSTANCE.msg_error());
 	
+	/** The image panel. */
 	private FlowPanel imagePanel;
+	
+	/** The msg panel. */
 	private FlowPanel msgPanel;
+	
+	/** The buttons. */
 	private List<SecondaryButton> buttons = new ArrayList<SecondaryButton>();
 	
 	
+	/**
+	 * Instantiates a new error message display.
+	 */
 	public ErrorMessageDisplay() {
 		hPanel = new HorizontalPanel();
+		hPanel.getElement().setId("hPanel_HorizontalPanel");
 		imagePanel = new FlowPanel();
 		msgPanel = new FlowPanel();
+		msgPanel.getElement().setId("msgPanel_FlowPanel");
 		errorIcon.getElement().setAttribute("alt", "ErrorMessage");
+		imagePanel.getElement().setId("imagePanel_FlowPanel");
 		imagePanel.setTitle("Error");
 		imagePanel.add(errorIcon);
 		initWidget(hPanel);
 	}
 
+	/* (non-Javadoc)
+	 * @see mat.client.shared.ErrorMessageDisplayInterface#clear()
+	 */
 	@Override
 	public void clear() {
 		hPanel.removeStyleName("alertMessage");
@@ -48,6 +69,9 @@ public class ErrorMessageDisplay extends Composite implements ErrorMessageDispla
 		
 	}
 
+	/* (non-Javadoc)
+	 * @see mat.client.shared.ErrorMessageDisplayInterface#setMessages(java.util.List)
+	 */
 	@Override
 	public void setMessages(List<String> messages) {
 		hPanel.addStyleName("alertMessage");
@@ -63,6 +87,9 @@ public class ErrorMessageDisplay extends Composite implements ErrorMessageDispla
 		setFocus();
 	}
 
+	/* (non-Javadoc)
+	 * @see mat.client.shared.ErrorMessageDisplayInterface#setMessage(java.lang.String)
+	 */
 	@Override
 	public void setMessage(String message) {
 		hPanel.addStyleName("alertMessage");
@@ -74,10 +101,20 @@ public class ErrorMessageDisplay extends Composite implements ErrorMessageDispla
 		setFocus();
 	}
 	
+	/**
+	 * Wrap.
+	 * 
+	 * @param arg
+	 *            the arg
+	 * @return the widget
+	 */
 	private Widget wrap(String arg) {
 		return new HTML(arg);
 	}
 	
+	/* (non-Javadoc)
+	 * @see mat.client.shared.ErrorMessageDisplayInterface#setFocus()
+	 */
 	@Override
 	public void setFocus(){
 		try{
@@ -96,6 +133,9 @@ public class ErrorMessageDisplay extends Composite implements ErrorMessageDispla
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see mat.client.shared.ErrorMessageDisplayInterface#setMessageWithButtons(java.lang.String, java.util.List)
+	 */
 	@Override
 	public void setMessageWithButtons(String message, List<String> buttonNames) {
 		hPanel.addStyleName("alertMessage");
@@ -104,6 +144,7 @@ public class ErrorMessageDisplay extends Composite implements ErrorMessageDispla
 		hPanel.add(msgPanel);
 		for (String btnName : buttonNames) {
 			SecondaryButton button1 = new SecondaryButton(btnName);
+			button1.getElement().setId("button1_SecondaryButton");
 			buttons.add(button1);
 			hPanel.add(button1);
 		}
@@ -115,6 +156,8 @@ public class ErrorMessageDisplay extends Composite implements ErrorMessageDispla
 
 
 	/**
+	 * Gets the buttons.
+	 * 
 	 * @return the buttons
 	 */
 	public List<SecondaryButton> getButtons() {
@@ -122,7 +165,10 @@ public class ErrorMessageDisplay extends Composite implements ErrorMessageDispla
 	}
 
 	/**
-	 * @param buttons the buttons to set
+	 * Sets the buttons.
+	 * 
+	 * @param buttons
+	 *            the buttons to set
 	 */
 	public void setButtons(List<SecondaryButton> buttons) {
 		this.buttons = buttons;

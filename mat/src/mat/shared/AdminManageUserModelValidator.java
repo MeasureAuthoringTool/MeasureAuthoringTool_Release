@@ -10,12 +10,20 @@ import mat.client.admin.ManageUsersDetailModel;
 import mat.client.shared.MatContext;
 
 /**
+ * The Class AdminManageUserModelValidator.
+ * 
  * @author jnarang
- *
  */
 public class AdminManageUserModelValidator {
 	
 	
+	/**
+	 * Checks if is valid users detail.
+	 * 
+	 * @param model
+	 *            the model
+	 * @return the list
+	 */
 	public List<String> isValidUsersDetail(ManageUsersDetailModel model) {
 		List<String> message = new ArrayList<String>();
 		
@@ -50,18 +58,18 @@ public class AdminManageUserModelValidator {
 		if("".equals(model.getOid().trim())) {
 			message.add(MatContext.get().getMessageDelegate().getOIDRequiredMessage());
 		}
-		if("".equals(model.getRootOid().trim())) {
+		/*if("".equals(model.getRootOid().trim())) {
 			message.add(MatContext.get().getMessageDelegate().getRootOIDRequiredMessage());
-		}
+		}*/
 		if(model.getFirstName().length() < 2) {
 			message.add(MatContext.get().getMessageDelegate().getFirstMinMessage());
 		}
 		if(model.getOid().length() > 50) {
 			message.add(MatContext.get().getMessageDelegate().getOIDTooLongMessage());
 		}
-		if(model.getRootOid().length() > 50) {
+		/*if(model.getRootOid().length() > 50) {
 			message.add(MatContext.get().getMessageDelegate().getRootOIDTooLongMessage());
-		}
+		}*/
 		return message;
 	}
 

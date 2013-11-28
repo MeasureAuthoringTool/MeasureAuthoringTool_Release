@@ -7,8 +7,6 @@ import mat.client.admin.service.SaveUpdateUserResult;
 import mat.client.codelist.events.AddCodeToCodeListEvent;
 import mat.client.codelist.events.CancelAddCodeEvent;
 import mat.client.codelist.events.CancelEditCodeListEvent;
-import mat.client.codelist.events.CreateNewCodeListEvent;
-import mat.client.codelist.events.CreateNewGroupedCodeListEvent;
 import mat.client.codelist.events.ExternalViewerEvent;
 import mat.client.codelist.service.SaveUpdateCodeListResult;
 import mat.client.shared.ContentWithHeadingWidget;
@@ -17,7 +15,6 @@ import mat.client.shared.ListBoxMVP;
 import mat.client.shared.MatContext;
 import mat.client.shared.MessageDelegate;
 import mat.client.shared.ReadOnlyHelper;
-import mat.client.shared.SuccessMessageDisplay;
 import mat.client.shared.SuccessMessageDisplayInterface;
 import mat.client.shared.TextAreaWithMaxLength;
 import mat.client.shared.search.HasPageSelectionHandler;
@@ -42,78 +39,370 @@ import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HasValue;
 import com.google.gwt.user.client.ui.Widget;
 
+/**
+ * The Class ManageCodeListDetailPresenter.
+ */
 public class ManageCodeListDetailPresenter extends BaseDetailPresenter {
 	
+	/** The default_page_number. */
 	private int default_page_number = 1;
+	
+	/**
+	 * The Interface CodeListDetailDisplay.
+	 */
 	public static interface CodeListDetailDisplay extends BaseDisplay {
-		public HasClickHandlers getCreateNewButton();
-		public HasClickHandlers getCreateNewGroupedButton();
+		// Code commented for User Story MAT-2372 : Remove Value Set Creation.
+		/*public HasClickHandlers getCreateNewButton();
+		public HasClickHandlers getCreateNewGroupedButton();*/
+		/**
+		 * Gets the adds the code button.
+		 * 
+		 * @return the adds the code button
+		 */
 		public HasClickHandlers getAddCodeButton();
+		
+		/**
+		 * Gets the title.
+		 * 
+		 * @return the title
+		 */
 		public String getTitle();
+		
+		/**
+		 * Gets the category value.
+		 * 
+		 * @return the category value
+		 */
 		public String getCategoryValue();
+		
+		/* (non-Javadoc)
+		 * @see mat.client.codelist.BaseDetailPresenter.BaseDisplay#getCategoryListBox()
+		 */
 		public ListBoxMVP getCategoryListBox();
+		
+		/**
+		 * Disable anchors.
+		 */
 		public void DisableAnchors();
+		
+		/**
+		 * Enable anchors.
+		 * 
+		 * @param codes
+		 *            the codes
+		 * @param pageCount
+		 *            the page count
+		 * @param total
+		 *            the total
+		 * @param currentPage
+		 *            the current page
+		 */
 		public void EnableAnchors(ManageCodesSummaryModel codes,int pageCount,int total,int currentPage);
+		
+		/**
+		 * Sets the adds the code button enabled.
+		 * 
+		 * @param enabled
+		 *            the new adds the code button enabled
+		 */
 		public void setAddCodeButtonEnabled(boolean enabled);
+		
+		/**
+		 * Gets the codes summary.
+		 * 
+		 * @return the codes summary
+		 */
 		public CodesSummaryWidget getCodesSummary();
 	}
 	
+	/**
+	 * The Interface CodesSummaryDisplay.
+	 */
 	public static interface CodesSummaryDisplay {
+		
+		/**
+		 * Builds the summary data table.
+		 * 
+		 * @param codes
+		 *            the codes
+		 * @param totalPagesCount
+		 *            the total pages count
+		 * @param total
+		 *            the total
+		 * @param currentPage
+		 *            the current page
+		 */
 		public void buildSummaryDataTable(ManageCodesSummaryModel codes,int totalPagesCount,int total,int currentPage);
+		
+		/**
+		 * Gets the page selection tool.
+		 * 
+		 * @return the page selection tool
+		 */
 		public HasPageSelectionHandler getPageSelectionTool();
+		
+		/**
+		 * Gets the page size.
+		 * 
+		 * @return the page size
+		 */
 		public int getPageSize();
+		
+		/**
+		 * Sets the page size.
+		 * 
+		 * @param pageNumber
+		 *            the new page size
+		 */
 		public void setPageSize(int pageNumber);
+		
+		/**
+		 * Gets the current page.
+		 * 
+		 * @return the current page
+		 */
 		public int getCurrentPage();
+		
+		/**
+		 * Sets the current page.
+		 * 
+		 * @param pageNumber
+		 *            the new current page
+		 */
 		public void setCurrentPage(int pageNumber);	
 	}
 	
+	/**
+	 * The Interface AddCodeDisplay.
+	 */
 	public static interface AddCodeDisplay extends BaseAddDisplay<Code> {
+		
+		/**
+		 * Sets the code list detail model.
+		 * 
+		 * @param currentDetails
+		 *            the new code list detail model
+		 */
 		public void setCodeListDetailModel(ManageCodeListDetailModel currentDetails);
+		
+		/**
+		 * Gets the code name.
+		 * 
+		 * @return the code name
+		 */
 		public HasValue<String> getCodeName();
+		
+		/**
+		 * Gets the code description.
+		 * 
+		 * @return the code description
+		 */
 		public HasValue<String> getCodeDescription();
+		
+		/**
+		 * Builds the upload form.
+		 * 
+		 * @param currentDetails
+		 *            the current details
+		 */
 		public void buildUploadForm(ManageCodeListDetailModel currentDetails);
+		
+		/**
+		 * Builds the import tab.
+		 */
 		public void buildImportTab();
+		
+		/**
+		 * Gets the external viewer link.
+		 * 
+		 * @return the external viewer link
+		 */
 		public HasClickHandlers getExternalViewerLink();
+		
+		/**
+		 * Gets the upload success message display.
+		 * 
+		 * @return the upload success message display
+		 */
 		public SuccessMessageDisplayInterface getUploadSuccessMessageDisplay();
+		
+		/**
+		 * Gets the upload error message display.
+		 * 
+		 * @return the upload error message display
+		 */
 		public ErrorMessageDisplayInterface getUploadErrorMessageDisplay();
+		
+		/**
+		 * Gets the current page.
+		 * 
+		 * @return the current page
+		 */
 		public int getCurrentPage();
+		
+		/**
+		 * Sets the current page.
+		 * 
+		 * @param pageNumber
+		 *            the new current page
+		 */
 		public void setCurrentPage(int pageNumber);
 	}
 
+	/**
+	 * The Interface ExternalLinkDisclaimerDisplay.
+	 */
 	public static interface ExternalLinkDisclaimerDisplay{
+		
+		/**
+		 * As widget.
+		 * 
+		 * @return the widget
+		 */
 		public Widget asWidget();
+		
+		/**
+		 * Gets the yes button.
+		 * 
+		 * @return the yes button
+		 */
 		public HasClickHandlers getYesButton();
+		
+		/**
+		 * Gets the no button.
+		 * 
+		 * @return the no button
+		 */
 		public HasClickHandlers getNoButton();
 	}
+	
+	/**
+	 * The Interface AddQDSDisplay.
+	 */
 	public static interface AddQDSDisplay {
+		
+		/**
+		 * As widget.
+		 * 
+		 * @return the widget
+		 */
 		public Widget asWidget();
+		
+		/**
+		 * Gets the save button.
+		 * 
+		 * @return the save button
+		 */
 		public HasClickHandlers getSaveButton();
+		
+		/**
+		 * Gets the cancel button.
+		 * 
+		 * @return the cancel button
+		 */
 		public HasClickHandlers getCancelButton();
+		
+		/**
+		 * Sets the code list detail model.
+		 * 
+		 * @param currentDetails
+		 *            the new code list detail model
+		 */
 		public void setCodeListDetailModel(ManageCodeListDetailModel currentDetails);
+		
+		/**
+		 * Gets the data type.
+		 * 
+		 * @return the data type
+		 */
 		public HasValue<String> getDataType();
+		
+		/**
+		 * Sets the data type.
+		 * 
+		 * @param value
+		 *            the new data type
+		 */
 		public void setDataType(int value);
+		
+		/**
+		 * Gets the qDS data type value.
+		 * 
+		 * @return the qDS data type value
+		 */
 		public String getQDSDataTypeValue();
+		
+		/**
+		 * Gets the success message display.
+		 * 
+		 * @return the success message display
+		 */
 		public SuccessMessageDisplayInterface getSuccessMessageDisplay();
 		/*USTod*/
+		/**
+		 * Sets the title.
+		 * 
+		 * @param title
+		 *            the new title
+		 */
 		public void setTitle(String title);
+		
+		/**
+		 * Sets the data type options.
+		 * 
+		 * @param texts
+		 *            the new data type options
+		 */
 		void setDataTypeOptions(List<? extends HasListBox> texts);
 		
 	}
 	
+	/** The panel. */
 	private ContentWithHeadingWidget panel = new ContentWithHeadingWidget();
 	
+	/** The detail display. */
 	private CodeListDetailDisplay detailDisplay;
+	
+	/** The add code display. */
 	private AddCodeDisplay addCodeDisplay;
+	
+	/** The add qds display. */
 	private AddQDSDisplay addQDSDisplay;
+	
+	/** The current details. */
 	private ManageCodeListDetailModel currentDetails;
+	
+	/** The current codes. */
 	private ManageCodesModel currentCodes;
+	
+	/** The list box provider. */
 	private ListBoxCodeProvider listBoxProvider;
+	
+	/** The disclaimer display. */
 	private ExternalLinkDisclaimerDisplay disclaimerDisplay;
 	
 	
+	/* (non-Javadoc)
+	 * @see mat.client.codelist.BaseDetailPresenter#getDetailDisplay()
+	 */
 	protected BaseDisplay getDetailDisplay() {
 		return detailDisplay;
 	}
+	
+	/**
+	 * Instantiates a new manage code list detail presenter.
+	 * 
+	 * @param dDisplayArg
+	 *            the d display arg
+	 * @param addCodeArg
+	 *            the add code arg
+	 * @param disclaimerDsp
+	 *            the disclaimer dsp
+	 * @param addQDSArg
+	 *            the add qds arg
+	 * @param lpArg
+	 *            the lp arg
+	 */
 	public ManageCodeListDetailPresenter(CodeListDetailDisplay dDisplayArg, AddCodeDisplay addCodeArg,ExternalLinkDisclaimerDisplay disclaimerDsp,AddQDSDisplay addQDSArg, ListBoxCodeProvider lpArg) {
 		super(dDisplayArg, lpArg);
 		
@@ -219,8 +508,8 @@ public class ManageCodeListDetailPresenter extends BaseDetailPresenter {
 				MatContext.get().getEventBus().fireEvent(new CancelEditCodeListEvent());
 			}
 		});
-		
-       detailDisplay.getCreateNewButton().addClickHandler(new ClickHandler() {
+		// Code commented for User Story MAT-2372 : Remove Value Set Creation.
+       /*detailDisplay.getCreateNewButton().addClickHandler(new ClickHandler() {
 			
 			@Override
 			public void onClick(ClickEvent event) {
@@ -234,7 +523,7 @@ public class ManageCodeListDetailPresenter extends BaseDetailPresenter {
 			public void onClick(ClickEvent event) {
 				MatContext.get().getEventBus().fireEvent(new CreateNewGroupedCodeListEvent());
 			}
-		});
+		});*/
 		detailDisplay.getAddCodeButton().addClickHandler(new ClickHandler() {
 			
 			@Override
@@ -405,6 +694,12 @@ public class ManageCodeListDetailPresenter extends BaseDetailPresenter {
 		});
 	}
 	
+	/**
+	 * Display codes for the selected page.
+	 * 
+	 * @param codeListId
+	 *            the code list id
+	 */
 	private void displayCodesForTheSelectedPage(String codeListId) {
 		int pageNumber = addCodeDisplay.getCurrentPage();
 		int pageSize =   addCodeDisplay.getPageSize();
@@ -427,6 +722,12 @@ public class ManageCodeListDetailPresenter extends BaseDetailPresenter {
 		});
 	}
 	
+	/**
+	 * Display codes summary.
+	 * 
+	 * @param codeListId
+	 *            the code list id
+	 */
 	private void displayCodesSummary(String codeListId){
 		int pageNumber = detailDisplay.getCodesSummary().getCurrentPage();
 		int pageSize = detailDisplay.getCodesSummary().getPageSize();
@@ -448,6 +749,9 @@ public class ManageCodeListDetailPresenter extends BaseDetailPresenter {
 		});
 	}
 	
+	/**
+	 * Adds the code.
+	 */
 	private void addCode() {
 		final Code code = createCode();
 		if(isValidCode(code)) {
@@ -474,6 +778,13 @@ public class ManageCodeListDetailPresenter extends BaseDetailPresenter {
 		}
 	}
 	
+	/**
+	 * Checks if is valid code.
+	 * 
+	 * @param code
+	 *            the code
+	 * @return true, if is valid code
+	 */
 	private boolean isValidCode(Code code) {
 		ListObjectModelValidator.CodeModelValidator validator = new ListObjectModelValidator.CodeModelValidator();
 		List<String> message = validator.validate(code);
@@ -486,6 +797,12 @@ public class ManageCodeListDetailPresenter extends BaseDetailPresenter {
 		}
 		return valid;	
 	}
+	
+	/**
+	 * Creates the code.
+	 * 
+	 * @return the code
+	 */
 	private Code createCode(){
 		Code code = new Code();
 		code.setCode(addCodeDisplay.getCodeName().getValue());
@@ -493,6 +810,12 @@ public class ManageCodeListDetailPresenter extends BaseDetailPresenter {
 		return code;
 	}
 	
+	/**
+	 * Update.
+	 * 
+	 * @param source
+	 *            the source
+	 */
 	private void update(final int source) {
 		clearMessages();
 		updateModelDetailsFromView();
@@ -561,6 +884,13 @@ public class ManageCodeListDetailPresenter extends BaseDetailPresenter {
 	}
 	
 	
+	/**
+	 * Gets the widget.
+	 * 
+	 * @param heading
+	 *            the heading
+	 * @return the widget
+	 */
 	public Widget getWidget(String heading) {
 		/*USTod*/
 		setPanelContentAndHeading(detailDisplay.asWidget(), heading);
@@ -568,6 +898,12 @@ public class ManageCodeListDetailPresenter extends BaseDetailPresenter {
 //		return detailDisplay.asWidget();
 	}
 
+	/**
+	 * Sets the codes on view.
+	 * 
+	 * @param value
+	 *            the new codes on view
+	 */
 	private void setCodesOnView(boolean value) {
 		//Collections.sort(currentDetails.getCodes(), new Code.Comparator());
 		if(currentDetails.getCodes()!= null){
@@ -582,6 +918,11 @@ public class ManageCodeListDetailPresenter extends BaseDetailPresenter {
 		enableOrDisableFields();
 	}
 	
+	/**
+	 * Gets the adds the codes to code list.
+	 * 
+	 * @return the adds the codes to code list
+	 */
 	public Widget getAddCodesToCodeList(){
 		/*USTod*/
 //		addCodeDisplay.setTitle("Manage codes for "+ currentDetails.getName());
@@ -602,10 +943,20 @@ public class ManageCodeListDetailPresenter extends BaseDetailPresenter {
 		return panel;
 	}
 	
+	/**
+	 * Gets the external link disclaimer.
+	 * 
+	 * @return the external link disclaimer
+	 */
 	public Widget getExternalLinkDisclaimer(){
 	    return disclaimerDisplay.asWidget();
 	}
 	
+	/**
+	 * Refresh uploaded codes.
+	 * 
+	 * @return the widget
+	 */
 	public Widget refreshUploadedCodes(){
 		/*USTod*/
 //		addCodeDisplay.setTitle("Manage codes for "+ currentDetails.getName());
@@ -634,6 +985,9 @@ public class ManageCodeListDetailPresenter extends BaseDetailPresenter {
 		return panel;
 	}
 	
+	/**
+	 * Removes the selected codes from code list.
+	 */
 	private void removeSelectedCodesFromCodeList(){
 		List<Code> selectedCodes = currentCodes.getSelectedCodes();
 		if(!selectedCodes.isEmpty()){
@@ -658,11 +1012,19 @@ public class ManageCodeListDetailPresenter extends BaseDetailPresenter {
 		}
 	}
 	
+	/**
+	 * Clear codes fields.
+	 */
 	private void clearCodesFields() {
 		addCodeDisplay.getCodeName().setValue("");
 		addCodeDisplay.getCodeDescription().setValue("");
 	}
 	
+	/**
+	 * Gets the adds the qds display.
+	 * 
+	 * @return the adds the qds display
+	 */
 	public Widget getAddQDSDisplay(){
 		/*USTod*/
 		//addQDSDisplay.setTitle("Add QDM to Value Set");
@@ -675,10 +1037,19 @@ public class ManageCodeListDetailPresenter extends BaseDetailPresenter {
 		return addQDSDisplay.asWidget();
 	}	
 	
+	/**
+	 * Clear qds fields.
+	 */
 	private void clearQDSFields(){
 		addQDSDisplay.getDataType().setValue("");
 	}
 	
+	/**
+	 * Populate qds data type.
+	 * 
+	 * @param category
+	 *            the category
+	 */
 	private void populateQDSDataType(String category){
 		listBoxProvider.getQDSDataTypeForCategory(category, new AsyncCallback<List<? extends HasListBox>>() {
 
@@ -697,6 +1068,9 @@ public class ManageCodeListDetailPresenter extends BaseDetailPresenter {
 		
 	}
 	
+	/**
+	 * Update model details from view.
+	 */
 	private void updateModelDetailsFromView() {
 		currentDetails.setName(detailDisplay.getName().getValue());
 		
@@ -715,6 +1089,9 @@ public class ManageCodeListDetailPresenter extends BaseDetailPresenter {
 		currentDetails.setLastModifiedDate(detailDisplay.getLastModifiedDate().getValue());
 	}
 	
+	/**
+	 * Populate fields.
+	 */
 	private void populateFields(){
 		detailDisplay.getName().setValue(currentDetails.getName());
 		
@@ -747,6 +1124,14 @@ public class ManageCodeListDetailPresenter extends BaseDetailPresenter {
 		detailDisplay.getLastModifiedDate().setValue(currentDetails.getLastModifiedDate());
 	}
 	
+	/**
+	 * Populate code system options.
+	 * 
+	 * @param category
+	 *            the category
+	 * @param populate
+	 *            the populate
+	 */
 	private void PopulateCodeSystemOptions(String category,final boolean populate){
 		listBoxProvider.getCodeSystemListForCategory(category, new AsyncCallback<List<? extends HasListBox>>() {
 
@@ -766,6 +1151,12 @@ public class ManageCodeListDetailPresenter extends BaseDetailPresenter {
 		
 	}
 	
+	/**
+	 * Adds the codeto code list.
+	 * 
+	 * @param currentCodeList
+	 *            the current code list
+	 */
 	private void addCodetoCodeList(ManageCodeListDetailModel currentCodeList){
 		final Code newCode = currentCodeList.getCode();
 		MatContext.get().getCodeListService().saveorUpdateCodeList(currentCodeList, new AsyncCallback<SaveUpdateCodeListResult>() {
@@ -789,6 +1180,9 @@ public class ManageCodeListDetailPresenter extends BaseDetailPresenter {
 
 
 	
+	/**
+	 * Creates the new code list.
+	 */
 	public void createNewCodeList() {
 			
 		currentDetails = new ManageCodeListDetailModel();
@@ -806,6 +1200,9 @@ public class ManageCodeListDetailPresenter extends BaseDetailPresenter {
 		setPanelContentAndHeading(detailDisplay.asWidget(), CodeListController.MY_VALUE_SETS_VALUE_SET_CREATE);
 	}
 	
+	/**
+	 * Clear all fields.
+	 */
 	private void clearAllFields() {
 		detailDisplay.getName().setValue("");
 		detailDisplay.getOrganisation().setValue("");
@@ -819,6 +1216,12 @@ public class ManageCodeListDetailPresenter extends BaseDetailPresenter {
 		
 	}
 
+	/**
+	 * Edits the code list.
+	 * 
+	 * @param key
+	 *            the key
+	 */
 	public void editCodeList(String key) {
 		/*USTod*/
 		//detailDisplay.setTitle("Update a Value Set");
@@ -843,6 +1246,15 @@ public class ManageCodeListDetailPresenter extends BaseDetailPresenter {
 		});
 	}
 	
+	/**
+	 * Gets the widget with heading.
+	 * 
+	 * @param widget
+	 *            the widget
+	 * @param heading
+	 *            the heading
+	 * @return the widget with heading
+	 */
 	public Widget getWidgetWithHeading(Widget widget, String heading) {
 		FlowPanel vPanel = new FlowPanel();
 		//Label h = new Label(heading);
@@ -855,6 +1267,9 @@ public class ManageCodeListDetailPresenter extends BaseDetailPresenter {
 		return vPanel;
 	}
 	
+	/* (non-Javadoc)
+	 * @see mat.client.codelist.BaseDetailPresenter#buildValidationMessages(mat.client.codelist.ManageCodeListDetailModel)
+	 */
 	@Override
 	protected List<String> buildValidationMessages(
 			ManageCodeListDetailModel model) {
@@ -866,6 +1281,9 @@ public class ManageCodeListDetailPresenter extends BaseDetailPresenter {
 		return messages;
 	}
 
+	/**
+	 * Clear messages.
+	 */
 	public void clearMessages() {
 		detailDisplay.getErrorMessageDisplay().clear();
 		detailDisplay.getSuccessMessageDisplay().clear();
@@ -875,14 +1293,24 @@ public class ManageCodeListDetailPresenter extends BaseDetailPresenter {
 		addCodeDisplay.getUploadErrorMessageDisplay().clear();
 	}
 	
+	/**
+	 * Enable or disable.
+	 * 
+	 * @param editable
+	 *            the editable
+	 */
 	private void enableOrDisable(boolean editable) {
 		ReadOnlyHelper.setReadOnlyForCurrentMeasure(detailDisplay.asWidget(),editable);
 		ReadOnlyHelper.setReadOnlyForCurrentMeasure(addCodeDisplay.asWidget(),editable);
 	}
 	
+	/**
+	 * Enable or disable fields.
+	 */
 	private void enableOrDisableFields(){
-		boolean canEditValueSet = currentDetails.isMyValueSet();
-		boolean isValueSetDraft = currentDetails.isDraft();
+		// Commented and set to false for MAT-2378 : Set Draft Sets to Read Only.
+		boolean canEditValueSet = false;//currentDetails.isMyValueSet();
+		boolean isValueSetDraft = false;//currentDetails.isDraft();
 		
 		enableOrDisable(canEditValueSet);
 		
@@ -899,16 +1327,33 @@ public class ManageCodeListDetailPresenter extends BaseDetailPresenter {
 		}
 	}
 	
+	/**
+	 * Sets the heading.
+	 * 
+	 * @param heading
+	 *            the new heading
+	 */
 	private void setHeading(String heading){
 		panel.setHeading(heading, heading);
 	}
 	
 	/*USTod*/
+	/**
+	 * Sets the panel content and heading.
+	 * 
+	 * @param w
+	 *            the w
+	 * @param heading
+	 *            the heading
+	 */
 	private void setPanelContentAndHeading(Widget w, String heading){
 		setHeading(heading);
 		panel.setContent(w);
 	}
 	
+	/**
+	 * Reset to first page.
+	 */
 	public void resetToFirstPage(){
 		detailDisplay.getCodesSummary().setCurrentPage(default_page_number);
 		if(currentDetails != null){

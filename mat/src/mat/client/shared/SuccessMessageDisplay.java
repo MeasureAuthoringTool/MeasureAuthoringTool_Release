@@ -13,20 +13,35 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Widget;
 
+/**
+ * The Class SuccessMessageDisplay.
+ */
 public class SuccessMessageDisplay extends Composite implements SuccessMessageDisplayInterface {
 	
+	/** The h panel. */
 	private HorizontalPanel hPanel;
+	
+	/** The success icon. */
 	private Image successIcon = new Image(ImageResources.INSTANCE.msg_success());
 	
+	/** The image panel. */
 	private FlowPanel imagePanel;
+	
+	/** The msg panel. */
 	private FlowPanel msgPanel;
 	
 	
 	
+	/**
+	 * Instantiates a new success message display.
+	 */
 	public SuccessMessageDisplay() {
 		hPanel = new HorizontalPanel();
+		hPanel.getElement().setId("hPanel_HorizontalPanel");
 		imagePanel = new FlowPanel();
+		imagePanel.getElement().setId("imagePanel_FlowPanel");
 		msgPanel = new FlowPanel();
+		msgPanel.getElement().setId("msgPanel_FlowPanel");
 		successIcon.getElement().setAttribute("alt", "SuccessMessage");
 		imagePanel.setTitle("Success");
 		imagePanel.add(successIcon);
@@ -34,6 +49,9 @@ public class SuccessMessageDisplay extends Composite implements SuccessMessageDi
 		
 	}
 
+	/* (non-Javadoc)
+	 * @see mat.client.shared.SuccessMessageDisplayInterface#clear()
+	 */
 	@Override
 	public void clear() {
 		hPanel.removeStyleName("successMessage");
@@ -42,6 +60,9 @@ public class SuccessMessageDisplay extends Composite implements SuccessMessageDi
 		hPanel.remove(msgPanel);
 	}
 
+	/* (non-Javadoc)
+	 * @see mat.client.shared.SuccessMessageDisplayInterface#setMessages(java.util.List)
+	 */
 	@Override
 	public void setMessages(List<String> messages) {
 		if(messages.size() > 0){
@@ -58,6 +79,9 @@ public class SuccessMessageDisplay extends Composite implements SuccessMessageDi
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see mat.client.shared.SuccessMessageDisplayInterface#setMessage(java.lang.String)
+	 */
 	@Override
 	public void setMessage(String message) {
 		if(!message.isEmpty()){
@@ -71,10 +95,20 @@ public class SuccessMessageDisplay extends Composite implements SuccessMessageDi
 		}
 	}
 	
+	/**
+	 * Wrap.
+	 * 
+	 * @param arg
+	 *            the arg
+	 * @return the widget
+	 */
 	private Widget wrap(String arg) {
 		return new HTML(arg);
 	}
 	
+	/* (non-Javadoc)
+	 * @see mat.client.shared.SuccessMessageDisplayInterface#setFocus()
+	 */
 	@Override
 	public void setFocus(){
 		try{

@@ -36,6 +36,11 @@ import com.google.gwt.text.shared.SimpleSafeHtmlRenderer;
  */
 public class MatButtonCell extends AbstractSafeHtmlCell<String> {
 
+   /** The Button title. */
+   String ButtonTitle=""; 	
+   
+   /** The css class. */
+   String cssClass="";
   /**
    * Construct a new ButtonCell that will use a {@link SimpleSafeHtmlRenderer}.
    */
@@ -43,6 +48,20 @@ public class MatButtonCell extends AbstractSafeHtmlCell<String> {
     this(SimpleSafeHtmlRenderer.getInstance());
   }
 
+  /**
+	 * Instantiates a new mat button cell.
+	 * 
+	 * @param ButtonTitle
+	 *            the button title
+	 * @param cssString
+	 *            the css string
+	 */
+  public MatButtonCell(String ButtonTitle , String cssString) {
+	    this(SimpleSafeHtmlRenderer.getInstance());
+	    this.ButtonTitle=ButtonTitle;
+	    this.cssClass = cssString;
+	  }
+  
   /**
    * Construct a new ButtonCell that will use a given {@link SafeHtmlRenderer}.
    * 
@@ -52,7 +71,10 @@ public class MatButtonCell extends AbstractSafeHtmlCell<String> {
     super(renderer, CLICK, KEYDOWN);
   }
 
-  @Override
+/* (non-Javadoc)
+ * @see com.google.gwt.cell.client.AbstractCell#onBrowserEvent(com.google.gwt.cell.client.Cell.Context, com.google.gwt.dom.client.Element, java.lang.Object, com.google.gwt.dom.client.NativeEvent, com.google.gwt.cell.client.ValueUpdater)
+ */
+@Override
   public void onBrowserEvent(Context context, Element parent, String value,
       NativeEvent event, ValueUpdater<String> valueUpdater) {
     super.onBrowserEvent(context, parent, value, event, valueUpdater);
@@ -68,16 +90,22 @@ public class MatButtonCell extends AbstractSafeHtmlCell<String> {
     }
   }
 
+  /* (non-Javadoc)
+   * @see com.google.gwt.cell.client.AbstractSafeHtmlCell#render(com.google.gwt.cell.client.Cell.Context, com.google.gwt.safehtml.shared.SafeHtml, com.google.gwt.safehtml.shared.SafeHtmlBuilder)
+   */
   @Override
   public void render(Context context, SafeHtml data, SafeHtmlBuilder sb) {
 	  
-    sb.appendHtmlConstant("<button type=\"button\" tabindex=\"-1\" class=\"customClockButton\">");
+    sb.appendHtmlConstant("<button type=\"button\" title='" + ButtonTitle + "' tabindex=\"0\" class=\" "+cssClass+"\">");
     if (data != null) {
       sb.append(data);
     }
     sb.appendHtmlConstant("</button>");
   }
 
+ /* (non-Javadoc)
+  * @see com.google.gwt.cell.client.AbstractCell#onEnterKeyDown(com.google.gwt.cell.client.Cell.Context, com.google.gwt.dom.client.Element, java.lang.Object, com.google.gwt.dom.client.NativeEvent, com.google.gwt.cell.client.ValueUpdater)
+  */
  @Override
   protected void onEnterKeyDown(Context context, Element parent, String value,
       NativeEvent event, ValueUpdater<String> valueUpdater) {

@@ -7,8 +7,6 @@ import mat.DTO.AuditLogDTO;
 import mat.DTO.SearchHistoryDTO;
 import mat.client.Mat;
 import mat.client.codelist.events.CancelEditCodeListEvent;
-import mat.client.codelist.events.CreateNewCodeListEvent;
-import mat.client.codelist.events.CreateNewGroupedCodeListEvent;
 import mat.client.codelist.events.EditCodeListEvent;
 import mat.client.codelist.events.EditGroupedCodeListEvent;
 import mat.client.event.MeasureSelectedEvent;
@@ -54,140 +52,662 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
 
+/**
+ * The Class ManageCodeListSearchPresenter.
+ */
 public class ManageCodeListSearchPresenter {
 	
+	/** The my value sets. */
 	private  String MY_VALUE_SETS = "My Value Sets";
+	
+	/** The Constant MY_VALUE_SETS_CREATE_DRAFT. */
 	private static final String MY_VALUE_SETS_CREATE_DRAFT = "My Value Sets  > Create a Value Set Draft";
+	
+	/** The my value sets history. */
 	private String MY_VALUE_SETS_HISTORY = "My Value Sets  > History";
+	
+	/** The is observer busy. */
 	private boolean isObserverBusy = false;
 	
+	/** The empty search string. */
+	private String emptySearchString = "";
+	
+	/**
+	 * The Interface ValueSetSearchDisplay.
+	 */
 	public static interface ValueSetSearchDisplay extends mat.client.shared.search.SearchDisplay {
+		
+		/**
+		 * Gets the select id for edit tool.
+		 * 
+		 * @return the select id for edit tool
+		 */
 		public HasSelectionHandlers<CodeListSearchDTO> getSelectIdForEditTool();
+		
+		/**
+		 * Gets the select id for qds element.
+		 * 
+		 * @return the select id for qds element
+		 */
 		public HasSelectionHandlers<CodeListSearchDTO> getSelectIdForQDSElement();
+		
+		/**
+		 * Builds the data table.
+		 * 
+		 * @param results
+		 *            the results
+		 */
 		public void buildDataTable(SearchResults<CodeListSearchDTO> results);
+		
+		/**
+		 * Builds the data table.
+		 * 
+		 * @param results
+		 *            the results
+		 * @param isAsc
+		 *            the is asc
+		 */
 		public void buildDataTable(SearchResults<CodeListSearchDTO> results, boolean isAsc);
+		
+		/**
+		 * Gets the page sort tool.
+		 * 
+		 * @return the page sort tool
+		 */
 		public HasSortHandler getPageSortTool();
+		
+		/**
+		 * Gets the error message display.
+		 * 
+		 * @return the error message display
+		 */
 		public ErrorMessageDisplayInterface getErrorMessageDisplay();
-		public ErrorMessageDisplayInterface getTransferErrorMessageDisplay();
-		public HasClickHandlers getTransferButton();
-		/*US537*/
-		public HasClickHandlers getCreateButton();
-		public void clearSelections();
-		public String getSelectedOption();
+		
+		// Code commented for User Story MAT-2372 : Remove Value Set Creation.
+		//public HasClickHandlers getCreateButton();
+		//public void clearSelections();
+	//	public String getSelectedOption();
+		/* (non-Javadoc)
+		 * @see mat.client.shared.search.SearchDisplay#getPageSelectionTool()
+		 */
 		public HasPageSelectionHandler getPageSelectionTool();
+		
+		/* (non-Javadoc)
+		 * @see mat.client.shared.search.SearchDisplay#getPageSizeSelectionTool()
+		 */
 		public HasPageSizeSelectionHandler getPageSizeSelectionTool();
+		
+		/* (non-Javadoc)
+		 * @see mat.client.shared.search.SearchDisplay#getPageSize()
+		 */
 		public int getPageSize();
+		
+		/**
+		 * Gets the value set search filter panel.
+		 * 
+		 * @return the value set search filter panel
+		 */
 		public ValueSetSearchFilterPanel getValueSetSearchFilterPanel();
+		
+		/**
+		 * Gets the data table.
+		 * 
+		 * @return the data table
+		 */
 		public Grid508 getDataTable();
+		
+		/**
+		 * Clear all check boxes.
+		 * 
+		 * @param dataTable
+		 *            the data table
+		 */
 		void clearAllCheckBoxes(Grid508 dataTable);
 	}
 	
 	
-	public static interface AdminValueSetSearchDisplay extends ValueSetSearchDisplay {
-		public void buildDataTable(SearchResults<CodeListSearchDTO> results, boolean isAsc);
+	/**
+	 * The Interface AdminValueSetSearchDisplay.
+	 */
+	public static interface AdminValueSetSearchDisplay {
+		
+		/**
+		 * Builds the data table.
+		 * 
+		 * @param results
+		 *            the results
+		 */
+		public void buildDataTable(SearchResults<CodeListSearchDTO> results);
+		
+		/**
+		 * Gets the error message display.
+		 * 
+		 * @return the error message display
+		 */
 		public ErrorMessageDisplayInterface getErrorMessageDisplay();
+		
+		/**
+		 * Gets the transfer error message display.
+		 * 
+		 * @return the transfer error message display
+		 */
 		public ErrorMessageDisplayInterface getTransferErrorMessageDisplay();
+		
+		/**
+		 * Gets the transfer button.
+		 * 
+		 * @return the transfer button
+		 */
 		public HasClickHandlers getTransferButton();
+		
+		/**
+		 * Gets the clear button.
+		 * 
+		 * @return the clear button
+		 */
 		public HasClickHandlers getClearButton();
-		/*US537*/
-		public void clearSelections();
-		public String getSelectedOption();
-		public HasPageSelectionHandler getPageSelectionTool();
+		
+		/**
+		 * Gets the search button.
+		 * 
+		 * @return the search button
+		 */
+		public HasClickHandlers getSearchButton();
+		
+		/**
+		 * Gets the search string.
+		 * 
+		 * @return the search string
+		 */
+		public HasValue<String> getSearchString();
+		
+		/**
+		 * Gets the page size.
+		 * 
+		 * @return the page size
+		 */
 		public int getPageSize();
+		
+		/**
+		 * Gets the value set search filter panel.
+		 * 
+		 * @return the value set search filter panel
+		 */
 		public ValueSetSearchFilterPanel getValueSetSearchFilterPanel();
+		
+		/**
+		 * Sets the adapter.
+		 * 
+		 * @param adapter
+		 *            the new adapter
+		 */
 		public void setAdapter(AdminCodeListSearchResultsAdapter adapter);
+		
+		/**
+		 * Clear transfer check boxes.
+		 */
 		public void clearTransferCheckBoxes();
+		
+		/**
+		 * As widget.
+		 * 
+		 * @return the widget
+		 */
 		public Widget asWidget();
+		
 	}	
 	
+	/**
+	 * The Interface HistoryDisplay.
+	 */
 	public static interface HistoryDisplay {
+		
+		/**
+		 * Sets the code list id.
+		 * 
+		 * @param codeListId
+		 *            the new code list id
+		 */
 		public void setCodeListId(String codeListId);
+		
+		/**
+		 * Gets the code list id.
+		 * 
+		 * @return the code list id
+		 */
 		public String getCodeListId();
+		
+		/**
+		 * As widget.
+		 * 
+		 * @return the widget
+		 */
 		public Widget asWidget();
+		
+		/**
+		 * Gets the save button.
+		 * 
+		 * @return the save button
+		 */
 		public HasClickHandlers getSaveButton();
+		
+		/**
+		 * Gets the clear button.
+		 * 
+		 * @return the clear button
+		 */
 		public HasClickHandlers getClearButton();
+		
+		/**
+		 * Gets the user comment.
+		 * 
+		 * @return the user comment
+		 */
 		public HasValue<String> getUserComment();
+		
+		/**
+		 * Builds the data table.
+		 * 
+		 * @param results
+		 *            the results
+		 * @param pageCount
+		 *            the page count
+		 * @param totalResults
+		 *            the total results
+		 * @param currentPage
+		 *            the current page
+		 * @param pageSize
+		 *            the page size
+		 */
 		public void buildDataTable(SearchResults<AuditLogDTO> results, int pageCount,long totalResults,int currentPage,int pageSize);
+		
+		/**
+		 * Gets the page size.
+		 * 
+		 * @return the page size
+		 */
 		public int getPageSize();
+		
+		/**
+		 * Sets the page size.
+		 * 
+		 * @param pageNumber
+		 *            the new page size
+		 */
 		public void setPageSize(int pageNumber);
+		
+		/**
+		 * Gets the current page.
+		 * 
+		 * @return the current page
+		 */
 		public int getCurrentPage();
+		
+		/**
+		 * Sets the current page.
+		 * 
+		 * @param pageNumber
+		 *            the new current page
+		 */
 		public void setCurrentPage(int pageNumber);		
+		
+		/**
+		 * Gets the page size selection tool.
+		 * 
+		 * @return the page size selection tool
+		 */
 		public HasPageSizeSelectionHandler getPageSizeSelectionTool();
+		
+		/**
+		 * Gets the page selection tool.
+		 * 
+		 * @return the page selection tool
+		 */
 		public HasPageSelectionHandler getPageSelectionTool();
+		
+		/**
+		 * Reset.
+		 */
 		public void reset();
+		
+		/**
+		 * Sets the error message.
+		 * 
+		 * @param s
+		 *            the new error message
+		 */
 		public void setErrorMessage(String s);
+		
+		/**
+		 * Clear error message.
+		 */
 		public void clearErrorMessage();
+		
+		/**
+		 * Sets the code list name.
+		 * 
+		 * @param name
+		 *            the new code list name
+		 */
 		public void setCodeListName(String name);
+		
+		/**
+		 * Gets the code list name.
+		 * 
+		 * @return the code list name
+		 */
 		public String getCodeListName();
+		
+		/**
+		 * Sets the return to link text.
+		 * 
+		 * @param s
+		 *            the new return to link text
+		 */
 		public void setReturnToLinkText(String s);
+		
+		/**
+		 * Gets the return to link.
+		 * 
+		 * @return the return to link
+		 */
 		public HasClickHandlers getReturnToLink();
+		
+		/**
+		 * Sets the user comments read only.
+		 * 
+		 * @param readOnly
+		 *            the new user comments read only
+		 */
 		public void setUserCommentsReadOnly(boolean readOnly);
 		
 	}
 	
+	/**
+	 * The Interface TransferDisplay.
+	 */
 	public static interface TransferDisplay{
+		
+		/**
+		 * As widget.
+		 * 
+		 * @return the widget
+		 */
 		public Widget asWidget();
+		
+		/**
+		 * Gets the save button.
+		 * 
+		 * @return the save button
+		 */
 		public HasClickHandlers getSaveButton();
+		
+		/**
+		 * Gets the cancel button.
+		 * 
+		 * @return the cancel button
+		 */
 		public HasClickHandlers getCancelButton();
+		
+		/**
+		 * Builds the data table.
+		 * 
+		 * @param results
+		 *            the results
+		 * @param codeListIDs
+		 *            the code list i ds
+		 */
 		void buildDataTable(SearchResults<TransferOwnerShipModel.Result> results , List<CodeListSearchDTO> codeListIDs);
+		
+		/**
+		 * Gets the selected value.
+		 * 
+		 * @return the selected value
+		 */
 		public String getSelectedValue();
+		
+		/**
+		 * Gets the error message display.
+		 * 
+		 * @return the error message display
+		 */
 		public ErrorMessageDisplayInterface getErrorMessageDisplay();
+		
+		/**
+		 * Gets the success message display.
+		 * 
+		 * @return the success message display
+		 */
 		public SuccessMessageDisplayInterface getSuccessMessageDisplay();
+		
+		/**
+		 * Builds the html for value sets.
+		 * 
+		 * @param codeListIDs
+		 *            the code list i ds
+		 */
 		void buildHTMLForValueSets(List<CodeListSearchDTO> codeListIDs);
+		
+		/**
+		 * Gets the page selection tool.
+		 * 
+		 * @return the page selection tool
+		 */
 		public HasPageSelectionHandler getPageSelectionTool();
+		
+		/**
+		 * Gets the page size selection tool.
+		 * 
+		 * @return the page size selection tool
+		 */
 		public HasPageSizeSelectionHandler getPageSizeSelectionTool();
+		
+		/**
+		 * Gets the page size.
+		 * 
+		 * @return the page size
+		 */
 		public int getPageSize();
+		
+		/**
+		 * Clear all radio buttons.
+		 * 
+		 * @param dataTable
+		 *            the data table
+		 */
 		void clearAllRadioButtons(Grid508 dataTable);
+		
+		/**
+		 * Gets the data table.
+		 * 
+		 * @return the data table
+		 */
 		public Grid508 getDataTable();
 	}
 	
 	
+	/**
+	 * The Interface DraftDisplay.
+	 */
 	public static interface DraftDisplay{
+		
+		/**
+		 * As widget.
+		 * 
+		 * @return the widget
+		 */
 		public Widget asWidget();
+		
+		/**
+		 * Gets the error message display.
+		 * 
+		 * @return the error message display
+		 */
 		public ErrorMessageDisplayInterface getErrorMessageDisplay();
+		
+		/**
+		 * Gets the success message display.
+		 * 
+		 * @return the success message display
+		 */
 		public SuccessMessageDisplayInterface getSuccessMessageDisplay();
+		
+		/**
+		 * Gets the save button.
+		 * 
+		 * @return the save button
+		 */
 		public HasClickHandlers getSaveButton();
+		
+		/**
+		 * Gets the cancel button.
+		 * 
+		 * @return the cancel button
+		 */
 		public HasClickHandlers getCancelButton();
+		
+		/**
+		 * Builds the data table.
+		 * 
+		 * @param results
+		 *            the results
+		 * @param pageCount
+		 *            the page count
+		 * @param totalResults
+		 *            the total results
+		 * @param currentPage
+		 *            the current page
+		 * @param pageSize
+		 *            the page size
+		 */
 		public void buildDataTable(SearchResults<ManageValueSetSearchModel.Result> results,int pageCount,long totalResults,int currentPage,int pageSize);
+		
+		/**
+		 * Gets the page size.
+		 * 
+		 * @return the page size
+		 */
 		public int getPageSize();
+		
+		/**
+		 * Sets the page size.
+		 * 
+		 * @param pageNumber
+		 *            the new page size
+		 */
 		public void setPageSize(int pageNumber);
+		
+		/**
+		 * Gets the current page.
+		 * 
+		 * @return the current page
+		 */
 		public int getCurrentPage();
+		
+		/**
+		 * Sets the current page.
+		 * 
+		 * @param pageNumber
+		 *            the new current page
+		 */
 		public void setCurrentPage(int pageNumber);		
+		
+		/**
+		 * Gets the page selection tool.
+		 * 
+		 * @return the page selection tool
+		 */
 		public HasPageSelectionHandler getPageSelectionTool();
+		
+		/**
+		 * Gets the page size selection tool.
+		 * 
+		 * @return the page size selection tool
+		 */
 		public HasPageSizeSelectionHandler getPageSizeSelectionTool();
 	}
 	
+	/** The history display. */
 	private HistoryDisplay historyDisplay;
+	
+	/** The panel. */
 	private ContentWithHeadingWidget panel = new ContentWithHeadingWidget();
+	
+	/** The search display. */
 	private ValueSetSearchDisplay searchDisplay;
+	
+	/** The admin search display. */
 	private AdminValueSetSearchDisplay adminSearchDisplay;
+	
+	/** The last search text. */
 	private String lastSearchText;
+	
+	/** The transfer display. */
 	private TransferDisplay transferDisplay;
+	
+	/** The last start index. */
 	private int lastStartIndex;
+	
+	/** The current sort column. */
 	private String currentSortColumn = getSortKey(0);
+	
+	/** The sort is ascending. */
 	private boolean sortIsAscending = true;
+	
+	/** The default code list. */
 	private boolean defaultCodeList = false;
+	
+	/** The button bar. */
 	private PreviousContinueButtonBar buttonBar = null;
+	
+	/** The history model. */
 	private HistoryModel historyModel;
+	
+	/** The draft display. */
 	private DraftDisplay draftDisplay;
+	
+	/** The draft value set results. */
 	private ManageValueSetModel draftValueSetResults;
+	
+	/** The current details. */
 	private ManageCodeListDetailModel currentDetails;
+	
+	/** The start index. */
 	private int startIndex = 1;
 	
+	/** The model. */
 	private TransferOwnerShipModel model = null;
+	
+	/** The search model. */
 	private AdminManageCodeListSearchModel searchModel;
 	
+	/** The cancel click handler. */
 	private ClickHandler cancelClickHandler = new ClickHandler() {
 		@Override
 		public void onClick(ClickEvent event) {
 			draftDisplay.getErrorMessageDisplay().clear();
 			draftDisplay.getSuccessMessageDisplay().clear();
-			searchDisplay.clearSelections();
+			// Code commented for User Story MAT-2372 : Remove Value Set Creation.
+			//searchDisplay.clearSelections();
 			MatContext.get().getEventBus().fireEvent(new CancelEditCodeListEvent());
 			displaySearch();
 		}
 	};
 	
+	/**
+	 * Instantiates a new manage code list search presenter.
+	 * 
+	 * @param sDisplayArg
+	 *            the s display arg
+	 * @param adminValueSetDisplayArg
+	 *            the admin value set display arg
+	 * @param argHistDisplay
+	 *            the arg hist display
+	 * @param prevContButtons
+	 *            the prev cont buttons
+	 * @param dDisplay
+	 *            the d display
+	 */
 	public ManageCodeListSearchPresenter(ValueSetSearchDisplay sDisplayArg,AdminValueSetSearchDisplay adminValueSetDisplayArg ,HistoryDisplay argHistDisplay, HasVisible prevContButtons, DraftDisplay dDisplay) {
 		this.searchDisplay = sDisplayArg;
 		this.adminSearchDisplay = adminValueSetDisplayArg;
@@ -195,8 +715,8 @@ public class ManageCodeListSearchPresenter {
 		this.buttonBar = (PreviousContinueButtonBar) prevContButtons;
 		this.draftDisplay = dDisplay;
 		displaySearch();		
-		
-		searchDisplayHandlers(searchDisplay);
+		if(searchDisplay!=null)
+			searchDisplayHandlers(searchDisplay);
 		adminSearchDisplayHandlers(adminSearchDisplay);
 		draftDisplayHandlers(draftDisplay);	
 		historyDisplayHandlers(historyDisplay); 	
@@ -212,6 +732,22 @@ public class ManageCodeListSearchPresenter {
 				});
 	}
 	
+	/**
+	 * Instantiates a new manage code list search presenter.
+	 * 
+	 * @param sDisplayArg
+	 *            the s display arg
+	 * @param adminValueSetDisplayArg
+	 *            the admin value set display arg
+	 * @param argHistDisplay
+	 *            the arg hist display
+	 * @param prevContButtons
+	 *            the prev cont buttons
+	 * @param dDisplay
+	 *            the d display
+	 * @param tDisplay
+	 *            the t display
+	 */
 	public ManageCodeListSearchPresenter(ValueSetSearchDisplay sDisplayArg,AdminValueSetSearchDisplay adminValueSetDisplayArg ,HistoryDisplay argHistDisplay, HasVisible prevContButtons, DraftDisplay dDisplay, TransferDisplay tDisplay) {
 		this.searchDisplay = sDisplayArg;
 		this.adminSearchDisplay = adminValueSetDisplayArg;
@@ -219,9 +755,8 @@ public class ManageCodeListSearchPresenter {
 		this.buttonBar = (PreviousContinueButtonBar) prevContButtons;
 		this.draftDisplay = dDisplay;
 		this.transferDisplay = tDisplay;
-		displaySearch();		
-		
-		searchDisplayHandlers(searchDisplay);
+		if(searchDisplay!=null)
+			searchDisplayHandlers(searchDisplay);
 		adminSearchDisplayHandlers(adminSearchDisplay);
 		draftDisplayHandlers(draftDisplay);	
 		historyDisplayHandlers(historyDisplay); 	
@@ -235,8 +770,15 @@ public class ManageCodeListSearchPresenter {
 						//searchDisplay.setCreateButtonsVisible(event.isEditable());
 					}
 				});
+		displaySearch();		
 	}
 	
+	/**
+	 * Transfer display handlers.
+	 * 
+	 * @param transferDisplay
+	 *            the transfer display
+	 */
 	private void transferDisplayHandlers(final TransferDisplay transferDisplay) {
 		
 		transferDisplay.getSaveButton().addClickHandler(new ClickHandler(){
@@ -255,7 +797,7 @@ public class ManageCodeListSearchPresenter {
 									@Override
 									public void onFailure(Throwable caught) {
 										Window.alert(MatContext.get().getMessageDelegate().getGenericErrorMessage());
-										searchModel.getTransferValueSetIDs().clear();;
+										searchModel.getTransferValueSetIDs().clear();
 										searchModel.getLisObjectId().clear();
 										model.getData().get(rowIndex).setSelected(false);
 									}
@@ -271,7 +813,7 @@ public class ManageCodeListSearchPresenter {
 				}
 				if(userSelected==false){
 					transferDisplay.getSuccessMessageDisplay().clear();
-					//transferDisplay.getErrorMessageDisplay().setMessage("Please select at least one user to transfer ownership.");
+					transferDisplay.getErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getUserRequiredErrorMessage());
 					
 				}
 					
@@ -286,9 +828,9 @@ public class ManageCodeListSearchPresenter {
 				searchModel.getTransferValueSetIDs().clear();
 				transferDisplay.getSuccessMessageDisplay().clear();
 				transferDisplay.getErrorMessageDisplay().clear();
+				@SuppressWarnings("static-access")
 				int filter = searchDisplay.getValueSetSearchFilterPanel().ALL_VALUE_SETS;
-				search(searchDisplay.getSearchString().getValue(),
-					startIndex, currentSortColumn, sortIsAscending,defaultCodeList, filter);
+				search(emptySearchString,startIndex, currentSortColumn, sortIsAscending,defaultCodeList, filter);
 			}
 		});
 	
@@ -308,6 +850,12 @@ public class ManageCodeListSearchPresenter {
 	}
 
 
+	/**
+	 * History display handlers.
+	 * 
+	 * @param historyDisplay
+	 *            the history display
+	 */
 	private void historyDisplayHandlers(final HistoryDisplay historyDisplay) {
 			historyDisplay.getSaveButton().addClickHandler(new ClickHandler(){
 			@Override
@@ -394,6 +942,12 @@ public class ManageCodeListSearchPresenter {
 		
 	}
 
+	/**
+	 * Draft display handlers.
+	 * 
+	 * @param draftDisplay
+	 *            the draft display
+	 */
 	private void draftDisplayHandlers(final DraftDisplay draftDisplay) {
 		
 		draftDisplay.getCancelButton().addClickHandler(cancelClickHandler);
@@ -474,6 +1028,12 @@ public class ManageCodeListSearchPresenter {
 		
 	}
 
+	/**
+	 * Search display handlers.
+	 * 
+	 * @param searchDisplay
+	 *            the search display
+	 */
 	private void searchDisplayHandlers(final ValueSetSearchDisplay searchDisplay) {
 		
 		searchDisplay.getSelectIdForEditTool().addSelectionHandler(new SelectionHandler<CodeListSearchDTO>() {
@@ -490,14 +1050,8 @@ public class ManageCodeListSearchPresenter {
 				}
 			}
 		});
-		searchDisplay.getTransferButton().addClickHandler(new ClickHandler() {
-			@Override
-			public void onClick(ClickEvent event) {
-				searchDisplay.clearAllCheckBoxes(searchDisplay.getDataTable());
-				displayTransferView(startIndex,transferDisplay.getPageSize());
-			}
-		});
 		searchDisplay.getSearchButton().addClickHandler(new ClickHandler() {
+			@SuppressWarnings("static-access")
 			@Override
 			public void onClick(ClickEvent event) {
 				int filter = searchDisplay.getValueSetSearchFilterPanel().getSelectedIndex();
@@ -512,6 +1066,7 @@ public class ManageCodeListSearchPresenter {
 			}
 		});
 		searchDisplay.getPageSelectionTool().addPageSelectionHandler(new PageSelectionEventHandler() {
+			@SuppressWarnings("static-access")
 			@Override
 			public void onPageSelection(PageSelectionEvent event) {
 				int startIndex = searchDisplay.getPageSize() * (event.getPageNumber() - 1) + 1;
@@ -523,6 +1078,7 @@ public class ManageCodeListSearchPresenter {
 			}
 		});
 		searchDisplay.getPageSizeSelectionTool().addPageSizeSelectionHandler(new PageSizeSelectionEventHandler() {
+			@SuppressWarnings("static-access")
 			@Override
 			public void onPageSizeSelection(PageSizeSelectionEvent event) {
 				searchDisplay.getSearchString().setValue("");
@@ -534,6 +1090,7 @@ public class ManageCodeListSearchPresenter {
 			}
 		});
 		searchDisplay.getPageSortTool().addPageSortHandler(new PageSortEventHandler() {
+			@SuppressWarnings("static-access")
 			@Override
 			public void onPageSort(PageSortEvent event) {
 				String sortColumn = getSortKey(event.getColumn());
@@ -551,8 +1108,8 @@ public class ManageCodeListSearchPresenter {
 				search(lastSearchText, lastStartIndex, currentSortColumn, sortIsAscending,defaultCodeList, filter);
 			}
 		});
-		/*US537*/
-		searchDisplay.getCreateButton().addClickHandler(new ClickHandler() {
+		// Code commented for User Story MAT-2372 : Remove Value Set Creation.
+		/*searchDisplay.getCreateButton().addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
 				if(searchDisplay.getSelectedOption().equalsIgnoreCase(ConstantMessages.CREATE_NEW_GROUPED_VALUE_SET)){
@@ -565,7 +1122,7 @@ public class ManageCodeListSearchPresenter {
 					searchDisplay.getErrorMessageDisplay().setMessage("Please select an option from the Create list box.");
 				}
 			}
-		});
+		});*/
 		
 		TextBox searchWidget = (TextBox)(searchDisplay.getSearchString());
 		searchWidget.addKeyUpHandler(new KeyUpHandler() {
@@ -578,6 +1135,12 @@ public class ManageCodeListSearchPresenter {
 		});
 	}
 	
+	/**
+	 * Admin search display handlers.
+	 * 
+	 * @param adminSearchDisplay
+	 *            the admin search display
+	 */
 	private void adminSearchDisplayHandlers(final AdminValueSetSearchDisplay adminSearchDisplay) {
 		
 		adminSearchDisplay.getClearButton().addClickHandler(new ClickHandler() {
@@ -585,6 +1148,7 @@ public class ManageCodeListSearchPresenter {
 			public void onClick(ClickEvent event) {
 				searchModel.getTransferValueSetIDs().removeAll(searchModel.getTransferValueSetIDs());
 				searchModel.getLisObjectId().removeAll(searchModel.getLisObjectId());
+				@SuppressWarnings("static-access")
 				int filter = adminSearchDisplay.getValueSetSearchFilterPanel().ALL_VALUE_SETS;
 				search(adminSearchDisplay.getSearchString().getValue(),
 					startIndex, currentSortColumn, sortIsAscending,defaultCodeList, filter);
@@ -594,11 +1158,12 @@ public class ManageCodeListSearchPresenter {
 		adminSearchDisplay.getTransferButton().addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
-				adminSearchDisplay.clearTransferCheckBoxes();
+				//adminSearchDisplay.clearTransferCheckBoxes();
 				displayTransferView(startIndex,transferDisplay.getPageSize());
 			}
 		});
 		adminSearchDisplay.getSearchButton().addClickHandler(new ClickHandler() {
+			@SuppressWarnings("static-access")
 			@Override
 			public void onClick(ClickEvent event) {
 				int filter = adminSearchDisplay.getValueSetSearchFilterPanel().getSelectedIndex();
@@ -606,6 +1171,7 @@ public class ManageCodeListSearchPresenter {
 				currentSortColumn = getSortKey(0);
 				sortIsAscending = true;
 				if(ClientConstants.ADMINISTRATOR.equalsIgnoreCase(MatContext.get().getLoggedInUserRole())){
+					
 					 filter = adminSearchDisplay.getValueSetSearchFilterPanel().ALL_VALUE_SETS;
 				}
 				search(adminSearchDisplay.getSearchString().getValue(),
@@ -624,26 +1190,34 @@ public class ManageCodeListSearchPresenter {
 		});
 	}
 
+	/**
+	 * Reset display.
+	 */
 	@SuppressWarnings("static-access")
 	void resetDisplay() {
 		currentSortColumn = getSortKey(0);
 		sortIsAscending = true;
 		int filter;
 		if(ClientConstants.ADMINISTRATOR.equalsIgnoreCase(MatContext.get().getLoggedInUserRole())){
-			 filter = searchDisplay.getValueSetSearchFilterPanel().ALL_VALUE_SETS;
+			 filter = adminSearchDisplay.getValueSetSearchFilterPanel().ALL_VALUE_SETS;
+			 search(adminSearchDisplay.getSearchString().getValue(), 1, currentSortColumn, sortIsAscending,defaultCodeList, filter);
 		}else{
 			//MAT-1929 : Commented default search filter criteria for story Retain filter and search criteria.
 			//filter = searchDisplay.getValueSetSearchFilterPanel().getDefaultFilter();
 			filter = searchDisplay.getValueSetSearchFilterPanel().getSelectedIndex();
+			search(searchDisplay.getSearchString().getValue(), 1, currentSortColumn, sortIsAscending,defaultCodeList, filter);
 		}
 		//MAT-1929 :Search for value set drop down retains filter criteria.This is done for story" Retain filter and search criteria.".
 		//searchDisplay.getValueSetSearchFilterPanel().resetFilter();
-		search(searchDisplay.getSearchString().getValue(), 1, currentSortColumn, sortIsAscending,defaultCodeList, filter);
+		
 		//MAT-1929 :Commented clearSelections.This is done for story" Retain filter and search criteria.".
 		//searchDisplay.clearSelections();
 		
 	}
 	
+	/**
+	 * Display search.
+	 */
 	private void displaySearch() {
 		if(ClientConstants.ADMINISTRATOR.equalsIgnoreCase(MatContext.get().getLoggedInUserRole())){
 			MY_VALUE_SETS = "Value Sets";
@@ -653,6 +1227,14 @@ public class ManageCodeListSearchPresenter {
 		}
 	}
 	
+	/**
+	 * Display transfer view.
+	 * 
+	 * @param startIndex
+	 *            the start index
+	 * @param pageSize
+	 *            the page size
+	 */
 	private void displayTransferView(int startIndex, int pageSize){
 		final ArrayList<CodeListSearchDTO> transferValueSetIDs = searchModel.getTransferValueSetIDs();
 		adminSearchDisplay.getErrorMessageDisplay().clear();
@@ -660,19 +1242,19 @@ public class ManageCodeListSearchPresenter {
 		transferDisplay.getErrorMessageDisplay().clear();
 		if(transferValueSetIDs.size() !=0){
 			
-			showSearchingBusy(true);
+			showAdminSearchingBusy(true);
 			MatContext.get().getCodeListService().searchUsers(1,pageSize,new AsyncCallback<TransferOwnerShipModel>(){
 				@Override
 				public void onFailure(Throwable caught) {
 					Window.alert(MatContext.get().getMessageDelegate().getGenericErrorMessage());
-					showSearchingBusy(false);
+					showAdminSearchingBusy(false);
 				}
 				@Override
 				public void onSuccess(TransferOwnerShipModel result) {
 					transferDisplay.buildHTMLForValueSets(transferValueSetIDs);
 					transferDisplay.buildDataTable(result,transferValueSetIDs);
 					resetPanel(transferDisplay.asWidget(), "Value Set Ownership >  Value Set Ownership Transfer");
-					showSearchingBusy(false);
+					showAdminSearchingBusy(false);
 					model = result;
 				}
 			});
@@ -683,6 +1265,9 @@ public class ManageCodeListSearchPresenter {
 		
 	}
 	
+	/**
+	 * History.
+	 */
 	private void history() {		
 		
 		int pageNumber = historyDisplay.getCurrentPage();
@@ -691,18 +1276,33 @@ public class ManageCodeListSearchPresenter {
 		searchHistory(historyDisplay.getCodeListId(), startIndex, pageSize);		
 		if(ClientConstants.ADMINISTRATOR.equalsIgnoreCase(MatContext.get().getLoggedInUserRole())){
 			MY_VALUE_SETS_HISTORY = "Value Sets Ownership  > History";
-			searchDisplay.getTransferErrorMessageDisplay().clear();
+			
 		}
 		resetPanel(historyDisplay.asWidget(), MY_VALUE_SETS_HISTORY);
 		Mat.focusSkipLists("MainContent");
 	}
 
 	
+	/**
+	 * Search history.
+	 * 
+	 * @param codeListId
+	 *            the code list id
+	 * @param startIndex
+	 *            the start index
+	 * @param pageSize
+	 *            the page size
+	 */
 	private void searchHistory(String codeListId, int startIndex, int pageSize) {
-	    //The filterList tells us what need not to be shown in the UI. This is created as list, Since, in future if the list grows.
-		//TODO:- we should have propertyFile called filterList, rather than hardcoding here.
+	    /**
+	     * The filterList tells us what need not to be shown in the UI. This is created as list, Since, in future if the list grows.
+	     * 9-18-2013: Added "Measure Export","Measure Exported" and "Measure Package Exported" in the filter.
+	     */		   
 		List<String> filterList = new ArrayList<String>();
 	    filterList.add("Export");
+	    filterList.add("Measure Export");
+	    filterList.add("Measure Exported");
+	    filterList.add("Measure Package Exported");
 		MatContext.get().getAuditService().executeCodeListLogSearch(codeListId, startIndex, pageSize,filterList, new AsyncCallback<SearchHistoryDTO>() {		
 			@Override
 			public void onSuccess(SearchHistoryDTO data) {
@@ -720,17 +1320,36 @@ public class ManageCodeListSearchPresenter {
 	}
 	
 	
+	/**
+	 * Search.
+	 * 
+	 * @param searchText
+	 *            the search text
+	 * @param startIndex
+	 *            the start index
+	 * @param sortColumn
+	 *            the sort column
+	 * @param isAsc
+	 *            the is asc
+	 * @param defaultCodeList
+	 *            the default code list
+	 * @param filter
+	 *            the filter
+	 */
 	private void search(String searchText, int startIndex, String sortColumn, boolean isAsc,boolean defaultCodeList, int filter) {
-		lastSearchText = (!searchText.equals(null))? searchText.trim() : null;
+		lastSearchText = (searchText!=null)? searchText.trim() : null;
 		lastStartIndex = startIndex;
-		int pageSize = searchDisplay.getPageSize();
+		
 		final boolean isAscending = isAsc;
-		showSearchingBusy(true);
-		searchDisplay.getErrorMessageDisplay().clear();
-		searchDisplay.getTransferErrorMessageDisplay().clear();
-		String trimmedSearchText = (!searchText.equals(null))? searchText.trim() : null;
+		
+		
+		
+		String trimmedSearchText = (searchText!=null)? searchText.trim() : null;
 		if(MatContext.get().getLoggedInUserRole().equalsIgnoreCase(ClientConstants.ADMINISTRATOR)){
-			pageSize= Integer.MAX_VALUE;
+			int pageSize= Integer.MAX_VALUE;
+			adminSearchDisplay.getErrorMessageDisplay().clear();
+			adminSearchDisplay.getTransferErrorMessageDisplay().clear();
+			showAdminSearchingBusy(true);
 			MatContext.get().getCodeListService().searchForAdmin(trimmedSearchText,
 																 startIndex, pageSize, 
 																 sortColumn, isAsc,defaultCodeList, filter, 
@@ -739,7 +1358,7 @@ public class ManageCodeListSearchPresenter {
 						public void onFailure(Throwable caught) {
 							adminSearchDisplay.getErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getGenericErrorMessage());
 							MatContext.get().recordTransactionEvent(null, null, null, "Unhandled Exception: "+caught.getLocalizedMessage(), 0);
-							showSearchingBusy(false);
+							showAdminSearchingBusy(false);
 						}
 						@Override
 						public void onSuccess(AdminManageCodeListSearchModel result) {
@@ -778,15 +1397,18 @@ public class ManageCodeListSearchPresenter {
 							}else{
 								adminSearchDisplay.getErrorMessageDisplay().clear();
 							}
+							adminSearchDisplay.getTransferErrorMessageDisplay().clear();
 							adminSearchDisplay.setAdapter(adapter);
-							adminSearchDisplay.buildDataTable(adapter.getModel(), isAscending);
+							adminSearchDisplay.buildDataTable(adapter.getModel());
 							displaySearch();
 							adminSearchDisplay.getErrorMessageDisplay().setFocus();
-							showSearchingBusy(false);
+							showAdminSearchingBusy(false);
 						}
 			});
 		}else{
-			
+			int pageSize = searchDisplay.getPageSize();
+			showSearchingBusy(true);
+			searchDisplay.getErrorMessageDisplay().clear();
 			MatContext.get().getCodeListService().search(trimmedSearchText,
 														startIndex, pageSize, 
 														sortColumn, isAsc,defaultCodeList, filter, 
@@ -862,6 +1484,14 @@ public class ManageCodeListSearchPresenter {
 		}
 	}
 	
+	/**
+	 * Update transfer i ds.
+	 * 
+	 * @param codeList
+	 *            the code list
+	 * @param model
+	 *            the model
+	 */
 	private void updateTransferIDs(CodeListSearchDTO codeList,AdminManageCodeListSearchModel model) {
 		if(codeList.isTransferable()){
 			List<String> codeIdList = model.getLisObjectId();
@@ -871,7 +1501,7 @@ public class ManageCodeListSearchPresenter {
 			}
 		}else{
 			for(int i=0 ;i< model.getTransferValueSetIDs().size();i++){
-				if(codeList.getId() == model.getTransferValueSetIDs().get(i).getId()){
+				if(codeList.getId().equals(model.getTransferValueSetIDs().get(i).getId())){
 					model.getTransferValueSetIDs().remove(i);
 					model.getLisObjectId().remove(i);
 				}
@@ -880,6 +1510,12 @@ public class ManageCodeListSearchPresenter {
 		}
 	}
 	
+	/**
+	 * Show searching busy.
+	 * 
+	 * @param busy
+	 *            the busy
+	 */
 	private void showSearchingBusy(boolean busy){
 		if(busy)
 			Mat.showLoadingMessage();
@@ -889,14 +1525,47 @@ public class ManageCodeListSearchPresenter {
 		((TextBox)(searchDisplay.getSearchString())).setEnabled(!busy);
 	}
 	
+	/**
+	 * Show admin searching busy.
+	 * 
+	 * @param busy
+	 *            the busy
+	 */
+	private void showAdminSearchingBusy(boolean busy){
+		if(busy)
+			Mat.showLoadingMessage();
+		else
+			Mat.hideLoadingMessage();
+		((Button)adminSearchDisplay.getSearchButton()).setEnabled(!busy);
+		((TextBox)(adminSearchDisplay.getSearchString())).setEnabled(!busy);
+	}
+	
+	/**
+	 * Refresh search.
+	 */
 	void refreshSearch() {
 		int filter = searchDisplay.getValueSetSearchFilterPanel().getSelectedIndex();
 		search(lastSearchText, lastStartIndex, currentSortColumn, sortIsAscending,defaultCodeList, filter);
 	}
+	
+	/**
+	 * Gets the widget.
+	 * 
+	 * @return the widget
+	 */
 	public Widget getWidget() {
 		return panel;
 	}
 		
+	/**
+	 * Gets the widget with heading.
+	 * 
+	 * @param widget
+	 *            the widget
+	 * @param heading
+	 *            the heading
+	 * @return the widget with heading
+	 */
 	public Widget getWidgetWithHeading(Widget widget, String heading) {
 		FlowPanel vPanel = new FlowPanel();
 		Label h = new Label(heading);
@@ -909,11 +1578,21 @@ public class ManageCodeListSearchPresenter {
 		return vPanel;
 	}
 	
+	/**
+	 * Gets the sort key.
+	 * 
+	 * @param columnIndex
+	 *            the column index
+	 * @return the sort key
+	 */
 	public String getSortKey(int columnIndex) {
 		String[] sortKeys = new String[] { "name","last modifed", "st.orgName", "c.description", "cs.description", "history"};
 		return sortKeys[columnIndex];
 	}
 	
+	/**
+	 * Creates the value set draft screen.
+	 */
 	private void createValueSetDraftScreen(){
     	int pageNumber = draftDisplay.getCurrentPage();
 		int pageSize = draftDisplay.getPageSize();
@@ -926,6 +1605,14 @@ public class ManageCodeListSearchPresenter {
     	Mat.focusSkipLists("MainContent");
 	}
 	
+	/**
+	 * Search value sets for draft.
+	 * 
+	 * @param startIndex
+	 *            the start index
+	 * @param pageSize
+	 *            the page size
+	 */
 	private void searchValueSetsForDraft(int startIndex, int pageSize){
 		
 		MatContext.get().getCodeListService().searchValueSetsForDraft(startIndex, pageSize, 
@@ -946,6 +1633,14 @@ public class ManageCodeListSearchPresenter {
 		
 	}
 	
+	/**
+	 * Reset panel.
+	 * 
+	 * @param w
+	 *            the w
+	 * @param heading
+	 *            the heading
+	 */
 	private void resetPanel(Widget w, String heading){
 		panel.setHeading(heading, heading);
 		panel.setContent(w);

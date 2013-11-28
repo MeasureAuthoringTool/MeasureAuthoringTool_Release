@@ -5,10 +5,17 @@ import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.Label;
 
+/**
+ * The Class PasswordRules.
+ */
 public class PasswordRules extends Composite {
 
+	/**
+	 * Instantiates a new password rules.
+	 */
 	public PasswordRules() {
 		FlowPanel fPanel = new FlowPanel();
+		fPanel.getElement().setId("fPanel_FlowPanel");
 		Label rules = new Label("Password Rules");
 		rules.addStyleName("bold");
 		HTML desc = new HTML("Passwords must not consist of a single dictionary word with letters, numbers and symbols. <br><br> Passwords must be between 8 and 16 characters and contain at least one of each of  the following:"

@@ -6,8 +6,10 @@ import mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay;
 import mat.client.shared.ErrorMessageDisplay;
 import mat.client.shared.MatContext;
 import mat.client.shared.PrimaryButton;
+import mat.client.shared.SecondaryButton;
 import mat.client.shared.SpacerWidget;
 import mat.client.shared.SuccessMessageDisplay;
+import mat.client.shared.WarningMessageDisplay;
 
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.cell.client.ValueUpdater;
@@ -46,59 +48,116 @@ import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwt.view.client.TreeViewModel;
 
+/**
+ * The Class XmlTreeView.
+ */
 public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewModel, KeyDownHandler, FocusHandler{
 
+	/**
+	 * The Interface Template.
+	 */
 	interface Template extends SafeHtmlTemplates {
-	    @Template("<div class=\"{0}\" title=\"{1}\">{2}</div>")
+	    
+    	/**
+		 * Outer div.
+		 * 
+		 * @param classes
+		 *            the classes
+		 * @param title
+		 *            the title
+		 * @param content
+		 *            the content
+		 * @return the safe html
+		 */
+    	@Template("<div class=\"{0}\" title=\"{1}\">{2}</div>")
 	    SafeHtml outerDiv(String classes, String title, String content);
 	}
 	
+	/** The Constant template. */
 	private static final Template template = GWT.create(Template.class);
 	 
+	/** The main panel. */
 	private FlowPanel  mainPanel = new FlowPanel();
 	
+	/** The is valid. */
+	boolean isValid = true;
+	
+	
+	/** The focus panel. */
 	FocusPanel focusPanel = new FocusPanel(mainPanel);
 
+	/** The cell tree. */
 	CellTree cellTree;
 
+	/** The save btn. */
 	private Button saveBtn = new PrimaryButton("Save","primaryButton");
+	
+	/** The validate btn. */
+	private Button validateBtn = new SecondaryButton("Validate");
 
+	/** The button expand. */
 	private Button buttonExpand = new Button();
 	
+	/** The button collapse. */
 	private Button buttonCollapse = new Button();
 
+	/** The error message display. */
 	private ErrorMessageDisplay errorMessageDisplay = new ErrorMessageDisplay();
 
+	/** The success message display. */
 	private SuccessMessageDisplay successMessageDisplay = new SuccessMessageDisplay();
+	
+	/** The warning message display. */
+	private WarningMessageDisplay warningMessageDisplay = new WarningMessageDisplay();
 
+	/** The node data provider. */
 	private ListDataProvider<CellTreeNode> nodeDataProvider;
 
+	/** The selected node. */
 	CellTreeNode selectedNode;
 
+	/** The selection model. */
 	final SingleSelectionModel<CellTreeNode> selectionModel = new SingleSelectionModel<CellTreeNode>();
 
+	/** The copied node. */
 	CellTreeNode copiedNode;
 
+	/** The popup panel. */
 	PopupPanel popupPanel = new PopupPanel(true);
 
+	/** The clause workspace context menu. */
 	ClauseWorkspaceContextMenu clauseWorkspaceContextMenu = new ClauseWorkspaceContextMenu(this, popupPanel);
 
+	/** The enabled. */
 	boolean enabled;
 	
+	/** The is dirty. */
 	boolean isDirty = false;
 	
 
+	/**
+	 * Instantiates a new xml tree view.
+	 * 
+	 * @param cellTreeNode
+	 *            the cell tree node
+	 */
 	public XmlTreeView(CellTreeNode cellTreeNode) {
 		clearMessages();
 		createRootNode(cellTreeNode);
 		addHandlers();
+		mainPanel.getElement().setId("mainPanel_FlowPanel");
+		saveBtn.getElement().setId("saveBtn_Button");
+		buttonExpand.getElement().setId("buttonExpand_Button");
+		buttonCollapse.getElement().setId("buttonCollapse_Button");
 	}
 
 
 	/**
-	 * Creates the Root Node in the CellTree.
-	 * Sets the Root node to the ListData Provider.
-	 * @param treeModel
+	 * Creates the Root Node in the CellTree. Sets the Root node to the ListData
+	 * Provider.
+	 * 
+	 * @param cellTreeNode
+	 *            the cell tree node
 	 */
 	private void createRootNode(CellTreeNode cellTreeNode) {
 		nodeDataProvider = new ListDataProvider<CellTreeNode>(cellTreeNode.getChilds());
@@ -106,21 +165,27 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 
 
 	/**
-	 * Page widgets
+	 * Page widgets.
+	 * 
 	 * @param cellTree
+	 *            the cell tree
 	 */
 	public void createPageView(CellTree cellTree) {
 		this.cellTree = cellTree;
 		mainPanel.setStyleName("div-wrapper");//main div
 		
 		SimplePanel leftPanel = new SimplePanel();
+		leftPanel.getElement().setId("leftPanel_SimplePanel");
 		leftPanel.setStyleName("div-first bottomPadding10px");//left side div which will  have tree
 
 		SimplePanel rightPanel = new SimplePanel();
+		rightPanel.getElement().setId("rightPanel_SimplePanel");
 		rightPanel.setStyleName("div-second");//right div having tree creation inputs.
 
 		VerticalPanel treePanel =  new VerticalPanel();
+		treePanel.getElement().setId("treePanel_VerticalPanel");
 		HorizontalPanel expandCollapse  = new HorizontalPanel();
+		expandCollapse.getElement().setId("expandCollapse_HorizontalPanel");
 		expandCollapse.setStyleName("leftAndTopPadding");
 		expandCollapse.setSize("100px", "20px");
 		buttonExpand.setStylePrimaryName("expandAllButton");
@@ -137,17 +202,24 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 		leftPanel.add(treePanel);
 
 		SimplePanel bottomSavePanel = new SimplePanel();
+		bottomSavePanel.getElement().setId("bottomSavePanel_SimplePanel");
 		bottomSavePanel.setStyleName("div-first buttonPadding");
-		VerticalPanel savePanel = new VerticalPanel();
+		VerticalPanel vp = new VerticalPanel();
+		HorizontalPanel savePanel = new HorizontalPanel();
+		savePanel.getElement().setId("savePanel_VerticalPanel");
 		savePanel.add(new SpacerWidget());
 //		savePanel.add(errorMessageDisplay);
-		savePanel.add(successMessageDisplay);
+		vp.add(successMessageDisplay);
 //		saveBtn.setTitle("Ctrl+Alt+s");
 		savePanel.add(saveBtn);
-
-		bottomSavePanel.add(savePanel);
+		validateBtn.setTitle("Validate");
+		savePanel.add(validateBtn);
+		vp.add(warningMessageDisplay);
+		vp.add(savePanel);
+		bottomSavePanel.add(vp);
 
 		SimplePanel errPanel = new SimplePanel();
+		errPanel.getElement().setId("errPanel_SimplePanel");
 		errPanel.add(errorMessageDisplay);
 		mainPanel.add(errPanel);
 		mainPanel.add(leftPanel);
@@ -159,7 +231,7 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 	}
 
 	/**
-	 * Selection Handler, Tree Open and Close Handlers Defined
+	 * Selection Handler, Tree Open and Close Handlers Defined.
 	 */
 	private void cellTreeHandlers() {
 		selectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
@@ -201,8 +273,11 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 
 
 	/**
-	 * Iterating through all the child nodes and setting the isOpen boolean to false.
+	 * Iterating through all the child nodes and setting the isOpen boolean to
+	 * false.
+	 * 
 	 * @param node
+	 *            the new open to false
 	 */
 	private void setOpenToFalse(CellTreeNode node) {
 		if(node.hasChildren()){
@@ -214,12 +289,15 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 	}
 	
 	/**
-	 * Closing all nodes in the CellTree except for the Master Root Node which is the Population node.
-	 * This method is called when '-' Collapse All button is clicked on the Screen
-	 * @param treeNode
-	 * @param fireEvents
+	 * Closing all nodes in the CellTree except for the Master Root Node which
+	 * is the Population node. This method is called when '-' Collapse All
+	 * button is clicked on the Screen
+	 * 
+	 * @param node
+	 *            the node
 	 */
-	private void closeNodes(TreeNode node) {
+	@Override
+	public void closeNodes(TreeNode node) {
 		if(node != null){
 			for (int i = 0; i < node.getChildCount(); i++) {
 				TreeNode subTree  = null;
@@ -238,10 +316,13 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 	}
 
 	/**
-	 * This method is called  after removing or editing of the node.
-	 * When a node is removed, parent node is closed first and then opened.
-	 * Remaining all nodes will be opened or closed based on the isOpen boolean in CellTreeNode
+	 * This method is called after removing or editing of the node. When a node
+	 * is removed, parent node is closed first and then opened. Remaining all
+	 * nodes will be opened or closed based on the isOpen boolean in
+	 * CellTreeNode
+	 * 
 	 * @param treeNode
+	 *            the tree node
 	 */
 	private void closeParentOpenNodes(TreeNode treeNode) {
 		if(treeNode != null){
@@ -261,10 +342,12 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 
 
 	/**
-	 * This method is called after adding a child node to the parent.
-	 * After adding a child node, close the Parent node and open.
-	 * Remaining all nodes will be opened or closed based on the isOpen boolean in CellTreeNode
+	 * This method is called after adding a child node to the parent. After
+	 * adding a child node, close the Parent node and open. Remaining all nodes
+	 * will be opened or closed based on the isOpen boolean in CellTreeNode
+	 * 
 	 * @param treeNode
+	 *            the tree node
 	 */
 	private void closeSelectedOpenNodes(TreeNode treeNode) {
 		if(treeNode != null){
@@ -283,10 +366,14 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 	}
 
 	/**
-	 * Opens all nodes. this is called when '+' Expand All button is clicked on the screen
+	 * Opens all nodes. this is called when '+' Expand All button is clicked on
+	 * the screen
+	 * 
 	 * @param treeNode
+	 *            the tree node
 	 */
-	private void openAllNodes(TreeNode treeNode){		
+	@Override
+	public void openAllNodes(TreeNode treeNode){		
 		if(treeNode != null){
 			for (int i = 0; i < treeNode.getChildCount(); i++) {
 				TreeNode subTree = treeNode.setChildOpen(i, true);	      			
@@ -298,7 +385,7 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 	}
 
 	/**
-	 * Expand / Collapse Link - Click Handlers
+	 * Expand / Collapse Link - Click Handlers.
 	 */
 	private void addHandlers(){
 		
@@ -324,10 +411,13 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 	}
 
 
+	/* (non-Javadoc)
+	 * @see com.google.gwt.view.client.TreeViewModel#getNodeInfo(java.lang.Object)
+	 */
 	@Override
 	public <T> NodeInfo<?> getNodeInfo(T value) {
-		if (value == null) { 
-			NodeCell nodeCell = new NodeCell();    
+		if (value == null) {
+			NodeCell nodeCell = new NodeCell();
 			return new DefaultNodeInfo<CellTreeNode>(nodeDataProvider, nodeCell, selectionModel, null);
 		} else {
 			CellTreeNode myValue = (CellTreeNode) value;
@@ -337,6 +427,9 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see com.google.gwt.view.client.TreeViewModel#isLeaf(java.lang.Object)
+	 */
 	@Override
 	public boolean isLeaf(Object value) {
 		if (value instanceof CellTreeNode) {
@@ -349,11 +442,21 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 	}
 
 
+	/**
+	 * The Class NodeCell.
+	 */
 	public class NodeCell extends AbstractCell<CellTreeNode> {
 
+		/**
+		 * Instantiates a new node cell.
+		 */
 		public NodeCell() {
 			super(BrowserEvents.CONTEXTMENU);
 		}
+		
+		/* (non-Javadoc)
+		 * @see com.google.gwt.cell.client.AbstractCell#render(com.google.gwt.cell.client.Cell.Context, java.lang.Object, com.google.gwt.safehtml.shared.SafeHtmlBuilder)
+		 */
 		@Override
 		public void render(Context context, CellTreeNode cellTreeNode, SafeHtmlBuilder sb) {
 			if (cellTreeNode == null) {
@@ -364,6 +467,9 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 					cellTreeNode.getLabel() : cellTreeNode.getName()));
 		}
 
+		/* (non-Javadoc)
+		 * @see com.google.gwt.cell.client.AbstractCell#onBrowserEvent(com.google.gwt.cell.client.Cell.Context, com.google.gwt.dom.client.Element, java.lang.Object, com.google.gwt.dom.client.NativeEvent, com.google.gwt.cell.client.ValueUpdater)
+		 */
 		@Override
 		public void onBrowserEvent(Context context, Element parent, CellTreeNode value,
 				NativeEvent event, ValueUpdater<CellTreeNode> valueUpdater) {
@@ -381,16 +487,31 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 	} 
 
 	
+	/**
+	 * Gets the style class.
+	 * 
+	 * @param cellTreeNode
+	 *            the cell tree node
+	 * @return the style class
+	 */
 	private String getStyleClass(CellTreeNode cellTreeNode){
-		switch (cellTreeNode.getNodeType()) {
-		case CellTreeNode.ROOT_NODE:
-			return "cellTreeRootNode";
-		default:
-			break;
+
+		if (cellTreeNode.getValidNode() != false) {
+			switch (cellTreeNode.getNodeType()) {
+				case CellTreeNode.ROOT_NODE:
+					return "cellTreeRootNode";
+				default:
+					break;
+			}
+		} else {
+			return "clauseWorkSpaceInvalidNode";
 		}
 		return "";
 	}
 
+	/* (non-Javadoc)
+	 * @see mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay#addNode(java.lang.String, java.lang.String, short)
+	 */
 	@Override
 	public CellTreeNode addNode(String value, String label, short nodeType) {
 		CellTreeNode childNode = null;
@@ -402,12 +523,18 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 		return childNode;
 	}
 
+	/* (non-Javadoc)
+	 * @see mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay#refreshCellTreeAfterAdding(mat.client.clause.clauseworkspace.model.CellTreeNode)
+	 */
 	@Override
 	public void refreshCellTreeAfterAdding(CellTreeNode selectedNode){
 		closeSelectedOpenNodes(cellTree.getRootTreeNode());
 		selectionModel.setSelected(selectedNode, true);			
 	}
 
+	/* (non-Javadoc)
+	 * @see mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay#removeNode()
+	 */
 	@Override
 	public void removeNode() {
 		if(selectedNode != null){
@@ -418,6 +545,16 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 		}
 	}
 
+	/**
+	 * On right click.
+	 * 
+	 * @param value
+	 *            the value
+	 * @param event
+	 *            the event
+	 * @param element
+	 *            the element
+	 */
 	public void onRightClick(CellTreeNode value, Event event, Element element) {
 		clearMessages();
 		selectedNode = value;
@@ -434,44 +571,76 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 
 
 
+	/* (non-Javadoc)
+	 * @see mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay#getXmlTree()
+	 */
 	@Override
 	public CellTree getXmlTree() {
 		return cellTree;
 	}
 
 
+	/* (non-Javadoc)
+	 * @see mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay#getSaveButton()
+	 */
 	@Override
 	public Button getSaveButton() {
 		return saveBtn;
 	}
 
 
+	/**
+	 * Gets the validate btn.
+	 * 
+	 * @return the validateBtn
+	 */
+	@Override
+	public Button getValidateBtn() {
+		return validateBtn;
+	}
+
+
+	/* (non-Javadoc)
+	 * @see com.google.gwt.user.client.ui.Widget#asWidget()
+	 */
 	@Override
 	public Widget asWidget() {
 		return focusPanel;
 	}
 
 
+	/* (non-Javadoc)
+	 * @see mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay#getSuccessMessageDisplay()
+	 */
 	@Override
 	public SuccessMessageDisplay getSuccessMessageDisplay() {
 		return successMessageDisplay;
 	}
 
 
+	/* (non-Javadoc)
+	 * @see mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay#getErrorMessageDisplay()
+	 */
 	@Override
 	public ErrorMessageDisplay getErrorMessageDisplay() {
 		return errorMessageDisplay;
 	}
 
 
+	/* (non-Javadoc)
+	 * @see mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay#clearMessages()
+	 */
 	@Override
 	public void clearMessages() {
 		successMessageDisplay.clear();
 		errorMessageDisplay.clear();
-
+		warningMessageDisplay.clear();
 	}
 
 
+	/* (non-Javadoc)
+	 * @see mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay#setEnabled(boolean)
+	 */
 	@Override
 	public void setEnabled(boolean enabled) {
 		saveBtn.setEnabled(enabled);
@@ -479,18 +648,27 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 	}
 
 
+	/* (non-Javadoc)
+	 * @see mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay#getSelectedNode()
+	 */
 	@Override
 	public CellTreeNode getSelectedNode() {
 		return this.selectedNode;
 	}
 
 
+	/* (non-Javadoc)
+	 * @see mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay#copy()
+	 */
 	@Override
 	public void copy() {
 		this.copiedNode = selectedNode;		
 	}
 
 
+	/* (non-Javadoc)
+	 * @see mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay#paste()
+	 */
 	@Override
 	public void paste() {
 		if(selectedNode != null){
@@ -503,23 +681,40 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 	}
 
 
+	/* (non-Javadoc)
+	 * @see mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay#getCopiedNode()
+	 */
 	@Override
 	public CellTreeNode getCopiedNode() {
 		return this.copiedNode;
 	}
 
 
+	/**
+	 * Gets the cell tree.
+	 * 
+	 * @return the cell tree
+	 */
 	public CellTree getCellTree() {
 		return cellTree;
 	}
 
 
+	/**
+	 * Sets the cell tree.
+	 * 
+	 * @param cellTree
+	 *            the new cell tree
+	 */
 	public void setCellTree(CellTree cellTree) {
 		this.cellTree = cellTree;
 	}
 
 
 
+	/* (non-Javadoc)
+	 * @see mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay#editNode(java.lang.String, java.lang.String)
+	 */
 	@Override
 	public void editNode(String name, String label) {
 		if(selectedNode != null){
@@ -531,6 +726,8 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 
 
 	/**
+	 * Gets the clause workspace context menu.
+	 * 
 	 * @return the clauseWorkspaceContextMenu
 	 */
 	public ClauseWorkspaceContextMenu getClauseWorkspaceContextMenu() {
@@ -539,7 +736,10 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 
 
 	/**
-	 * @param clauseWorkspaceContextMenu the clauseWorkspaceContextMenu to set
+	 * Sets the clause workspace context menu.
+	 * 
+	 * @param clauseWorkspaceContextMenu
+	 *            the clauseWorkspaceContextMenu to set
 	 */
 	public void setClauseWorkspaceContextMenu(
 			ClauseWorkspaceContextMenu clauseWorkspaceContextMenu) {
@@ -547,6 +747,9 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 	}
 
 
+	/* (non-Javadoc)
+	 * @see com.google.gwt.event.dom.client.KeyDownHandler#onKeyDown(com.google.gwt.event.dom.client.KeyDownEvent)
+	 */
 	@Override
 	public void onKeyDown(KeyDownEvent event) {
 //		System.out.println(event.getNativeKeyCode());
@@ -629,11 +832,17 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 	}
 
 
+	/* (non-Javadoc)
+	 * @see mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay#setCopiedNode(mat.client.clause.clauseworkspace.model.CellTreeNode)
+	 */
 	@Override
 	public void setCopiedNode(CellTreeNode cellTreeNode) {
 		this.copiedNode = cellTreeNode;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.google.gwt.event.dom.client.FocusHandler#onFocus(com.google.gwt.event.dom.client.FocusEvent)
+	 */
 	@Override
 	public void onFocus(FocusEvent event) {
 		focusPanel.setStyleName("focusPanel");
@@ -641,18 +850,27 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 
 
 
+	/* (non-Javadoc)
+	 * @see mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay#setDirty(boolean)
+	 */
 	@Override
 	public void setDirty(boolean isDirty) {
 		this.isDirty = isDirty;
 	}
 
 
+	/* (non-Javadoc)
+	 * @see mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay#isDirty()
+	 */
 	@Override
 	public boolean isDirty() {
 		return this.isDirty;
 	}
 
 
+	/* (non-Javadoc)
+	 * @see mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay#expandSelected(com.google.gwt.user.cellview.client.TreeNode)
+	 */
 	@Override
 	public void expandSelected(TreeNode treeNode) {
 		if(treeNode != null){
@@ -670,11 +888,50 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 				if (subTree != null && subTree.getChildCount() > 0){
 					expandSelected(subTree);
 				}
-			}  
+			}
 		}
 	}
+	
+	/* (non-Javadoc)
+	 * @see mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay#validateCellTreeNodes(com.google.gwt.user.cellview.client.TreeNode)
+	 */
+	@Override
+	public boolean validateCellTreeNodes(TreeNode treeNode) {
 
+		if (treeNode != null) {
+			openAllNodes(treeNode);
+			for (int i = 0; i < treeNode.getChildCount(); i++) {
+				TreeNode subTree = null;
+				CellTreeNode node = (CellTreeNode) treeNode.getChildValue(i);
+				if (node.getNodeType()
+						== CellTreeNode.TIMING_NODE || node.getNodeType() == CellTreeNode.RELATIONSHIP_NODE) {
+				// this check is performed since IE was giving JavaScriptError after removing a node and closing all nodes.
+					subTree = treeNode.setChildOpen(i, true, true);
+					if (subTree != null && subTree.getChildCount() == 2) {
+						if (!node.getValidNode()) {
+							editNode(true, node, subTree);
+						}
+					} else {
+						editNode(false, node, subTree);
+						if (isValid) {
+							isValid = false;
+						}
+					}
 
+				}
+				subTree = treeNode.setChildOpen(i, ((CellTreeNode) treeNode.getChildValue(i)).isOpen(),
+						((CellTreeNode) treeNode.getChildValue(i)).isOpen());
+				if (subTree != null && subTree.getChildCount() > 0) {
+					validateCellTreeNodes(subTree);
+				}
+			}
+		}
+		return isValid;
+	}
+
+	/* (non-Javadoc)
+	 * @see mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay#addNode(java.lang.String, java.lang.String, java.lang.String, short)
+	 */
 	@Override
 	public CellTreeNode addNode(String name, String label, String uuid,
 			short nodeType) {
@@ -689,6 +946,9 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 	}
 
 
+	/* (non-Javadoc)
+	 * @see mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay#editNode(java.lang.String, java.lang.String, java.lang.String)
+	 */
 	@Override
 	public void editNode(String name, String label, String uuid) {
 		if(selectedNode != null){
@@ -699,7 +959,43 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 		}		
 	}
 
-	
-	
+	/* (non-Javadoc)
+	 * @see mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay#editNode(boolean, mat.client.clause.clauseworkspace.model.CellTreeNode, com.google.gwt.user.cellview.client.TreeNode)
+	 */
+	@Override
+	public void editNode(boolean isValideNodeValue, CellTreeNode node, TreeNode subTree) {
+		node.setValidNode(isValideNodeValue);
+		selectedNode = node;
+		closeParentOpenNodes(cellTree.getRootTreeNode());
+	}
 
+
+	/* (non-Javadoc)
+	 * @see mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay#getWarningMessageDisplay()
+	 */
+	@Override
+	public WarningMessageDisplay getWarningMessageDisplay() {
+		return warningMessageDisplay;
+	}
+	
+	/**
+	 * Checks if is valid.
+	 * 
+	 * @return the isValid
+	 */
+	public boolean isValid() {
+		return isValid;
+	}
+
+
+	/**
+	 * Sets the valid.
+	 * 
+	 * @param isValid
+	 *            the isValid to set
+	 */
+	@Override
+	public void setValid(boolean isValid) {
+		this.isValid = isValid;
+	}
 }

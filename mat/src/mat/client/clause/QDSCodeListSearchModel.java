@@ -1,5 +1,6 @@
 package mat.client.clause;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
@@ -17,6 +18,7 @@ import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
+import com.google.gwt.user.cellview.client.ColumnSortEvent.ListHandler;
 import com.google.gwt.user.client.rpc.IsSerializable;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RadioButton;
@@ -24,42 +26,91 @@ import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SingleSelectionModel;
 
+/**
+ * The Class QDSCodeListSearchModel.
+ */
 public class QDSCodeListSearchModel implements SearchResults<CodeListSearchDTO>,IsSerializable {
 
+	/** The headers. */
 	private static String[] headers = new String[] {"Value Set","Category","Code System","Steward"};
+	
+	/** The widths. */
 	private static String[] widths = new String[] {"50%","40%","10%"};
 	
+	/** The radio button map. */
 	private HashMap<CodeListSearchDTO, RadioButton> radioButtonMap = new HashMap<CodeListSearchDTO, RadioButton>();
+	
+	/** The data. */
 	private List<CodeListSearchDTO> data;
 	//private List<QualityDataSetDTO> appliedQDMs;
+	/** The start index. */
 	private int startIndex;
+	
+	/** The results total. */
 	private int resultsTotal;
+	
+	/** The editable. */
 	private boolean editable;
 	
+	/** The last selected code list. */
 	private CodeListSearchDTO lastSelectedCodeList;
 	
+	/** The selected code list. */
 	private CodeListSearchDTO selectedCodeList;
 	
+	/**
+	 * Gets the selected code list.
+	 * 
+	 * @return the selected code list
+	 */
 	public CodeListSearchDTO getSelectedCodeList() {
 		return selectedCodeList;
 	}
 
+	/**
+	 * Gets the last selected code list.
+	 * 
+	 * @return the last selected code list
+	 */
 	public CodeListSearchDTO getLastSelectedCodeList() {
 		return lastSelectedCodeList;
 	}
 
+	/**
+	 * Sets the last selected code list.
+	 * 
+	 * @param lastSelectedCodeList
+	 *            the new last selected code list
+	 */
 	public void setLastSelectedCodeList(CodeListSearchDTO lastSelectedCodeList) {
 		this.lastSelectedCodeList = lastSelectedCodeList;
 	}
 
+	/**
+	 * Sets the selected code list.
+	 * 
+	 * @param selectedCodeList
+	 *            the new selected code list
+	 */
 	public void setSelectedCodeList(CodeListSearchDTO selectedCodeList) {
 		this.selectedCodeList = selectedCodeList;
 	}
 	
+	/**
+	 * Gets the data.
+	 * 
+	 * @return the data
+	 */
 	public List<CodeListSearchDTO> getData() {
 		return data;
 	}
 
+	/**
+	 * Sets the data.
+	 * 
+	 * @param data
+	 *            the new data
+	 */
 	public void setData(List<CodeListSearchDTO> data) {
 		this.data = data;
 		this.editable = MatContext.get().getMeasureLockService().checkForEditPermission();
@@ -78,17 +129,37 @@ public class QDSCodeListSearchModel implements SearchResults<CodeListSearchDTO>,
 		}*/
 	}
 	
+	/**
+	 * Gets the column tool tip.
+	 * 
+	 * @param columnText
+	 *            the column text
+	 * @param title
+	 *            the title
+	 * @return the column tool tip
+	 */
 	private SafeHtml getColumnToolTip(String columnText, StringBuilder title) {
 		String htmlConstant = "<html>" + "<head> </head> <Body><span title='"+title + "'>"+columnText+ "</span></body>" + "</html>";
 		return new SafeHtmlBuilder().appendHtmlConstant(htmlConstant).toSafeHtml();
 	}
 	
-	public CellTable<CodeListSearchDTO> addColumnToTable(final CellTable<CodeListSearchDTO> table){
+	/**
+	 * Adds the column to table.
+	 * 
+	 * @param table
+	 *            the table
+	 * @param isTableEnabled
+	 *            the is table enabled
+	 * @param sortHandler
+	 *            the sort handler
+	 * @return the cell table
+	 */
+	public CellTable<CodeListSearchDTO> addColumnToTable(final CellTable<CodeListSearchDTO> table,boolean isTableEnabled,ListHandler<CodeListSearchDTO> sortHandler){
 		
 		if(table.getColumnCount() !=5){	
 			
-			Column<CodeListSearchDTO, Boolean> radioButtonColumn = new Column<CodeListSearchDTO, Boolean>(new RadioButtonCell(true,true)) {  
-				public Boolean getValue(CodeListSearchDTO CodeListSearchDTO) {  
+			Column<CodeListSearchDTO, Boolean> radioButtonColumn = new Column<CodeListSearchDTO, Boolean>(new RadioButtonCell(true,true,isTableEnabled)) {  
+				public Boolean getValue(CodeListSearchDTO CodeListSearchDTO) { 
 					return table.getSelectionModel().isSelected(CodeListSearchDTO);  
 				}  
 			};  
@@ -98,6 +169,7 @@ public class QDSCodeListSearchModel implements SearchResults<CodeListSearchDTO>,
 					table.getSelectionModel().setSelected(object, true); 
 				}  
 			});  
+			
 			table.addColumn(radioButtonColumn);  
 			
 			 Column< CodeListSearchDTO , SafeHtml> nameColumn;
@@ -111,7 +183,21 @@ public class QDSCodeListSearchModel implements SearchResults<CodeListSearchDTO>,
 					return getColumnToolTip(object.getName(), title);
 				}
 			};
-		
+			nameColumn.setSortable(true);
+			sortHandler.setComparator(nameColumn,new Comparator<CodeListSearchDTO>() {
+				public int compare(CodeListSearchDTO o1, CodeListSearchDTO o2) {
+					if (o1 == o2) {
+						return 0;
+					}
+
+					// Compare the name columns.
+					if (o1 != null) {
+						return (o2 != null) ? o1.getName().compareTo(o2.getName()) : 1;
+					}
+					return -1;
+				}
+			});
+			
 			table.addColumn(nameColumn, SafeHtmlUtils.fromSafeConstant("<span title='Value Sets'>"+headers[0]+"</span>"));
 			
 			TextColumn<CodeListSearchDTO > category = new TextColumn<CodeListSearchDTO >() {
@@ -120,6 +206,21 @@ public class QDSCodeListSearchModel implements SearchResults<CodeListSearchDTO>,
 					return object.getCategoryDisplay();
 				}
 			};
+			category.setSortable(true);
+			sortHandler.setComparator(category,new Comparator<CodeListSearchDTO>() {
+				public int compare(CodeListSearchDTO o1, CodeListSearchDTO o2) {
+					if (o1 == o2) {
+						return 0;
+					}
+
+					// Compare the name columns.
+					if (o1 != null) {
+						return (o2 != null) ? o1.getCategoryDisplay().compareTo(o2.getCategoryDisplay()) : 1;
+					}
+					return -1;
+				}
+			});
+			
 			table.addColumn(category, SafeHtmlUtils.fromSafeConstant("<span title='Category'>"+headers[1]+"</span>"));
 			TextColumn<CodeListSearchDTO > codeSystem = new TextColumn<CodeListSearchDTO >() {
 				@Override
@@ -127,6 +228,21 @@ public class QDSCodeListSearchModel implements SearchResults<CodeListSearchDTO>,
 					return object.getCodeSystem();
 				}
 			};
+			
+			codeSystem.setSortable(true);
+			sortHandler.setComparator(codeSystem,new Comparator<CodeListSearchDTO>() {
+				public int compare(CodeListSearchDTO o1, CodeListSearchDTO o2) {
+					if (o1 == o2) {
+						return 0;
+					}
+
+					// Compare the name columns.
+					if (o1 != null) {
+						return (o2 != null) ? o1.getCodeSystem().compareTo(o2.getCodeSystem()) : 1;
+					}
+					return -1;
+				}
+			});
 			table.addColumn(codeSystem, SafeHtmlUtils.fromSafeConstant("<span title='Code System'>"+headers[2]+"</span>"));
 			
 			TextColumn<CodeListSearchDTO > stewardCol = new TextColumn<CodeListSearchDTO >() {
@@ -139,6 +255,7 @@ public class QDSCodeListSearchModel implements SearchResults<CodeListSearchDTO>,
 					return steward;
 				}
 			};
+
 			table.addColumn(stewardCol, SafeHtmlUtils.fromSafeConstant("<span title='Steward'>"+headers[3]+"</span>"));
 		}
 		
@@ -146,6 +263,11 @@ public class QDSCodeListSearchModel implements SearchResults<CodeListSearchDTO>,
 		
 	}
 	
+	/**
+	 * Adds the selection handler on table.
+	 * 
+	 * @return the single selection model
+	 */
 	public SingleSelectionModel<CodeListSearchDTO> addSelectionHandlerOnTable(){
 		final SingleSelectionModel<CodeListSearchDTO> selectionModel = new  SingleSelectionModel<CodeListSearchDTO>();
 		selectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
@@ -167,38 +289,65 @@ public class QDSCodeListSearchModel implements SearchResults<CodeListSearchDTO>,
 	}
 	
 	
+	/* (non-Javadoc)
+	 * @see mat.client.shared.search.SearchResults#isColumnSortable(int)
+	 */
 	@Override
 	public boolean isColumnSortable(int columnIndex) {
 		return false;
 	}
 
 
+	/* (non-Javadoc)
+	 * @see mat.client.shared.search.SearchResults#getNumberOfColumns()
+	 */
 	@Override
 	public int getNumberOfColumns() {
 		return headers.length;
 	}
 
+	/* (non-Javadoc)
+	 * @see mat.client.shared.search.SearchResults#getNumberOfRows()
+	 */
 	@Override
 	public int getNumberOfRows() {
 		return data != null ? data.size() : 0;
 	}
 
+	/* (non-Javadoc)
+	 * @see mat.client.shared.search.SearchResults#getColumnHeader(int)
+	 */
 	@Override
 	public String getColumnHeader(int columnIndex) {
 		return headers[columnIndex];
 	}
 
+	/* (non-Javadoc)
+	 * @see mat.client.shared.search.SearchResults#getColumnWidth(int)
+	 */
 	@Override
 	public String getColumnWidth(int columnIndex) {
 		return widths[columnIndex];
 	}
 
+	/* (non-Javadoc)
+	 * @see mat.client.shared.search.SearchResults#getValue(int, int)
+	 */
 	@Override
 	public Widget getValue(int row, int column) {
 		return getValueImpl(get(row), column);
 	}
 
 	
+	/**
+	 * Gets the value impl.
+	 * 
+	 * @param codeList
+	 *            the code list
+	 * @param column
+	 *            the column
+	 * @return the value impl
+	 */
 	public Widget getValueImpl(CodeListSearchDTO codeList, int column) {
 			Widget value;
 		switch(column) {
@@ -249,34 +398,63 @@ public class QDSCodeListSearchModel implements SearchResults<CodeListSearchDTO>,
 		return value;
 	}
 	
+	/* (non-Javadoc)
+	 * @see mat.client.shared.search.SearchResults#getStartIndex()
+	 */
 	@Override
 	public int getStartIndex() {
 		return startIndex;
 	}
+	
+	/**
+	 * Sets the start index.
+	 * 
+	 * @param startIndex
+	 *            the new start index
+	 */
 	public void setStartIndex(int startIndex) {
 		this.startIndex = startIndex;
 	}
 	
 
+	/* (non-Javadoc)
+	 * @see mat.client.shared.search.SearchResults#getResultsTotal()
+	 */
 	@Override
 	public int getResultsTotal() {
 		return resultsTotal;
 	}
+	
+	/**
+	 * Sets the results total.
+	 * 
+	 * @param resultsTotal
+	 *            the new results total
+	 */
 	public void setResultsTotal(int resultsTotal) {
 		this.resultsTotal = resultsTotal;
 	}
 
 
+	/* (non-Javadoc)
+	 * @see mat.client.shared.search.SearchResults#getKey(int)
+	 */
 	@Override
 	public String getKey(int row) {
 		return data.get(row).getId();
 	}
 
+	/* (non-Javadoc)
+	 * @see mat.client.shared.search.SearchResults#get(int)
+	 */
 	@Override
 	public CodeListSearchDTO get(int row) {
 		return data.get(row);
 	}
 
+	/* (non-Javadoc)
+	 * @see mat.client.shared.search.SearchResults#isColumnFiresSelection(int)
+	 */
 	@Override
 	public boolean isColumnFiresSelection(int columnIndex) {
 		return columnIndex == 1;
@@ -284,10 +462,18 @@ public class QDSCodeListSearchModel implements SearchResults<CodeListSearchDTO>,
 	
 	
 
+	/**
+	 * Checks if is editable.
+	 * 
+	 * @return true, if is editable
+	 */
 	public boolean isEditable() {
 		return editable;
 	}
 
+	/* (non-Javadoc)
+	 * @see mat.client.shared.search.SearchResults#isColumnSelectAll(int)
+	 */
 	@Override
 	public boolean isColumnSelectAll(int columnIndex) {
 		return false;

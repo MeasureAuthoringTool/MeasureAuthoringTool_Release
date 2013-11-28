@@ -10,33 +10,50 @@ import com.google.gwt.cell.client.CompositeCell;
 import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.cell.client.HasCell;
 import com.google.gwt.cell.client.TextCell;
-
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.user.cellview.client.CellList;
 import com.google.gwt.user.cellview.client.HasKeyboardPagingPolicy.KeyboardPagingPolicy;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.view.client.DefaultSelectionEventManager;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SingleSelectionModel;
 
+/**
+ * The Class QDMAppliedListWidget.
+ */
 public class QDMAppliedListWidget {
 
+	/** The error message panel. */
 	private ErrorMessageDisplay errorMessagePanel = new ErrorMessageDisplay();
+	
+	/** The success message panel. */
 	private SuccessMessageDisplay successMessagePanel;
+	
+	/** The main applied qdm panel. */
 	HorizontalPanel mainAppliedQDMPanel = new HorizontalPanel();
+	
+	/** The remove button. */
 	public Button removeButton = new Button("Remove");
+	
+	/** The last selected object. */
 	public QualityDataSetDTO  lastSelectedObject;
 	
+	/** The cell list. */
 	private CellList<QualityDataSetDTO> cellList;
 	
+	/** The pager panel. */
 	ShowMorePagerPanel pagerPanel = new ShowMorePagerPanel();
+	
+	/** The range label pager. */
 	RangeLabelPager rangeLabelPager = new RangeLabelPager();
 	
+	/**
+	 * Instantiates a new qDM applied list widget.
+	 */
 	public QDMAppliedListWidget(){
 		successMessagePanel = new SuccessMessageDisplay();
 		successMessagePanel.clear();
@@ -45,6 +62,7 @@ public class QDMAppliedListWidget {
 		
 		vp.setStylePrimaryName("qdmCellList");
 		HorizontalPanel mainPanelNormal = new HorizontalPanel();
+		mainPanelNormal.getElement().setId("mainPanelNormal_HorizontalPanel");
 		mainPanelNormal.add(pagerPanel);
 		vp.add(new SpacerWidget());
 		vp.add(new SpacerWidget());
@@ -62,7 +80,14 @@ public class QDMAppliedListWidget {
 		mainAppliedQDMPanel.add(vp);
 	}
 	
-	private CellList<QualityDataSetDTO> initializeCellListContent(CellList<QualityDataSetDTO> cellList,final QDSAppliedListModel appliedListModel){
+	/**
+	 * Initialize cell list content.
+	 * 
+	 * @param appliedListModel
+	 *            the applied list model
+	 * @return the cell list
+	 */
+	private CellList<QualityDataSetDTO> initializeCellListContent(final QDSAppliedListModel appliedListModel){
 
 		ArrayList<HasCell<QualityDataSetDTO, ?>> hasCells = new ArrayList<HasCell<QualityDataSetDTO, ?>>();
 		//final MultiSelectionModel<QualityDataSetDTO> selectionModel = new MultiSelectionModel<QualityDataSetDTO>();
@@ -156,7 +181,7 @@ public class QDMAppliedListWidget {
 
 		};
 
-		cellList =  new CellList<QualityDataSetDTO>(myClassCell);
+		CellList<QualityDataSetDTO> cellsList =  new CellList<QualityDataSetDTO>(myClassCell);
 		selectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
 			@Override
 			public void onSelectionChange(SelectionChangeEvent event) {
@@ -177,18 +202,29 @@ public class QDMAppliedListWidget {
 		
 		
 		
-		cellList.setSelectionModel(selectionModel, DefaultSelectionEventManager.<QualityDataSetDTO>createDefaultManager());
+		cellsList.setSelectionModel(selectionModel, DefaultSelectionEventManager.<QualityDataSetDTO>createDefaultManager());
 		//removeButton.setEnabled(checkForEnable());
-		return cellList;
+		return cellsList;
 	}
 
+	/**
+	 * Check for enable.
+	 * 
+	 * @return true, if successful
+	 */
 	private boolean checkForEnable(){
 		return MatContext.get().getMeasureLockService().checkForEditPermission();
 	}
 
+	/**
+	 * Builds the cell list.
+	 * 
+	 * @param appliedListModel
+	 *            the applied list model
+	 */
 	public  void buildCellList(QDSAppliedListModel appliedListModel) {
 		if(appliedListModel.getAppliedQDMs()!=null){
-			cellList = initializeCellListContent(cellList,appliedListModel);
+			cellList = initializeCellListContent(appliedListModel);
 			cellList.setPageSize(15);
 			cellList.setKeyboardPagingPolicy(KeyboardPagingPolicy.INCREASE_RANGE);
 			ListDataProvider<QualityDataSetDTO> dataProvider = new ListDataProvider<QualityDataSetDTO>(appliedListModel.getAppliedQDMs()); 
@@ -199,22 +235,47 @@ public class QDMAppliedListWidget {
 		}
 	}
 
+	/**
+	 * Gets the main applied qdm panel.
+	 * 
+	 * @return the main applied qdm panel
+	 */
 	public HorizontalPanel getMainAppliedQDMPanel() {
 		return mainAppliedQDMPanel;
 	}
 	
+	/**
+	 * Gets the selected element to remove.
+	 * 
+	 * @return the selected element to remove
+	 */
 	public QualityDataSetDTO getSelectedElementToRemove() {
 		return lastSelectedObject;
 	}
 
+	/**
+	 * Gets the removes the button.
+	 * 
+	 * @return the removes the button
+	 */
 	public Button getRemoveButton() {
 		return removeButton;
 	}
 
+	/**
+	 * Gets the error message panel.
+	 * 
+	 * @return the error message panel
+	 */
 	public ErrorMessageDisplay getErrorMessagePanel() {
 		return errorMessagePanel;
 	}
 
+	/**
+	 * Gets the success message panel.
+	 * 
+	 * @return the success message panel
+	 */
 	public SuccessMessageDisplay getSuccessMessagePanel() {
 		return successMessagePanel;
 	}

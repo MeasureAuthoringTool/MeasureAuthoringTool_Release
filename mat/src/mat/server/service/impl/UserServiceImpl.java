@@ -3,8 +3,11 @@ package mat.server.service.impl;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
@@ -21,7 +24,6 @@ import mat.dao.SecurityRoleDAO;
 import mat.dao.StatusDAO;
 import mat.dao.TransactionAuditLogDAO;
 import mat.dao.UserDAO;
-import mat.model.SecurityQuestions;
 import mat.model.SecurityRole;
 import mat.model.Status;
 import mat.model.TransactionAuditLog;
@@ -46,50 +48,77 @@ import org.springframework.mail.MailException;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
 
+/**
+ * The Class UserServiceImpl.
+ */
 public class UserServiceImpl implements UserService {
+	
+	/** The Constant logger. */
 	private static final Log logger = LogFactory.getLog(UserServiceImpl.class);
 	
+	/** The Constant ALPHABET. */
 	private static final String ALPHABET = "abcdefghijklmnopqrstuvwxyz";
+	
+	/** The Constant NUMERIC. */
 	private static final String NUMERIC = "1234567890";
+	
+	/** The Constant EMAIL_PATTERN. */
 	private static final String EMAIL_PATTERN = 
 			"^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
 			+ "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
 	//private static Random ID = new Random(99999);
+	/** The id. */
 	private static Random ID = new Random(System.currentTimeMillis());
 	
 	//US 440
+	/** The template util. */
 	TemplateUtil templateUtil = TemplateUtil.getInstance();
 	
+	/** The mail sender. */
 	@Autowired
 	private MailSender mailSender;
 	
+	/** The template message. */
 	@Autowired
 	private SimpleMailMessage templateMessage;
 	
+	/** The user dao. */
 	@Autowired
 	private UserDAO userDAO;
 	
+	/** The status dao. */
 	@Autowired
 	private StatusDAO statusDAO;
 	
+	/** The security role dao. */
 	@Autowired
 	private SecurityRoleDAO securityRoleDAO;
 	
+	/** The transaction audit log dao. */
 	@Autowired
 	private TransactionAuditLogDAO transactionAuditLogDAO;
 	
+	/** The code list service. */
 	@Autowired
 	private CodeListService codeListService;
 
+	/** The accessibility url. */
 	private String accessibilityUrl;
 
+	/** The terms of use url. */
 	private String termsOfUseUrl;
 
+	/** The privacy policy use url. */
 	private String privacyPolicyUseUrl;
 	
+	/** The user guide url. */
 	private String userGuideUrl;
 	
-	 public String generateRandomPassword() {
+	 /* (non-Javadoc)
+ 	 * @see mat.server.service.UserService#generateRandomPassword()
+ 	 */
+ 	public String generateRandomPassword() {
+		logger.info("In generateRandomPassword()....."); 
 		String password = null;
 		Random r = new Random(System.currentTimeMillis());
 		StringBuilder pwdBuilder = new StringBuilder();
@@ -114,7 +143,11 @@ public class UserServiceImpl implements UserService {
 		return password;
 	}
 	
+	/* (non-Javadoc)
+	 * @see mat.server.service.UserService#requestResetLockedPassword(java.lang.String)
+	 */
 	public void requestResetLockedPassword(String userid) {
+		logger.info("In requestResetLockedPassword(String userid).....");
 		User user = userDAO.find(userid);
 		String newPassword = generateRandomPassword();
 		if(user.getPassword() == null) {
@@ -126,15 +159,28 @@ public class UserServiceImpl implements UserService {
 		notifyUserOfTemporaryPassword(user, newPassword);
 	}
 	
+	/**
+	 * Notify user of temporary password.
+	 * 
+	 * @param user
+	 *            the user
+	 * @param newPassword
+	 *            the new password
+	 */
 	public void notifyUserOfTemporaryPassword(User user, String newPassword) {
+		logger.info("In notifyUserOfTemporaryPassword(User user, String newPassword).....");
 		SimpleMailMessage msg = new SimpleMailMessage(this.templateMessage);
 		msg.setSubject(ServerConstants.TEMP_PWD_SUBJECT);
 		msg.setTo(user.getEmailAddress());
-
+		
+		String expiryDateString = getFormattedExpiryDate(new Date(),5);
+		
 		//US 440. Re-factored to use template based framework
 		HashMap<String, Object> paramsMap = new HashMap<String, Object>();
 		paramsMap.put(ConstantMessages.PASSWORD, newPassword);
+		paramsMap.put(ConstantMessages.PASSWORD_EXPIRE_DATE, expiryDateString);
 		String text = templateUtil.mergeTemplate(ConstantMessages.TEMPLATE_TEMP_PASSWORD, paramsMap);
+		System.out.println(text);
 		msg.setText(text);
 		logger.info("Sending email to " + user.getEmailAddress());
 		try {
@@ -145,8 +191,31 @@ public class UserServiceImpl implements UserService {
 		}
 		
 	}
+	
+	/**
+	 * Gets the formatted expiry date.
+	 * 
+	 * @param startDate
+	 *            the start date
+	 * @param willExpireIn
+	 *            the will expire in
+	 * @return the formatted expiry date
+	 */
+	private String getFormattedExpiryDate(Date startDate,int willExpireIn){
+		Calendar calendar = GregorianCalendar.getInstance();
+		calendar.setTime(startDate);
+		calendar.roll(Calendar.DAY_OF_MONTH, willExpireIn);
+		
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEEEE, MMMMM d, yyyy");
+		String returnDateString  = simpleDateFormat.format(calendar.getTime());
+		return returnDateString;
+	}
 	 
+	/* (non-Javadoc)
+	 * @see mat.server.service.UserService#setUserPassword(mat.model.User, java.lang.String, boolean)
+	 */
 	public void setUserPassword(User user, String clearTextPassword, boolean isTemporary) {
+		logger.info("In setUserPassword(User user, String clearTextPassword, boolean isTemporary)........");
 		String salt = UUID.randomUUID().toString();
 		user.getPassword().setSalt(salt);
 		String password = getPasswordHash(salt, clearTextPassword);
@@ -160,8 +229,12 @@ public class UserServiceImpl implements UserService {
 	
 	
 	
+	/* (non-Javadoc)
+	 * @see mat.server.service.UserService#requestForgottenPassword(java.lang.String, java.lang.String, java.lang.String, int)
+	 */
 	public ForgottenPasswordResult requestForgottenPassword(String loginId, 
 			String securityQuestion, String securityAnswer, int invalidUserCounter) {
+		logger.info("In requestForgottenPassword(String loginId, String securityQuestion, String securityAnswer, int invalidUserCounter).......");
 		ForgottenPasswordResult result = new ForgottenPasswordResult();
 		result.setEmailSent(false);
 		//logger.info(" requestForgottenPassword   Login Id ====" + loginId);
@@ -170,7 +243,9 @@ public class UserServiceImpl implements UserService {
 			//user = userDAO.findByEmail(email);
 			user = userDAO.findByLoginId(loginId);
 		}
-		catch(ObjectNotFoundException exc) { }
+		catch(ObjectNotFoundException exc) {
+			exc.printStackTrace();
+		}
 		
 		if(user == null) {
 			invalidUserCounter += 1;
@@ -231,7 +306,14 @@ public class UserServiceImpl implements UserService {
 		return result;
 	}
 	
+	/**
+	 * Send account locked mail.
+	 * 
+	 * @param email
+	 *            the email
+	 */
 	private void sendAccountLockedMail(String email) {
+		logger.info("In sendAccountLockedMail(String email).......");
 		SimpleMailMessage msg = new SimpleMailMessage(this.templateMessage);
 		msg.setSubject(ServerConstants.TEMP_PWD_SUBJECT);
 		msg.setTo(email);
@@ -250,6 +332,9 @@ public class UserServiceImpl implements UserService {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see mat.server.service.UserService#requestForgottenLoginID(java.lang.String)
+	 */
 	public ForgottenLoginIDResult requestForgottenLoginID(String email){
 		ForgottenLoginIDResult result = new ForgottenLoginIDResult();
 		result.setEmailSent(false);
@@ -290,6 +375,13 @@ public class UserServiceImpl implements UserService {
 		return result;
 	}
 	
+	/**
+	 * Checks if is valid email.
+	 * 
+	 * @param emailAddress
+	 *            the email address
+	 * @return true, if is valid email
+	 */
 	private boolean isValidEmail(String emailAddress){
 		Pattern pattern;
 		Matcher matcher;
@@ -299,6 +391,17 @@ public class UserServiceImpl implements UserService {
 	
 	}
 	
+	/**
+	 * Security question match.
+	 * 
+	 * @param user
+	 *            the user
+	 * @param securityQuestion
+	 *            the security question
+	 * @param securityAnswer
+	 *            the security answer
+	 * @return true, if successful
+	 */
 	private boolean securityQuestionMatch(User user, 
 			String securityQuestion, String securityAnswer) {
 		for(UserSecurityQuestion usq : user.getSecurityQuestions()) {
@@ -311,16 +414,26 @@ public class UserServiceImpl implements UserService {
 	}
 		
 		
-	private void sendResetPassword(String email, String newPassword) {		
+	/**
+	 * Send reset password.
+	 * 
+	 * @param email
+	 *            the email
+	 * @param newPassword
+	 *            the new password
+	 */
+	private void sendResetPassword(String email, String newPassword) {
+		logger.info("In sendResetPassword(String email, String newPassword)........");
 		SimpleMailMessage msg = new SimpleMailMessage(this.templateMessage);
 		msg.setSubject(ServerConstants.TEMP_PWD_SUBJECT);
 		msg.setTo(email);
+		String expiryDateString = getFormattedExpiryDate(new Date(), 5);
 		//US 440. Re-factored to use template based framework
 		HashMap<String, Object> paramsMap = new HashMap<String, Object>();
+		paramsMap.put(ConstantMessages.PASSWORD_EXPIRE_DATE, expiryDateString);
 		paramsMap.put(ConstantMessages.PASSWORD, newPassword);
 		String text = templateUtil.mergeTemplate(ConstantMessages.TEMPLATE_RESET_PASSWORD, paramsMap);
 		msg.setText(text);
-		System.out.println("newPassword ==============="+newPassword);
 		logger.info("Sending email to " + email);
 		try {
 			this.mailSender.send(msg);
@@ -331,6 +444,9 @@ public class UserServiceImpl implements UserService {
 	}
 	
 	
+	/* (non-Javadoc)
+	 * @see mat.server.service.UserService#searchForUsersByName(java.lang.String, int, int)
+	 */
 	@Override
 	public List<User> searchForUsersByName(String orgId, int startIndex, int numResults) {
 		if(orgId == null) {
@@ -339,6 +455,9 @@ public class UserServiceImpl implements UserService {
 		return userDAO.searchForUsersByName(orgId, startIndex - 1, numResults);
 	}
 	
+	/* (non-Javadoc)
+	 * @see mat.server.service.UserService#searchNonAdminUsers(java.lang.String, int, int)
+	 */
 	@Override
 	public List<User> searchNonAdminUsers(String orgId, int startIndex, int numResults) {
 		if(orgId == null) {
@@ -347,29 +466,45 @@ public class UserServiceImpl implements UserService {
 		return userDAO.searchNonAdminUsers(orgId, startIndex - 1, numResults);
 	}
 	
+	/* (non-Javadoc)
+	 * @see mat.server.service.UserService#findByEmailID(java.lang.String)
+	 */
 	@Override
 	public User findByEmailID(String emailId) {
 		return userDAO.findByEmail(emailId);
 	}
 	
+	/* (non-Javadoc)
+	 * @see mat.server.service.UserService#countSearchResults(java.lang.String)
+	 */
 	@Override
 	public int countSearchResults(String text) {
 		return userDAO.countSearchResults(text);
 	}
 	
+	/* (non-Javadoc)
+	 * @see mat.server.service.UserService#countSearchResultsNonAdmin(java.lang.String)
+	 */
 	@Override
 	public int countSearchResultsNonAdmin(String text) {
 		return userDAO.countSearchResultsNonAdmin(text);
 	}
 	
+	/* (non-Javadoc)
+	 * @see mat.server.service.UserService#getById(java.lang.String)
+	 */
 	@Override
 	public User getById(String id) {
 		return userDAO.find(id);
 	}
 
 	
+	/* (non-Javadoc)
+	 * @see mat.server.service.UserService#saveNew(mat.model.User)
+	 */
 	@Override
 	public void saveNew(User user) throws UserIDNotUnique {
+		logger.info("In saveNew(User user)..........");
 		if(userDAO.userExists(user.getEmailAddress())) {
 			throw new UserIDNotUnique();
 		}
@@ -401,7 +536,14 @@ public class UserServiceImpl implements UserService {
 		notifyUserOfTemporaryPassword(user, newPassword);
 	}
 	
+	/**
+	 * Notify user of new account.
+	 * 
+	 * @param user
+	 *            the user
+	 */
 	public void notifyUserOfNewAccount(User user) {
+		logger.info("In notifyUserOfNewAccount(User user)..........");
 		SimpleMailMessage msg = new SimpleMailMessage(this.templateMessage);
 		msg.setSubject(ServerConstants.NEW_ACCESS_SUBJECT);
 		HashMap<String, Object> paramsMap = new HashMap<String, Object>();
@@ -419,6 +561,12 @@ public class UserServiceImpl implements UserService {
 		}
 	}
 	
+	/**
+	 * Notify user of forgotten login id.
+	 * 
+	 * @param user
+	 *            the user
+	 */
 	public void notifyUserOfForgottenLoginId(User user) {
 		SimpleMailMessage msg = new SimpleMailMessage(this.templateMessage);
 		msg.setSubject(ServerConstants.FORGOT_LOGINID_SUBJECT);
@@ -436,10 +584,21 @@ public class UserServiceImpl implements UserService {
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see mat.server.service.UserService#getPasswordHash(java.lang.String, java.lang.String)
+	 */
 	public String getPasswordHash(String salt, String password) {
 		String hashed = hash(salt + password);
 		return hashed;
 	}
+	
+	/**
+	 * Hash.
+	 * 
+	 * @param s
+	 *            the s
+	 * @return the string
+	 */
 	private String hash(String s) {
 		try {
 			if(s == null) {
@@ -455,11 +614,17 @@ public class UserServiceImpl implements UserService {
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see mat.server.service.UserService#saveExisting(mat.model.User)
+	 */
 	@Override
 	public void saveExisting(User user) {
 		userDAO.save(user);
 	}
 	
+	/* (non-Javadoc)
+	 * @see mat.server.service.UserService#isAdminForUser(mat.model.User, mat.model.User)
+	 */
 	@Override
 	public boolean isAdminForUser(User admin, User user) {
 		boolean isAdmin = admin.getSecurityRole().getId().equals("1");
@@ -468,11 +633,17 @@ public class UserServiceImpl implements UserService {
 		return isAdmin && !isSelf;
 	}
 
+	/* (non-Javadoc)
+	 * @see mat.server.service.UserService#deleteUser(java.lang.String)
+	 */
 	@Override
 	public void deleteUser(String userid) {
 		userDAO.delete(userid);
 	}
 
+	/* (non-Javadoc)
+	 * @see mat.server.service.UserService#getSecurityQuestionOptions(java.lang.String)
+	 */
 	@Override 
 	public SecurityQuestionOptions getSecurityQuestionOptions(String loginId) {
 		User user = userDAO.findByLoginId(loginId);
@@ -492,6 +663,9 @@ public class UserServiceImpl implements UserService {
 		return options;
 	}
 	
+	/* (non-Javadoc)
+	 * @see mat.server.service.UserService#getSecurityQuestionOptionsForEmail(java.lang.String)
+	 */
 	@Override 
 	public SecurityQuestionOptions getSecurityQuestionOptionsForEmail(String email) {
 		User user = userDAO.findByEmail(email);
@@ -511,6 +685,9 @@ public class UserServiceImpl implements UserService {
 		return options;
 	}
 
+	/* (non-Javadoc)
+	 * @see mat.server.service.UserService#saveUpdateUser(mat.client.admin.ManageUsersDetailModel)
+	 */
 	@Override
 	public SaveUpdateUserResult saveUpdateUser(ManageUsersDetailModel model) {
 		SaveUpdateUserResult result = new SaveUpdateUserResult();
@@ -554,6 +731,9 @@ public class UserServiceImpl implements UserService {
 		return result;
 	}
 	
+	/* (non-Javadoc)
+	 * @see mat.server.service.UserService#getFooterURLs()
+	 */
 	@Override
 	public List<String> getFooterURLs(){
 		List<String> footerUrls = new ArrayList<String>();
@@ -564,6 +744,14 @@ public class UserServiceImpl implements UserService {
 		return footerUrls;
 	}
 	
+	/**
+	 * Sets the model fields on user.
+	 * 
+	 * @param model
+	 *            the model
+	 * @param user
+	 *            the user
+	 */
 	private void setModelFieldsOnUser(ManageUsersDetailModel model, User user) {
 		user.setFirstName(model.getFirstName());
 		user.setLastName(model.getLastName());
@@ -574,7 +762,7 @@ public class UserServiceImpl implements UserService {
 		user.setStatus(getStatusObject(model.isActive()));
 		user.setSecurityRole(getRole(model.getRole()));
 		user.setOrgOID(model.getOid());
-		user.setRootOID(model.getRootOid());
+		//user.setRootOID(model.getRootOid());
 		user.setOrganizationName(model.getOrganization());
 		
 		if(model.isActive() && user.getActivationDate() == null) {
@@ -587,11 +775,26 @@ public class UserServiceImpl implements UserService {
 			user.setTerminationDate(new Date());
 		}
 	}
+	
+	/**
+	 * Gets the status object.
+	 * 
+	 * @param isActive
+	 *            the is active
+	 * @return the status object
+	 */
 	private Status getStatusObject(boolean isActive) {
 		String id = isActive ? "1" : "2";
 		return statusDAO.find(id);
 	}
 	
+	/**
+	 * Gets the role.
+	 * 
+	 * @param value
+	 *            the value
+	 * @return the role
+	 */
 	private SecurityRole getRole(String value) {
 		for(SecurityRole role : securityRoleDAO.find()) {
 			if(role.getId().equals(value)) {
@@ -602,11 +805,17 @@ public class UserServiceImpl implements UserService {
 	}
 
 	//US212
+	/* (non-Javadoc)
+	 * @see mat.server.service.UserService#setUserSignInDate(java.lang.String)
+	 */
 	@Override
 	public void setUserSignInDate(String userid) {		
 		userDAO.setUserSignInDate(userid);
 	}
 	//US212
+	/* (non-Javadoc)
+	 * @see mat.server.service.UserService#setUserSignOutDate(java.lang.String)
+	 */
 	@Override
 	public void setUserSignOutDate(String userid) {		
 		userDAO.setUserSignOutDate(userid);
@@ -619,6 +828,15 @@ public class UserServiceImpl implements UserService {
 	 * Four Digit - Random number
 	 * 
 	 * */
+	/**
+	 * Generate unique login id.
+	 * 
+	 * @param firstName
+	 *            the first name
+	 * @param lastName
+	 *            the last name
+	 * @return the string
+	 */
 	private String generateUniqueLoginId(String firstName, String lastName){
 		StringBuilder generatedId = new StringBuilder();
 		int firstNameLastIndex = 2;
@@ -636,48 +854,95 @@ public class UserServiceImpl implements UserService {
 		return generatedId.toString();
 	}
 	
+	/**
+	 * Sets the accessibility url.
+	 * 
+	 * @param accessibilityUrl
+	 *            the new accessibility url
+	 */
 	public void setAccessibilityUrl(String accessibilityUrl) {
 		this.accessibilityUrl = accessibilityUrl;
 	}
 
 
 
+	/**
+	 * Gets the accessibility url.
+	 * 
+	 * @return the accessibility url
+	 */
 	public String getAccessibilityUrl() {
 		return accessibilityUrl;
 	}
 
 
 
+	/**
+	 * Sets the terms of use url.
+	 * 
+	 * @param termsOfUseUrl
+	 *            the new terms of use url
+	 */
 	public void setTermsOfUseUrl(String termsOfUseUrl) {
 		this.termsOfUseUrl = termsOfUseUrl;
 	}
 
 
 
+	/**
+	 * Gets the terms of use url.
+	 * 
+	 * @return the terms of use url
+	 */
 	public String getTermsOfUseUrl() {
 		return termsOfUseUrl;
 	}
 
 
 
+	/**
+	 * Sets the privacy policy use url.
+	 * 
+	 * @param privacyPolicyUseUrl
+	 *            the new privacy policy use url
+	 */
 	public void setPrivacyPolicyUseUrl(String privacyPolicyUseUrl) {
 		this.privacyPolicyUseUrl = privacyPolicyUseUrl;
 	}
 
 
 
+	/**
+	 * Gets the privacy policy use url.
+	 * 
+	 * @return the privacy policy use url
+	 */
 	public String getPrivacyPolicyUseUrl() {
 		return privacyPolicyUseUrl;
 	}
 
+	/**
+	 * Sets the user guide url.
+	 * 
+	 * @param userGuideUrl
+	 *            the new user guide url
+	 */
 	public void setUserGuideUrl(String userGuideUrl) {
 		this.userGuideUrl = userGuideUrl;
 	}
 
+	/**
+	 * Gets the user guide url.
+	 * 
+	 * @return the user guide url
+	 */
 	public String getUserGuideUrl() {
 		return userGuideUrl;
 	}
 
+	/* (non-Javadoc)
+	 * @see mat.server.service.UserService#updateOnSignOut(java.lang.String, java.lang.String, java.lang.String)
+	 */
 	@Override
 	public String updateOnSignOut(String userId, String email, String activityType) {
 		TransactionAuditLog auditLog = new TransactionAuditLog();
@@ -699,15 +964,28 @@ public class UserServiceImpl implements UserService {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see mat.server.service.UserService#getSecurityQuestion(java.lang.String)
+	 */
 	@Override
-	public String getSecurityQuestion(String userid) {
-		return userDAO.getRandomSecurityQuestion(userid);
+	public String getSecurityQuestion(String userLoginID) {
+		return userDAO.getRandomSecurityQuestion(userLoginID);
 	}
+	
+	/* (non-Javadoc)
+	 * @see mat.server.service.UserService#getAllNonAdminActiveUsers()
+	 */
 	@Override
 	public List<User> getAllNonAdminActiveUsers(){
 		return this.userDAO.getAllNonAdminActiveUsers();
 	}
 	
+	/**
+	 * Notify user of account locked.
+	 * 
+	 * @param user
+	 *            the user
+	 */
 	public void notifyUserOfAccountLocked(User user) {
 		SimpleMailMessage msg = new SimpleMailMessage(this.templateMessage);
 		msg.setSubject(ServerConstants.ACCOUNT_LOCKED_SUBJECT);
@@ -722,6 +1000,9 @@ public class UserServiceImpl implements UserService {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see mat.server.service.UserService#isLockedUser(java.lang.String)
+	 */
 	@Override
 	public boolean isLockedUser(String loginId) {
 		User user = userDAO.findByLoginId(loginId);

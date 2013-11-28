@@ -33,12 +33,38 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+/**
+ * The Class ExportSimpleXML.
+ */
 public class ExportSimpleXML {
 
+	/** The Constant STRATA. */
 	private static final String STRATA = "strata";
+	
+	/** The Constant _logger. */
 	private static final Log _logger = LogFactory.getLog(ExportSimpleXML.class);
+	
+	/** The Constant xPath. */
 	private static final javax.xml.xpath.XPath xPath = XPathFactory.newInstance().newXPath();
 	
+	/** The Constant MEASUREMENT_END_DATE_OID. */
+	private static final String MEASUREMENT_END_DATE_OID = "2.16.840.1.113883.3.67.1.101.1.55";
+	
+	/** The Constant MEASUREMENT_START_DATE_OID. */
+	private static final String MEASUREMENT_START_DATE_OID = "2.16.840.1.113883.3.67.1.101.1.54";
+	
+	/** The Constant MEASUREMENT_PERIOD_OID. */
+	private static final String MEASUREMENT_PERIOD_OID = "2.16.840.1.113883.3.67.1.101.1.53";
+	
+	/**
+	 * Export.
+	 * 
+	 * @param measureXMLObject
+	 *            the measure xml object
+	 * @param message
+	 *            the message
+	 * @return the string
+	 */
 	public static String export(MeasureXML measureXMLObject, List<String> message) {
 		String exportedXML = "";
 		//Validate the XML
@@ -60,6 +86,21 @@ public class ExportSimpleXML {
 		return exportedXML;
 	}
 	
+	/**
+	 * Sets the qdm id as uuid.
+	 * 
+	 * @param xmlString
+	 *            the xml string
+	 * @return the string
+	 * @throws XPathExpressionException
+	 *             the x path expression exception
+	 * @throws ParserConfigurationException
+	 *             the parser configuration exception
+	 * @throws SAXException
+	 *             the sAX exception
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
 	public static String setQDMIdAsUUID(String xmlString) throws XPathExpressionException, ParserConfigurationException, SAXException, IOException{
 		//Code to replace all @id attributes of <qdm> with @uuid attribute value
 		
@@ -78,12 +119,17 @@ public class ExportSimpleXML {
 	}
 	
 	/**
-	 * This method will check If this measure has at-least one grouping.
-	 * In addition, it will make sure that all the <relationalOp> tags have exactly 2 children.
+	 * This method will check If this measure has at-least one grouping. In
+	 * addition, it will make sure that all the <relationalOp> tags have exactly
+	 * 2 children.
+	 * 
 	 * @param measureXMLDocument
+	 *            the measure xml document
 	 * @param message
-	 * @return
+	 *            the message
+	 * @return true, if successful
 	 * @throws XPathExpressionException
+	 *             the x path expression exception
 	 */
 	private static boolean validateMeasure(Document measureXMLDocument, List<String> message) throws XPathExpressionException{
 		boolean isValid = true;
@@ -98,11 +144,17 @@ public class ExportSimpleXML {
 	}
 	
 	/**
-	 * Go through all <relationalOp> tags in the XML and verify that each has exactly 2 children.
-	 * Stop the search the moment you find a <relationalOp> having less than or greater than 2 children. 
+	 * Go through all <relationalOp> tags in the XML and verify that each has
+	 * exactly 2 children. Stop the search the moment you find a <relationalOp>
+	 * having less than or greater than 2 children.
+	 * 
 	 * @param measureXMLDocument
+	 *            the measure xml document
 	 * @param message
+	 *            the message
+	 * @return true, if successful
 	 * @throws XPathExpressionException
+	 *             the x path expression exception
 	 */
 	private static boolean checkForValidRelationalOps(Document measureXMLDocument,
 			List<String> message) throws XPathExpressionException {
@@ -120,10 +172,12 @@ public class ExportSimpleXML {
 	}
 
 	/**
-	 * This will work with the existing Measure XML & assume that it is correct and 
-	 * validated to generate the exported XML. 
+	 * This will work with the existing Measure XML & assume that it is correct
+	 * and validated to generate the exported XML.
+	 * 
 	 * @param measureXMLDocument
-	 * @return 
+	 *            the measure xml document
+	 * @return the string
 	 */
 	private static String generateExportedXML(Document measureXMLDocument) {
 		_logger.info("In ExportSimpleXML.generateExportedXML()");
@@ -137,6 +191,15 @@ public class ExportSimpleXML {
 	}
 	
 	//This will walk through the original Measure XML and generate the Measure Export XML.
+	/**
+	 * Traverse xml.
+	 * 
+	 * @param originalDoc
+	 *            the original doc
+	 * @return the string
+	 * @throws XPathExpressionException
+	 *             the x path expression exception
+	 */
 	private static String traverseXML(Document originalDoc) throws XPathExpressionException {		
 		List<String> usedQDMIds = getUsedQDMIds(originalDoc);
 		List<String> usedClauseIds = getUsedClauseIds(originalDoc);
@@ -149,10 +212,52 @@ public class ExportSimpleXML {
 		addUUIDToFunctions(originalDoc);
 		//modify the <startDate> and <stopDate> tags to have date in YYYYMMDD format
 		modifyHeaderStart_Stop_Dates(originalDoc);
-		
+		modifyElementLookUpForOccurances(originalDoc);
 		return transform(originalDoc);
 	}
 	
+	private static void modifyElementLookUpForOccurances(Document originalDoc) throws XPathExpressionException {
+		NodeList allOccuranceQDMs = (NodeList) xPath.evaluate("/measure/elementLookUp/qdm[@instance]", originalDoc.getDocumentElement(), XPathConstants.NODESET);
+		List<String> qdmOID_Datatype_List = new ArrayList<String>();
+		
+		for(int i=0;i<allOccuranceQDMs.getLength();i++){
+			Node qdmNode = allOccuranceQDMs.item(i);
+			String oid = qdmNode.getAttributes().getNamedItem("oid").getNodeValue();
+			String datatype = qdmNode.getAttributes().getNamedItem("datatype").getNodeValue();
+			String instance = qdmNode.getAttributes().getNamedItem("instance").getNodeValue();
+			System.out.println("Instance:"+instance);
+			if(qdmOID_Datatype_List.contains(datatype + oid)){
+				continue;
+			}else{
+				qdmOID_Datatype_List.add(datatype + oid);
+			}
+			System.out.println("/measure/elementLookUp/qdm[@datatype="+datatype+"][@oid="+oid+"][not(@instance)]");
+			NodeList nonOccuranceQDMs = (NodeList) xPath.evaluate("/measure/elementLookUp/qdm[@datatype='"+datatype+"'][@oid='"+oid+"'][not(@instance)]", 
+					originalDoc.getDocumentElement(), XPathConstants.NODESET);
+			if(nonOccuranceQDMs.getLength() > 0){
+				Node nonOccuranceQDM = nonOccuranceQDMs.item(0);
+				Node parentNode = nonOccuranceQDM.getParentNode();
+				parentNode.removeChild(nonOccuranceQDM);
+				parentNode.appendChild(nonOccuranceQDM.cloneNode(true));
+			}else{
+				Node newNode = qdmNode.cloneNode(true);
+				Node parentNode = qdmNode.getParentNode();
+				newNode.getAttributes().removeNamedItem("instance");
+				String uuid = UUID.randomUUID().toString();
+				newNode.getAttributes().getNamedItem("uuid").setNodeValue(uuid);
+				newNode.getAttributes().getNamedItem("id").setNodeValue(uuid);
+				parentNode.appendChild(newNode);
+			}
+		}
+	}
+
+	/**
+	 * Transform.
+	 * 
+	 * @param node
+	 *            the node
+	 * @return the string
+	 */
 	private static String transform(Node node){	
 		_logger.info("In transform() method");
 		ByteArrayOutputStream arrayOutputStream = new ByteArrayOutputStream();
@@ -171,6 +276,16 @@ public class ExportSimpleXML {
 		return arrayOutputStream.toString();
 	}
 
+	/**
+	 * Removes the un wanted qd ms.
+	 * 
+	 * @param usedQDMIds
+	 *            the used qdm ids
+	 * @param originalDoc
+	 *            the original doc
+	 * @throws XPathExpressionException
+	 *             the x path expression exception
+	 */
 	private static void removeUnWantedQDMs(List<String> usedQDMIds, Document originalDoc) throws XPathExpressionException {		
 		NodeList allQDMIDs = (NodeList) xPath.evaluate("/measure/elementLookUp/qdm/@uuid", originalDoc.getDocumentElement(), XPathConstants.NODESET);
 		
@@ -186,11 +301,16 @@ public class ExportSimpleXML {
 	}
 	
 	/**
-	 * This method will search for <clause> tags in the XML and check if the UUID attribute matches the usedClauseIds list.
-	 * If not removes the <clause> tag from its parent.
+	 * This method will search for <clause> tags in the XML and check if the
+	 * UUID attribute matches the usedClauseIds list. If not removes the
+	 * <clause> tag from its parent.
+	 * 
 	 * @param usedClauseIds
+	 *            the used clause ids
 	 * @param originalDoc
+	 *            the original doc
 	 * @throws XPathExpressionException
+	 *             the x path expression exception
 	 */
 	private static void removeUnwantedClauses(List<String> usedClauseIds, Document originalDoc) throws XPathExpressionException {
 		//"/measure//clause/@uuid" will get us uuid attribute of all the <clause> tags where ever they are on underneath the <measure> tag
@@ -218,13 +338,16 @@ public class ExportSimpleXML {
 	}
 	
 	/**
-	 * This method will go through individual <group> tags and each <packageClause> child.
-	 * For each <packageClause> it will copy the original <clause> to <group> and remove the 
-	 * <packageClause> tag.
-	 * Finally, at the end of the method it will remove the <populations> and <measureObservations>
-	 * tags from the document.
+	 * This method will go through individual <group> tags and each
+	 * <packageClause> child. For each <packageClause> it will copy the original
+	 * <clause> to <group> and remove the <packageClause> tag. Finally, at the
+	 * end of the method it will remove the <populations> and
+	 * <measureObservations> tags from the document.
+	 * 
 	 * @param originalDoc
+	 *            the original doc
 	 * @throws XPathExpressionException
+	 *             the x path expression exception
 	 */
 	private static void expandAndHandleGrouping(Document originalDoc) throws XPathExpressionException {
 		Node measureGroupingNode = (Node)xPath.evaluate("/measure/measureGrouping", 
@@ -270,12 +393,17 @@ public class ExportSimpleXML {
 	}
 	
 	/**
-	 * This method will go through all the <group> tags and within rearrange <clause>
-	 * tags to have the <clause type="denominator"> as the 2nd to last <clause> element
-	 * and  <clause type="initialPatientPopulation"> as the last <clause> in a <group>.
-	 * This is being done to aid the final export to eMeasure XML.
+	 * This method will go through all the <group> tags and within rearrange
+	 * <clause> tags to have the <clause type="denominator"> as the 2nd to last
+	 * <clause> element and <clause type="initialPatientPopulation"> as the last
+	 * <clause> in a <group>. This is being done to aid the final export to
+	 * eMeasure XML.
+	 * 
 	 * @param originalDoc
-	 * @throws XPathExpressionException 
+	 *            the original doc
+	 * @return the used clause ids
+	 * @throws XPathExpressionException
+	 *             the x path expression exception
 	 */
 	/*private static void reArrangeClauseNodes(Document originalDoc) throws XPathExpressionException {
 		NodeList groupNodes = (NodeList)xPath.evaluate("/measure/measureGrouping/group", 
@@ -328,6 +456,15 @@ public class ExportSimpleXML {
 		return usedClauseIds;
 	}
 
+	/**
+	 * Gets the used qdm ids.
+	 * 
+	 * @param originalDoc
+	 *            the original doc
+	 * @return the used qdm ids
+	 * @throws XPathExpressionException
+	 *             the x path expression exception
+	 */
 	private static List<String> getUsedQDMIds(Document originalDoc) throws XPathExpressionException {
 		List<String> usedQDMIds = new ArrayList<String>();
 		NodeList elementRefNodeList = (NodeList)xPath.evaluate("/measure//elementRef", originalDoc, XPathConstants.NODESET);
@@ -346,11 +483,20 @@ public class ExportSimpleXML {
 	}
 	
 	/**
-	 * This method will look inside <strata>/<clause>/<logicalOp> and if it finds a <logicalOp> without any children.
-	 * then remove the <clause> node.
-	 * After that it will check the <strata> node and if it is empty then remove the <strata> tag completely. 
-	 * @param originalDoc
-	 * @throws XPathExpressionException 
+	 * This method will look inside <strata>/<clause>/<logicalOp> and if it
+	 * finds a <logicalOp> without any children. then remove the <clause> node.
+	 * After that it will check the <strata> node and if it is empty then remove
+	 * the <strata> tag completely.
+	 * 
+	 * @param measureXMLObject
+	 *            the measure xml object
+	 * @return the xML document
+	 * @throws ParserConfigurationException
+	 *             the parser configuration exception
+	 * @throws SAXException
+	 *             the sAX exception
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
 	 */
 	/*private static void removeBlankStratificationClauses(Document originalDoc) throws XPathExpressionException {
 		NodeList strataLogicalOpNodes = (NodeList)xPath.evaluate("/measure/strata/clause/logicalOp", originalDoc, XPathConstants.NODESET);
@@ -386,11 +532,16 @@ public class ExportSimpleXML {
 	}
 	
 	/**
-	 * This method finds a <clause> tag in <measure>/<populations> with a specified 'uuid' attribute.
+	 * This method finds a <clause> tag in <measure>/<populations> with a
+	 * specified 'uuid' attribute.
+	 * 
 	 * @param uuid
+	 *            the uuid
 	 * @param originalDoc
-	 * @return
+	 *            the original doc
+	 * @return the node
 	 * @throws XPathExpressionException
+	 *             the x path expression exception
 	 */
 	private static Node findClauseByUUID(String uuid, Document originalDoc) throws XPathExpressionException {
 		Node clauseNode = null;		
@@ -399,11 +550,15 @@ public class ExportSimpleXML {
 	}
 	
 	/**
-	 * Takes an XPath notation String for a particular tag and a Document object and finds and removes the tag
-	 * from the document. 
+	 * Takes an XPath notation String for a particular tag and a Document object
+	 * and finds and removes the tag from the document.
+	 * 
 	 * @param nodeXPath
+	 *            the node x path
 	 * @param originalDoc
-	 * @throws XPathExpressionException 
+	 *            the original doc
+	 * @throws XPathExpressionException
+	 *             the x path expression exception
 	 */
 	private static void removeNode(String nodeXPath, Document originalDoc) throws XPathExpressionException {
 		Node node = (Node)xPath.evaluate(nodeXPath, originalDoc.getDocumentElement(), XPathConstants.NODE);
@@ -414,13 +569,31 @@ public class ExportSimpleXML {
 	}
 	
 	/**
-	 * We need to modify <startDate> and <stopDate> inside <measureDetails>/<period> to have YYYYMMDD format
+	 * We need to modify <startDate> and <stopDate> inside
+	 * <measureDetails>/<period> to have YYYYMMDD format.
+	 * 
 	 * @param originalDoc
-	 * @throws XPathExpressionException 
+	 *            the original doc
+	 * @throws XPathExpressionException
+	 *             the x path expression exception
 	 */
 	private static void modifyHeaderStart_Stop_Dates(Document originalDoc) throws XPathExpressionException {
 		Node periodNode = (Node)xPath.evaluate("/measure/measureDetails/period", originalDoc, XPathConstants.NODE);
+		
+		Node measurementPeriodNode = (Node)xPath.evaluate("/measure/elementLookUp/qdm[@oid='"+ MEASUREMENT_PERIOD_OID + "']",originalDoc, 
+				XPathConstants.NODE);
+		Node measurementPeriodStartDateNode = (Node)xPath.evaluate("/measure/elementLookUp/qdm[@oid='"+ MEASUREMENT_START_DATE_OID + "']",originalDoc, 
+				XPathConstants.NODE);
+		Node measurementPeriodEndDateNode = (Node)xPath.evaluate("/measure/elementLookUp/qdm[@oid='"+ MEASUREMENT_END_DATE_OID + "']",originalDoc, 
+				XPathConstants.NODE);
+		
 		if(periodNode != null){
+		
+			if(measurementPeriodNode != null){
+				periodNode.getAttributes().getNamedItem("uuid").setNodeValue(measurementPeriodNode.getAttributes().
+						getNamedItem("uuid").getNodeValue());
+			}
+			
 			NodeList childNodeList = periodNode.getChildNodes();
 			for(int i=0;i<childNodeList.getLength();i++){
 				Node node = childNodeList.item(i);
@@ -428,19 +601,31 @@ public class ExportSimpleXML {
 					//Date in MM/DD/YYYY
 					String value = node.getTextContent();
 					node.setTextContent(formatDate(value));
+					if(measurementPeriodStartDateNode != null){
+						node.getAttributes().getNamedItem("uuid").setNodeValue(measurementPeriodStartDateNode.getAttributes().
+								getNamedItem("uuid").getNodeValue());
+					}
 				}else if("stopDate".equals(node.getNodeName())){
 					//Date in MM/DD/YYYY
 					String value = node.getTextContent();
 					node.setTextContent(formatDate(value));
+					if(measurementPeriodEndDateNode != null){
+						node.getAttributes().getNamedItem("uuid").setNodeValue(measurementPeriodEndDateNode.getAttributes().
+								getNamedItem("uuid").getNodeValue());
+					}
 				}
 			}
 		}
 	}
 	
 	/**
-	 * This method will go through the entire XML file and find <functionalOp> tags and add a 'uuid' attribute to each.
+	 * This method will go through the entire XML file and find <functionalOp>
+	 * tags and add a 'uuid' attribute to each.
+	 * 
 	 * @param originalDoc
+	 *            the original doc
 	 * @throws XPathExpressionException
+	 *             the x path expression exception
 	 */
 	private static void addUUIDToFunctions(Document originalDoc) throws XPathExpressionException {
 		NodeList functionalOpNodes = (NodeList)xPath.evaluate("/measure//clause//functionalOp", originalDoc, XPathConstants.NODESET);
@@ -456,10 +641,12 @@ public class ExportSimpleXML {
 	}
 	
 	/**
-	 * This method will expect Date String in MM/DD/YYYY format
-	 * And convert it to YYYYMMDD format.
+	 * This method will expect Date String in MM/DD/YYYY format And convert it
+	 * to YYYYMMDD format.
+	 * 
 	 * @param date
-	 * @return
+	 *            the date
+	 * @return the string
 	 */
 	private static String formatDate(String date){
 		

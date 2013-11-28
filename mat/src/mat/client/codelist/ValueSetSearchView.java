@@ -5,32 +5,44 @@ package mat.client.codelist;
 
 import mat.client.ImageResources;
 import mat.client.shared.HorizontalFlowPanel;
-import mat.client.shared.MatContext;
 import mat.client.shared.search.SearchResults;
 import mat.client.shared.search.SearchView;
-import mat.client.util.ClientConstants;
 import mat.model.CodeListSearchDTO;
 
 import com.google.gwt.user.client.ui.Anchor;
 import com.google.gwt.user.client.ui.Image;
-import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.SimplePanel;
 
 /**
+ * The Class ValueSetSearchView.
+ * 
  * @author vandavar
- *
  */
 public class ValueSetSearchView extends SearchView<CodeListSearchDTO>{
+	
+	/** The odd. */
 	boolean odd = false;
+	
+	/** The add image. */
 	boolean addImage = true;
 	
+	/**
+	 * Instantiates a new value set search view.
+	 */
 	public ValueSetSearchView() {
 		super();
 	}
 	
 	/**
-	 * assumption made: results are sorted by the time they are given here
+	 * assumption made: results are sorted by the time they are given here.
+	 * 
+	 * @param numRows
+	 *            the num rows
+	 * @param numColumns
+	 *            the num columns
+	 * @param results
+	 *            the results
 	 */
 	@Override
 	protected void buildSearchResults(int numRows,int numColumns,final SearchResults results){
@@ -93,6 +105,15 @@ public class ValueSetSearchView extends SearchView<CodeListSearchDTO>{
 		}
 	}
 	
+	/**
+	 * Adds the spaces.
+	 * 
+	 * @param in
+	 *            the in
+	 * @param frequency
+	 *            the frequency
+	 * @return the string
+	 */
 	public String addSpaces(String in, int frequency){
 		
 		if(in.length() <= frequency)
@@ -116,11 +137,16 @@ public class ValueSetSearchView extends SearchView<CodeListSearchDTO>{
 	}
 	
 	/**
+	 * Creates the image.
 	 * 
 	 * @param rowIndex
+	 *            the row index
 	 * @param results
-	 * @param text value to be assigned to the alt and title attributes of the return image
-	 * @return
+	 *            the results
+	 * @param text
+	 *            value to be assigned to the alt and title attributes of the
+	 *            return image
+	 * @return the image
 	 */
 	public Image createImage(final int rowIndex,final SearchResults results, String text){
 		Image image = new Image(ImageResources.INSTANCE.application_cascade());
@@ -131,6 +157,14 @@ public class ValueSetSearchView extends SearchView<CodeListSearchDTO>{
 		return image;
 	}
 
+	/**
+	 * Builds the data table.
+	 * 
+	 * @param results
+	 *            the results
+	 * @param isAscending
+	 *            the is ascending
+	 */
 	public void buildDataTable(AdminCodeListSearchResultsAdapter results,
 			boolean isAscending) {
 			

@@ -3,7 +3,7 @@ package mat.shared;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
- 
+
 import com.google.gwt.cell.client.AbstractInputCell;
 import com.google.gwt.cell.client.ValueUpdater;
 import com.google.gwt.core.client.GWT;
@@ -13,23 +13,48 @@ import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.dom.client.Node;
 import com.google.gwt.dom.client.NodeList;
 import com.google.gwt.safehtml.client.SafeHtmlTemplates;
+import com.google.gwt.safehtml.client.SafeHtmlTemplates.Template;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 
+/**
+ * The Class RadioButtonGroupCell.
+ */
 public class RadioButtonGroupCell extends AbstractInputCell<String, String> {
 	 
+    /**
+	 * The Interface Template.
+	 */
     interface Template extends SafeHtmlTemplates {
+            
+            /**
+			 * Deselected.
+			 * 
+			 * @param choice
+			 *            the choice
+			 * @return the safe html
+			 */
             @Template("<input type=\"radio\" name=\"choices\" tabindex=\"-1\" value=\"{0}\" /> {0}</>")
             SafeHtml deselected(String choice);
 
+            /**
+			 * Selected.
+			 * 
+			 * @param choice
+			 *            the choice
+			 * @return the safe html
+			 */
             @Template("<input type=\"radio\" name=\"choices\" tabindex=\"-1\" checked=\"checked\" value=\"{0}\" /> {0}</>")
             SafeHtml selected(String choice);
     }
 
+    /** The template. */
     private static Template template;
 
+    /** The index for option. */
     private final HashMap<String, Integer> indexForOption = new HashMap<String, Integer>();
 
+    /** The options. */
     private final List<String> options;
 
     /**
@@ -51,6 +76,9 @@ public class RadioButtonGroupCell extends AbstractInputCell<String, String> {
 
     }
 
+    /* (non-Javadoc)
+     * @see com.google.gwt.cell.client.AbstractInputCell#onBrowserEvent(com.google.gwt.cell.client.Cell.Context, com.google.gwt.dom.client.Element, java.lang.Object, com.google.gwt.dom.client.NativeEvent, com.google.gwt.cell.client.ValueUpdater)
+     */
     @Override
     public void onBrowserEvent(Context context, Element parent, String value, NativeEvent event, ValueUpdater<String> valueUpdater) {
             super.onBrowserEvent(context, parent, value, event, valueUpdater);
@@ -81,6 +109,9 @@ public class RadioButtonGroupCell extends AbstractInputCell<String, String> {
             }
     }
 
+    /* (non-Javadoc)
+     * @see com.google.gwt.cell.client.AbstractCell#render(com.google.gwt.cell.client.Cell.Context, java.lang.Object, com.google.gwt.safehtml.shared.SafeHtmlBuilder)
+     */
     @Override
     public void render(Context context, String value, SafeHtmlBuilder sb) {
             // Get the view data.
@@ -103,6 +134,13 @@ public class RadioButtonGroupCell extends AbstractInputCell<String, String> {
             }
     }
 
+    /**
+	 * Gets the selected index.
+	 * 
+	 * @param value
+	 *            the value
+	 * @return the selected index
+	 */
     private int getSelectedIndex(String value) {
             Integer index = indexForOption.get(value);
             if (index == null) {

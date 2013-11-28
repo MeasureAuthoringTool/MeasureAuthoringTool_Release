@@ -6,11 +6,21 @@ import java.util.List;
 import mat.client.myAccount.MyAccountModel;
 import mat.client.shared.MatContext;
 
+/**
+ * The Class MyAccountModelValidator.
+ */
 public class MyAccountModelValidator {
 
 	//TODO to prevent overflows we should be checking sizes
 	// What should the overflow bounds be?
 	
+	/**
+	 * Validate.
+	 * 
+	 * @param model
+	 *            the model
+	 * @return the list
+	 */
 	public List<String> validate(MyAccountModel model){
 		List<String> message = new ArrayList<String>();
 		
@@ -29,9 +39,9 @@ public class MyAccountModelValidator {
 		if("".equals(model.getOid().trim())) {
 			message.add(MatContext.get().getMessageDelegate().getOIDRequiredMessage());
 		}
-		if("".equals(model.getRootoid().trim())) {
+		/*if("".equals(model.getRootoid().trim())) {
 			message.add(MatContext.get().getMessageDelegate().getRootOIDRequiredMessage());
-		}
+		}*/
 		if("".equals(model.getEmailAddress().trim())) {
 			message.add(MatContext.get().getMessageDelegate().getLoginIDRequiredMessage());
 		}

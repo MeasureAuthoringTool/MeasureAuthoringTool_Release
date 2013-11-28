@@ -16,12 +16,26 @@ import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.Widget;
 
 
+/**
+ * The Class QDMPresenter.
+ */
 public class QDMPresenter implements MatPresenter{
+	
+	/** The code list search presenter. */
 	private QDSCodeListSearchPresenter codeListSearchPresenter;
+	
+	/** The qds applied list presenter. */
 	private QDSAppliedListPresenter qdsAppliedListPresenter;
+	
+	/** The QDM content widget. */
 	private SimplePanel QDMContentWidget = new SimplePanel();
+	
+	/** The tab layout. */
 	private MatTabLayoutPanel tabLayout;
 	
+	/**
+	 * Instantiates a new qDM presenter.
+	 */
 	public QDMPresenter() {
 		QDSCodeListSearchView qdsCodeList = new QDSCodeListSearchView();
 		codeListSearchPresenter = new QDSCodeListSearchPresenter(qdsCodeList);
@@ -29,26 +43,34 @@ public class QDMPresenter implements MatPresenter{
 		qdsAppliedListPresenter = new QDSAppliedListPresenter(appliedListView);
 	}
 	
+	/* (non-Javadoc)
+	 * @see mat.client.MatPresenter#getWidget()
+	 */
 	@Override
 	public Widget getWidget() {
 		return QDMContentWidget;
 	}
 
 	
+	/* (non-Javadoc)
+	 * @see mat.client.MatPresenter#beforeDisplay()
+	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public void beforeDisplay() {
 		tabLayout = new MatTabLayoutPanel(true);
 		tabLayout.setId("qdmElementTabLayout");
-		tabLayout.addPresenter(codeListSearchPresenter,"Available Value Sets");
+		tabLayout.addPresenter(codeListSearchPresenter,"Create Element");
 		tabLayout.addPresenter(qdsAppliedListPresenter,"Applied Elements");
 		tabLayout.setHeight("98%");
-		MatContext.get().tabRegistry.put("QDM Element",tabLayout);
+		MatContext.get().tabRegistry.put("QDM Elements",tabLayout);
 		MatContext.get().enableRegistry.put(tabLayout,this);
 		tabLayout.addSelectionHandler(new SelectionHandler<Integer>(){
+			@SuppressWarnings("rawtypes")
 			public void onSelection(final SelectionEvent event) {
 				int index = ((SelectionEvent<Integer>) event).getSelectedItem();
 				// suppressing token dup
-				String newToken = "QDM Element" + index;
+				String newToken = "QDM Elements" + index;
 				if(!History.getToken().equals(newToken)){
 					MeasureSelectedEvent mse = MatContext.get().getCurrentMeasureInfo();
 					String msg = " [measure] "+mse.getMeasureName()+" [version] "+mse.getMeasureVersion();
@@ -70,6 +92,10 @@ public class QDMPresenter implements MatPresenter{
 			codeListSearchPresenter.beforeDisplay();
 		}
 	}
+	
+	/* (non-Javadoc)
+	 * @see mat.client.MatPresenter#beforeClosingDisplay()
+	 */
 	@Override 
 	public void beforeClosingDisplay() {
 		tabLayout.close();

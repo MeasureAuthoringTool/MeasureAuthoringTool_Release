@@ -7,32 +7,49 @@ import mat.client.shared.MatContext;
 import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.Widget;
 
-public class StratificationClausePresenter extends XmlTreePresenter implements MatPresenter{
-	
-	SimplePanel panel = new SimplePanel();
-	MeasureServiceAsync service = MatContext.get().getMeasureService();
+/**
+ * StratificationClausePresenter extends {@link XmlTreePresenter} implements.
+ * 
+ * {@link MatPresenter}.
+ */
+public class StratificationClausePresenter extends XmlTreePresenter implements MatPresenter {
+	/**
+	 * Root Node for Stratification Tab.
+	 */
 	private static final String STRATIFICATION = "strata";
 	
+	/** The panel. {@link SimplePanel} Instance. */
+	private SimplePanel panel = new SimplePanel();
+	/**
+	 * MeasureService Instance.
+	 */
+	private MeasureServiceAsync service = MatContext.get().getMeasureService();
+	/**
+	 * Default Constructor.
+	 */
 	public StratificationClausePresenter() {
 		setRootNode(STRATIFICATION);
 	}
-
-
+	/* (non-Javadoc)
+	 * @see mat.client.MatPresenter#beforeClosingDisplay()
+	 */
+	@Override
+	public void beforeClosingDisplay() {
+	}
+	/* (non-Javadoc)
+	 * @see mat.client.MatPresenter#beforeDisplay()
+	 */
 	@Override
 	public void beforeDisplay() {
 		panel.clear();
 		loadXmlTree(panel);
 	}
-
-	
-	@Override
-	public void beforeClosingDisplay() {
-		
-	}
-
+	/*
+	 * (non-Javadoc)
+	 * @see mat.client.MatPresenter#getWidget()
+	 */
 	@Override
 	public Widget getWidget() {
 		return panel;
 	}
-
 }

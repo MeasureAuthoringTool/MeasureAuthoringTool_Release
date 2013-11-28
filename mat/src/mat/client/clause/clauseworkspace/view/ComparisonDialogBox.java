@@ -17,23 +17,33 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.event.dom.client.KeyPressEvent;
 import com.google.gwt.event.dom.client.KeyPressHandler;
-
-//import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
 import com.google.gwt.user.client.ui.HorizontalPanel;
-
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
+//import com.google.gwt.user.client.DOM;
 
 
+/**
+ * The Class ComparisonDialogBox.
+ */
 public class ComparisonDialogBox{
 
+	/** The dialog box. */
 	public static DialogBox dialogBox = new DialogBox(true,true);
 
 
+	/**
+	 * Show comparison dialog box.
+	 * 
+	 * @param xmlTreeDisplay
+	 *            the xml tree display
+	 * @param cellTreeNode
+	 *            the cell tree node
+	 */
 	public static void showComparisonDialogBox(final XmlTreeDisplay xmlTreeDisplay, final CellTreeNode cellTreeNode) {
 
 		dialogBox.setGlassEnabled(true);
@@ -44,6 +54,7 @@ public class ComparisonDialogBox{
 		VerticalPanel dialogContents = new VerticalPanel();
 		dialogContents.setWidth("20em");
 		dialogContents.setSpacing(5);
+		dialogContents.getElement().setId("dialogContents_VerticalPanel");
 		//- POC to change width and height for dialogBox. - Success 
 		//dialogContents.setWidth("50em");
 		/*DOM.setStyleAttribute(dialogBox.getElement(), "width", "950px");
@@ -125,6 +136,7 @@ public class ComparisonDialogBox{
 
 		//Qunatity Text Box.
 		final TextBox quantity = new TextBox();
+		quantity.getElement().setId("quantity_TextBox");
 		if(quantityValue!=null){
 			quantity.setValue(quantityValue);
 		}
@@ -160,7 +172,7 @@ public class ComparisonDialogBox{
 
 		}
 		listAllUnits.setWidth("150px");
-		Label lableUnits = (Label) LabelBuilder.buildLabel(listAllTimeOrFunction, "Units");;
+		Label lableUnits = (Label) LabelBuilder.buildLabel(listAllTimeOrFunction, "Units");
 		dialogContents.add(lableUnits);
 		dialogContents.setCellHorizontalAlignment(lableUnits, HasHorizontalAlignment.ALIGN_LEFT);
 		dialogContents.add(listAllUnits);
@@ -174,6 +186,7 @@ public class ComparisonDialogBox{
 				xmlTreeDisplay.setDirty(true);
 			}
 		});
+		save.getElement().setId("save_Button");
 		// Add a Close button at the bottom of the dialog
 		Button closeButton = new Button("Cancel", new ClickHandler() {
 			@Override
@@ -181,12 +194,14 @@ public class ComparisonDialogBox{
 				dialogBox.hide();		
 			}
 		});
+		closeButton.getElement().setId("closeButton_Button");
 		HorizontalPanel buttonPanel = new HorizontalPanel();
 		buttonPanel.setSpacing(10);
 		buttonPanel.add(save);
 		buttonPanel.setCellHorizontalAlignment(save, HasHorizontalAlignment.ALIGN_RIGHT);
 		buttonPanel.add(closeButton);
 		buttonPanel.setCellHorizontalAlignment(closeButton, HasHorizontalAlignment.ALIGN_RIGHT);
+		buttonPanel.getElement().setId("buttonPanel_HorizontalPanel");
 
 		dialogContents.add(buttonPanel);
 		dialogBox.center();
@@ -196,7 +211,18 @@ public class ComparisonDialogBox{
 
 	/**
 	 * Method to set attributes to CellTreeNode extraInformation.
-	 * */ 
+	 * 
+	 * @param functionOrTiming
+	 *            the function or timing
+	 * @param operator
+	 *            the operator
+	 * @param quantity
+	 *            the quantity
+	 * @param unit
+	 *            the unit
+	 * @param xmlTreeDisplay
+	 *            the xml tree display
+	 */ 
 	private static void saveAttributesToNode(String functionOrTiming, String operator, String quantity, String unit, XmlTreeDisplay xmlTreeDisplay){
 		Map<String,String> extraAttributes = new HashMap<String,String>();
 		if(!operator.contains("Select")){
@@ -234,7 +260,10 @@ public class ComparisonDialogBox{
 
 	/**
 	 * TextBox allow only Digits.
-	 * */
+	 * 
+	 * @param quantity
+	 *            the quantity
+	 */
 	private static void addHandlerToQuantityTextBox(TextBox quantity){
 
 		quantity.addKeyPressHandler(new KeyPressHandler(){

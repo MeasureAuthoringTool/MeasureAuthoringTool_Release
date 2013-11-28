@@ -11,7 +11,6 @@ import mat.client.login.service.LoginServiceAsync;
 import mat.client.myAccount.service.SaveMyAccountResult;
 import mat.client.shared.ErrorMessageDisplayInterface;
 import mat.client.shared.MatContext;
-import mat.client.shared.PasswordEditInfoWidget;
 import mat.client.shared.SuccessMessageDisplayInterface;
 import mat.client.util.ClientConstants;
 import mat.shared.PasswordVerifier;
@@ -24,26 +23,89 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.HasValue;
 import com.google.gwt.user.client.ui.Widget;
 
+/**
+ * The Class ChangePasswordPresenter.
+ */
 public class ChangePasswordPresenter implements MatPresenter {
+	
+	/** The login service. */
 	LoginServiceAsync loginService = (LoginServiceAsync) MatContext.get().getLoginService();
 	
 	
+	/**
+	 * The Interface Display.
+	 */
 	public static interface Display {
+		
+		/**
+		 * Gets the password.
+		 * 
+		 * @return the password
+		 */
 		public HasValue<String> getPassword();
+		
+		/**
+		 * Gets the confirm password.
+		 * 
+		 * @return the confirm password
+		 */
 		public HasValue<String> getConfirmPassword();
 		
+		/**
+		 * Gets the submit.
+		 * 
+		 * @return the submit
+		 */
 		public HasClickHandlers getSubmit();
+		
+		/**
+		 * Gets the reset.
+		 * 
+		 * @return the reset
+		 */
 		public HasClickHandlers getReset();
+		
+		/**
+		 * Gets the error message display.
+		 * 
+		 * @return the error message display
+		 */
 		public ErrorMessageDisplayInterface getErrorMessageDisplay();
+		
+		/**
+		 * Gets the success message display.
+		 * 
+		 * @return the success message display
+		 */
 		public SuccessMessageDisplayInterface getSuccessMessageDisplay();
 		
+		/**
+		 * As widget.
+		 * 
+		 * @return the widget
+		 */
 		public Widget asWidget();
+		
+		/**
+		 * Gets the current password.
+		 * 
+		 * @return the current password
+		 */
 		HasValue<String> getCurrentPassword();
 	}
 	
+	/** The display. */
 	private final Display display;
+	
+	/** The my account model. */
 	private MyAccountModel myAccountModel;
 	
+	/**
+	 * Instantiates a new change password presenter.
+	 * 
+	 * @param displayArg
+	 *            the display arg
+	 */
 	public ChangePasswordPresenter(Display displayArg) {
 		this.display = displayArg;
 		
@@ -59,11 +121,13 @@ public class ChangePasswordPresenter implements MatPresenter {
 			public void onClick(ClickEvent event) {
 				String newPassword = display.getPassword().getValue();
 				String confirmPassword = display.getConfirmPassword().getValue();
-				if(newPassword.equals(null) || newPassword.equals("") || confirmPassword.equals(null) || confirmPassword.equals("")){
+				if ((newPassword == null) || newPassword.equals("") || (confirmPassword == null)
+						|| confirmPassword.equals("")) {
 					display.getErrorMessageDisplay().clear();
 					display.getSuccessMessageDisplay().clear();
-					display.getErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getAllPasswordFieldsRequired());
-				}else{
+					display.getErrorMessageDisplay().setMessage(
+					MatContext.get().getMessageDelegate().getAllPasswordFieldsRequired());
+				} else {
 					saveChangedPassword(display.getCurrentPassword().getValue());
 					display.getCurrentPassword().setValue("");
 				}
@@ -72,12 +136,18 @@ public class ChangePasswordPresenter implements MatPresenter {
 	}
 	
 		
+	/* (non-Javadoc)
+	 * @see mat.client.MatPresenter#getWidget()
+	 */
 	@Override
-	public Widget getWidget() {;
+	public Widget getWidget() {
 		return display.asWidget();
 	}
 	
 	
+	/* (non-Javadoc)
+	 * @see mat.client.MatPresenter#beforeDisplay()
+	 */
 	@Override
 	public void beforeDisplay() {
 		
@@ -95,12 +165,19 @@ public class ChangePasswordPresenter implements MatPresenter {
 		clearValues();
 		Mat.focusSkipLists("ChangePassword");
 	}
+	
+	/* (non-Javadoc)
+	 * @see mat.client.MatPresenter#beforeClosingDisplay()
+	 */
 	@Override 
 	public void beforeClosingDisplay() {
 		
 	}
 	
 	
+	/**
+	 * Clear values.
+	 */
 	private void clearValues() {
 		display.getPassword().setValue("");
 		display.getConfirmPassword().setValue("");
@@ -109,6 +186,12 @@ public class ChangePasswordPresenter implements MatPresenter {
 		display.getSuccessMessageDisplay().clear();
 	}
 	
+	/**
+	 * Save changed password.
+	 * 
+	 * @param password
+	 *            the password
+	 */
 	private void saveChangedPassword(String password){
 		 loginService.validatePassword(MatContext.get().getLoggedinLoginId(), password, new AsyncCallback<HashMap<String,String>>(){ 
 				@Override
@@ -140,6 +223,12 @@ public class ChangePasswordPresenter implements MatPresenter {
 		 });    	
 	}
 	
+	/**
+	 * Submit change password.
+	 * 
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
 	private void submitChangePassword() throws IOException {
 
 		PasswordVerifier verifier = new PasswordVerifier(

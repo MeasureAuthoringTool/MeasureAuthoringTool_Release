@@ -10,12 +10,12 @@
 >
 	
     <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
-        <property name="host" value="mail.test.org"/>
+        <property name="host" value="your.mailserver.org"/>
     </bean>
     
     <!-- this is a template message that we can pre-load with default state -->
     <bean id="templateMessage" class="org.springframework.mail.SimpleMailMessage">
-      <property name="from" value="test@test.org"/>
+      <property name="from" value="NO-REPLY-Support@youraddr.org"/>
     </bean>
     
      <bean id="velocityEngine" class="org.springframework.ui.velocity.VelocityEngineFactoryBean">

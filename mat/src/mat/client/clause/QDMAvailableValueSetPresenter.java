@@ -7,428 +7,811 @@ import java.util.List;
 import mat.client.Mat;
 import mat.client.MatPresenter;
 import mat.client.codelist.HasListBox;
-import mat.client.codelist.ManageCodeListSearchModel;
-import mat.client.codelist.ValueSetSearchFilterPanel;
-import mat.client.codelist.events.OnChangeOptionsEvent;
 import mat.client.codelist.service.SaveUpdateCodeListResult;
 import mat.client.measure.metadata.CustomCheckBox;
 import mat.client.measure.service.MeasureServiceAsync;
+import mat.client.shared.DateBoxWithCalendar;
+import mat.client.shared.ErrorMessageDisplay;
 import mat.client.shared.ErrorMessageDisplayInterface;
-import mat.client.shared.FocusableWidget;
 import mat.client.shared.ListBoxMVP;
 import mat.client.shared.MatContext;
+import mat.client.shared.SuccessMessageDisplay;
 import mat.client.shared.SuccessMessageDisplayInterface;
-import mat.client.shared.search.SearchResultUpdate;
+import mat.client.umls.service.VSACAPIServiceAsync;
+import mat.client.umls.service.VsacApiResult;
 import mat.model.CodeListSearchDTO;
+import mat.model.MatValueSet;
+import mat.model.MatValueSetTransferObject;
 import mat.model.QualityDataSetDTO;
 import mat.shared.ConstantMessages;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.event.dom.client.HasClickHandlers;
-import com.google.gwt.event.dom.client.KeyCodes;
-import com.google.gwt.event.dom.client.KeyUpEvent;
-import com.google.gwt.event.dom.client.KeyUpHandler;
-import com.google.gwt.event.logical.shared.HasSelectionHandlers;
+import com.google.gwt.event.dom.client.FocusEvent;
+import com.google.gwt.event.dom.client.FocusHandler;
+import com.google.gwt.event.logical.shared.CloseEvent;
+import com.google.gwt.event.logical.shared.CloseHandler;
+import com.google.gwt.event.logical.shared.OpenEvent;
+import com.google.gwt.event.logical.shared.OpenHandler;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.DisclosurePanel;
 import com.google.gwt.user.client.ui.TextBox;
+import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
-public class QDMAvailableValueSetPresenter  implements MatPresenter{
-
-	private SearchDisplay searchDisplay;
-	private int startIndex = 1;
-	private String currentSortColumn = getSortKey(0);
-	private boolean sortIsAscending = true;
-	private boolean showdefaultCodeList = true;
-	private String lastSearchText;
-	private int lastStartIndex;
-	private QDSCodeListSearchModel currentCodeListResults;
-	MeasureServiceAsync measureService = MatContext.get().getMeasureService();
-	ArrayList<QualityDataSetDTO> appliedQDMList = new ArrayList<QualityDataSetDTO>();
-	QualityDataSetDTO  modifyValueSetDTO;
-	mat.client.clause.QDSAppliedListPresenter.SearchDisplay searchDisplay2;
+/**
+ * QDMAvailableValueSetPresenter class.
+ */
+public class QDMAvailableValueSetPresenter  implements MatPresenter {
 	
-	
-	public static interface SearchDisplay extends mat.client.shared.search.SearchDisplay{
-		public HasSelectionHandlers<CodeListSearchDTO> getSelectedOption();
-		public HasSelectionHandlers<CodeListSearchDTO> getSelectIdForQDSElement();
-		public void buildQDSDataTable(QDSCodeListSearchModel results);
-		public HasClickHandlers getAddToMeasureButton();
-		public void setAddToMeasureButtonEnabled(boolean visible);
-		public Widget getDataTypeWidget();
-		public ListBoxMVP getDataTypeInput();
-		public CustomCheckBox getSpecificOccurrenceInput();
-		public Button getApplyToMeasure();
-		public void scrollToBottom();
-		public FocusableWidget getMsgFocusWidget();
-		public String getDataTypeValue();
-		public SuccessMessageDisplayInterface getApplyToMeasureSuccessMsg();
-		public ErrorMessageDisplayInterface getErrorMessageDisplay();
-		public void setDataTypeOptions(List<? extends HasListBox> texts);
-		public String getDataTypeText();
-		public ValueSetSearchFilterPanel getValueSetSearchFilterPanel();
-		public void setEnabled(boolean enabled);
-		public Button getCancel();
+	/**
+	 * QDMAvailableValueSetPresenter's view interface.
+	 */
+	interface SearchDisplay {
+		/**
+		 * As widget.
+		 *
+		 * @return {@link Widget}
+		 */
+		Widget asWidget();
+		
+		/**
+		 * Builds the value set details widget.
+		 *
+		 * @param matValueSets
+		 *            - ArrayList of {@link MatValueSet}
+		 */
+		void buildValueSetDetailsWidget(ArrayList<MatValueSet> matValueSets);
+		
+		/**
+		 * Remove all Success and failure messages.
+		 */
+		void clearVSACValueSetMessages();
+		
+		/**
+		 * Gets the all data type input.
+		 *
+		 * @return {@link ListBoxMVP}
+		 */
+		ListBoxMVP getAllDataTypeInput();
+		
+		/**
+		 * Gets the apply to measure button.
+		 *
+		 * @return {@link Button}
+		 */
+		Button getApplyToMeasureButton();
+		
+		/**
+		 * Gets the apply to measure success msg.
+		 *
+		 * @return {@link SuccessMessageDisplayInterface}
+		 */
+		SuccessMessageDisplayInterface getApplyToMeasureSuccessMsg();
+		
+		/**
+		 * Gets the current mat value set.
+		 *
+		 * @return {@link MatValueSet}
+		 */
+		MatValueSet getCurrentMatValueSet();
+		
+		/**
+		 * Gets the data types list box.
+		 *
+		 * @return {@link ListBoxMVP}
+		 */
+		ListBoxMVP getDataTypesListBox();
+		
+		/**
+		 * Gets the data type text.
+		 *
+		 * @param inputListBox
+		 *            - {@link ListBoxMVP}
+		 * @return {@link String}
+		 */
+		String getDataTypeText(ListBoxMVP inputListBox);
+		
+		/**
+		 * Gets the data type value.
+		 *
+		 * @param inputListBox
+		 *            - {@link ListBoxMVP}
+		 * @return {@link String}
+		 */
+		String getDataTypeValue(ListBoxMVP inputListBox);
+		
+		/**
+		 * Gets the date input.
+		 *
+		 * @return the date input {@link DateBoxWithCalendar}
+		 */
+		DateBoxWithCalendar getDateInput();
+		
+		/**
+		 * Gets the disclosure panel.
+		 *
+		 * @return {@link DisclosurePanel}
+		 */
+		DisclosurePanel getDisclosurePanel();
+		
+		/**
+		 * Gets the disclosure panel vsac.
+		 *
+		 * @return {@link DisclosurePanel}
+		 */
+		DisclosurePanel getDisclosurePanelVSAC();
+		
+		/**
+		 * Gets the effective date.
+		 *
+		 * @return the effective date
+		 */
+		CustomCheckBox getEffectiveDate();
+		
+		/**
+		 * Gets the error message display.
+		 *
+		 * @return {@link ErrorMessageDisplayInterface}
+		 */
+		ErrorMessageDisplayInterface getErrorMessageDisplay();
+		
+		/**
+		 * Gets the error message user defined panel.
+		 *
+		 * @return {@link ErrorMessageDisplay}
+		 */
+		ErrorMessageDisplay getErrorMessageUserDefinedPanel();
+		
+		/**
+		 * Gets the oID input.
+		 *
+		 * @return {@link TextBox}
+		 */
+		TextBox getOIDInput();
+		
+		/**
+		 * Gets the psuedo qdm to measure.
+		 *
+		 * @return {@link Button}
+		 */
+		Button getPsuedoQDMToMeasure();
+		
+		/**
+		 * Gets the retrieve button.
+		 *
+		 * @return {@link Button}
+		 */
+		Button getRetrieveButton();
+		
+		/**
+		 * Gets the specific occurrence input.
+		 *
+		 * @return {@link CustomCheckBox}
+		 */
+		CustomCheckBox getSpecificOccurrenceInput();
+		
+		/**
+		 * Gets the success message display.
+		 *
+		 * @return {@link SuccessMessageDisplay}
+		 */
+		SuccessMessageDisplay getSuccessMessageDisplay();
+		
+		/**
+		 * Gets the success message user defined panel.
+		 *
+		 * @return {@link SuccessMessageDisplay}
+		 */
+		SuccessMessageDisplay getSuccessMessageUserDefinedPanel();
+		
+		/**
+		 * Gets the user defined input.
+		 *
+		 * @return {@link TextBox}
+		 */
+		TextBox getUserDefinedInput();
+		
+		/**
+		 * Gets the value set details panel.
+		 *
+		 * @return {@link VerticalPanel}
+		 */
+		VerticalPanel getValueSetDetailsPanel();
+		
+		/**
+		 * Gets the version.
+		 *
+		 * @return the version
+		 */
+		CustomCheckBox getVersion();
+		
+		/**
+		 * Reset VSACValueSetWidget - Clear's OID and version input's.
+		 */
+		void resetVSACValueSetWidget();
+		
+		/**
+		 * Sets the all data type options.
+		 *
+		 * @param texts
+		 *            List of {@link HasListBox}
+		 */
+		void setAllDataTypeOptions(List<? extends HasListBox> texts);
+		
+		/**
+		 * Sets the data types list box options.
+		 *
+		 * @param texts
+		 *            - {@link List} of {@link HasListBox}
+		 */
+		void setDataTypesListBoxOptions(List<? extends HasListBox> texts);
 	}
 	
+	/**
+	 * QualityDataSet List.
+	 */
+	private ArrayList<QualityDataSetDTO> appliedQDMList = new ArrayList<QualityDataSetDTO>();
 	
-	public QDMAvailableValueSetPresenter(SearchDisplay sDisplayArg , QualityDataSetDTO dataSetDTO, mat.client.clause.QDSAppliedListPresenter.SearchDisplay searchDisplay2){
-		this.searchDisplay = sDisplayArg;
-		this.modifyValueSetDTO = dataSetDTO;
-		this.searchDisplay2 = searchDisplay2;
-		this.appliedQDMList = (ArrayList<QualityDataSetDTO>) searchDisplay2.getAllAppliedQDMList();
-		TextBox searchWidget = (TextBox)(searchDisplay.getSearchString());
-		searchWidget.addKeyUpHandler(new KeyUpHandler() {
-			
-			@Override
-			public void onKeyUp(KeyUpEvent event) {
-				if (event.getNativeKeyCode() == KeyCodes.KEY_ENTER){
-					((Button)searchDisplay.getSearchButton()).click();
-	            }
-			}
-		});
+	/**
+	 * When retrieving value set from VSAC, "Loading Please Wait..." message is displayed.
+	 * busyLoading is set true when retrieving value set from VSAC otherwise it is set false.
+	 */
+	private boolean busyLoading;
+	/**
+	 * MatValueSet instance.
+	 */
+	private MatValueSet currentMatValueSet;
+	
+	/**
+	 * Measure Service instance.
+	 */
+	private final MeasureServiceAsync measureService = MatContext.get()
+			.getMeasureService();
+	
+	/** The modify value set dto. {@link QualityDataSetDTO} instance. */
+	private final QualityDataSetDTO modifyValueSetDTO;
+	
+	/**
+	 * The qds applied list presenter display. {@link QDSAppliedListPresenter}
+	 * search display instance.
+	 */
+	private final mat.client.clause.QDSAppliedListPresenter.SearchDisplay qdsAppliedListPresenterDisplay;
+	/**
+	 * SearchDisplay instance.
+	 */
+	private final SearchDisplay searchDisplay;
+	
+	/** The vsacapi service. {@link VSACAPIServiceAsync} instance. */
+	private final VSACAPIServiceAsync vsacapiService = MatContext.get()
+			.getVsacapiServiceAsync();
+	
+	/**
+	 * Constructor.
+	 * @param sDisplayArg
+	 *            - {@link SearchDisplay}
+	 * @param dataSetDTO
+	 *            - {@link QualityDataSetDTO}
+	 * @param qdsAppliedListPresenterDisplay
+	 *            S-
+	 *            {@link mat.client.clause.QDSAppliedListPresenter.SearchDisplay}
+	 */
+	public QDMAvailableValueSetPresenter(SearchDisplay sDisplayArg , QualityDataSetDTO dataSetDTO,
+			final mat.client.clause.QDSAppliedListPresenter.SearchDisplay qdsAppliedListPresenterDisplay) {
+		searchDisplay = sDisplayArg;
+		modifyValueSetDTO = dataSetDTO;
+		this.qdsAppliedListPresenterDisplay = qdsAppliedListPresenterDisplay;
+		appliedQDMList = (ArrayList<QualityDataSetDTO>) qdsAppliedListPresenterDisplay.getAllAppliedQDMList();
 		
-		MatContext.get().getEventBus().addHandler(OnChangeOptionsEvent.TYPE, new OnChangeOptionsEvent.Handler() {
+		//Element without VSAC value set - OPEN Handler
+		searchDisplay.getDisclosurePanel().addOpenHandler(new OpenHandler<DisclosurePanel>() {
 			@Override
-			public void onChangeOptions(OnChangeOptionsEvent event) {
-				final CodeListSearchDTO codeList = currentCodeListResults.getSelectedCodeList();
-				searchDisplay.scrollToBottom();
-				searchDisplay.getApplyToMeasureSuccessMsg().setMessage("");
-				searchDisplay.getSpecificOccurrenceInput().setValue(false);//Unchecking the specific occurrence checkbox on change of radio options.
-				if(codeList != null){
-					String codeListCategory = codeList.getCategoryDisplay();
-				       if(codeListCategory.equalsIgnoreCase(ConstantMessages.ATTRIBUTE) || 
-				    		   codeListCategory.equalsIgnoreCase(ConstantMessages.MEASUREMENT_TIMING)){
-				    	   searchDisplay.getDataTypeInput().setEnabled(false);
-				    	   searchDisplay.getSpecificOccurrenceInput().setEnabled(false);
-				    	   searchDisplay.getApplyToMeasure().setEnabled(true);//enable only the ApplyToMeasure Button in these scenario
-				       }else{
-				    	   populateQDSDataType(codeList.getCategoryCode());
-						   searchDisplay.getDataTypeInput().setEnabled(true);//Enable both the datatype dropdown and specific occurence.
-						   searchDisplay.getSpecificOccurrenceInput().setEnabled(true);
-						   searchDisplay.getDataTypeInput().setFocus(true);
-					 	   searchDisplay.getApplyToMeasure().setEnabled(false);
-					   }
+			public void onOpen(OpenEvent<DisclosurePanel> event) {
+				if (isBusyLoading()) {
+					event.getTarget().setOpen(false);
+				} else {
+					displaySearch();
+					searchDisplay.getDisclosurePanelVSAC().setOpen(false);
 				}
 			}
 		});
 		
-		searchDisplay.getSearchButton().addClickHandler(new ClickHandler() {
+		//Element without VSAC value set - CLOSE Handler
+		searchDisplay.getDisclosurePanel().addCloseHandler(new CloseHandler<DisclosurePanel>() {
 			@Override
-			public void onClick(ClickEvent event) {
-				MatContext.get().clearDVIMessages();
-				startIndex = 1;
-				currentSortColumn = getSortKey(0);
-				sortIsAscending = true;
-				int filter = searchDisplay.getValueSetSearchFilterPanel().getSelectedIndex();
-				search(searchDisplay.getSearchString().getValue(),
-						startIndex, searchDisplay.getPageSize(), currentSortColumn, sortIsAscending,showdefaultCodeList,filter);
+			public void onClose(CloseEvent<DisclosurePanel> event) {
+				if (!isBusyLoading()) {
+					searchDisplay.getUserDefinedInput().setText("");
+					searchDisplay.getAllDataTypeInput().setItemSelected(0, true);
+					displaySearch();
+					searchDisplay.getDisclosurePanelVSAC().setOpen(true);
+				}
 			}
 		});
 		
-		searchDisplay.getAddToMeasureButton().addClickHandler(new ClickHandler() {
+		//Element with VSAC value set - OPEN Handler.
+		searchDisplay.getDisclosurePanelVSAC().addOpenHandler(new OpenHandler<DisclosurePanel>() {
 			@Override
-			public void onClick(ClickEvent event) {
-				MatContext.get().clearDVIMessages();
-				searchDisplay.scrollToBottom();
-				MatContext.get().getMeasureService().getMeasureXMLForAppliedQDM(MatContext.get().getCurrentMeasureId(),true, new AsyncCallback<ArrayList<QualityDataSetDTO>>(){
-
-					@Override
-					public void onFailure(Throwable caught) {
-						searchDisplay.getErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getGenericErrorMessage());
-					}
-
-					@Override
-					public void onSuccess(ArrayList<QualityDataSetDTO> result) {
-						appliedQDMList = result;
-						modifyQDM();
-					}
-					
-				});
+			public void onOpen(OpenEvent<DisclosurePanel> event) {
+				if (!isBusyLoading()) {
+					displaySearch();
+					searchDisplay.getDisclosurePanel().setOpen(false);
+				}
+			}
+		});
+		
+		//Element with VSAC value set - CLOSE Handler.
+		searchDisplay.getDisclosurePanelVSAC().addCloseHandler(new CloseHandler<DisclosurePanel>() {
+			@Override
+			public void onClose(CloseEvent<DisclosurePanel> event) {
+				if (isBusyLoading()) {
+					event.getTarget().setOpen(true);
+				} else {
+					searchDisplay.getUserDefinedInput().setText("");
+					displaySearch();
+					searchDisplay.getDisclosurePanel().setOpen(true);
+				}
+			}
+		});
+		
+		searchDisplay.getUserDefinedInput().addClickHandler(new ClickHandler() {
+			@Override
+			public void onClick(final ClickEvent event) {
+				searchDisplay.getSuccessMessageUserDefinedPanel().clear();
+				searchDisplay.getErrorMessageUserDefinedPanel().clear();
+			}
+		});
+		
+		searchDisplay.getAllDataTypeInput().addFocusHandler(new FocusHandler() {
+			@Override
+			public void onFocus(final FocusEvent event) {
+				searchDisplay.getSuccessMessageUserDefinedPanel().clear();
+				searchDisplay.getErrorMessageUserDefinedPanel().clear();
 				
 			}
 		});
-		
-		searchDisplay.getCancel().addClickHandler(new ClickHandler() {
-			
+		searchDisplay.getPsuedoQDMToMeasure().addClickHandler(new ClickHandler() {
 			@Override
-			public void onClick(ClickEvent event) {
-				ModifyQDMDialogBox.dialogBox.hide();
-				//This is to reload applied QDM List.
-				reloadAppliedQDMList();
+			public void onClick(final ClickEvent event) {
+				modifyQDM(true);
 			}
 		});
 		
-	}
-	
-	/***
-	 * Method to find if selected Available value set is a valid modifiable selection. If yes, then call to updateAppliedQDMList method is made. 
-	 * 
-	 * */
-	protected void modifyQDM() {
-		CodeListSearchDTO modifyWithDTO = currentCodeListResults.getLastSelectedCodeList();
-		searchDisplay.getErrorMessageDisplay().clear();
-		searchDisplay.getApplyToMeasureSuccessMsg().clear();
-		if(modifyValueSetDTO!=null && modifyWithDTO!=null ){
-			String dataType , dataTypeText;
-			Boolean isSpecificOccurrence=false;
-		
-			if(modifyWithDTO.getCategoryDisplay().equalsIgnoreCase(ConstantMessages.ATTRIBUTE)){
-		    	   dataType = ConstantMessages.ATTRIBUTE;
-		     }else if(modifyWithDTO.getName().equalsIgnoreCase(ConstantMessages.MEASUREMENT_PERIOD)){
-		    	   dataType = ConstantMessages.TIMING_ELEMENT;
-		     }else if(modifyWithDTO.getName().equalsIgnoreCase(ConstantMessages.MEASUREMENT_START_DATE)){
-		    	   dataType = ConstantMessages.TIMING_ELEMENT;
-		     }else if(modifyWithDTO.getName().equalsIgnoreCase(ConstantMessages.MEASUREMENT_END_DATE)){
-		    	   dataType = ConstantMessages.TIMING_ELEMENT;
-		     }else{
-		    	   populateQDSDataType(modifyWithDTO.getCategoryCode());
-		    	   dataType = searchDisplay.getDataTypeValue();
-		     }
-		     if(searchDisplay.getDataTypeText().equalsIgnoreCase("--Select--")){
-		    	   dataTypeText = dataType;
-		      }else{
-		    	   dataTypeText = searchDisplay.getDataTypeText();
-		       }
-		       isSpecificOccurrence = searchDisplay.getSpecificOccurrenceInput().getValue();
-		       
-				
-			if(modifyValueSetDTO.getDataType().equalsIgnoreCase(ConstantMessages.ATTRIBUTE) || dataType.equalsIgnoreCase(ConstantMessages.ATTRIBUTE)){
-				if(dataType.equalsIgnoreCase(modifyValueSetDTO.getDataType())){
-					updateAppliedQDMList(modifyWithDTO, modifyValueSetDTO,dataType,dataTypeText,isSpecificOccurrence);
-			}else{
-				if(ConstantMessages.ATTRIBUTE.equalsIgnoreCase(dataType)){
-					searchDisplay.getErrorMessageDisplay().setMessage("A value set with a non-Attribute category must be used for this data element.");
-				}else{
-					searchDisplay.getErrorMessageDisplay().setMessage("A value set with an Attribute category must be used for this data element.");
-				}
-				setEnabled(true);
-			}
-			}else{
-				updateAppliedQDMList(modifyWithDTO, modifyValueSetDTO,dataType,dataTypeText,isSpecificOccurrence);
-			
-			}
-		}else{
-			searchDisplay.getErrorMessageDisplay().setMessage("Please select atleast one applied QDM to modify.");
-			setEnabled(true);
-		
-		}
-		
-	}
-	
-	/**
-	 * This method is used to update QDM element selected for modification. All check's for attributes and non attributes , Occurrence and non occurences
-	 * are done in this method. This method returns modified and ordered list of all applied QDM elements.This method also makes call to updateMeasureXML method.
-	 * 
-	 * **/
-	
-	private void updateAppliedQDMList(final CodeListSearchDTO codeListSearchDTO , final QualityDataSetDTO  qualityDataSetDTO, String dataType, String dataTypeText, Boolean isSpecificOccurrence){
-		MatContext.get().getCodeListService().updateCodeListToMeasure(MatContext.get().getCurrentMeasureId(),dataType, codeListSearchDTO,qualityDataSetDTO, isSpecificOccurrence,appliedQDMList, new AsyncCallback<SaveUpdateCodeListResult>(){
+		searchDisplay.getApplyToMeasureButton().addClickHandler(new ClickHandler() {
 			@Override
-			public void onFailure(Throwable caught) {
-				searchDisplay.getErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getGenericErrorMessage());
-				setEnabled(true);
-				
-			}
-			@Override
-			public void onSuccess(SaveUpdateCodeListResult result) {
-				if(result.getFailureReason()==7){
-					searchDisplay.getErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getDuplicateAppliedQDMMsg());
-					setEnabled(true);
-				}
-				else{
-					appliedQDMList = result.getAppliedQDMList();
-					updateMeasureXML( result.getDataSetDTO() ,   qualityDataSetDTO);
-				}
+			public void onClick(final ClickEvent event) {
+				currentMatValueSet = searchDisplay.getCurrentMatValueSet();
+				modifyQDM(false);
 			}
 		});
 		
-	}
-	
-	/**
-	 * This method updates MeasureXML - ElementLookUpNode,ElementRef's under Population Node and Stratification Node, SupplementDataElements. It also removes attributes nodes if
-	 * there is mismatch in data types of newly selected QDM and already applied QDM.
-	 * 
-	 * **/
-	
-	private void updateMeasureXML(QualityDataSetDTO qualityDataSetDTO2, QualityDataSetDTO qualityDataSetDTO){
-		MatContext.get().getMeasureService().updateMeasureXML(qualityDataSetDTO2, qualityDataSetDTO, MatContext.get().getCurrentMeasureId(), new AsyncCallback<Void>() {
-
+		searchDisplay.getRetrieveButton().addClickHandler(new ClickHandler() {
 			@Override
-			public void onFailure(Throwable caught) {
-				searchDisplay.getErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getGenericErrorMessage());
-			}
-
-			@Override
-			public void onSuccess(Void result) {
-				searchDisplay.getApplyToMeasureSuccessMsg().setMessage(MatContext.get().getMessageDelegate().getSuccessfulModifyQDMMsg());
-				setEnabled(true);
+			public void onClick(final ClickEvent event) {
+				searchDisplay.clearVSACValueSetMessages();
+				String version = null;
+				String effectiveDate = null;
+				if (searchDisplay.getVersion().getValue().equals(Boolean.TRUE)) {
+					version = searchDisplay.getDateInput().getValue();
+				} else if (searchDisplay.getEffectiveDate().getValue().equals(Boolean.TRUE)) {
+					effectiveDate = searchDisplay.getDateInput().getValue();
+				}
+				searchValueSetInVsac(searchDisplay.getOIDInput().getValue(), version, effectiveDate);
 			}
 		});
+	}
+	
+	/* (non-Javadoc)
+	 * @see mat.client.MatPresenter#beforeClosingDisplay()
+	 */
+	@Override
+	public void beforeClosingDisplay() {
 		
 	}
 	
-	/**
-	 * This method is used to reload Applied QDM List.
-	 * 
-	 * */
-	private void reloadAppliedQDMList(){
-		QDSAppliedListModel appliedListModel = new QDSAppliedListModel();
-		appliedListModel.setAppliedQDMs(appliedQDMList);
-		searchDisplay2.buildCellList(appliedListModel);
-	}
-	
-	/**
-	 * This method is used in searching all available Value sets for pop up.
-	 * */
-	private void search(String searchText, int startIndex, final int pageSize,
-					String sortColumn, boolean isAsc,boolean defaultCodeList, int filter) {
-		lastSearchText = (!searchText.equals(null))? searchText.trim() : null;
-		lastStartIndex = startIndex;
-		showSearchingBusy(true);
+	/* (non-Javadoc)
+	 * @see mat.client.MatPresenter#beforeDisplay()
+	 */
+	@Override
+	public void beforeDisplay() {
 		displaySearch();
-		MatContext.get().getCodeListService().search(lastSearchText,
-				startIndex, Integer.MAX_VALUE, 
-				sortColumn, isAsc, defaultCodeList, filter,
-				new AsyncCallback<ManageCodeListSearchModel>() {
-			@Override
-			public void onSuccess(ManageCodeListSearchModel result) {
-				if(result.getData().isEmpty() && !lastSearchText.isEmpty()){
-					searchDisplay.getErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getNoCodeListsMessage());
-				}else{
-					resetQDSFields();
-					searchDisplay.getSearchString().setValue(lastSearchText);
-				}
-				QDSCodeListSearchModel QDSSearchResult = new QDSCodeListSearchModel();
-				QDSSearchResult.setData(result.getData());
-				QDSSearchResult.setResultsTotal(result.getResultsTotal());
-				
-				
-				SearchResultUpdate sru = new SearchResultUpdate();
-				sru.update(result, (TextBox)searchDisplay.getSearchString(), lastSearchText);
-				sru = null;
-				searchDisplay.buildQDSDataTable(QDSSearchResult);
-				currentCodeListResults = QDSSearchResult;
-				displaySearch();
-				searchDisplay.getErrorMessageDisplay().setFocus();
-				showSearchingBusy(false);
-				
-			}
-			@Override
-			public void onFailure(Throwable caught) {
-				searchDisplay.getErrorMessageDisplay().setMessage("Problem while performing a search");
-				showSearchingBusy(false);
-			}
-		});
 	}
 	
-	private void showSearchingBusy(boolean busy){
-		if(busy)
-			Mat.showLoadingMessage();
-		else
-			Mat.hideLoadingMessage();
-		((Button)searchDisplay.getSearchButton()).setEnabled(!busy);
-		((TextBox)(searchDisplay.getSearchString())).setEnabled(!busy);
+	/**
+	 * Convert message.
+	 *
+	 * @param id
+	 *            the id
+	 * @return String
+	 */
+	private String convertMessage(int id) {
+		String message;
+		switch(id) {
+			case VsacApiResult.UMLS_NOT_LOGGEDIN:
+				message = MatContext.get().getMessageDelegate().getUMLS_NOT_LOGGEDIN();
+				break;
+			case VsacApiResult.OID_REQUIRED:
+				message = MatContext.get().getMessageDelegate().getUMLS_OID_REQUIRED();
+				break;
+			default:
+				message = MatContext.get().getMessageDelegate().getVSAC_RETRIEVE_FAILED();
+		}
+		return message;
 	}
 	
 	/**
 	 * This method shows AvailableValueSet Widget in pop up.
 	 * */
 	private void displaySearch() {
-		ModifyQDMDialogBox.showModifyDialogBox(searchDisplay.asWidget(),modifyValueSetDTO);
+		ModifyQDMDialogBox.showModifyDialogBox(searchDisplay.asWidget(), modifyValueSetDTO, this);
+		populateAllDataType();
+		searchDisplay.resetVSACValueSetWidget();
+		searchDisplay.clearVSACValueSetMessages();
+		searchDisplay.getSuccessMessageUserDefinedPanel().clear();
+		searchDisplay.getErrorMessageUserDefinedPanel().clear();
 	}
 	
-	private void populateQDSDataType(String category){
-		MatContext.get().getListBoxCodeProvider().getQDSDataTypeForCategory(category, new AsyncCallback<List<? extends HasListBox>>() {
-
-			@Override
-			public void onFailure(Throwable caught) {
-				
+	/**
+	 * Filter timing qdms.
+	 *
+	 * @param result
+	 *            - {@link ArrayList} of {@link QualityDataSetDTO}
+	 */
+	private void filterTimingQDMs(
+			ArrayList<QualityDataSetDTO> result) {
+		List<QualityDataSetDTO> timingQDMs = new ArrayList<QualityDataSetDTO>();
+		for (QualityDataSetDTO qdsDTO : result) {
+			if ("Timing Element".equals(qdsDTO
+					.getDataType())) {
+				timingQDMs.add(qdsDTO);
 			}
-
-			@Override
-			public void onSuccess(List<? extends HasListBox> result) {
-				Collections.sort(result, new HasListBox.Comparator());
-				searchDisplay.setDataTypeOptions(result);
-			}
-       });
-		
+		}
+		result.removeAll(timingQDMs);
 	}
 	
+	/* (non-Javadoc)
+	 * @see mat.client.MatPresenter#getWidget()
+	 */
+	@Override
 	public Widget getWidget() {
 		return searchDisplay.asWidget();
 	}
 	
-	public String getSortKey(int columnIndex) {
-		String[] sortKeys = new String[] { "name", "taxnomy", "category"};
-		return sortKeys[columnIndex];
+	/**
+	 * When retrieving value set from VSAC, "Loading Please Wait..." message is displayed.
+	 * @return true if "Loading Please Wait..." message is displaying(In other words, when retrieving value set from VSAC)
+	 * 	    else returns false;
+	 */
+	public final boolean isBusyLoading() {
+		return busyLoading;
 	}
 	
-	public void resetQDSFields(){
-		searchDisplay.getApplyToMeasureSuccessMsg().clear();
-		searchDisplay.getErrorMessageDisplay().clear();
-		searchDisplay.getSearchString().setValue("");
-		searchDisplay.getApplyToMeasure().setEnabled(false);
-		searchDisplay.getDataTypeInput().setEnabled(false);
+	/**
+	 * Method to find if selected Available value set is a valid modifiable selection.
+	 *  If yes, then call to updateAppliedQDMList method is made.
+	 * @param isUserDefined - Boolean.
+	 **/
+	protected final void modifyQDM(final boolean isUserDefined) {
+		if (!isUserDefined) { //Normal Available QDM Flow
+			modifyValueSetQDM();
+		} else { //Pseudo QDM Flow
+			modifyQDMWithOutValueSet();
+		}
 	}
 	
-	public void setEnabled(boolean enabled){
-		searchDisplay.setEnabled(enabled);
-		
-		//determine which of the "Select Data Type" drop down, the "Specific Occurrence" check box, and the "Apply to Measure" button are to be enabled 
-		boolean applyToMeasure = false;
-		boolean specificOccurrence = false;
-		boolean dataTypeInput = false;
-		final CodeListSearchDTO codeList = currentCodeListResults == null ? null : currentCodeListResults.getSelectedCodeList();
-		if(enabled && codeList != null){
-			boolean dataTypeSelected = searchDisplay.getDataTypeInput().getSelectedIndex()>0;
-			if(!codeList.getName().equalsIgnoreCase(ConstantMessages.MEASUREMENT_PERIOD) && 
-					!codeList.getName().equalsIgnoreCase(ConstantMessages.MEASUREMENT_START_DATE) &&
-					!codeList.getName().equalsIgnoreCase(ConstantMessages.MEASUREMENT_END_DATE) &&
-					!codeList.getCategoryDisplay().equalsIgnoreCase(ConstantMessages.ATTRIBUTE)){
-				//(1) can have data type and data type is selected
-				// dti: true soc: true atm: true
-				//(2) can have data type and data type is not selected
-				// dti: true soc: true atm: false
-				dataTypeInput = true;
-				specificOccurrence = true;
-				if(dataTypeSelected){
-					applyToMeasure = true;
+	/**
+	 * Server call to modify QDM without VSAC value set.
+	 */
+	private void modifyQDMWithOutValueSet() {
+		//Pseudo QDM Flow
+		searchDisplay.getSuccessMessageUserDefinedPanel().clear();
+		searchDisplay.getErrorMessageUserDefinedPanel().clear();
+		if ((searchDisplay.getUserDefinedInput().getText().trim().length() > 0)
+				&& !searchDisplay.getDataTypeText(searchDisplay.getAllDataTypeInput()).
+				equalsIgnoreCase(MatContext.PLEASE_SELECT)) {
+			CodeListSearchDTO modifyWithDTO = new CodeListSearchDTO();
+			modifyWithDTO.setName(searchDisplay.getUserDefinedInput().getText());
+			String dataType = searchDisplay.getDataTypeValue(searchDisplay.getAllDataTypeInput());
+			String dataTypeText = searchDisplay.getDataTypeText(searchDisplay.getAllDataTypeInput());
+			if (modifyValueSetDTO.getDataType().equalsIgnoreCase(ConstantMessages.ATTRIBUTE)
+					|| dataTypeText.equalsIgnoreCase(ConstantMessages.ATTRIBUTE)) {
+				if (dataTypeText.equalsIgnoreCase(modifyValueSetDTO.getDataType())) {
+					updateAppliedQDMList(null, modifyWithDTO, modifyValueSetDTO, dataType, false, true);
+				} else {
+					if (ConstantMessages.ATTRIBUTE.equalsIgnoreCase(dataTypeText)) {
+						searchDisplay.getErrorMessageUserDefinedPanel().setMessage(
+								MatContext.get().
+								getMessageDelegate().getMODIFY_QDM_NON_ATTRIBUTE_VALIDATION());
+					} else {
+						searchDisplay.getErrorMessageUserDefinedPanel().setMessage(
+								MatContext.get().
+								getMessageDelegate().getMODIFY_QDM_ATTRIBUTE_VALIDATION());
+					}
 				}
-			}else{
-				//(3) cannot have data type
-				// dti: false soc: false am: true
-				applyToMeasure = true;
+			} else {
+				updateAppliedQDMList(null, modifyWithDTO, modifyValueSetDTO, dataType, false, true);
 			}
+		} else {
+			searchDisplay.getErrorMessageUserDefinedPanel().setMessage(
+					MatContext.get().getMessageDelegate().getVALIDATION_MSG_ELEMENT_WITHOUT_VSAC());
+		}
+	}
+	
+	/**
+	 * Server call to modify QDM with VSAC value set.
+	 */
+	private void modifyValueSetQDM() {
+		//Normal Available QDM Flow
+		MatValueSet modifyWithDTO = currentMatValueSet;
+		searchDisplay.getErrorMessageDisplay().clear();
+		searchDisplay.getApplyToMeasureSuccessMsg().clear();
+		if ((modifyValueSetDTO != null) && (modifyWithDTO != null)) {
+			String dataType;
+			String dataTypeText;
+			Boolean isSpecificOccurrence = false;
+			
+			dataType = searchDisplay.getDataTypeValue(searchDisplay.getDataTypesListBox());
+			dataTypeText = searchDisplay.getDataTypeText(searchDisplay.getDataTypesListBox());
+			isSpecificOccurrence = searchDisplay.getSpecificOccurrenceInput().getValue();
+			
+			if (modifyValueSetDTO.getDataType().equalsIgnoreCase(ConstantMessages.ATTRIBUTE)
+					|| dataTypeText.equalsIgnoreCase(ConstantMessages.ATTRIBUTE)) {
+				if (dataTypeText.equalsIgnoreCase(modifyValueSetDTO.getDataType())) {
+					updateAppliedQDMList(modifyWithDTO, null, modifyValueSetDTO, dataType, isSpecificOccurrence, false);
+				} else {
+					if (ConstantMessages.ATTRIBUTE.equalsIgnoreCase(dataTypeText)) {
+						searchDisplay.getErrorMessageDisplay().setMessage(MatContext.get().
+								getMessageDelegate().getMODIFY_QDM_NON_ATTRIBUTE_VALIDATION()
+								);
+					} else {
+						searchDisplay.getErrorMessageDisplay().setMessage(MatContext.get().
+								getMessageDelegate().getMODIFY_QDM_ATTRIBUTE_VALIDATION());
+					}
+				}
+			} else {
+				updateAppliedQDMList(modifyWithDTO, null, modifyValueSetDTO, dataType, isSpecificOccurrence, false);
+			}
+		} else {
+			searchDisplay.getErrorMessageDisplay().setMessage(MatContext.get().
+					getMessageDelegate().getMODIFY_QDM_SELECT_ATLEAST_ONE());
+		}
+	}
+	
+	/**
+	 * Get All data types from DB and populates in AllDataTypeOptions and
+	 * DataTypeListBoxOptions.
+	 */
+	private void populateAllDataType() {
+		MatContext.get().getListBoxCodeProvider().getAllDataType(new AsyncCallback<List<? extends HasListBox>>() {
+			
+			@Override
+			public void onFailure(final Throwable caught) {
+				
+			}
+			
+			@Override
+			public void onSuccess(final List<? extends HasListBox> result) {
+				Collections.sort(result, new HasListBox.Comparator());
+				searchDisplay.setAllDataTypeOptions(result);
+				searchDisplay.setDataTypesListBoxOptions(result);
+			}
+		});
+	}
+	
+	/**
+	 * This method is used to reload Applied QDM List.
+	 **/
+	public final void reloadAppliedQDMList() {
+		QDSAppliedListModel appliedListModel = new QDSAppliedListModel();
+		filterTimingQDMs(appliedQDMList);
+		appliedListModel.setAppliedQDMs(appliedQDMList);
+		qdsAppliedListPresenterDisplay.buildCellList(appliedListModel);
+		
+		/*
+		 * Setting appliedQDMList in qdsAppliedListPresenterDisplay. Whenever
+		 * this modify pop up is opened this.appliedQDMList is set with
+		 * qdsAppliedListPresenterDisplay.appliedQDMList in this presenter. So,
+		 * qdsAppliedListPresenterDisplay.appliedQDMList is updated here.
+		 */
+		qdsAppliedListPresenterDisplay.setAppliedQDMList(appliedQDMList);
+	}
+	
+	/**
+	 * Search value set in vsac.
+	 *
+	 * @param oid
+	 *            - {@link String}
+	 * @param version
+	 *            - {@link String}
+	 * @param effectiveDate
+	 *            - {@link String}
+	 */
+	private void searchValueSetInVsac(String oid, String version, String effectiveDate) {
+		
+		searchDisplay.getValueSetDetailsPanel().setVisible(false);
+		
+		if (!MatContext.get().isUMLSLoggedIn()) { //UMLS Login Validation
+			searchDisplay.getErrorMessageDisplay().setMessage(
+					MatContext.get().getMessageDelegate().getUMLS_NOT_LOGGEDIN());
+			return;
 		}
 		
-		//apply to measure
-		((Button)searchDisplay.getAddToMeasureButton()).setEnabled(applyToMeasure);		
-		//specific occurrence
-		searchDisplay.getSpecificOccurrenceInput().setEnabled(specificOccurrence);
-		//select data type
-		searchDisplay.getDataTypeInput().setEnabled(dataTypeInput);
-	}
-	
-	void loadCodeListData(){
-		searchDisplay.getValueSetSearchFilterPanel().resetFilter();
-		int filter = searchDisplay.getValueSetSearchFilterPanel().getDefaultFilter();
-		search("", 1, searchDisplay.getPageSize(), currentSortColumn, sortIsAscending,showdefaultCodeList,filter);
-	}
-	
-	@Override
-	public void beforeDisplay() {
-		resetQDSFields();
-		loadCodeListData();
+		//OID validation.
+		if ((oid == null) || oid.trim().isEmpty()) {
+			searchDisplay.getErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getUMLS_OID_REQUIRED());
+			return;
+		}
 		
-	}
-
-	@Override
-	public void beforeClosingDisplay() {
-	
+		//Version and EffectiveDate validation
+		if ((searchDisplay.getVersion().getValue().equals(Boolean.TRUE)
+				&& ((version == null) || version.trim().isEmpty()))
+				|| (searchDisplay.getEffectiveDate().getValue().equals(Boolean.TRUE)
+						&& ((effectiveDate == null) || effectiveDate.trim().isEmpty()))) {
+			searchDisplay.getErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate()
+					.getVSAC_VERSION_OR_EFFECTIVE_DATE_REQUIRED());
+			return;
+		}
 		
+		showSearchingBusy(true);
+		vsacapiService.getValueSetByOIDAndVersionOrEffectiveDate(oid, version, effectiveDate, new AsyncCallback<VsacApiResult>() {
+			@Override
+			public void onFailure(final Throwable caught) {
+				searchDisplay.getErrorMessageDisplay().setMessage(
+						MatContext.get().getMessageDelegate().getVSAC_RETRIEVE_FAILED());
+				showSearchingBusy(false);
+			}
+			
+			@Override
+			public void onSuccess(final VsacApiResult result) {
+				if (result.isSuccess()) {
+					searchDisplay.buildValueSetDetailsWidget(result.getVsacResponse());
+					searchDisplay.getValueSetDetailsPanel().setVisible(true);
+				} else {
+					String message = convertMessage(result.getFailureReason());
+					searchDisplay.getErrorMessageDisplay().setMessage(message);
+				}
+				showSearchingBusy(false);
+			}
+		});
 	}
-
+	
+	/**
+	 * This method is used in searching all available Value sets for pop up.
+	 *
+	 * @param busy
+	 *            the busy
+	 */
+	private void showSearchingBusy(final boolean busy) {
+		if (busy) {
+			Mat.showLoadingMessage();
+		} else {
+			Mat.hideLoadingMessage();
+		}
+		busyLoading = busy;
+		searchDisplay.getRetrieveButton().setEnabled(!busy);
+		searchDisplay.getOIDInput().setEnabled(!busy);
+		searchDisplay.getVersion().setEnabled(!busy);
+		searchDisplay.getEffectiveDate().setEnabled(!busy);
+		if (searchDisplay.getVersion().getValue().equals(Boolean.TRUE)
+				|| searchDisplay.getEffectiveDate().getValue().equals(Boolean.TRUE)) {
+			searchDisplay.getDateInput().setEnabled(!busy);
+		}
+	}
+	
+	/**
+	 * This method is used to update QDM element selected for modification. All
+	 * check's for attributes and non attributes , Occurrence and non
+	 * occurrences. are done in this method. This method returns modified and
+	 * ordered list of all applied QDM elements. This method also makes call to
+	 * updateMeasureXML method.
+	 * @param matValueSet
+	 *            - {@link MatValueSet}
+	 * @param codeListSearchDTO
+	 *            - {@link CodeListSearchDTO}
+	 * @param qualityDataSetDTO
+	 *            - {@link QualityDataSetDTO}
+	 * @param dataType
+	 *            - {@link String}
+	 * @param isSpecificOccurrence
+	 *            - {@link Boolean}
+	 * @param isUSerDefined
+	 *            - {@link Boolean}
+	 */
+	private void updateAppliedQDMList(final MatValueSet matValueSet , final CodeListSearchDTO codeListSearchDTO ,
+			final QualityDataSetDTO qualityDataSetDTO, final String dataType, final Boolean isSpecificOccurrence,
+			final boolean isUSerDefined) {
+		MatValueSetTransferObject matValueSetTransferObject = new MatValueSetTransferObject();
+		matValueSetTransferObject.setDatatype(dataType);
+		matValueSetTransferObject.setMatValueSet(matValueSet);
+		matValueSetTransferObject.setCodeListSearchDTO(codeListSearchDTO);
+		matValueSetTransferObject.setQualityDataSetDTO(qualityDataSetDTO);
+		matValueSetTransferObject.setAppliedQDMList(appliedQDMList);
+		matValueSetTransferObject.setSpecificOccurrence(isSpecificOccurrence);
+		if ((searchDisplay.getDateInput().getValue() != null) && !searchDisplay.getDateInput().getValue().trim().isEmpty()) {
+			if (searchDisplay.getVersion().getValue().equals(Boolean.TRUE)) {
+				matValueSetTransferObject.setVersionDate(true);
+				matValueSetTransferObject.setEffectiveDate(false);
+			} else if (searchDisplay.getEffectiveDate().getValue().equals(Boolean.TRUE)) {
+				matValueSetTransferObject.setEffectiveDate(true);
+				matValueSetTransferObject.setVersionDate(false);
+			} else {
+				matValueSetTransferObject.setEffectiveDate(false);
+				matValueSetTransferObject.setVersionDate(false);
+			}
+			matValueSetTransferObject.setQueryDate(searchDisplay.getDateInput().getValue());
+		}
+		MatContext.get().getCodeListService().updateCodeListToMeasure(matValueSetTransferObject,
+				new AsyncCallback<SaveUpdateCodeListResult>() {
+			@Override
+			public void onFailure(final Throwable caught) {
+				if (!isUSerDefined) {
+					searchDisplay.getErrorMessageDisplay().setMessage(
+							MatContext.get().getMessageDelegate().getGenericErrorMessage());
+				} else {
+					searchDisplay.getErrorMessageUserDefinedPanel().setMessage(
+							MatContext.get().getMessageDelegate().getGenericErrorMessage());
+				}
+			}
+			@Override
+			public void onSuccess(final SaveUpdateCodeListResult result) {
+				if (result.getFailureReason() == SaveUpdateCodeListResult.ALREADY_EXISTS) {
+					if (!isUSerDefined) {
+						searchDisplay.getErrorMessageDisplay().setMessage(
+								MatContext.get().getMessageDelegate().getDuplicateAppliedQDMMsg());
+					} else {
+						searchDisplay.getErrorMessageUserDefinedPanel().setMessage(
+								MatContext.get().getMessageDelegate().getDuplicateAppliedQDMMsg());
+					}
+				} else {
+					appliedQDMList = result.getAppliedQDMList();
+					updateMeasureXML(result.getDataSetDTO() , qualityDataSetDTO, isUSerDefined);
+				}
+			}
+		});
+	}
+	
+	/**
+	 * This method updates MeasureXML - ElementLookUpNode,ElementRef's under
+	 * Population Node and Stratification Node, SupplementDataElements. It also
+	 * removes attributes nodes if there is mismatch in data types of newly
+	 * selected QDM and already applied QDM. *
+	 *
+	 * @param modifyWithDTO
+	 *            - {@link QualityDataSetDTO}
+	 * @param modifyableDTO
+	 *            - {@link QualityDataSetDTO}
+	 * @param isUserDefined
+	 *            - {@link Boolean}
+	 */
+	private void updateMeasureXML(final QualityDataSetDTO modifyWithDTO,
+			final QualityDataSetDTO modifyableDTO, final boolean isUserDefined) {
+		measureService.updateMeasureXML(modifyWithDTO, modifyableDTO,
+				MatContext.get().getCurrentMeasureId(), new AsyncCallback<Void>() {
+			
+			@Override
+			public void onFailure(final Throwable caught) {
+				if (!isUserDefined) {
+					searchDisplay.getErrorMessageDisplay().setMessage(
+							MatContext.get().getMessageDelegate().getGenericErrorMessage());
+				} else {
+					searchDisplay.getErrorMessageUserDefinedPanel().setMessage(
+							MatContext.get().getMessageDelegate().getGenericErrorMessage());
+				}
+			}
+			
+			@Override
+			public void onSuccess(final Void result) {
+				if (!isUserDefined) {
+					searchDisplay.getApplyToMeasureSuccessMsg().setMessage(
+							MatContext.get().getMessageDelegate().getSuccessfulModifyQDMMsg());
+				} else {
+					searchDisplay.getSuccessMessageUserDefinedPanel().setMessage(
+							MatContext.get().getMessageDelegate().getSuccessfulModifyQDMMsg());
+					searchDisplay.getUserDefinedInput().setText("");
+					searchDisplay.getAllDataTypeInput().setSelectedIndex(0);
+				}
+			}
+		});
+	}
 }

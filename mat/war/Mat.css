@@ -484,6 +484,20 @@ body#main select, body#main input, body#main textarea {
 	
 }
 
+.warningMessage {
+    background: no-repeat scroll 6px 50% #EEC99E;
+    border: 1px solid #D28021;
+    color: #000000;
+    display: block;
+    font-weight: bold;
+    margin: 2px auto 14px;
+    padding: 6px 6px 6px 30px;
+    text-align: left;
+    
+    
+    
+}
+
 .loginInfoMessageContainer {
 	-moz-box-sizing:border-box;
     background-color:#E3F3D8;
@@ -563,6 +577,21 @@ body#main select, body#main input, body#main textarea {
     margin-left:auto; 
     margin-right:auto;
 }
+
+.disclaimer {
+    border: 1px solid #0964A2;
+    -moz-box-sizing: border-box;
+    background-image: url("images/bg_box-blue.png");
+    background-repeat:repeat-x;
+    vertical-align: middle;
+    text-align: left;
+    width:700px;
+    padding: 10px;
+    font-size:.8em;
+    margin-left:auto; 
+    margin-right:auto;
+}
+
 .loginHeader {
     font-size:1.2em;
     border-bottom:10px;
@@ -843,6 +872,20 @@ padding: 2px;
 	font-size:small;
 }
 
+.umlsStatePanel{
+	float: right;
+	position: relative;
+	padding-top: 12px;
+	font-size:small;
+}
+
+.logoutAndUMLSPanel{
+	float: right;
+	position: relative;
+	padding-top: 12px;
+	font-size:small;
+}
+
 .grid {
   width: 150px;
   height: 50px;
@@ -1002,6 +1045,7 @@ padding: 2px;
 
 .contentWithHeadingHeader {
      position: relative;
+     width: 840px;
 }
 .contentWithHeadingHeader h1 {
 	font-size:1.2em;
@@ -1034,6 +1078,26 @@ padding: 2px;
 	-moz-box-sizing:border-box;
     background-color:white;
     border:1px solid #C0C0C0;
+}
+
+.notesContentPanel{
+	padding-left: 20px;
+	paddling-right: 20px;
+	padding-top: 10px;
+	position: relative;
+	overflow: hidden;
+	height:250px;
+	width: 100%;
+	-moz-box-sizing:border-box;
+    background-color:#F0F0F0;
+    border:0px solid #C0C0C0;
+}
+
+.measureComposerLabel{
+	margin-left: 5px;
+	font-weight:bold;
+	height: 25px;
+	width: 90%;
 }
 .qdsScroll{
 	overflow-x: hidden; 
@@ -1297,26 +1361,93 @@ padding: 2px;
 	padding-bottom: 5px	
 }
 
+.searchWidgetMeasureLibrary{
+	padding-top:25px;
+}
+.createMeasurePanelMeasureLib{
+	padding-left:65px;
+}
+
+.headingButton{
+	padding-top: 7px;
+    vertical-align: top;
+}
+
+.searchWidget{
+    border:1px solid lightgray;
+    -moz-box-sizing: border-box;
+    background-image: url("images/bg_box-blue.png");
+    background-repeat:repeat-x;
+    vertical-align: middle;
+    text-align: left;
+    padding-right: 10px;
+    padding-top: 8px;
+    font-size:.8em;
+    margin-left:650px; 
+    margin-right:auto;
+}
+.searchWidgetLabel{
+	font-size: 11px;
+    display: block;
+    padding-left: 15px;
+    text-indent: -15px;
+}
+
+.searchWidgetCheckBox{
+    width: 17px;
+    height: 13px;
+    padding-left: 3px;
+    padding-right: 3px;
+    margin-top:2px;
+    vertical-align: bottom;
+    position: relative;
+    top: -3px;
+    overflow: hidden;
+}
+
+.filterDisclosurePanel{
+    margin-left:645px; 
+    margin-right:auto;
+    margin-top:0.5px;
+}
+
+.invisibleButtonTextMeasureLibrary{
+   margin: 0;
+ /*  padding: 3px 5px; */
+  text-decoration: none;
+  font-size: 0;
+  border: 0px outset #ccc;
+  background-color: rgba(0, 0, 0, 0);
+  background:transparent;
+}
+
 .readOnlyButton {
-    background: url("images/hborder.png") repeat-x scroll 0 -27px transparent;
-    border: 1px outset #CCCCCC;
+    /* background: url("images/hborder.png") repeat-x scroll 0 -27px transparent; */
+    border: 0px outset #CCCCCC;
     font-size: 0;
     margin: 0;
     padding: 3px 5px;
     text-decoration: none;
+    background-color: rgba(0, 0, 0, 0);
+    background:transparent;
 }
 .invisibleButtonText{
-  margin: 0;
+   margin: 0;
   padding: 3px 5px;
   text-decoration: none;
   font-size: 0;
-  cursor: pointer;
-  cursor: hand;
-  background: url("images/hborder.png") repeat-x 0px -27px;
-  border: 1px outset #ccc;
+ /* cursor: pointer;
+   cursor: hand; */
+  /* background: url("images/hborder.png") repeat-x 0px -27px; */
+  border: 0px outset #ccc;
   margin-left: 12px;
   margin-right: 12px;	
+  background-color: rgba(0, 0, 0, 0);
+  background:transparent;
 }
+
+
+
 
 .invisibleButtonText:active {
   border: 1px inset #ccc;
@@ -1325,13 +1456,109 @@ padding: 2px;
   border-color: #9cf #69e #69e #7af;
 }
 .invisibleButtonText[disabled] {
-  cursor: default;
+   cursor: default; 
   color: #888;
 }
 .invisibleButtonText[disabled]:hover {
-  border: 1px outset #ccc;
+ /*  border: 1px outset #ccc; */
 }
 
+
+.htmlDescription{
+	position:relative;
+	/* font-style:Italic; */
+}
+
+.imageMiddleAlign{
+	vertical-align:middle;	
+}
+
+.clauseWorkSpaceInvalidNode{
+	font-weight:bold;
+	color:red;
+}
+
+.gwt-DisclosurePanel .content {
+    /* background-color: lightgray; */
+    background-image: url("images/bg_box-blue.png");
+    background-repeat: repeat-x;
+    border-color: #E8EEF7 #E8EEF7 #E8EFF7;
+    border-left: 3px solid #E8EEF7;
+    border-right: 3px solid #E8EEF7;
+    border-style: solid;
+    border-width: 3px;
+    margin-left: 6px;
+    padding: 4px 0 4px 8px;
+}
+
+.gwt-DisclosurePanel .header td {
+    cursor: pointer;
+    font-size: small;
+    font-weight: bold;
+    text-decoration: none;
+}
+.marginLeft{
+	margin-left:35px;
+}
+
+.marginLeftRight{
+	margin-left:35px;
+	margin-right: 200px;
+}
+
+.marginLeft{
+	margin-left:35px;
+}
+
+.marginLeftRight{
+	margin-left:35px;
+	margin-right: 350px;
+}
+
+.bottom_border_inset{
+	border-bottom: 2px inset #B0B0B0;	
+}
+
+.top_border_outset{
+	border-top: 2px inset #B0B0B0;	
+}
+
+.right_left_border_outset{
+	border-left: 2px outset #B0B0B0;
+	border-right: 2px inset #B0B0B0;
+}
+
+.header_background {
+    /* background-color: lightgray; */
+    background-image: url("images/bg_box-blue.png");
+    background-repeat: repeat-x;
+    border-color: #E8EEF7 #E8EEF7 #E8EFF7;
+    border-left: 3px solid #E8EEF7;
+    border-right: 3px solid #E8EEF7;
+    border-style: solid;
+    border-width: 3px;
+    margin-left: 6px;
+    padding: 4px 0 4px 8px;
+    height: 35px;
+}
+
+.notes_composer_background{
+	 /* background-color: lightgray; */
+    background-image: url("images/bg_box-blue.png");
+    background-repeat: repeat-x;
+    border-color: #E8EEF7 #E8EEF7 #E8EFF7;
+    border-left: 3px solid #E8EEF7;
+    border-right: 3px solid #E8EEF7;
+    border-style: solid;
+    border-width: 3px;
+    margin-left: 15px;
+    padding: 4px 0 4px 8px;
+}
+
+.notes_table_background{
+	background-color:white;
+    border-bottom: 2px inset #B0B0B0;	
+}
 /* =SKIPLIST CODE AND =508 COMPLIANCE  */
 /*_____________________________________________________________
 .skiplist {margin: 0 0 0 5px; padding: 0} 
@@ -1343,4 +1570,77 @@ padding: 2px;
 .skip a:hover {cursor: default}
 .skiplist {}
 
+.valueSetSearchPanel{
+    background-color: white;
+    border-color: #E8EEF7 #E8EEF7 #E8EFF7;
+    border-left: 3px solid #E8EEF7;
+    border-right: 3px solid #E8EEF7;
+    border-style: solid;
+    border-width: 3px;
+    margin-left: 4px;
+    margin-top: 6px;
+    padding: 0px 0px 8px 0px;
+}
+.valueSetDetailsPanel{
+	background-color: white;
+    border-color: #E8EEF7 #E8EEF7 #E8EFF7;
+    border-left: 3px solid #E8EEF7;
+    border-right: 3px solid #E8EEF7;
+    border-style: solid;
+    border-width: 3px;
+	margin-left: 4px;
+    margin-top: 6px;
+    margin-bottom: 10px;
+    padding: 0px 0px 8px 0px;
+}
+.valueSetHeader{
+	background-color: #6B97B8; 
+	font-size: small;
+    font-weight: bold;
+    color: white;
+    padding: 5px;
+}
+.valueSetMarginTop{
+	margin-top: 4px;
+}
+.valueSetMarginLeft{
+	margin-left: 15px;
+}
+.valueSetMarginLeft_7px{
+	margin-left: 7px;
+}
+.textInput {
+    border: 1px solid #C9C7BA;
+    font-family:Tahoma, Verdana, Arial, Helvetica, sans-serif;
+    font-size: 11px;
+   /*  padding-left: 2px;
+    padding-top: 2px; */
+}
+ 
+.textInput-watermark {
+   /* background-image: url('images/overlay.gif');
+   background-repeat: no-repeat;
+   padding-left: 20px;
+   vertical-align: middle; */
+   border: 1px solid #C9C7BA;
+    font-family:Tahoma, Verdana, Arial, Helvetica, sans-serif;
+   /*  font-size: 11px; 
+   font-style: italic;*/
+   color: darkgray;
+}
 
+.customCheckBoxLabel{
+	font-size: 13px;
+    text-indent: -15px;
+}
+
+.customCheckBox{
+    width: 17px;
+    height: 13px;
+    padding-left: 3px;
+    padding-right: 3px;
+    margin-top:2px;
+    vertical-align: bottom;
+    position: relative;
+    overflow: hidden;
+}

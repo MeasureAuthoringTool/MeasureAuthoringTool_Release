@@ -3,71 +3,241 @@ package mat.client.clause.clauseworkspace.model;
 import java.util.List;
 
 
+/**
+ * CellTreeNode Interface.
+ */
 public interface CellTreeNode {
-
-	short MASTER_ROOT_NODE = 1;
-	
-	short ROOT_NODE = 2;
-	
+	/**
+	 * Attribute Node.
+	 */
+	short ATTRIBUTE_NODE = 9;
+	/**
+	 * Clause Node.
+	 */
 	short CLAUSE_NODE = 3;
-	
+	/**
+	 * Element Ref Node.
+	 */
+	short ELEMENT_REF_NODE = 6;
+	/**
+	 * Function Node.
+	 */
+	short FUNCTIONS_NODE = 7;
+	/**
+	 * Logical Op Node.
+	 */
 	short LOGICAL_OP_NODE = 4;
-	
+	/**
+	 * Master Node.
+	 */
+	short MASTER_ROOT_NODE = 1;
+	/**
+	 * RelationShip Node.
+	 */
+	short RELATIONSHIP_NODE = 8;
+	/**
+	 * Root Node.
+	 */
+	short ROOT_NODE = 2;
+	/**
+	 * Timing Node.
+	 */
 	short TIMING_NODE = 5;
 	
-	short ELEMENT_REF_NODE = 6;
+	/**
+	 * Append child.
+	 * 
+	 * @param child
+	 *            - {@link CellTreeNode}
+	 * @return {@link CellTreeNode}
+	 */
+	CellTreeNode appendChild(CellTreeNode child);
 	
-	short FUNCTIONS_NODE = 7;
+	/**
+	 * Clone node.
+	 * 
+	 * @return {@link CellTreeNode}.
+	 */
+	CellTreeNode cloneNode();
+	/**
+	 * Create Child in selected Node with given Name, Label and Node Type.
+	 * @param name
+	 *            - {@link String}
+	 * @param label
+	 *            - {@link String}
+	 * @param nodeType
+	 *            - {@link Short}.
+	 * @return - {@link CellTreeNode}.
+	 */
+	CellTreeNode createChild(String name, String label, short nodeType);
 	
-	short ATTRIBUTE_NODE = 9;
+	/**
+	 * Gets the childs.
+	 * 
+	 * @return {@link List} of {@link CellTreeNode}.
+	 */
+	List<CellTreeNode> getChilds();
 	
-	short RELATIONSHIP_NODE = 8;
+	/**
+	 * Gets the extra information.
+	 * 
+	 * @param key
+	 *            - {@link String}
+	 * @return - {@link Object}.
+	 */
+	Object getExtraInformation(String key);
+	/**
+	 * Return's Node Label value.
+	 * @return {@link String}
+	 */
+	String getLabel();
+	/**
+	 * Node Name is returned.
+	 * @return {@link String}
+	 */
+	String getName();
 	
-	public CellTreeNode appendChild(CellTreeNode child);
+	/**
+	 * Gets the node type.
+	 * 
+	 * @return Node Type - {@link Short}.
+	 */
+	short getNodeType();
 	
-	public CellTreeNode removeChild(CellTreeNode child);
+	/**
+	 * Gets the parent.
+	 * 
+	 * @return Node Parent - {@link CellTreeNode}.
+	 */
+	CellTreeNode getParent();
 	
-	public CellTreeNode createChild(String name, String label, short nodeType);
+	/**
+	 * Gets the qdm attribute.
+	 * 
+	 * @return {@link String}
+	 */
+	String getQdmAttribute();
 	
-	public short getNodeType();
+	/**
+	 * Gets the qdm attribute count.
+	 * 
+	 * @return QDM Attribute Count - {@link Integer}.
+	 */
+	int getQdmAttributeCount();
 	
-	public void setNodeType(short nodeType);
+	/**
+	 * Gets the title.
+	 * 
+	 * @return Node Title - {@link String}.
+	 */
+	String getTitle();
 	
-	public CellTreeNode getParent();
+	/**
+	 * Gets the uuid.
+	 * 
+	 * @return UUID - {@link String}
+	 */
+	String getUUID();
 	
-	public void setParent(CellTreeNode treeNode);
+	/**
+	 * Gets the valid node.
+	 * 
+	 * @return Boolean - Valid Node.
+	 */
+	boolean getValidNode();
 	
-	public boolean hasChildren();
+	/**
+	 * Checks for children.
+	 * 
+	 * @return true if Node has child else return false.
+	 */
+	boolean hasChildren();
 	
-	public CellTreeNode cloneNode();
+	/**
+	 * Checks if is open.
+	 * 
+	 * @return true if Node is opened else return false.
+	 */
+	boolean isOpen();
+	/**
+	 * Remove child node attached to Parent node.
+	 * @param child
+	 *            - {@link CellTreeNode}.
+	 * @return sub Tree will removed Node - {@link CellTreeNode}.
+	 */
+	CellTreeNode removeChild(CellTreeNode child);
 	
-	public boolean isOpen();
+	/**
+	 * Sets the childs.
+	 * 
+	 * @param childs
+	 *            - {@link List} of {@link CellTreeNode}.
+	 */
+	void setChilds(List<CellTreeNode> childs);
 	
-	public void setOpen(boolean isOpen);
+	/**
+	 * Sets the extra information.
+	 * 
+	 * @param key
+	 *            - {@link String}
+	 * @param value
+	 *            - {@link Object}.
+	 */
+	void setExtraInformation(String key, Object value);
 	
-	public String getName();
+	/**
+	 * Sets the label.
+	 * 
+	 * @param label
+	 *            - Node Label - {@link String}.
+	 */
+	void setLabel(String label);
 	
-	public void setName(String name);
+	/**
+	 * Sets the name.
+	 * 
+	 * @param name
+	 *            - Node Name - {@link String}.
+	 */
+	void setName(String name);
 	
-	public String getLabel();
+	/**
+	 * Sets the node type.
+	 * 
+	 * @param nodeType
+	 *            - Node Type - {@link String}.
+	 */
+	void setNodeType(short nodeType);
 	
-	public void setLabel(String label);
-		
-	public List<CellTreeNode> getChilds();
+	/**
+	 * Sets the open.
+	 * 
+	 * @param isOpen
+	 *            - {@link Boolean}.
+	 */
+	void setOpen(boolean isOpen);
 	
-	public void setChilds(List<CellTreeNode> childs);
+	/**
+	 * Sets the parent.
+	 * 
+	 * @param treeNode
+	 *            - Parent Node - {@link CellTreeNode}
+	 */
+	void setParent(CellTreeNode treeNode);
 	
-	public void setExtraInformation(String key, Object value);
+	/**
+	 * Sets the uuid.
+	 * 
+	 * @param uuid
+	 *            - {@link String}
+	 */
+	void setUUID(String uuid);
 	
-	public Object getExtraInformation(String key);
-	
-	public String getUUID();
-	
-	public void setUUID(String uuid);
-	
-	public String getQdmAttribute();
-	
-	public int getQdmAttributeCount();
-	
-	public String getTitle();
+	/**
+	 * Sets the valid node.
+	 * 
+	 * @param isValid
+	 *            - {@link Boolean}
+	 */
+	void setValidNode(boolean isValid);
 }
