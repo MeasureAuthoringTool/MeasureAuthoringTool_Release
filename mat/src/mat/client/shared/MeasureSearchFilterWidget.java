@@ -2,7 +2,6 @@ package mat.client.shared;
 
 import mat.client.ImageResources;
 import mat.client.measure.metadata.CustomCheckBox;
-
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -64,10 +63,12 @@ public class MeasureSearchFilterWidget extends Composite implements ClickHandler
 	 * Selected filter value - {@link Integer}.
 	 */
 	private int selectedFilter;
-	/**
-	 * Default Constructor.
-	 */
-	public MeasureSearchFilterWidget() {
+	
+	/** Default Constructor.
+	 * 
+	 * @param cssStyleTopPanel the css style top panel
+	 * @param cssStyleDisclosurePanel the css style disclosure panel */
+	public MeasureSearchFilterWidget(String cssStyleTopPanel, String cssStyleDisclosurePanel) {
 		// searchInput.setWatermark("Search");
 		searchButton = new PrimaryButton("Search", "primaryButton");
 		searchButton.addClickHandler(this);
@@ -79,6 +80,7 @@ public class MeasureSearchFilterWidget extends Composite implements ClickHandler
 		 */
 		searchButton.getElement().getStyle().setMarginLeft(SEARCH_BTN_MRGN_LEFT, Unit.PX);
 		VerticalPanel topPanel = new VerticalPanel();
+		topPanel.setWidth("100px");
 		topPanel.getElement().setId("MeasureSearchFilterWidget_verticalPanel");
 		FlowPanel fp = new FlowPanel();
 		fp.getElement().setId("MeasureSearchFilterWidget_FlowPanel");
@@ -92,9 +94,9 @@ public class MeasureSearchFilterWidget extends Composite implements ClickHandler
 		topPanel.add(invisibleLabel);
 		topPanel.add(horizontalPanel);
 		fp.add(searchFilterDisclosurePanel);
-		fp.setStylePrimaryName("filterDisclosurePanel");
+		fp.setStylePrimaryName(cssStyleDisclosurePanel);
 		topPanel.add(fp);
-		horizontalPanel.setStylePrimaryName("searchWidget");
+		horizontalPanel.setStylePrimaryName(cssStyleTopPanel);
 		resetFilter();
 		addHandlersToCheckBox();
 		Element element = topPanel.getElement();

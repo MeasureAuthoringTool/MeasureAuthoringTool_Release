@@ -5,9 +5,9 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import mat.client.umls.service.VSACAPIService;
 import mat.client.umls.service.VsacApiResult;
 import mat.model.MatValueSet;
@@ -17,7 +17,6 @@ import mat.server.service.MeasureLibraryService;
 import mat.server.util.ResourceLoader;
 import mat.server.util.UMLSSessionTicket;
 import mat.shared.ConstantMessages;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -43,8 +42,10 @@ public class VSACAPIServiceImpl extends SpringRemoteServiceServlet implements VS
 	
 	/** serialVersionUID for VSACAPIServiceImpl class. **/
 	private static final long serialVersionUID = -6645961609626183169L;
-	
-	private static final int TIME_OUT_FAILURE_CODE = 3;
+	/** The Constant REQUEST_FAILURE_CODE. */
+	private static final int VSAC_REQUEST_FAILURE_CODE = 4;
+	/** The Constant TIME_OUT_FAILURE_CODE. */
+	private static final int VSAC_TIME_OUT_FAILURE_CODE = 3;
 	
 	/**
 	 * Private method to Convert VSAC xml pay load into Java object through
@@ -239,6 +240,7 @@ public class VSACAPIServiceImpl extends SpringRemoteServiceServlet implements VS
 			ArrayList<MatValueSet> matValueSetList = new ArrayList<MatValueSet>();
 			HashMap<QualityDataSetDTO, QualityDataSetDTO> updateInMeasureXml =
 					new HashMap<QualityDataSetDTO, QualityDataSetDTO>();
+			List<String> notFoundOIDList = new ArrayList<String>();
 			for (QualityDataSetDTO qualityDataSetDTO : appliedQDMList) {
 				LOGGER.info("OID ====" + qualityDataSetDTO.getOid());
 				// Filter out Timing Element and User defined QDM's.
@@ -246,6 +248,11 @@ public class VSACAPIServiceImpl extends SpringRemoteServiceServlet implements VS
 						|| ConstantMessages.USER_DEFINED_QDM_OID.equalsIgnoreCase(qualityDataSetDTO.getOid())) {
 					LOGGER.info("QDM filtered as it is of either for following type "
 							+ "(User defined or Timing Element.");
+					if (ConstantMessages.USER_DEFINED_QDM_OID.equalsIgnoreCase(qualityDataSetDTO.getOid())) {
+						// To show warning message on Measure Package screen added
+						// User define oid to notFoundOidList.
+						notFoundOIDList.add(qualityDataSetDTO.getOid());
+					}
 					continue;
 				} else if ("1.0".equalsIgnoreCase(qualityDataSetDTO.getVersion())
 						|| "1".equalsIgnoreCase(qualityDataSetDTO.getVersion())) {
@@ -261,16 +268,24 @@ public class VSACAPIServiceImpl extends SpringRemoteServiceServlet implements VS
 								+ qualityDataSetDTO.getDataType());
 					}
 					if (vsr != null) {
-						if (vsr.isFailResponse() && (vsr.getFailReason() == TIME_OUT_FAILURE_CODE)) {
-							LOGGER.info("Value Set reterival failed at VSAC for OID :"
-									+ qualityDataSetDTO.getOid() + " with Data Type : "
-									+ qualityDataSetDTO.getDataType()
-									+ ". Failure Reason:" + vsr.getFailReason());
-							//inValidateVsacUser();
-							//MatContext.get().setUMLSLoggedIn(false);
-							result.setSuccess(false);
-							result.setFailureReason(vsr.getFailReason());
-							return result;
+						LOGGER.info("Value Set from VSAC for OID :"
+								+ qualityDataSetDTO.getOid() + " with Data Type : "
+								+ qualityDataSetDTO.getDataType()
+								+ ". Failure Reason:" + vsr.getFailReason());
+						if (vsr.isFailResponse()) {
+							int failReason = vsr.getFailReason();
+							if (failReason == VSAC_TIME_OUT_FAILURE_CODE) {
+								LOGGER.info("Value Set reterival failed at VSAC for OID :"
+										+ qualityDataSetDTO.getOid() + " with Data Type : "
+										+ qualityDataSetDTO.getDataType()
+										+ ". Failure Reason:" + vsr.getFailReason());
+								result.setSuccess(false);
+								result.setFailureReason(vsr.getFailReason());
+								return result;
+							} else if (failReason == VSAC_REQUEST_FAILURE_CODE) {
+								notFoundOIDList.add(qualityDataSetDTO.getOid());
+								continue;
+							}
 						}
 						if ((vsr.getXmlPayLoad() != null) && StringUtils.isNotEmpty(vsr.getXmlPayLoad())) {
 							VSACValueSetWrapper wrapper = convertXmltoValueSet(vsr.getXmlPayLoad());
@@ -283,11 +298,19 @@ public class VSACAPIServiceImpl extends SpringRemoteServiceServlet implements VS
 									qualityDataSetDTO.setTaxonomy(ConstantMessages.
 											GROUPING_CODE_SYSTEM);
 									handleVSACGroupedValueSet(eightHourTicket, matValueSet);
+									if (matValueSet.getGroupedValueSet().size() != 0) {
+										matValueSetList.add(matValueSet);
+									}
 								} else {
-									qualityDataSetDTO.setTaxonomy(matValueSet.getConceptList().
-											getConceptList().get(0).getCodeSystemName());
+									if (matValueSet.getConceptList().getConceptList() != null) {
+										qualityDataSetDTO.setTaxonomy(matValueSet.getConceptList().
+												getConceptList().get(0).
+												getCodeSystemName());
+										matValueSetList.add(matValueSet);
+									} else {
+										qualityDataSetDTO.setTaxonomy(StringUtils.EMPTY);
+									}
 								}
-								matValueSetList.add(matValueSet);
 								updateInMeasureXml.put(qualityDataSetDTO, toBeModifiedQDM);
 							}
 						}
@@ -310,7 +333,12 @@ public class VSACAPIServiceImpl extends SpringRemoteServiceServlet implements VS
 							if (matValueSet != null) {
 								matValueSet.setQdmId(qualityDataSetDTO.getId());
 								handleVSACGroupedValueSet(eightHourTicket, matValueSet);
-								matValueSetList.add(matValueSet);
+								if (matValueSet.isGrouping()
+										&& (matValueSet.getGroupedValueSet().size() != 0)) {
+									matValueSetList.add(matValueSet);
+								} else if (matValueSet.getConceptList().getConceptList() != null) {
+									matValueSetList.add(matValueSet);
+								}
 							}
 						}
 					}
@@ -320,6 +348,8 @@ public class VSACAPIServiceImpl extends SpringRemoteServiceServlet implements VS
 			updateAllInMeasureXml(updateInMeasureXml, measureId);
 			result.setSuccess(true);
 			result.setVsacResponse(matValueSetList);
+			LOGGER.info("OID's not found:"+notFoundOIDList);
+			result.setRetrievalFailedOIDs(notFoundOIDList);
 		} else {
 			result.setSuccess(false);
 			result.setFailureReason(result.UMLS_NOT_LOGGEDIN);
@@ -344,7 +374,9 @@ public class VSACAPIServiceImpl extends SpringRemoteServiceServlet implements VS
 					getAppliedQDMFromMeasureXml(measureId, false);
 			HashMap<QualityDataSetDTO, QualityDataSetDTO> updateInMeasureXml =
 					new HashMap<QualityDataSetDTO, QualityDataSetDTO>();
+			ArrayList<QualityDataSetDTO> modifiedQDMList = new ArrayList<QualityDataSetDTO>();
 			for (QualityDataSetDTO qualityDataSetDTO : appliedQDMList) {
+				QualityDataSetDTO toBeModifiedQDM = qualityDataSetDTO;
 				LOGGER.info(" VSACAPIServiceImpl updateVSACValueSets :: OID:: " + qualityDataSetDTO.getOid());
 				// Filter out Timing Element , User defined QDM's and
 				// supplemental data elements.
@@ -353,8 +385,14 @@ public class VSACAPIServiceImpl extends SpringRemoteServiceServlet implements VS
 						|| qualityDataSetDTO.isSuppDataElement()) {
 					LOGGER.info("VSACAPIServiceImpl updateVSACValueSets :: QDM filtered as it is of either"
 							+ "for following type Supplemental data or User defined or Timing Element.");
+					if (ConstantMessages.USER_DEFINED_QDM_OID.equalsIgnoreCase(qualityDataSetDTO.getOid())) {
+						toBeModifiedQDM.setNotFoundInVSAC(true);
+						toBeModifiedQDM.setHasModifiedAtVSAC(true);
+						modifiedQDMList.add(toBeModifiedQDM);
+					}
 					continue;
-				} else if ("1.0".equalsIgnoreCase(qualityDataSetDTO.getVersion())) {
+				} else if ("1.0".equalsIgnoreCase(qualityDataSetDTO.getVersion())
+						|| "1".equalsIgnoreCase(qualityDataSetDTO.getVersion())) {
 					LOGGER.info("Start ValueSetsResponseDAO...Using Proxy:" + PROXY_HOST + ":" + PROXY_PORT);
 					ValueSetsResponseDAO dao = new ValueSetsResponseDAO(UMLSSessionTicket.
 							getTicket(getThreadLocalRequest().getSession().getId()), PROXY_HOST, PROXY_PORT);
@@ -367,7 +405,7 @@ public class VSACAPIServiceImpl extends SpringRemoteServiceServlet implements VS
 								+ qualityDataSetDTO.getDataType());
 					}
 					if (vsr != null) {
-						if (vsr.isFailResponse() && (vsr.getFailReason() == TIME_OUT_FAILURE_CODE)) {
+						if (vsr.isFailResponse() && (vsr.getFailReason() == VSAC_TIME_OUT_FAILURE_CODE)) {
 							LOGGER.info("Value Set reterival failed at VSAC for OID :"
 									+ qualityDataSetDTO.getOid() + " with Data Type : "
 									+ qualityDataSetDTO.getDataType() + ". Failure Reason: "
@@ -381,24 +419,37 @@ public class VSACAPIServiceImpl extends SpringRemoteServiceServlet implements VS
 						if ((vsr.getXmlPayLoad() != null) && StringUtils.isNotEmpty(vsr.getXmlPayLoad())) {
 							VSACValueSetWrapper wrapper = convertXmltoValueSet(vsr.getXmlPayLoad());
 							MatValueSet matValueSet = wrapper.getValueSetList().get(0);
-							QualityDataSetDTO toBeModifiedQDM = qualityDataSetDTO;
 							if (matValueSet != null) {
 								qualityDataSetDTO.setCodeListName(matValueSet.getDisplayName());
 								if (matValueSet.isGrouping()) {
 									qualityDataSetDTO.setTaxonomy(ConstantMessages.
 											GROUPING_CODE_SYSTEM);
 								} else {
-									qualityDataSetDTO.setTaxonomy(matValueSet.getConceptList().
-											getConceptList().get(0).getCodeSystemName());
+									if (matValueSet.getConceptList().getConceptList() != null) {
+										qualityDataSetDTO.setTaxonomy(matValueSet.getConceptList().
+												getConceptList().get(0).getCodeSystemName());
+									} else {
+										qualityDataSetDTO.setTaxonomy(StringUtils.EMPTY);
+									}
 								}
 								updateInMeasureXml.put(qualityDataSetDTO, toBeModifiedQDM);
+								toBeModifiedQDM.setHasModifiedAtVSAC(true); // Used at Applied QDM Tab
+								//to show icons in CellTable.
 							}
+						} else {
+							toBeModifiedQDM.setHasModifiedAtVSAC(true);
+							toBeModifiedQDM.setNotFoundInVSAC(true);
 						}
+					} else {
+						toBeModifiedQDM.setHasModifiedAtVSAC(true);
+						toBeModifiedQDM.setNotFoundInVSAC(true);
 					}
 				}
+				modifiedQDMList.add(toBeModifiedQDM);
 			}
 			updateAllInMeasureXml(updateInMeasureXml, measureId);
 			result.setSuccess(true);
+			result.setUpdatedQualityDataDTOLIst(modifiedQDMList);
 		} else {
 			result.setSuccess(false);
 			result.setFailureReason(result.UMLS_NOT_LOGGEDIN);

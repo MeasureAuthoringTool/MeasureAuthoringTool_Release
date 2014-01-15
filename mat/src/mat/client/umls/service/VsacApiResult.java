@@ -1,9 +1,9 @@
 package mat.client.umls.service;
 
 import java.util.ArrayList;
-
+import java.util.List;
 import mat.model.MatValueSet;
-
+import mat.model.QualityDataSetDTO;
 import com.google.gwt.user.client.rpc.IsSerializable;
 
 
@@ -12,11 +12,11 @@ import com.google.gwt.user.client.rpc.IsSerializable;
  */
 public class VsacApiResult implements IsSerializable {
 	
-	/** The Constant UMLS_NOT_LOGGEDIN. */
-	public  final static int UMLS_NOT_LOGGEDIN = 1;
-	
 	/** The Constant OID_REQUIRED. */
 	public  final static int OID_REQUIRED = 2;
+	
+	/** The Constant UMLS_NOT_LOGGEDIN. */
+	public  final static int UMLS_NOT_LOGGEDIN = 1;
 	
 	/** The Constant VSAC REQUEST TIMED OUT. */
 	public  final static int VSAC_REQUEST_TIMEOUT = 3;
@@ -27,9 +27,35 @@ public class VsacApiResult implements IsSerializable {
 	/** The is success. */
 	private boolean isSuccess;
 	
+	private List<String> retrievalFailedOIDs;
+	
+	/** The QualityDataSetDTO List. */
+	private List<QualityDataSetDTO> updatedQualityDataDTOLIst;
 	/** The vsac response. */
-	private ArrayList<MatValueSet> vsacResponse;
-
+	private List<MatValueSet> vsacResponse;
+	
+	/**
+	 * Gets the failure reason.
+	 * 
+	 * @return the failure reason
+	 */
+	public int getFailureReason() {
+		return failureReason;
+	}
+	
+	public List<String> getRetrievalFailedOIDs() {
+		return retrievalFailedOIDs;
+	}
+	
+	/**
+	 * Gets the vsac response.
+	 * 
+	 * @return the vsac response
+	 */
+	public List<MatValueSet> getVsacResponse() {
+		return vsacResponse;
+	}
+	
 	/**
 	 * Checks if is success.
 	 * 
@@ -37,6 +63,20 @@ public class VsacApiResult implements IsSerializable {
 	 */
 	public boolean isSuccess() {
 		return isSuccess;
+	}
+	
+	/**
+	 * Sets the failure reason.
+	 * 
+	 * @param failureReason
+	 *            the new failure reason
+	 */
+	public void setFailureReason(int failureReason) {
+		this.failureReason = failureReason;
+	}
+	
+	public void setRetrievalFailedOIDs(List<String> retrievalFailedOIDs) {
+		this.retrievalFailedOIDs = retrievalFailedOIDs;
 	}
 	
 	/**
@@ -50,34 +90,6 @@ public class VsacApiResult implements IsSerializable {
 	}
 	
 	/**
-	 * Gets the failure reason.
-	 * 
-	 * @return the failure reason
-	 */
-	public int getFailureReason() {
-		return failureReason;
-	}
-	
-	/**
-	 * Sets the failure reason.
-	 * 
-	 * @param failureReason
-	 *            the new failure reason
-	 */
-	public void setFailureReason(int failureReason) {
-		this.failureReason = failureReason;
-	}
-	
-	/**
-	 * Gets the vsac response.
-	 * 
-	 * @return the vsac response
-	 */
-	public ArrayList<MatValueSet> getVsacResponse() {
-		return vsacResponse;
-	}
-	
-	/**
 	 * Sets the vsac response.
 	 * 
 	 * @param vsacResponse
@@ -87,4 +99,18 @@ public class VsacApiResult implements IsSerializable {
 		this.vsacResponse = vsacResponse;
 	}
 
+	/**
+	 * @return the updatedQualityDataDTOLIst
+	 */
+	public List<QualityDataSetDTO> getUpdatedQualityDataDTOLIst() {
+		return updatedQualityDataDTOLIst;
+	}
+
+	/**
+	 * @param updatedQualityDataDTOLIst the updatedQualityDataDTOLIst to set
+	 */
+	public void setUpdatedQualityDataDTOLIst(List<QualityDataSetDTO> updatedQualityDataDTOLIst) {
+		this.updatedQualityDataDTOLIst = updatedQualityDataDTOLIst;
+	}
+	
 }

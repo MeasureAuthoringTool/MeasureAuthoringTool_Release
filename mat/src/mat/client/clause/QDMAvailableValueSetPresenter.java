@@ -3,7 +3,6 @@ package mat.client.clause;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import mat.client.Mat;
 import mat.client.MatPresenter;
 import mat.client.codelist.HasListBox;
@@ -24,7 +23,6 @@ import mat.model.MatValueSet;
 import mat.model.MatValueSetTransferObject;
 import mat.model.QualityDataSetDTO;
 import mat.shared.ConstantMessages;
-
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.FocusEvent;
@@ -62,7 +60,7 @@ public class QDMAvailableValueSetPresenter  implements MatPresenter {
 		 * @param matValueSets
 		 *            - ArrayList of {@link MatValueSet}
 		 */
-		void buildValueSetDetailsWidget(ArrayList<MatValueSet> matValueSets);
+		void buildValueSetDetailsWidget(List<MatValueSet> matValueSets);
 		
 		/**
 		 * Remove all Success and failure messages.
@@ -458,13 +456,16 @@ public class QDMAvailableValueSetPresenter  implements MatPresenter {
 	 * @param result
 	 *            - {@link ArrayList} of {@link QualityDataSetDTO}
 	 */
-	private void filterTimingQDMs(
+	private void filterTimingQDMsAndUnsetDTOModfiyAttributes(
 			ArrayList<QualityDataSetDTO> result) {
 		List<QualityDataSetDTO> timingQDMs = new ArrayList<QualityDataSetDTO>();
 		for (QualityDataSetDTO qdsDTO : result) {
 			if ("Timing Element".equals(qdsDTO
 					.getDataType())) {
 				timingQDMs.add(qdsDTO);
+			} else {
+				qdsDTO.setHasModifiedAtVSAC(false);
+				qdsDTO.setNotFoundInVSAC(false);
 			}
 		}
 		result.removeAll(timingQDMs);
@@ -604,9 +605,9 @@ public class QDMAvailableValueSetPresenter  implements MatPresenter {
 	 **/
 	public final void reloadAppliedQDMList() {
 		QDSAppliedListModel appliedListModel = new QDSAppliedListModel();
-		filterTimingQDMs(appliedQDMList);
+		filterTimingQDMsAndUnsetDTOModfiyAttributes(appliedQDMList);
 		appliedListModel.setAppliedQDMs(appliedQDMList);
-		qdsAppliedListPresenterDisplay.buildCellList(appliedListModel);
+		qdsAppliedListPresenterDisplay.buildCellTable(appliedListModel);
 		
 		/*
 		 * Setting appliedQDMList in qdsAppliedListPresenterDisplay. Whenever

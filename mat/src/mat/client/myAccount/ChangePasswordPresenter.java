@@ -139,6 +139,11 @@ public class ChangePasswordPresenter implements MatPresenter {
 	/* (non-Javadoc)
 	 * @see mat.client.MatPresenter#getWidget()
 	 */
+	/**
+	 * Gets the widget.
+	 *
+	 * @return the widget
+	 */
 	@Override
 	public Widget getWidget() {
 		return display.asWidget();
@@ -147,6 +152,9 @@ public class ChangePasswordPresenter implements MatPresenter {
 	
 	/* (non-Javadoc)
 	 * @see mat.client.MatPresenter#beforeDisplay()
+	 */
+	/**
+	 * Before display.
 	 */
 	@Override
 	public void beforeDisplay() {
@@ -168,6 +176,9 @@ public class ChangePasswordPresenter implements MatPresenter {
 	
 	/* (non-Javadoc)
 	 * @see mat.client.MatPresenter#beforeClosingDisplay()
+	 */
+	/**
+	 * Before closing display.
 	 */
 	@Override 
 	public void beforeClosingDisplay() {
@@ -199,7 +210,7 @@ public class ChangePasswordPresenter implements MatPresenter {
 					String result = (String)resultMap.get("result");
 			    	if(result.equals("SUCCESS")){
 			    		try {
-							submitChangePassword();
+			    			ValidatePasswordCreation();
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
@@ -231,15 +242,6 @@ public class ChangePasswordPresenter implements MatPresenter {
 	 */
 	private void submitChangePassword() throws IOException {
 
-		PasswordVerifier verifier = new PasswordVerifier(
-				myAccountModel.getLoginId(), 
-				display.getPassword().getValue(), 
-				display.getConfirmPassword().getValue());
-		
-		if(!verifier.isValid()) {
-			display.getErrorMessageDisplay().setMessages(verifier.getMessages());
-		}
-		else {
 			display.getErrorMessageDisplay().clear();
 			MatContext.get().getMyAccountService().changePassword(display.getPassword().getValue(), 
 					new AsyncCallback<SaveMyAccountResult>() {
@@ -271,7 +273,99 @@ public class ChangePasswordPresenter implements MatPresenter {
 							}
 						}
 					});
-		}
-		
 	}
+	
+	/**
+	 * Validate changed password.
+	 *
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
+	public void ValidateChangedPassword() throws IOException{
+		
+		PasswordVerifier verifier = new PasswordVerifier(
+				myAccountModel.getLoginId(), 
+				display.getPassword().getValue(), 
+				display.getConfirmPassword().getValue());
+		
+		if(!verifier.isValid()) {
+			display.getErrorMessageDisplay().setMessages(verifier.getMessages());
+		}else{
+		loginService.validateNewPassword(MatContext.get().getLoggedinLoginId(), display.getPassword().getValue(), new AsyncCallback<HashMap<String,String>>(){
+
+			
+			/* (non-Javadoc)
+			 * @see com.google.gwt.user.client.rpc.AsyncCallback#onFailure(java.lang.Throwable)
+			 */
+			@Override
+			public void onFailure(Throwable caught) {
+				display.getErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getGenericErrorMessage());
+				MatContext.get().recordTransactionEvent(null, null, null, "Unhandled Exception: "+caught.getLocalizedMessage(), 0);
+			}
+
+			/**
+			 * On success.
+			 *
+			 * @param resultMap the result map
+			 */
+			@Override
+			public void onSuccess(HashMap<String, String> resultMap) {
+				String result = (String)resultMap.get("result");
+				if(result.equals("SUCCESS")){
+					display.getSuccessMessageDisplay().clear();
+					display.getErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getIS_NOT_PREVIOUS_PASSWORD());
+				}
+				else{
+					try {
+						submitChangePassword();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+			
+		});
+		
+		}
+	}
+	
+	/** for validating Password Creation with current date and restricting 
+	 * user to change password on the same day of new password creation.
+	 * Validate password creation Dates.
+	 *
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
+	public void ValidatePasswordCreation() throws IOException{
+		loginService.validatePasswordCreationDate(MatContext.get().getLoggedinLoginId(), new AsyncCallback<HashMap<String,String>>(){
+
+			@Override
+			public void onFailure(Throwable caught) {
+				display.getErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getGenericErrorMessage());
+				MatContext.get().recordTransactionEvent(null, null, null, "Unhandled Exception: "+caught.getLocalizedMessage(), 0);
+			}
+
+			/**
+			 * On success.
+			 *
+			 * @param resultMap the result map
+			 */
+			@Override
+			public void onSuccess(HashMap<String, String> resultMap) {
+				
+				String result = (String)resultMap.get("result");
+				if(result.equals("SUCCESS")){
+					display.getSuccessMessageDisplay().clear();
+					display.getErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getCHANGE_OLD_PASSWORD());
+				}
+				else{
+					try {
+						ValidateChangedPassword();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+				
+			}
+		});
+	}
+		
 }

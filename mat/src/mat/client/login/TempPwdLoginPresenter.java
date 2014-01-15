@@ -1,12 +1,14 @@
 package mat.client.login;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import mat.client.Mat;
 import mat.client.event.ReturnToLoginEvent;
 import mat.client.event.SuccessfulLoginEvent;
 import mat.client.login.service.LoginResult;
+import mat.client.login.service.LoginServiceAsync;
 import mat.client.shared.ErrorMessageDisplayInterface;
 import mat.client.shared.MatContext;
 import mat.client.shared.NameValuePair;
@@ -29,12 +31,16 @@ import com.google.gwt.user.client.ui.HasValue;
 import com.google.gwt.user.client.ui.HasWidgets;
 import com.google.gwt.user.client.ui.Widget;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class TempPwdLoginPresenter.
  */
 public class TempPwdLoginPresenter {
-		
-		/**
+	
+	/** The login service. */
+	LoginServiceAsync loginService = (LoginServiceAsync) MatContext.get().getLoginService();
+	
+    /**
 		 * The Interface Display.
 		 */
 		public static interface Display {
@@ -226,7 +232,8 @@ public class TempPwdLoginPresenter {
 			public void onBlur(BlurEvent event) {
 				if(!(display.getSecurityQuestionsWidget().getAnswer1().getText()).isEmpty())
 					display.getSecurityQuestionsWidget().setAnswerText1(display.getSecurityQuestionsWidget().getAnswer1().getText());
-				display.getSecurityQuestionsWidget().getAnswer1().setText(display.getSecurityQuestionsWidget().maskAnswers(display.getSecurityQuestionsWidget().getAnswerText1()));
+				display.getSecurityQuestionsWidget().getAnswer1().setText(display.getSecurityQuestionsWidget().maskAnswers(
+						display.getSecurityQuestionsWidget().getAnswerText1()));
 			}
 		});
 		
@@ -245,7 +252,8 @@ public class TempPwdLoginPresenter {
 				if(!(display.getSecurityQuestionsWidget().getAnswer2().getText()).isEmpty())
 					display.getSecurityQuestionsWidget().setAnswerText2(display.getSecurityQuestionsWidget().getAnswer2().getText());
 					
-				display.getSecurityQuestionsWidget().getAnswer2().setText(display.getSecurityQuestionsWidget().maskAnswers(display.getSecurityQuestionsWidget().getAnswerText2()));
+				display.getSecurityQuestionsWidget().getAnswer2().setText(display.getSecurityQuestionsWidget().maskAnswers(
+						display.getSecurityQuestionsWidget().getAnswerText2()));
 			}
 		});
 		display.getSecurityQuestionsWidget().getAnswer3().addFocusHandler(new FocusHandler() {
@@ -261,7 +269,8 @@ public class TempPwdLoginPresenter {
 			public void onBlur(BlurEvent event) {
 				if(!(display.getSecurityQuestionsWidget().getAnswer3().getText()).isEmpty())
 					display.getSecurityQuestionsWidget().setAnswerText3(display.getSecurityQuestionsWidget().getAnswer3().getText());
-				display.getSecurityQuestionsWidget().getAnswer3().setText(display.getSecurityQuestionsWidget().maskAnswers(display.getSecurityQuestionsWidget().getAnswerText3()));
+				display.getSecurityQuestionsWidget().getAnswer3().setText(display.getSecurityQuestionsWidget().maskAnswers(
+						display.getSecurityQuestionsWidget().getAnswerText3()));
 			}
 		});
 		
@@ -279,7 +288,7 @@ public class TempPwdLoginPresenter {
 					if(!verifier.isValid()) {
 						display.getPasswordErrorMessageDisplay().setMessages(verifier.getMessages());
 					}else{
-						display.getPasswordErrorMessageDisplay().clear();
+						display.getPasswordErrorMessageDisplay().clear();	
 					}
 
 					SecurityQuestionVerifier sverifier = 
@@ -294,38 +303,8 @@ public class TempPwdLoginPresenter {
 					}else{
 						display.getSecurityErrorMessageDisplay().clear();
 					}
-
-					if(verifier.isValid() && sverifier.isValid()) {
-						MatContext.get().changePasswordSecurityQuestions(getValues(), new AsyncCallback<LoginResult>() {
-							@Override
-							public void onFailure(Throwable caught) {
-								display.getSecurityErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getGenericErrorMessage());
-							}
-							@Override
-							public void onSuccess(LoginResult result) {
-								if(result.isSuccess()){
-									MatContext.get().getEventBus().fireEvent(new SuccessfulLoginEvent());
-								}else {
-									switch(result.getFailureReason()) {
-										case LoginResult.SERVER_SIDE_VALIDATION_SECURITY_QUESTIONS:
-											display.getPasswordErrorMessageDisplay().setMessages(result.getMessages());
-											break;
-										case LoginResult.SERVER_SIDE_VALIDATION_PASSWORD:
-											display.getSecurityErrorMessageDisplay().setMessages(result.getMessages());
-											break;
-										case LoginResult.DICTIONARY_EXCEPTION:
-											display.getPasswordErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getMustNotContainDictionaryWordMessage());
-											break;
-										default:
-											display.getSecurityErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getUnknownErrorMessage(result.getFailureReason()));
-									}
-									
-								}
-							}
-						});
 					
-				}
-
+					ValidateChangedPassword(verifier,sverifier);
 			}
 		});
 
@@ -336,6 +315,82 @@ public class TempPwdLoginPresenter {
 				MatContext.get().getEventBus().fireEvent(new ReturnToLoginEvent());	
 			}
 		});
+	}
+	
+	
+	
+	/**
+	 * Validate changed password.
+	 *
+	 * @param verifier the verifier
+	 * @param sverifier the sverifier
+	 */
+	public void ValidateChangedPassword(final PasswordVerifier verifier,final SecurityQuestionVerifier sverifier){
+		
+		loginService.validateNewPassword(MatContext.get().getLoggedinLoginId(), display.getPassword().getValue(), 
+				new AsyncCallback<HashMap<String,String>>(){
+
+			@Override
+			public void onFailure(Throwable caught) {
+				display.getPasswordErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getGenericErrorMessage());
+				MatContext.get().recordTransactionEvent(null, null, null, "Unhandled Exception: "+caught.getLocalizedMessage(), 0);
+			}
+
+			@Override
+			public void onSuccess(HashMap<String, String> resultMap) {
+				
+				String result = (String)resultMap.get("result");
+				if(result.equals("SUCCESS")){
+					display.getPasswordErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate()
+							.getIS_NOT_PREVIOUS_PASSWORD());
+				}
+				else{
+					onSuccessTempPwdLogin(verifier, sverifier);
+				}
+			}
+			
+		});
+	}
+	
+
+	/**
+	 * On success temp pwd login.
+	 *
+	 * @param verifier the verifier
+	 * @param sverifier the sverifier
+	 */
+	public void onSuccessTempPwdLogin(PasswordVerifier verifier,SecurityQuestionVerifier sverifier){
+		if(verifier.isValid() && sverifier.isValid()) {
+			MatContext.get().changePasswordSecurityQuestions(getValues(), new AsyncCallback<LoginResult>() {
+				@Override
+				public void onFailure(Throwable caught) {
+					display.getSecurityErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getGenericErrorMessage());
+				}
+				@Override
+				public void onSuccess(LoginResult result) {
+					if(result.isSuccess()){
+						MatContext.get().getEventBus().fireEvent(new SuccessfulLoginEvent());
+					}else {
+						switch(result.getFailureReason()) {
+							case LoginResult.SERVER_SIDE_VALIDATION_SECURITY_QUESTIONS:
+								display.getPasswordErrorMessageDisplay().setMessages(result.getMessages());
+								break;
+							case LoginResult.SERVER_SIDE_VALIDATION_PASSWORD:
+								display.getSecurityErrorMessageDisplay().setMessages(result.getMessages());
+								break;
+							case LoginResult.DICTIONARY_EXCEPTION:
+								display.getPasswordErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate()
+										.getMustNotContainDictionaryWordMessage());
+								break;
+							default:
+								display.getSecurityErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate()
+										.getUnknownErrorMessage(result.getFailureReason()));
+						}
+						
+					}
+				}
+			});
+	}
 	}
 
 	/**
@@ -427,7 +482,8 @@ public class TempPwdLoginPresenter {
 	 */
 	private void beforeDisplay() {
 		
-		MatContext.get().getLoginService().getSecurityQuestionsAnswers(MatContext.get().getLoggedinUserId(), new AsyncCallback<List<UserSecurityQuestion>>(){
+		MatContext.get().getLoginService().getSecurityQuestionsAnswers(MatContext.get().getLoggedinUserId(), 
+				new AsyncCallback<List<UserSecurityQuestion>>(){
 			
 			public void onFailure(Throwable caught) {
 				display.getSecurityErrorMessageDisplay().clear();
@@ -440,17 +496,20 @@ public class TempPwdLoginPresenter {
 				if(result !=null && result.size()>0){
 
 					display.setAnswerText1(result.get(0).getSecurityAnswer());
-					display.getQuestion1Answer().setValue(display.getSecurityQuestionsWidget().maskAnswers(result.get(0).getSecurityAnswer()));
+					display.getQuestion1Answer().setValue(display.getSecurityQuestionsWidget()
+							.maskAnswers(result.get(0).getSecurityAnswer()));
 					display.getQuestion1Text().setValue(result.get(0).getSecurityQuestions().getQuestion());
 
 
 					display.setAnswerText2(result.get(1).getSecurityAnswer());
-					display.getQuestion2Answer().setValue(display.getSecurityQuestionsWidget().maskAnswers(result.get(1).getSecurityAnswer()));
+					display.getQuestion2Answer().setValue(display.getSecurityQuestionsWidget()
+							.maskAnswers(result.get(1).getSecurityAnswer()));
 					display.getQuestion2Text().setValue(result.get(1).getSecurityQuestions().getQuestion());
 			
 
 					display.setAnswerText3(result.get(2).getSecurityAnswer());
-					display.getQuestion3Answer().setValue(display.getSecurityQuestionsWidget().maskAnswers(result.get(2).getSecurityAnswer()));
+					display.getQuestion3Answer().setValue(display.getSecurityQuestionsWidget()
+							.maskAnswers(result.get(2).getSecurityAnswer()));
 					display.getQuestion3Text().setValue(result.get(2).getSecurityQuestions().getQuestion());
 
 

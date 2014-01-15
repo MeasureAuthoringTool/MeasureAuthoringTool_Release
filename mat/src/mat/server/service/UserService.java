@@ -1,7 +1,6 @@
 package mat.server.service;
 
 import java.util.List;
-
 import mat.client.admin.ManageUsersDetailModel;
 import mat.client.admin.service.SaveUpdateUserResult;
 import mat.client.login.service.SecurityQuestionOptions;
@@ -19,13 +18,9 @@ public interface UserService {
 	 * 
 	 * @param orgId
 	 *            the org id
-	 * @param startIndex
-	 *            the start index
-	 * @param numResults
-	 *            the num results
 	 * @return the list
 	 */
-	public List<User> searchForUsersByName(String orgId, int startIndex, int numResults);
+	public List<User> searchForUsersByName(String orgId);
 	
 	/**
 	 * Count search results.
@@ -62,15 +57,15 @@ public interface UserService {
 	 *            the user
 	 */
 	public void saveExisting(User user);
-    
-    /**
+	
+	/**
 	 * Save update user.
 	 * 
 	 * @param model
 	 *            the model
 	 * @return the save update user result
 	 */
-    public SaveUpdateUserResult saveUpdateUser(ManageUsersDetailModel model);
+	public SaveUpdateUserResult saveUpdateUser(ManageUsersDetailModel model);
 	
 	/**
 	 * Request forgotten password.
@@ -85,7 +80,7 @@ public interface UserService {
 	 *            the invalid user counter
 	 * @return the forgotten password result
 	 */
-	public ForgottenPasswordResult requestForgottenPassword(String email, 
+	public ForgottenPasswordResult requestForgottenPassword(String email,
 			String securityQuestion, String securityAnswer, int invalidUserCounter);
 	
 	/**
@@ -263,4 +258,6 @@ public interface UserService {
 	 * @return true, if is locked user
 	 */
 	public boolean isLockedUser(String loginId);
+	
+	List<User> searchForNonTerminatedUsers();
 }

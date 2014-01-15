@@ -823,7 +823,8 @@ public class MetaDataPresenter extends BaseMetaDataPresenter implements MatPrese
 				isMeasureDetailsLoaded = false;
 				if(event.getMeasureId() != null) {
 					isMeasureDetailsLoaded = true;
-				    getMeasureDetail();
+				    //getMeasureDetail();
+					getMeasureAndLogRecentMeasure();
 				}
 				else {
 					displayEmpty();
@@ -1363,31 +1364,43 @@ private void setAuthorsListOnView() {
 		clearMessages();
 	}
 	
-
-	/**
-	 * Gets the measure detail.
+	/** Gets the measure and logs in this measure as recently used measure in recent measure activity log.
 	 * 
-	 * @return the measure detail
-	 */
+	 * @return the measure and log recent measure */
+	private void getMeasureAndLogRecentMeasure() {
+		MatContext.get().getMeasureService().getMeasureAndLogRecentMeasure(MatContext.get().getCurrentMeasureId(), 
+				MatContext.get().getLoggedinUserId(), getAsyncCallBack());
+	}
+
+	/** Gets the measure detail.
+	 * 
+	 * @return the measure detail */
 	private void getMeasureDetail(){
 		MatContext.get().getMeasureService().getMeasure(MatContext.get().getCurrentMeasureId(), 
-				new AsyncCallback<ManageMeasureDetailModel>(){
+				getAsyncCallBack());
+	}
+
+	/** Gets the async call back.
+	 * 
+	 * @return the async call back */
+	private AsyncCallback<ManageMeasureDetailModel> getAsyncCallBack() {
+		return new AsyncCallback<ManageMeasureDetailModel>(){
 			final long callbackRequestTime = lastRequestTime;
 			@Override
 			public void onFailure(Throwable caught) {
-				metaDataDisplay.getErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getGenericErrorMessage());
-				MatContext.get().recordTransactionEvent(null, null, null, "Unhandled Exception: "+caught.getLocalizedMessage(), 0);
+					metaDataDisplay.getErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getGenericErrorMessage());
+					MatContext.get().recordTransactionEvent(null, null, null, "Unhandled Exception: "+caught.getLocalizedMessage(), 0);
 			}
 			@Override
 			public void onSuccess(ManageMeasureDetailModel result) {
-				if(callbackRequestTime == lastRequestTime) {
-					currentMeasureDetail = result;
-//					loadMeasureXml(result.getId());
-					displayDetail();
-					fireMeasureEditEvent();
-				}
+					if(callbackRequestTime == lastRequestTime) {
+						currentMeasureDetail = result;
+			//					loadMeasureXml(result.getId());
+						displayDetail();
+						fireMeasureEditEvent();
+					}
 			}
-		});
+		};
 	}
 	
 	/**

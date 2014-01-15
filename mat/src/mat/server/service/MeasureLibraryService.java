@@ -2,7 +2,6 @@ package mat.server.service;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import mat.DTO.MeasureNoteDTO;
 import mat.client.clause.clauseworkspace.model.MeasureXmlModel;
 import mat.client.measure.ManageMeasureDetailModel;
@@ -15,6 +14,7 @@ import mat.client.measure.service.ValidateMeasureResult;
 import mat.client.shared.MatException;
 import mat.model.MatValueSet;
 import mat.model.QualityDataSetDTO;
+import mat.model.RecentMSRActivityLog;
 import mat.server.util.XmlProcessor;
 
 /**
@@ -23,14 +23,166 @@ import mat.server.util.XmlProcessor;
 public interface MeasureLibraryService {
 	
 	/**
+	 * Append and save node.
+	 * 
+	 * @param measureXmlModel
+	 *            the measure xml model
+	 * @param nodeName
+	 *            the node name
+	 */
+	void appendAndSaveNode(MeasureXmlModel measureXmlModel, String nodeName);
+	
+	/**
+	 * Check for timing elements and append.
+	 * 
+	 * @param xmlProcessor
+	 *            the xml processor
+	 */
+	void checkForTimingElementsAndAppend(XmlProcessor xmlProcessor);
+	
+	/**
+	 * Clone measure xml.
+	 * 
+	 * @param creatingDraft
+	 *            the creating draft
+	 * @param oldMeasureId
+	 *            the old measure id
+	 * @param clonedMeasureId
+	 *            the cloned measure id
+	 */
+	void cloneMeasureXml(boolean creatingDraft, String oldMeasureId,
+			String clonedMeasureId);
+	
+	/**
+	 * Creates the and save element look up.
+	 * 
+	 * @param list
+	 *            the list
+	 * @param measureID
+	 *            the measure id
+	 */
+	void createAndSaveElementLookUp(ArrayList<QualityDataSetDTO> list,
+			String measureID);
+	
+	/**
+	 * Delete measure notes.
+	 * 
+	 * @param measureNoteDTO
+	 *            the measure note dto
+	 */
+	void deleteMeasureNotes(MeasureNoteDTO measureNoteDTO);
+	
+	/**
+	 * Generate and save max emeasure id.
+	 * 
+	 * @param measureId
+	 *            the measure id
+	 * @return the int
+	 */
+	int generateAndSaveMaxEmeasureId(ManageMeasureDetailModel measureId);
+	
+	/**
+	 * Gets the all measure notes by measure id.
+	 * 
+	 * @param measureID
+	 *            the measure id
+	 * @return the all measure notes by measure id
+	 */
+	MeasureNotesModel getAllMeasureNotesByMeasureID(String measureID);
+	
+	/** Gets the all recent measure for user.
+	 * 
+	 * @param userId the user id
+	 * @return the all recent measure for user */
+	ManageMeasureSearchModel getAllRecentMeasureForUser(String userId);
+	
+	/**
+	 * Gets the applied qdm from measure xml.
+	 * 
+	 * @param measureId
+	 *            the measure id
+	 * @param checkForSupplementData
+	 *            the check for supplement data
+	 * @return the applied qdm from measure xml
+	 */
+	ArrayList<QualityDataSetDTO> getAppliedQDMFromMeasureXml(String measureId,
+			boolean checkForSupplementData);
+	
+	/**
+	 * Gets the max e measure id.
+	 * 
+	 * @return the max e measure id
+	 */
+	int getMaxEMeasureId();
+	
+	/**
 	 * Gets the measure.
 	 * 
 	 * @param key
 	 *            the key
 	 * @return the measure
 	 */
-	public ManageMeasureDetailModel getMeasure(String key);
-
+	ManageMeasureDetailModel getMeasure(String key);
+	
+	/**
+	 * Gets the measure xml for measure.
+	 * 
+	 * @param measureId
+	 *            the measure id
+	 * @return the measure xml for measure
+	 */
+	public MeasureXmlModel getMeasureXmlForMeasure(String measureId);
+	
+	/**
+	 * Gets recently used measures by the given user ID in the descending order of time from recent measure activity log.
+	 *
+	 * @param userId the user id
+	 * @return the recent measure activity log
+	 */
+	List<RecentMSRActivityLog> getRecentMeasureActivityLog(String userId);
+	
+	/**
+	 * Gets the users for share.
+	 * 
+	 * @param measureId
+	 *            the measure id
+	 * @param startIndex
+	 *            the start index
+	 * @param pageSize
+	 *            the page size
+	 * @return the users for share
+	 */
+	ManageMeasureShareModel getUsersForShare(String measureId,
+			int startIndex, int pageSize);
+	
+	/**
+	 * Checks if is measure locked.
+	 * 
+	 * @param id
+	 *            the id
+	 * @return true, if is measure locked
+	 */
+	boolean isMeasureLocked(String id);
+	
+	/**
+	 * Record measure in recent measure activity log for the given measure ID and user ID.
+	 *
+	 * @param measureId the measure id
+	 * @param userId the user id
+	 */
+	void recordRecentMeasureActivity(String measureId, String userId);
+	
+	/**
+	 * Reset locked date.
+	 * 
+	 * @param measureId
+	 *            the measure id
+	 * @param userId
+	 *            the user id
+	 * @return the save measure result
+	 */
+	SaveMeasureResult resetLockedDate(String measureId, String userId);
+	
 	/**
 	 * Save.
 	 * 
@@ -38,8 +190,16 @@ public interface MeasureLibraryService {
 	 *            the model
 	 * @return the save measure result
 	 */
-	public SaveMeasureResult save(ManageMeasureDetailModel model);
-
+	SaveMeasureResult save(ManageMeasureDetailModel model);
+	
+	/**
+	 * Save and delete measure.
+	 * 
+	 * @param measureID
+	 *            the measure id
+	 */
+	void saveAndDeleteMeasure(String measureID);
+	
 	/**
 	 * Save finalized version.
 	 * 
@@ -51,9 +211,9 @@ public interface MeasureLibraryService {
 	 *            the version
 	 * @return the save measure result
 	 */
-	public SaveMeasureResult saveFinalizedVersion(String measureId,
+	SaveMeasureResult saveFinalizedVersion(String measureId,
 			boolean isMajor, String version);
-
+	
 	/**
 	 * Save measure details.
 	 * 
@@ -61,8 +221,32 @@ public interface MeasureLibraryService {
 	 *            the model
 	 * @return the save measure result
 	 */
-	public SaveMeasureResult saveMeasureDetails(ManageMeasureDetailModel model);
-
+	SaveMeasureResult saveMeasureDetails(ManageMeasureDetailModel model);
+	
+	
+	/**
+	 * Save measure note.
+	 * 
+	 * @param noteTitle
+	 *            the note title
+	 * @param noteDescription
+	 *            the note description
+	 * @param string
+	 *            the string
+	 * @param string2
+	 *            the string2
+	 */
+	void saveMeasureNote(String noteTitle, String noteDescription,
+			String string, String string2);
+	
+	/**
+	 * Save measure xml.
+	 * 
+	 * @param measureXmlModel
+	 *            the measure xml model
+	 */
+	void saveMeasureXml(MeasureXmlModel measureXmlModel);
+	
 	/**
 	 * Search.
 	 * 
@@ -78,99 +262,24 @@ public interface MeasureLibraryService {
 	 */
 	ManageMeasureSearchModel search(String searchText, int startIndex,
 			int pageSize, int filter);
-
-	/**
-	 * Gets the users for share.
-	 * 
-	 * @param measureId
-	 *            the measure id
-	 * @param startIndex
-	 *            the start index
-	 * @param pageSize
-	 *            the page size
-	 * @return the users for share
-	 */
-	public ManageMeasureShareModel getUsersForShare(String measureId,
-			int startIndex, int pageSize);
-
-	/**
-	 * Update users share.
-	 * 
-	 * @param model
-	 *            the model
-	 */
-	public void updateUsersShare(ManageMeasureShareModel model);
-
-	/**
-	 * Update locked date.
-	 * 
-	 * @param measureId
-	 *            the measure id
-	 * @param userId
-	 *            the user id
-	 * @return the save measure result
-	 */
-	public SaveMeasureResult updateLockedDate(String measureId, String userId);
-
-	/**
-	 * Reset locked date.
-	 * 
-	 * @param measureId
-	 *            the measure id
-	 * @param userId
-	 *            the user id
-	 * @return the save measure result
-	 */
-	SaveMeasureResult resetLockedDate(String measureId, String userId);
-
-	/**
-	 * Search measures for version.
-	 * 
-	 * @param startIndex
-	 *            the start index
-	 * @param pageSize
-	 *            the page size
-	 * @return the manage measure search model
-	 */
-	ManageMeasureSearchModel searchMeasuresForVersion(int startIndex,
-			int pageSize);
-
+	
+	
 	/**
 	 * Search measures for draft.
-	 * 
-	 * @param startIndex
-	 *            the start index
-	 * @param pageSize
-	 *            the page size
+	 *
+	 * @param searchText the search text
 	 * @return the manage measure search model
 	 */
-	ManageMeasureSearchModel searchMeasuresForDraft(int startIndex, int pageSize);
-
+	ManageMeasureSearchModel searchMeasuresForDraft(String searchText);
+	
 	/**
-	 * Checks if is measure locked.
-	 * 
-	 * @param id
-	 *            the id
-	 * @return true, if is measure locked
+	 * Search measures for version.
+	 *
+	 * @param searchText the search text
+	 * @return the manage measure search model
 	 */
-	public boolean isMeasureLocked(String id);
-
-	/**
-	 * Gets the max e measure id.
-	 * 
-	 * @return the max e measure id
-	 */
-	public int getMaxEMeasureId();
-
-	/**
-	 * Generate and save max emeasure id.
-	 * 
-	 * @param measureId
-	 *            the measure id
-	 * @return the int
-	 */
-	public int generateAndSaveMaxEmeasureId(ManageMeasureDetailModel measureId);
-
+	ManageMeasureSearchModel searchMeasuresForVersion(String searchText);
+	
 	/**
 	 * Search users.
 	 * 
@@ -180,9 +289,9 @@ public interface MeasureLibraryService {
 	 *            the page size
 	 * @return the transfer measure owner ship model
 	 */
-	public TransferMeasureOwnerShipModel searchUsers(int startIndex,
+	TransferMeasureOwnerShipModel searchUsers(int startIndex,
 			int pageSize);
-
+	
 	/**
 	 * Transfer owner ship to user.
 	 * 
@@ -192,76 +301,28 @@ public interface MeasureLibraryService {
 	 *            the to email
 	 */
 	void transferOwnerShipToUser(List<String> list, String toEmail);
-
+	
 	/**
-	 * Gets the measure xml for measure.
+	 * Update locked date.
 	 * 
 	 * @param measureId
 	 *            the measure id
-	 * @return the measure xml for measure
+	 * @param userId
+	 *            the user id
+	 * @return the save measure result
 	 */
-	public MeasureXmlModel getMeasureXmlForMeasure(String measureId);
-
+	SaveMeasureResult updateLockedDate(String measureId, String userId);
+	
 	/**
-	 * Save measure xml.
+	 * Update measure notes.
 	 * 
-	 * @param measureXmlModel
-	 *            the measure xml model
+	 * @param measureNoteDTO
+	 *            the measure note dto
+	 * @param userId
+	 *            the user id
 	 */
-	public void saveMeasureXml(MeasureXmlModel measureXmlModel);
-
-	/**
-	 * Clone measure xml.
-	 * 
-	 * @param creatingDraft
-	 *            the creating draft
-	 * @param oldMeasureId
-	 *            the old measure id
-	 * @param clonedMeasureId
-	 *            the cloned measure id
-	 */
-	public void cloneMeasureXml(boolean creatingDraft, String oldMeasureId,
-			String clonedMeasureId);
-
-	/**
-	 * Append and save node.
-	 * 
-	 * @param measureXmlModel
-	 *            the measure xml model
-	 * @param nodeName
-	 *            the node name
-	 */
-	void appendAndSaveNode(MeasureXmlModel measureXmlModel, String nodeName);
-
-	/**
-	 * Creates the and save element look up.
-	 * 
-	 * @param list
-	 *            the list
-	 * @param measureID
-	 *            the measure id
-	 */
-	void createAndSaveElementLookUp(ArrayList<QualityDataSetDTO> list,
-			String measureID);
-
-	/**
-	 * Save and delete measure.
-	 * 
-	 * @param measureID
-	 *            the measure id
-	 */
-	void saveAndDeleteMeasure(String measureID);
-
-	/**
-	 * Update private column in measure.
-	 * 
-	 * @param measureId
-	 *            the measure id
-	 * @param isPrivate
-	 *            the is private
-	 */
-	public void updatePrivateColumnInMeasure(String measureId, boolean isPrivate);
-
+	void updateMeasureNotes(MeasureNoteDTO measureNoteDTO, String userId);
+	
 	/**
 	 * Update measure xml.
 	 * 
@@ -274,61 +335,24 @@ public interface MeasureLibraryService {
 	 */
 	void updateMeasureXML(QualityDataSetDTO modifyWithDTO,
 			QualityDataSetDTO modifyDTO, String measureId);
-
+	
 	/**
-	 * Save measure note.
-	 * 
-	 * @param noteTitle
-	 *            the note title
-	 * @param noteDescription
-	 *            the note description
-	 * @param string
-	 *            the string
-	 * @param string2
-	 *            the string2
-	 */
-	public void saveMeasureNote(String noteTitle, String noteDescription,
-			String string, String string2);
-
-	/**
-	 * Gets the all measure notes by measure id.
-	 * 
-	 * @param measureID
-	 *            the measure id
-	 * @return the all measure notes by measure id
-	 */
-	public MeasureNotesModel getAllMeasureNotesByMeasureID(String measureID);
-
-	/**
-	 * Delete measure notes.
-	 * 
-	 * @param measureNoteDTO
-	 *            the measure note dto
-	 */
-	public void deleteMeasureNotes(MeasureNoteDTO measureNoteDTO);
-
-	/**
-	 * Update measure notes.
-	 * 
-	 * @param measureNoteDTO
-	 *            the measure note dto
-	 * @param userId
-	 *            the user id
-	 */
-	public void updateMeasureNotes(MeasureNoteDTO measureNoteDTO, String userId);
-
-	/**
-	 * Gets the applied qdm from measure xml.
+	 * Update private column in measure.
 	 * 
 	 * @param measureId
 	 *            the measure id
-	 * @param checkForSupplementData
-	 *            the check for supplement data
-	 * @return the applied qdm from measure xml
+	 * @param isPrivate
+	 *            the is private
 	 */
-	ArrayList<QualityDataSetDTO> getAppliedQDMFromMeasureXml(String measureId,
-			boolean checkForSupplementData);
-
+	void updatePrivateColumnInMeasure(String measureId, boolean isPrivate);
+	
+	/**
+	 * Update users share.
+	 * 
+	 * @param model
+	 *            the model
+	 */
+	void updateUsersShare(ManageMeasureShareModel model);
 	/**
 	 * Validate measure for export.
 	 * 
@@ -341,13 +365,5 @@ public interface MeasureLibraryService {
 	 *             the mat exception
 	 */
 	ValidateMeasureResult validateMeasureForExport(String key,
-			ArrayList<MatValueSet> matValueSetList) throws MatException;
-
-	/**
-	 * Check for timing elements and append.
-	 * 
-	 * @param xmlProcessor
-	 *            the xml processor
-	 */
-	void checkForTimingElementsAndAppend(XmlProcessor xmlProcessor);
+			List<MatValueSet> matValueSetList) throws MatException;
 }

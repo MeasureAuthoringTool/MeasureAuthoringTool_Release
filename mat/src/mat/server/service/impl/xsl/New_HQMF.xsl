@@ -545,7 +545,7 @@
                                 <xsl:if test="string-length($conj) > 0">
                                 	<act classCode="ACT" moodCode="EVN" isCriterionInd="true">
 	                                    <sourceOf typeCode="PRCN">
-	                                       <conjunctionCode code="{$conj}"/>
+	                                       <!--  <conjunctionCode code="{$conj}"/> -->
 	                                        <!--<xsl:apply-templates select="." mode="handleFunctionalOps"/>-->
 	                                        <act classCode="ACT" moodCode="EVN" isCriterionInd="true">
 	                                            <xsl:if test="$isNot = 'true' ">
@@ -1354,7 +1354,7 @@
                     <entry typeCode="DRIV">
                         <xsl:apply-templates select="$rootNode//elementLookUp/qdm[@uuid=$uuid]">
                             <xsl:with-param name="process_Neg_RatId">
-                                <xsl:value-of select="$uuid"/>
+                                <xsl:value-of select="$qdmuuid"/>
                             </xsl:with-param>
                         </xsl:apply-templates>
                     </entry>

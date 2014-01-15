@@ -51,11 +51,14 @@ public class User  {
 	/** The locked out date. */
 	private Timestamp lockedOutDate;
 	
+	/** The organization. */
+	private Organization organization;
+	
 	/** The organization name. */
-	private String organizationName;
+	//private String organizationName;
 	
 	/** The org oid. */
-	private String orgOID;
+	//private String orgOID;
 	//private String rootOID;
 	/** The password. */
 	private UserPassword password;
@@ -258,18 +261,21 @@ public class User  {
 	 * @return the organization name
 	 */
 	public String getOrganizationName() {
-		return organizationName;
+		String orgName = "";
+		if(this.organization != null){
+			orgName = this.organization.getOrganizationName();
+		}
+		return orgName;
 	}
 	
-	/**
-	 * Sets the organization name.
+	/** Sets the organization name.
 	 * 
 	 * @param organizationName
 	 *            the new organization name
 	 */
-	public void setOrganizationName(String organizationName) {
+	/*public void setOrganizationName(String organizationName) {
 		this.organizationName = organizationName;
-	}
+	}*/
 	
 	/**
 	 * Gets the org oid.
@@ -277,17 +283,27 @@ public class User  {
 	 * @return the org oid
 	 */
 	public String getOrgOID() {
+		String orgOID = "";
+		if(this.organization != null){
+			orgOID = this.organization.getOrganizationOID();
+		}
 		return orgOID;
 	}
 	
-	/**
-	 * Sets the org oid.
+	/** Sets the org oid.
 	 * 
-	 * @param orgOID
-	 *            the new org oid
-	 */
-	public void setOrgOID(String orgOID) {
+	 * @return the organization id */
+	/*public void setOrgOID(String orgOID) {
 		this.orgOID = orgOID;
+	}*/
+	
+	
+	public String getOrganizationId() {
+		String orgId = "";
+		if(this.organization != null){
+			orgId = String.valueOf(this.organization.getId());
+		}
+		return orgId;
 	}
 	
 	/**
@@ -522,6 +538,20 @@ public class User  {
 	 */
 	public String getLoginId() {
 		return loginId;
+	}
+	
+	/** Gets the organization.
+	 * 
+	 * @return the organization */
+	public Organization getOrganization() {
+		return organization;
+	}
+
+	/** Sets the organization.
+	 * 
+	 * @param organization the new organization */
+	public void setOrganization(Organization organization) {
+		this.organization = organization;
 	}
 
 }

@@ -6,10 +6,11 @@
  */
 package mat.client.admin.service;
 
+import mat.client.admin.ManageOrganizationDetailModel;
+import mat.client.admin.ManageOrganizationSearchModel;
 import mat.client.admin.ManageUsersDetailModel;
 import mat.client.admin.ManageUsersSearchModel;
 import mat.shared.InCorrectUserRoleException;
-
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
@@ -18,6 +19,22 @@ import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
  */
 @RemoteServiceRelativePath("admin")
 public interface AdminService extends RemoteService {
+	
+	/**
+	 * Delete user.
+	 * 
+	 * @param userId
+	 *            the user id
+	 * @throws InCorrectUserRoleException
+	 *             the in correct user role exception
+	 */
+	public void deleteUser(String userId) throws InCorrectUserRoleException;
+	
+	/** Gets the organization.
+	 * 
+	 * @param key the key
+	 * @return the organization */
+	ManageOrganizationDetailModel getOrganization(String key);
 	
 	/**
 	 * Gets the user.
@@ -31,6 +48,23 @@ public interface AdminService extends RemoteService {
 	public ManageUsersDetailModel getUser(String key) throws InCorrectUserRoleException;
 	
 	/**
+	 * Reset user password.
+	 * 
+	 * @param userid
+	 *            the userid
+	 * @throws InCorrectUserRoleException
+	 *             the in correct user role exception
+	 */
+	public void resetUserPassword(String userid) throws InCorrectUserRoleException;
+	
+	/** Save update organization.
+	 * 
+	 * @param currentModel the current model
+	 * @param updatedModel the updated model
+	 * @return the save update organization result */
+	SaveUpdateOrganizationResult saveUpdateOrganization(ManageOrganizationDetailModel currentModel,
+			ManageOrganizationDetailModel updatedModel);
+	/**
 	 * Save update user.
 	 * 
 	 * @param model
@@ -40,39 +74,26 @@ public interface AdminService extends RemoteService {
 	 *             the in correct user role exception
 	 */
 	public SaveUpdateUserResult saveUpdateUser(ManageUsersDetailModel model) throws InCorrectUserRoleException;
-
+	
+	/** Search organization.
+	 * 
+	 * @param key the key
+	 * @return the manage organization search model */
+	ManageOrganizationSearchModel searchOrganization(String key);
+	
 	/**
 	 * Search users.
 	 * 
 	 * @param key
 	 *            the key
-	 * @param startIndex
-	 *            the start index
-	 * @param pageSize
-	 *            the page size
 	 * @return the manage users search model
 	 * @throws InCorrectUserRoleException
 	 *             the in correct user role exception
 	 */
-	public ManageUsersSearchModel searchUsers(String key, int startIndex, int pageSize) throws InCorrectUserRoleException;
+	public ManageUsersSearchModel searchUsers(String key) throws InCorrectUserRoleException;
 	
-	/**
-	 * Delete user.
+	/** Gets the all organizations.
 	 * 
-	 * @param userId
-	 *            the user id
-	 * @throws InCorrectUserRoleException
-	 *             the in correct user role exception
-	 */
-	public void deleteUser(String userId) throws InCorrectUserRoleException;
-	
-	/**
-	 * Reset user password.
-	 * 
-	 * @param userid
-	 *            the userid
-	 * @throws InCorrectUserRoleException
-	 *             the in correct user role exception
-	 */
-	public void resetUserPassword(String userid) throws InCorrectUserRoleException;
+	 * @return the all organizations */
+	ManageOrganizationSearchModel getAllOrganizations();
 }

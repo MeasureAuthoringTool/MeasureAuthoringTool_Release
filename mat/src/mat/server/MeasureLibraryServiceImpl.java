@@ -12,11 +12,9 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-
 import mat.DTO.MeasureNoteDTO;
 import mat.client.clause.clauseworkspace.model.MeasureXmlModel;
 import mat.client.measure.ManageMeasureDetailModel;
@@ -30,6 +28,7 @@ import mat.client.measure.service.SaveMeasureResult;
 import mat.client.measure.service.ValidateMeasureResult;
 import mat.client.shared.MatException;
 import mat.dao.MeasureNotesDAO;
+import mat.dao.RecentMSRActivityLogDAO;
 import mat.dao.clause.MeasureDAO;
 import mat.dao.clause.MeasureXMLDAO;
 import mat.dao.clause.QDSAttributesDAO;
@@ -39,6 +38,7 @@ import mat.model.MeasureNotes;
 import mat.model.MeasureType;
 import mat.model.QualityDataModelWrapper;
 import mat.model.QualityDataSetDTO;
+import mat.model.RecentMSRActivityLog;
 import mat.model.SecurityRole;
 import mat.model.User;
 import mat.model.clause.Measure;
@@ -59,7 +59,6 @@ import mat.shared.ConstantMessages;
 import mat.shared.DateStringValidator;
 import mat.shared.DateUtility;
 import mat.shared.model.util.MeasureDetailsUtil;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang.StringUtils;
@@ -114,6 +113,10 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 	/** The qds attributes dao. */
 	@Autowired
 	private QDSAttributesDAO qDSAttributesDAO;
+	
+	/** The recent msr activity log dao. */
+	@Autowired
+	private RecentMSRActivityLogDAO recentMSRActivityLogDAO;
 	
 	/** The user service. */
 	@Autowired
@@ -679,7 +682,6 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		// Collections.sort(attrs, attributeComparator);
 		return attrs;
 	}
-	
 	/* (non-Javadoc)
 	 * @see mat.server.service.MeasureLibraryService#getAllMeasureNotesByMeasureID(java.lang.String)
 	 */
@@ -687,7 +689,6 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 	public final MeasureNotesModel getAllMeasureNotesByMeasureID(final String measureID) {
 		MeasureNotesModel measureNotesModel = new MeasureNotesModel();
 		ArrayList<MeasureNoteDTO> data = new ArrayList<MeasureNoteDTO>();
-		
 		Measure measure = getMeasureDAO().find(measureID);
 		if (measure != null) {
 			List<MeasureNotes> measureNotesList = getMeasureNotesService().getAllMeasureNotesByMeasureID(measureID);
@@ -697,13 +698,13 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 						MeasureNoteDTO measureNoteDTO = new MeasureNoteDTO();
 						measureNoteDTO.setMeasureId(measureID);
 						measureNoteDTO.setId(measureNotes.getId());
-						
 						if (measureNotes.getModifyUser() != null) {
-							measureNoteDTO.setLastModifiedByEmailAddress(measureNotes.getModifyUser().getEmailAddress());
+							measureNoteDTO.setLastModifiedByEmailAddress(
+									measureNotes.getModifyUser().getEmailAddress());
 						} else if (measureNotes.getCreateUser() != null) {
-							measureNoteDTO.setLastModifiedByEmailAddress(measureNotes.getCreateUser().getEmailAddress());
+							measureNoteDTO.setLastModifiedByEmailAddress(
+									measureNotes.getCreateUser().getEmailAddress());
 						}
-						
 						measureNoteDTO.setNoteDesc(measureNotes.getNoteDesc());
 						measureNoteDTO.setNoteTitle(measureNotes.getNoteTitle());
 						Date lastModifiedDate = measureNotes.getLastModifiedDate();
@@ -711,7 +712,6 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 						if (lastModifiedDate != null) {
 							measureNoteDTO.setLastModifiedDate(dateFormat.format(lastModifiedDate));
 						}
-						
 						data.add(measureNoteDTO);
 					}
 				}
@@ -720,21 +720,68 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		measureNotesModel.setData(data);
 		return measureNotesModel;
 	}
-	
-	/**
-	 * Gets the and validate value set date.
-	 * 
-	 * @param valueSetDateStr
-	 *            - {@link String}.
-	 * @return the and validate value set date
-	 * @throws InvalidValueSetDateException
-	 *             - {@link Exception}. *
+	/*
+	 * (non-Javadoc)
+	 * @see mat.server.service.MeasureLibraryService#getAllRecentMeasureForUser(java.lang.String)
 	 */
+	/** Method to retrieve all Recently searched measure's for the logged in User from 'Recent_MSR_Activity_Log' table.
+	 * @param userId - String logged in user id.
+	 * @return {@link ManageMeasureSearchModel}. **/
+	@Override
+	public ManageMeasureSearchModel getAllRecentMeasureForUser(String userId) {
+		// Call to fetch
+		ArrayList<RecentMSRActivityLog> recentMeasureActivityList = (ArrayList<RecentMSRActivityLog>)
+				recentMSRActivityLogDAO.getRecentMeasureActivityLog(userId);
+		ManageMeasureSearchModel manageMeasureSearchModel = new ManageMeasureSearchModel();
+		List<ManageMeasureSearchModel.Result> detailModelList = new ArrayList<ManageMeasureSearchModel.Result>();
+		manageMeasureSearchModel.setData(detailModelList);
+		String currentUserId = LoggedInUserUtil.getLoggedInUser();
+		String userRole = LoggedInUserUtil.getLoggedInUserRole();
+		boolean isSuperUser = SecurityRole.SUPER_USER_ROLE.equals(userRole);
+		for (RecentMSRActivityLog activityLog : recentMeasureActivityList) {
+			Measure measure = getMeasureDAO().find(activityLog.getMeasureId());
+			ManageMeasureSearchModel.Result detail = new ManageMeasureSearchModel.Result();
+			detail.setName(measure.getDescription());
+			detail.setShortName(measure.getaBBRName());
+			detail.setId(measure.getId());
+			detail.setDraft(measure.isDraft());
+			detail.setExportable(measure.getExportedDate() != null); // to show export icon.
+			detail.setStatus(measure.getMeasureStatus());
+			String formattedVersion = MeasureUtility.getVersionText(measure.getVersion(),
+					measure.isDraft());
+			detail.setVersion(formattedVersion);
+			detail.setFinalizedDate(measure.getFinalizedDate());
+			detail.setOwnerfirstName(measure.getOwner().getFirstName());
+			detail.setOwnerLastName(measure.getOwner().getLastName());
+			detail.setOwnerEmailAddress(measure.getOwner().getEmailAddress());
+			detail.setMeasureSetId(measure.getMeasureSet().getId());
+			detail.setScoringType(measure.getMeasureScoring());
+			detail.setMeasureLocked(measure.getLockedOutDate() != null);
+			List<MeasureShareDTO> measureShare = getMeasureDAO().
+					getMeasureShareInfoForMeasureAndUser(measure.getOwner().getId(), measure.getId());
+			if (measureShare.size() > 0) {
+				detail.setEditable((currentUserId.equals(measure.getOwner().getId()) || isSuperUser
+						|| ShareLevel.MODIFY_ID.equals(
+								measureShare.get(0).getShareLevel())) && measure.isDraft());
+			} else {
+				detail.setEditable((currentUserId.equals(measure.getOwner().getId()) || isSuperUser)
+					&& measure.isDraft());
+			}
+			detailModelList.add(detail);
+		}
+		return manageMeasureSearchModel;
+	}
+	
+	/** Gets the and validate value set date.
+	 * 
+	 * @param valueSetDateStr - {@link String}.
+	 * @return the and validate value set date
+	 * @throws InvalidValueSetDateException - {@link Exception}. * */
 	private void getAndValidateValueSetDate(final String valueSetDateStr) throws InvalidValueSetDateException {
 		if (StringUtils.isNotBlank(valueSetDateStr)) {
 			DateStringValidator dsv = new DateStringValidator();
 			int validationCode = dsv.isValidDateString(valueSetDateStr);
-			if (validationCode != dsv.VALID) {
+			if (validationCode != DateStringValidator.VALID) {
 				throw new InvalidValueSetDateException();
 			}
 		}
@@ -744,7 +791,8 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 	 * @see mat.server.service.MeasureLibraryService#getAppliedQDMFromMeasureXml(java.lang.String, boolean)
 	 */
 	@Override
-	public final ArrayList<QualityDataSetDTO> getAppliedQDMFromMeasureXml(final String measureId, final boolean checkForSupplementData) {
+	public final ArrayList<QualityDataSetDTO> getAppliedQDMFromMeasureXml(final String measureId,
+			final boolean checkForSupplementData) {
 		MeasureXmlModel measureXmlModel = getMeasureXmlForMeasure(measureId);
 		QualityDataModelWrapper details = convertXmltoQualityDataDTOModel(measureXmlModel);
 		ArrayList<QualityDataSetDTO> finalList = new ArrayList<QualityDataSetDTO>();
@@ -891,21 +939,24 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		return measureXmlModel;
 	}
 	
-	/**
-	 * Gets the page count.
+	/** Gets the page count.
 	 * 
-	 * @param totalRows
-	 *            - {@link Long}.
-	 * @param numberOfRows
-	 *            - {@link Integer}.
-	 * @return {@link Integer}. *
-	 */
-	private int getPageCount(final long totalRows, final int numberOfRows) {
+	 * @param userId the user id
+	 * @return {@link Integer}. * */
+	/*private int getPageCount(final long totalRows, final int numberOfRows) {
 		int pageCount = 0;
 		int mod = (int) (totalRows % numberOfRows);
 		pageCount = (int) (totalRows / numberOfRows);
 		pageCount = (mod > 0) ? (pageCount + 1) : pageCount;
 		return pageCount;
+	}*/
+	
+	/* (non-Javadoc)
+	 * @see mat.server.service.MeasureLibraryService#getRecentMeasureActivityLog(java.lang.String)
+	 */
+	@Override
+	public List<RecentMSRActivityLog> getRecentMeasureActivityLog(String userId) {
+		return recentMSRActivityLogDAO.getRecentMeasureActivityLog(userId);
 	}
 	
 	/**
@@ -1008,6 +1059,14 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		MeasurePackageService service = getService();
 		boolean isLocked = service.isMeasureLocked(id);
 		return isLocked;
+	}
+	
+	/* (non-Javadoc)
+	 * @see mat.server.service.MeasureLibraryService#recordRecentMeasureActivity(java.lang.String, java.lang.String)
+	 */
+	@Override
+	public void recordRecentMeasureActivity(String measureId, String userId) {
+		recentMSRActivityLogDAO.recordRecentMeasureActivity(measureId, userId);
 	}
 	
 	/**
@@ -1324,13 +1383,11 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 				detailModelList.add(detail);
 			}
 		} else {
-			
 			List<MeasureShareDTO> measureList = getService().searchWithFilter(searchText, startIndex, pageSize, filter);
 			searchModel.setStartIndex(startIndex);
 			searchModel.setResultsTotal((int) getService().count(filter));
 			List<ManageMeasureSearchModel.Result> detailModelList = new ArrayList<ManageMeasureSearchModel.Result>();
 			searchModel.setData(detailModelList);
-			
 			for (MeasureShareDTO dto : measureList) {
 				ManageMeasureSearchModel.Result detail = extractMeasureSearchModelDetail(currentUserId, isSuperUser, dto);
 				detailModelList.add(detail);
@@ -1341,45 +1398,42 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 	}
 	
 	/* (non-Javadoc)
-	 * @see mat.server.service.MeasureLibraryService#searchMeasuresForDraft(int, int)
+	 * @see mat.server.service.MeasureLibraryService#searchMeasuresForDraft(java.lang.String)
 	 */
 	@Override
-	public final ManageMeasureSearchModel searchMeasuresForDraft(final int startIndex, final int pageSize) {
+	public final ManageMeasureSearchModel searchMeasuresForDraft(final String searchText) {
 		String currentUserId = LoggedInUserUtil.getLoggedInUser();
 		String userRole = LoggedInUserUtil.getLoggedInUserRole();
 		boolean isSuperUser = SecurityRole.SUPER_USER_ROLE.equals(userRole);
 		ManageMeasureSearchModel searchModel = new ManageMeasureSearchModel();
-		List<MeasureShareDTO> measureList = getService().searchMeasuresForDraft(startIndex, pageSize);
-		searchModel.setStartIndex(startIndex);
-		searchModel.setResultsTotal((int) getService().countMeasuresForDraft());
+		List<MeasureShareDTO> measureList = getService().searchMeasuresForDraft(searchText);
+		searchModel.setResultsTotal((int) getService().countMeasuresForDraft(searchText));
 		List<ManageMeasureSearchModel.Result> detailModelList = new ArrayList<ManageMeasureSearchModel.Result>();
 		searchModel.setData(detailModelList);
 		for (MeasureShareDTO dto : measureList) {
 			setDTOtoModel(detailModelList, dto, currentUserId, isSuperUser);
 		}
-		searchModel.setPageCount(getPageCount(searchModel.getResultsTotal(), pageSize));
 		return searchModel;
 	}
 	
+	
 	/* (non-Javadoc)
-	 * @see mat.server.service.MeasureLibraryService#searchMeasuresForVersion(int, int)
+	 * @see mat.server.service.MeasureLibraryService#searchMeasuresForVersion(java.lang.String)
 	 */
 	@Override
-	public final ManageMeasureSearchModel searchMeasuresForVersion(final int startIndex, final int pageSize) {
+	public final ManageMeasureSearchModel searchMeasuresForVersion(final String searchText) {
 		String currentUserId = LoggedInUserUtil.getLoggedInUser();
 		String userRole = LoggedInUserUtil.getLoggedInUserRole();
 		boolean isSuperUser = SecurityRole.SUPER_USER_ROLE.equals(userRole);
 		ManageMeasureSearchModel searchModel = new ManageMeasureSearchModel();
-		List<MeasureShareDTO> measureList = getService().searchMeasuresForVersion(startIndex, pageSize);
-		searchModel.setStartIndex(startIndex);
-		searchModel.setResultsTotal((int) getService().countMeasuresForVersion());
+		List<MeasureShareDTO> measureList = getService().searchMeasuresForVersion(searchText);
+		searchModel.setResultsTotal((int) getService().countMeasuresForVersion(searchText));
 		List<ManageMeasureSearchModel.Result> detailModelList = new ArrayList<ManageMeasureSearchModel.Result>();
 		searchModel.setData(detailModelList);
 		
 		for (MeasureShareDTO dto : measureList) {
 			setDTOtoModel(detailModelList, dto, currentUserId, isSuperUser);
 		}
-		searchModel.setPageCount(getPageCount(searchModel.getResultsTotal(), pageSize));
 		return searchModel;
 	}
 	
@@ -1607,18 +1661,12 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		}
 	}
 	
-	/**
-	 * This method updates MeasureXML - Attributes Nodes
+	/** This method updates MeasureXML - Attributes Nodes
 	 * 
 	 * *.
 	 * 
-	 * @param processor
-	 *            the processor
-	 * @param modifyWithDTO
-	 *            the modify with dto
-	 * @param modifyDTO
-	 *            the modify dto
-	 */
+	 * @param list the list
+	 * @param toEmail the to email */
 	
 	/*
 	 * private void updateAttributes(final XmlProcessor processor, final
@@ -1911,16 +1959,11 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		getService().updatePrivateColumnInMeasure(measureId, isPrivate);
 	}
 	
-	/**
-	 * This method updates MeasureXML - ElementRef's under
-	 * SupplementalDataElement Node
-	 * @param processor
-	 *            the processor
-	 * @param modifyWithDTO
-	 *            QualityDataSetDTO
-	 * @param modifyDTO
-	 *            QualityDataSetDTO
-	 */
+	/** This method updates MeasureXML - ElementRef's under SupplementalDataElement Node.
+	 * 
+	 * @param processor the processor
+	 * @param modifyWithDTO QualityDataSetDTO
+	 * @param modifyDTO QualityDataSetDTO */
 	private void updateSupplementalDataElement(final XmlProcessor processor, final QualityDataSetDTO modifyWithDTO,
 			final QualityDataSetDTO modifyDTO) {
 		
@@ -1955,12 +1998,13 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 	public final void updateUsersShare(final ManageMeasureShareModel model) {
 		getService().updateUsersShare(model);
 	}
-	
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see mat.server.service.MeasureLibraryService#validateMeasureForExport(java.lang.String, java.util.ArrayList)
 	 */
 	@Override
-	public final ValidateMeasureResult validateMeasureForExport(final String key, final ArrayList<MatValueSet> matValueSetList)
+	public final ValidateMeasureResult validateMeasureForExport(final String key, final List<MatValueSet> matValueSetList)
 			throws MatException {
 		try {
 			return getService().validateMeasureForExport(key, matValueSetList);
@@ -1969,5 +2013,4 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 			throw new MatException(exc.getMessage());
 		}
 	}
-	
 }
