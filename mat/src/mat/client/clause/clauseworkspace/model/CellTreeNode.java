@@ -3,6 +3,7 @@ package mat.client.clause.clauseworkspace.model;
 import java.util.List;
 
 
+// TODO: Auto-generated Javadoc
 /**
  * CellTreeNode Interface.
  */
@@ -43,7 +44,28 @@ public interface CellTreeNode {
 	 * Timing Node.
 	 */
 	short TIMING_NODE = 5;
+	/**
+	 * Sub tree Node.
+	 */
+	short SUBTREE_NODE = 10;
+	/**
+	 * Sub tree Root Node.
+	 */
+	short SUBTREE_ROOT_NODE = 11;
 	
+	/**
+	 * Sub tree Ref Node.
+	 */
+	short SUBTREE_REF_NODE = 12;
+	
+	/**
+	 * Comment Node.
+	 */
+	short COMMENT_NODE = 13;
+	
+	
+	/** The set op node. */
+	short SET_OP_NODE = 14;
 	/**
 	 * Append child.
 	 * 
@@ -240,4 +262,18 @@ public interface CellTreeNode {
 	 *            - {@link Boolean}
 	 */
 	void setValidNode(boolean isValid);
+	
+	/**
+	 * Gets the node text.
+	 *
+	 * @return Node Text
+	 */
+	String getNodeText();
+	
+	/**
+	 * Sets the node text.
+	 *
+	 * @param nodeText - String.
+	 */
+	void setNodeText(String nodeText);
 }

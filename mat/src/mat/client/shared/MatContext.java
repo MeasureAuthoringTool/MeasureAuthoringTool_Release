@@ -52,7 +52,9 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.IsSerializable;
 import com.google.gwt.user.client.ui.TabPanel;
 import com.google.gwt.user.client.ui.Widget;
+import java.util.Collections;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class MatContext.
  */
@@ -186,6 +188,9 @@ public class MatContext implements IsSerializable {
 	
 	/** The logical ops. */
 	public List<String> logicalOps = new ArrayList<String>();
+	
+	/** The set ops. */
+	public List<String> setOps = new ArrayList<String>();
 	
 	/** The operator map key short. */
 	public Map<String, String> operatorMapKeyShort = new HashMap<String, String>();
@@ -1349,6 +1354,10 @@ public class MatContext implements IsSerializable {
 						functions.add(operatorDTO.getOperator());
 					}else if(operatorDTO.getOperatorType().equals("5")){
 						comparisonOps.add(operatorDTO.getOperator());
+					}else if(operatorDTO.getOperatorType().equals("6")){
+						setOps.add(operatorDTO.getOperator());
+						//Collections.sort(setOps);
+						Collections.reverse(setOps);	
 					}
 					
 				}

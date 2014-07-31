@@ -160,6 +160,54 @@
       </bind-xml>
     </field>
     
+    <field name="qdsSelectedList" 
+            type="mat.model.QualityDataSetDTO"
+			collection="arraylist">
+			<bind-xml name="elementRef" location="itemCount">
+				<class name="mat.model.QualityDataSetDTO">
+					<field name="uuid" type="java.lang.String">
+						<bind-xml name="id" node="attribute" />
+					</field>
+					<field name="codeListName" type="java.lang.String">
+						<bind-xml name="name" node="attribute" />
+					</field>
+					<field name="dataType" type="java.lang.String">
+						<bind-xml name="dataType" node="attribute" />
+					</field>
+					<field name="occurrenceText" type="java.lang.String">
+						<bind-xml name="instance" node="attribute" />
+					</field>
+					<field name="oid" type="java.lang.String">
+						<bind-xml name="oid" node="attribute" />
+					</field>
+				</class>
+			</bind-xml>
+		</field>
+		
+		<field name="componentMeasuresSelectedList" 
+            type="mat.client.measure.ManageMeasureSearchModel$Result"
+			collection="arraylist">
+			<bind-xml name="measure" location="componentMeasures">
+				<class name="mat.client.measure.ManageMeasureSearchModel$Result">
+					<!-- <field name="name" type="java.lang.String">
+						<bind-xml name="name" node="attribute" />
+					</field> -->
+					
+					<!-- <field name="version" type="java.lang.String">
+						<bind-xml name="version" node="attribute" />
+					</field> -->
+					
+					<field name="id" type="java.lang.String">
+						<bind-xml name="id" node="attribute" />
+					</field>
+					
+					<!-- <field name="finalizedDate" type="java.sql.Timestamp">
+						<bind-xml name="finalizedDate" node="attribute" />
+					</field> -->
+				</class>
+			</bind-xml>
+		</field>
+    
     
     <field name="stratification"
            type="java.lang.String">
@@ -212,9 +260,9 @@
       <bind-xml name="transmissionFormat" node="element"/>
     </field>
     
- 	<field name="initialPatientPop"
+ 	<field name="initialPop"
            type="java.lang.String">
-      <bind-xml name="initialPatientPopDescription" node="element"/>
+      <bind-xml name="initialPopDescription" node="element"/>
     </field>   
     
     <field name="denominator"
@@ -245,6 +293,11 @@
     <field name="measurePopulation"
            type="java.lang.String">
       <bind-xml name="measurePopulationDescription" node="element"/>
+    </field>
+    
+    <field name="measurePopulationExclusions"
+           type="java.lang.String">
+      <bind-xml name="measurePopulationExclusionsDescription" node="element"/>
     </field>
     
     <field name="measureObservations"

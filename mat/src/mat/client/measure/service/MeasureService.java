@@ -2,6 +2,7 @@ package mat.client.measure.service;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import mat.DTO.MeasureNoteDTO;
 import mat.client.clause.clauseworkspace.model.MeasureXmlModel;
 import mat.client.measure.ManageMeasureDetailModel;
@@ -13,9 +14,13 @@ import mat.client.shared.MatException;
 import mat.model.MatValueSet;
 import mat.model.QualityDataSetDTO;
 import mat.model.RecentMSRActivityLog;
+import mat.server.util.XmlProcessor;
+
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Interface MeasureService.
  */
@@ -52,7 +57,7 @@ public interface MeasureService extends RemoteService {
 	 * @param measureID
 	 *            the measure id
 	 */
-	void createAndSaveElementLookUp(ArrayList<QualityDataSetDTO> list,
+	void createAndSaveElementLookUp(List<QualityDataSetDTO> list,
 			String measureID);
 	
 	/**
@@ -96,7 +101,7 @@ public interface MeasureService extends RemoteService {
 	 *            the check for supplement data
 	 * @return the applied qdm from measure xml
 	 */
-	ArrayList<QualityDataSetDTO> getAppliedQDMFromMeasureXml(String measureId,
+	List<QualityDataSetDTO> getAppliedQDMFromMeasureXml(String measureId,
 			boolean checkForSupplementData);
 	
 	/**
@@ -184,6 +189,13 @@ public interface MeasureService extends RemoteService {
 	SaveMeasureResult save(ManageMeasureDetailModel model);
 	
 	/**
+	 * Save Called To update Revision Number at Create New Package button Click.
+	 * @param model -ManageMeasureDetailModel.
+	 * @return - SaveMeasureResult.
+	 */
+	SaveMeasureResult saveMeasureAtPackage(ManageMeasureDetailModel model);
+	
+	/**
 	 * Save and delete measure.
 	 * 
 	 * @param measureID
@@ -260,7 +272,7 @@ public interface MeasureService extends RemoteService {
 	 * @return the manage measure search model
 	 */
 	ManageMeasureSearchModel searchMeasuresForDraft(String searchText);
-
+	
 	/**
 	 * Search measures for version.
 	 *
@@ -271,14 +283,13 @@ public interface MeasureService extends RemoteService {
 	
 	/**
 	 * Search users.
-	 * 
-	 * @param startIndex
-	 *            the start index
-	 * @param pageSize
-	 *            the page size
+	 *
+	 * @param searchText the search text
+	 * @param startIndex the start index
+	 * @param pageSize the page size
 	 * @return the transfer measure owner ship model
 	 */
-	TransferMeasureOwnerShipModel searchUsers(int startIndex, int pageSize);
+	TransferMeasureOwnerShipModel searchUsers(String searchText, int startIndex, int pageSize);
 	
 	/**
 	 * Transfer owner ship to user.
@@ -354,4 +365,73 @@ public interface MeasureService extends RemoteService {
 	 */
 	ValidateMeasureResult validateMeasureForExport(String key,
 			List<MatValueSet> matValueSetList) throws MatException;
+	
+	/**
+	 * Save sub tree in measure xml.
+	 *
+	 * @param measureXmlModel the measure xml model
+	 * @param nodeName the node name
+	 * @param nodeUUID the node uuid
+	 */
+	void saveSubTreeInMeasureXml(MeasureXmlModel measureXmlModel,
+			String nodeName, String nodeUUID);
+
+	/**
+	 * Check and delete sub tree.
+	 *
+	 * @param measureId the measure id
+	 * @param subTreeUUID the sub tree uuid
+	 * @return true, if successful
+	 */
+	boolean checkAndDeleteSubTree(String measureId, String subTreeUUID);
+
+	/**
+	 * Checks if is sub tree referred in logic.
+	 *
+	 * @param measureId the measure id
+	 * @param subTreeUUID the sub tree uuid
+	 * @return true, if is sub tree referred in logic
+	 */
+	boolean isSubTreeReferredInLogic(String measureId, String subTreeUUID);
+
+	/**
+	 * Gets the human readable for node.
+	 *
+	 * @param measureId the measure id
+	 * @param populationSubXML the population sub xml
+	 * @return the human readable for node
+	 */
+	String getHumanReadableForNode(String measureId, String populationSubXML);
+	
+	/**
+	 * Gets the component measures.
+	 *
+	 * @param measureIds the measure ids
+	 * @return the component measures
+	 */
+	ManageMeasureSearchModel getComponentMeasures(List<String> measureIds);
+
+	/**
+	 * Validate package grouping.
+	 *
+	 * @param model the model
+	 * @return true, if successful
+	 */
+	boolean validatePackageGrouping(ManageMeasureDetailModel model);
+
+	/**
+	 * Validate measure xmlinpopulation workspace.
+	 *
+	 * @param measureXmlModel the measure xml model
+	 * @return true, if successful
+	 */
+	boolean validateMeasureXmlinpopulationWorkspace(
+			MeasureXmlModel measureXmlModel);
+	
+	/**
+	 * Update component measures from xml.
+	 *
+	 * @param measureId the measure id
+	 */
+	void updateComponentMeasuresFromXml(String measureId);
 }

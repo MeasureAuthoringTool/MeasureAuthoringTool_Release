@@ -37,6 +37,7 @@ import mat.model.clause.ShareLevel;
 import mat.server.LoggedInUserUtil;
 import mat.server.service.MeasurePackageService;
 import mat.server.service.SimpleEMeasureService;
+import mat.server.service.SimpleEMeasureService.ExportResult;
 import mat.server.util.ExportSimpleXML;
 import mat.shared.ValidationUtility;
 
@@ -45,6 +46,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class MeasurePackageServiceImpl.
  */
@@ -230,7 +232,7 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 			final List<MatValueSet> matValueSetList) throws Exception {
 		
 		MeasureXML measureXML = measureXMLDAO.findForMeasure(measureId);
-		String exportedXML = ExportSimpleXML.export(measureXML, message);
+		String exportedXML = ExportSimpleXML.export(measureXML, message, measureDAO);
 		if (exportedXML.length() == 0) {
 			return;
 		}
@@ -463,6 +465,13 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 		return measurePackageDAO.getMeasureShareInfoForUserWithFilter(searchText,  user, startIndex - 1, numResults, filter);
 	}
 	
+	/* (non-Javadoc)
+	 * @see mat.server.service.MeasurePackageService#getComponentMeasuresInfo(java.util.List)
+	 */
+	@Override
+	public List<Measure> getComponentMeasuresInfo(List<String> measureIds){
+		return measurePackageDAO.getComponentMeasureInfoForMeasures(measureIds);
+	}
 	/**
 	 * Sets the validator.
 	 * 
@@ -608,6 +617,30 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 		result.setValid(message.size() == 0);
 		result.setValidationMessages(message);
 		return result;
+	}
+	
+	/* (non-Javadoc)
+	 * @see mat.server.service.MeasurePackageService#getHumanReadableForNode(java.lang.String, java.lang.String)
+	 */
+	@Override
+	public String getHumanReadableForNode(final String measureId, final String populationSubXML){
+		String humanReadableHTML = "";
+		try {
+			ExportResult exportResult = eMeasureService.getHumanReadableForNode(measureId, populationSubXML);
+			humanReadableHTML = exportResult.export;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return humanReadableHTML;
+	}
+
+	/* (non-Javadoc)
+	 * @see mat.server.service.MeasurePackageService#getMeasure(java.lang.String)
+	 */
+	@Override
+	public boolean getMeasure(String measureId) {
+		return measurePackageDAO.getMeasure(measureId);
 	}
 	
 }

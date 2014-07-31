@@ -77,7 +77,8 @@ public class ClientConstants {
 	public final static String TEXT_USER_GUIDE ="User Guide";
 	
 	/** The Constant TITLE_ADMIN. */
-	public final static String TITLE_ADMIN ="Admin";
+//	public final static String TITLE_ADMIN ="Admin";
+	public final static String TITLE_ADMIN ="Account Management";
 	
 	/** The Constant TITLE_CMS_GOV_LOGO. */
 	public final static String TITLE_CMS_GOV_LOGO="CMS.gov";
@@ -93,6 +94,8 @@ public class ClientConstants {
 	
 	/** The Constant TITLE_MY_ACCOUNT. */
 	public final static String TITLE_MY_ACCOUNT="MAT Account";
+	
+	public final static String TITLE_ADMIN_ACCOUNT="Administrator Account";
 	
 	/** The Constant TITLE_UMLS. */
 	public final static String TITLE_UMLS="UMLS Account";
@@ -112,9 +115,9 @@ public class ClientConstants {
 	/** The Constant TEXT_CONTACT_US . */
 	public final static String TEXT_CONTACT_US ="Contact Us";
 	
-	/** The contactus url. */
-//	public static String CONTACTUS_URL="https://nqfdev.telligen.org/web/guest/contact-us-form";
-
+	/** The contactus url.*/
+	public static String CONTACTUS_URL="https://nqfdev.telligen.org/web/guest/contact-us";
+	
 	
 	
 }

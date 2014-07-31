@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import mat.client.Mat;
 import mat.client.MatPresenter;
+import mat.client.MeasureComposerPresenter;
 import mat.client.measure.service.MeasureServiceAsync;
 import mat.client.shared.ErrorMessageDisplayInterface;
 import mat.client.shared.MatContext;
@@ -99,12 +100,12 @@ public class QDSAppliedListPresenter implements MatPresenter {
 		 *            the new applied qdm list {@link ArrayList} of
 		 *            {@link QualityDataSetDTO}
 		 */
-		void setAppliedQDMList(ArrayList<QualityDataSetDTO> appliedQDMList);
+		void setAppliedQDMList(List<QualityDataSetDTO> appliedQDMList);
 	}
 	/**
 	 * List of all Applied QDM's.
 	 */
-	private ArrayList<QualityDataSetDTO> allQdsList = new ArrayList<QualityDataSetDTO>();
+	private List<QualityDataSetDTO> allQdsList = new ArrayList<QualityDataSetDTO>();
 	/**
 	 * SimplePanel Instance.
 	 */
@@ -142,7 +143,7 @@ public class QDSAppliedListPresenter implements MatPresenter {
 				if (searchDisplay.getSelectedElementToRemove() != null) {
 					service.getAppliedQDMFromMeasureXml(MatContext.get()
 							.getCurrentMeasureId(), false,
-							new AsyncCallback<ArrayList<QualityDataSetDTO>>() {
+							new AsyncCallback<List<QualityDataSetDTO>>() {
 						
 						@Override
 						public void onFailure(final Throwable caught) {
@@ -154,7 +155,7 @@ public class QDSAppliedListPresenter implements MatPresenter {
 						
 						@Override
 						public void onSuccess(
-								final ArrayList<QualityDataSetDTO> result) {
+								final List<QualityDataSetDTO> result) {
 							allQdsList = result;
 							if (allQdsList.size() > 0) {
 								Iterator<QualityDataSetDTO> iterator = allQdsList
@@ -227,6 +228,9 @@ public class QDSAppliedListPresenter implements MatPresenter {
 	public void beforeDisplay() {
 		resetQDSFields();
 		loadAppliedListData();
+		MeasureComposerPresenter.setSubSkipEmbeddedLink("subQDMAPPliedListContainerPanel");
+		Mat.focusSkipLists("MeasureComposer");
+		
 		
 	}
 	
@@ -276,10 +280,10 @@ public class QDSAppliedListPresenter implements MatPresenter {
 		if ((measureId != null) && !measureId.equals("")) {
 			service.getAppliedQDMFromMeasureXml(measureId,
 					checkForSupplementData,
-					new AsyncCallback<ArrayList<QualityDataSetDTO>>() {
+					new AsyncCallback<List<QualityDataSetDTO>>() {
 				
 				private void filterTimingQDMs(
-						ArrayList<QualityDataSetDTO> result) {
+						List<QualityDataSetDTO> result) {
 					List<QualityDataSetDTO> timingQDMs = new ArrayList<QualityDataSetDTO>();
 					for (QualityDataSetDTO qdsDTO : result) {
 						if ("Timing Element".equals(qdsDTO
@@ -298,7 +302,7 @@ public class QDSAppliedListPresenter implements MatPresenter {
 				
 				@Override
 				public void onSuccess(
-						final ArrayList<QualityDataSetDTO> result) {
+						final List<QualityDataSetDTO> result) {
 					QDSAppliedListModel appliedListModel = new QDSAppliedListModel();
 					filterTimingQDMs(result);
 					appliedListModel.setAppliedQDMs(result);
@@ -342,7 +346,7 @@ public class QDSAppliedListPresenter implements MatPresenter {
 	 * @param list
 	 *            - {@link ArrayList} of {@link QualityDataSetDTO}
 	 */
-	private void saveMeasureXML(final ArrayList<QualityDataSetDTO> list) {
+	private void saveMeasureXML(final List<QualityDataSetDTO> list) {
 		service.createAndSaveElementLookUp(list, MatContext.get()
 				.getCurrentMeasureId(), new AsyncCallback<Void>() {
 			

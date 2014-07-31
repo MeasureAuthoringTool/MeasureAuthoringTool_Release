@@ -52,8 +52,8 @@ import org.xml.sax.InputSource;
  */
 @SuppressWarnings("serial")
 public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet
-		implements MeasureCloningService {
-
+implements MeasureCloningService {
+	
 	/** The measure dao. */
 	@Autowired
 	private MeasureDAO measureDAO;
@@ -69,7 +69,7 @@ public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet
 	/** The user dao. */
 	@Autowired
 	private UserDAO userDAO;
-
+	
 	/** The Constant logger. */
 	private static final Log logger = LogFactory
 			.getLog(MeasureCloningServiceImpl.class);
@@ -112,13 +112,13 @@ public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet
 	
 	/** The Constant XPATH_MEASURE_ELEMENT_LOOKUP_QDM. */
 	private static final String XPATH_MEASURE_ELEMENT_LOOKUP_QDM = "/measure/elementLookUp/qdm [@suppDataElement='true']";
-
+	
 	/** The cloned doc. */
 	private Document clonedDoc;
 	
 	/** The cloned measure. */
 	Measure clonedMeasure;
-
+	
 	
 	/* (non-Javadoc)
 	 * @see mat.client.measure.service.MeasureCloningService#clone(mat.client.measure.ManageMeasureDetailModel, java.lang.String, boolean)
@@ -132,7 +132,7 @@ public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet
 		measureXmlDAO = (MeasureXMLDAO) context.getBean("measureXMLDAO");
 		measureSetDAO = (MeasureSetDAO) context.getBean("measureSetDAO");
 		userDAO = (UserDAO) context.getBean("userDAO");
-
+		
 		try {
 			ManageMeasureSearchModel.Result result = new ManageMeasureSearchModel.Result();
 			Measure measure = measureDAO.find(currentDetails.getId());
@@ -152,7 +152,7 @@ public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet
 			clonedMeasure.setDraft(TRUE);
 			if (currentDetails.getMeasScoring() != null) {
 				clonedMeasure
-						.setMeasureScoring(currentDetails.getMeasScoring());
+				.setMeasureScoring(currentDetails.getMeasScoring());
 			} else {
 				clonedMeasure.setMeasureScoring(measure.getMeasureScoring());
 			}
@@ -164,6 +164,7 @@ public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet
 			if (creatingDraft) {
 				clonedMeasure.setMeasureSet(measure.getMeasureSet());
 				clonedMeasure.setVersion(measure.getVersion());
+				clonedMeasure.setRevisionNumber("000");
 				clonedMeasure.seteMeasureId(measure.geteMeasureId());
 				measureDAO.saveMeasure(clonedMeasure);
 				saveMeasureNotesInDraftMeasure(clonedMeasure.getId(), measure);
@@ -171,6 +172,7 @@ public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet
 			} else {
 				// Clear the measureDetails tag
 				clearChildNodes(MEASURE_DETAILS);
+				clonedMeasure.setRevisionNumber("000");
 				MeasureSet measureSet = new MeasureSet();
 				measureSet.setId(UUID.randomUUID().toString());
 				measureSetDAO.save(measureSet);
@@ -179,7 +181,7 @@ public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet
 				measureDAO.saveMeasure(clonedMeasure);
 				createNewMeasureDetails();
 			}
-
+			
 			// Create the measureGrouping tag
 			clearChildNodes(MEASURE_GROUPING);
 			clearChildNodes(SUPPLEMENTAL_DATA_ELEMENTS);
@@ -193,10 +195,10 @@ public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet
 			String filteredStringSupp = removePatternFromXMLString(
 					streamSuppDataEle.toString().substring(
 							streamSuppDataEle.toString()
-									.indexOf("<measure>", 0)), "<measure>", "");
+							.indexOf("<measure>", 0)), "<measure>", "");
 			filteredStringSupp = removePatternFromXMLString(filteredStringSupp,
 					"</measure>", "");
-
+			
 			String clonedXMLString = convertDocumenttoString(clonedDoc);
 			MeasureXML clonedXml = new MeasureXML();
 			clonedXml.setMeasureXMLAsByteArray(clonedXMLString);
@@ -207,7 +209,7 @@ public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet
 					filteredStringSupp, "elementRef",
 					"/measure/supplementalDataElements");
 			clonedXml.setMeasureXMLAsByteArray(clonedXMLString2);
-			if (currentDetails.getMeasScoring() != null
+			if ((currentDetails.getMeasScoring() != null)
 					&& !currentDetails.getMeasScoring().equals(
 							measure.getMeasureScoring())) {
 				xmlProcessor = new XmlProcessor(
@@ -237,7 +239,7 @@ public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet
 			throw new MatException(e.getMessage());
 		}
 	}
-
+	
 	/**
 	 * Save measure notes in draft measure.
 	 * 
@@ -250,8 +252,8 @@ public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet
 			Measure measure) {
 		List<MeasureNotes> measureNotesList = getMeasureNotesService()
 				.getAllMeasureNotesByMeasureID(measure.getId());
-		if (measureNotesList != null && !measureNotesList.isEmpty()) {
-
+		if ((measureNotesList != null) && !measureNotesList.isEmpty()) {
+			
 			for (MeasureNotes measureNotes : measureNotesList) {
 				if (measureNotes != null) {
 					try {
@@ -267,10 +269,10 @@ public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet
 					}
 				}
 			}
-
+			
 		}
 	}
-
+	
 	/**
 	 * Gets the measure notes service.
 	 * 
@@ -279,7 +281,7 @@ public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet
 	private MeasureNotesService getMeasureNotesService() {
 		return ((MeasureNotesService) context.getBean("measureNotesService"));
 	}
-
+	
 	/**
 	 * Clear child nodes.
 	 * 
@@ -292,11 +294,11 @@ public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet
 		if (parentNode != null) {
 			while (parentNode.hasChildNodes()) {
 				parentNode.removeChild(parentNode.getFirstChild());
-
+				
 			}
 		}
 	}
-
+	
 	/**
 	 * Gets the supplemental uu ids.
 	 * 
@@ -325,7 +327,7 @@ public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet
 		}
 		return supplementalUUIdMap;
 	}
-
+	
 	/**
 	 * Creates the new measure details.
 	 */
@@ -341,7 +343,8 @@ public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet
 		Node guidNode = clonedDoc.createElement(GUID);
 		guidNode.setTextContent(clonedMeasure.getMeasureSet().getId());
 		Node versionNode = clonedDoc.createElement(VERSION);
-		versionNode.setTextContent(clonedMeasure.getVersion());
+		versionNode.setTextContent(MeasureUtility.getVersionText(String.valueOf(clonedMeasure.getVersionNumber()),
+				clonedMeasure.getRevisionNumber(), clonedMeasure.isDraft()));
 		Node statusNode = clonedDoc.createElement(MEASURE_STATUS);
 		statusNode.setTextContent(clonedMeasure.getMeasureStatus());
 		Node measureScoringNode = clonedDoc.createElement(MEASURE_SCORING);
@@ -358,22 +361,22 @@ public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet
 		parentNode.appendChild(statusNode);
 		parentNode.appendChild(measureScoringNode);
 	}
-
+	
 	/**
 	 * Creates the new measure details for draft.
 	 */
 	private void createNewMeasureDetailsForDraft() {
 		clonedDoc.getElementsByTagName(UU_ID).item(0)
-				.setTextContent(clonedMeasure.getId());
+		.setTextContent(clonedMeasure.getId());
 		clonedDoc.getElementsByTagName(TITLE).item(0)
-				.setTextContent(clonedMeasure.getDescription());
+		.setTextContent(clonedMeasure.getDescription());
 		clonedDoc.getElementsByTagName(SHORT_TITLE).item(0)
-				.setTextContent(clonedMeasure.getaBBRName());
+		.setTextContent(clonedMeasure.getaBBRName());
 		clonedDoc.getElementsByTagName(MEASURE_STATUS).item(0)
-				.setTextContent(clonedMeasure.getMeasureStatus());
-
+		.setTextContent(clonedMeasure.getMeasureStatus());
+		
 	}
-
+	
 	/**
 	 * Convert documentto string.
 	 * 
@@ -396,9 +399,9 @@ public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet
 			log(e.getMessage(), e);
 			throw new Exception(e.getMessage());
 		}
-
+		
 	}
-
+	
 	/**
 	 * Removes the pattern from xml string.
 	 * 

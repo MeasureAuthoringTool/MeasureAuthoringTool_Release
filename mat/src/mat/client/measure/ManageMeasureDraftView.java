@@ -17,7 +17,6 @@ import mat.client.shared.RadioButtonCell;
 import mat.client.shared.SaveCancelButtonBar;
 import mat.client.shared.SearchWidget;
 import mat.client.shared.SpacerWidget;
-import mat.client.shared.search.SearchResults;
 import mat.client.util.CellTableUtility;
 import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.cell.client.SafeHtmlCell;
@@ -71,7 +70,7 @@ public class ManageMeasureDraftView implements ManageMeasurePresenter.DraftDispl
 		mainPanel.addStyleName("leftAligned");
 		mainPanel.add(searchWidget);
 		cellTablePanel.getElement().setId("cellTablePanel_VerticalPanel");
-		cellTablePanel.setWidth("77%");
+		cellTablePanel.setWidth("99%");
 		mainPanel.add(cellTablePanel);
 		mainPanel.add(new SpacerWidget());
 		mainPanel.add(errorMessages);
@@ -102,7 +101,7 @@ public class ManageMeasureDraftView implements ManageMeasurePresenter.DraftDispl
 				cellTable.getSelectionModel().setSelected(object, true);
 			}
 		});
-		cellTable.addColumn(radioButtonColumn, SafeHtmlUtils.fromSafeConstant("<span title='Select'>"
+		cellTable.addColumn(radioButtonColumn, SafeHtmlUtils.fromSafeConstant("<span title=\"Select\">"
 				+ "Select" + "</span>"));
 		Column<Result, SafeHtml> measureNameColumn = new Column<Result, SafeHtml>(new SafeHtmlCell()) {
 			@Override
@@ -111,7 +110,7 @@ public class ManageMeasureDraftView implements ManageMeasurePresenter.DraftDispl
 				return CellTableUtility.getColumnToolTip(object.getName(), title);
 			}
 		};
-		cellTable.addColumn(measureNameColumn, SafeHtmlUtils.fromSafeConstant("<span title='Measure Name'>"
+		cellTable.addColumn(measureNameColumn, SafeHtmlUtils.fromSafeConstant("<span title=\"Measure Name\">"
 				+ "Measure Name" + "</span>"));
 		Column<Result, SafeHtml> versionColumn = new Column<Result, SafeHtml>(new SafeHtmlCell()) {
 			@Override
@@ -120,7 +119,7 @@ public class ManageMeasureDraftView implements ManageMeasurePresenter.DraftDispl
 				return CellTableUtility.getColumnToolTip(object.getVersion(), title);
 			}
 		};
-		cellTable.addColumn(versionColumn, SafeHtmlUtils.fromSafeConstant("<span title='Version'>"
+		cellTable.addColumn(versionColumn, SafeHtmlUtils.fromSafeConstant("<span title=\"Version\">"
 				+ "Version" + "</span>"));
 		return cellTable;
 	}
@@ -135,7 +134,7 @@ public class ManageMeasureDraftView implements ManageMeasurePresenter.DraftDispl
 	 * @see mat.client.measure.ManageMeasurePresenter.DraftDisplay#buildDataTable(mat.client.shared.search.SearchResults)
 	 */
 	@Override
-	public void buildDataTable(SearchResults<Result> results) {
+	public void buildDataTable(ManageDraftMeasureModel results) {
 		cellTablePanel.clear();
 		cellTablePanel.setStyleName("cellTablePanel");
 		Label cellTablePanelHeader = new Label("Select a Measure Version to create a Draft.");
@@ -144,13 +143,13 @@ public class ManageMeasureDraftView implements ManageMeasurePresenter.DraftDispl
 		CellTable<ManageMeasureSearchModel.Result> cellTable = new CellTable<ManageMeasureSearchModel.Result>();
 		ListDataProvider<ManageMeasureSearchModel.Result> sortProvider = new ListDataProvider<ManageMeasureSearchModel.Result>();
 		List<Result> measureList = new ArrayList<Result>();
-		measureList.addAll(((ManageDraftMeasureModel) results).getDataList());
+		measureList.addAll((results.getDataList()));
 		cellTable.setPageSize(PAGE_SIZE);
 		cellTable.redraw();
 		cellTable.setRowCount(measureList.size(), true);
 		cellTable.setSelectionModel(getSelectionModelWithHandler());
 		sortProvider.refresh();
-		sortProvider.getList().addAll(((ManageDraftMeasureModel) results).getDataList());
+		sortProvider.getList().addAll(results.getDataList());
 		cellTable = addColumnToTable(cellTable);
 		sortProvider.addDataDisplay(cellTable);
 		CustomPager.Resources pagerResources = GWT.create(CustomPager.Resources.class);
@@ -210,6 +209,7 @@ public class ManageMeasureDraftView implements ManageMeasurePresenter.DraftDispl
 		image.setStylePrimaryName("invisibleButtonTextMeasureLibrary");
 		image.setTitle(action);
 		image.setResource(url, action);
+		image.getElement().setAttribute("id", "MeasureSearchButton");
 		return image;
 	}
 	

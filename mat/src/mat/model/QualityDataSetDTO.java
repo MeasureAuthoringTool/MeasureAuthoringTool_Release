@@ -4,6 +4,7 @@ package mat.model;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class QualityDataSetDTO.
  */
@@ -45,7 +46,7 @@ public class QualityDataSetDTO implements IsSerializable {
 	
 	/** The is used. */
 	private boolean isUsed;
-	
+
 	/** QDM is not available in VSAC. */
 	private boolean notFoundInVSAC;
 	
@@ -74,7 +75,7 @@ public class QualityDataSetDTO implements IsSerializable {
 	 */
 	@Override
 	public boolean equals (Object o) {
-		QualityDataSetDTO temp = (QualityDataSetDTO)o;
+		QualityDataSetDTO temp = (QualityDataSetDTO) o;
 		if (temp.getId().equals(getId())) {
 			return true;
 		}
@@ -118,6 +119,8 @@ public class QualityDataSetDTO implements IsSerializable {
 	}
 	
 	/**
+	 * Gets the checks for modified at vsac.
+	 *
 	 * @return the hasModifiedAtVSAC
 	 */
 	public boolean getHasModifiedAtVSAC() {
@@ -197,6 +200,8 @@ public class QualityDataSetDTO implements IsSerializable {
 	}
 	
 	/**
+	 * Checks if is not found in vsac.
+	 *
 	 * @return the notFoundInVSAC
 	 */
 	public boolean isNotFoundInVSAC() {
@@ -259,6 +264,8 @@ public class QualityDataSetDTO implements IsSerializable {
 	}
 	
 	/**
+	 * Sets the checks for modified at vsac.
+	 *
 	 * @param hasModifiedAtVSAC the hasModifiedAtVSAC to set
 	 */
 	public void setHasModifiedAtVSAC(boolean hasModifiedAtVSAC) {
@@ -276,6 +283,8 @@ public class QualityDataSetDTO implements IsSerializable {
 	}
 	
 	/**
+	 * Sets the not found in vsac.
+	 *
 	 * @param notFoundInVSAC the notFoundInVSAC to set
 	 */
 	public void setNotFoundInVSAC(boolean notFoundInVSAC) {
@@ -374,11 +383,23 @@ public class QualityDataSetDTO implements IsSerializable {
 	 */
 	@Override
 	public String toString() {
-		if((occurrenceText!= null) && !occurrenceText.equals("")) {
-			return occurrenceText + " of "+codeListName + ": " + dataType + "-" +getOid();
+		if ((occurrenceText!= null) && !occurrenceText.equals("")) {
+			return occurrenceText + " of " + codeListName + ": " + dataType + "-" + getOid();
 		} else {
 			return codeListName + ": " + dataType + "-" + getOid();
 		}
+	}
+	
+	/**
+	 * Compare.
+	 *
+	 * @param o1 the o1
+	 * @param o2 the o2
+	 * @return the int
+	 */
+	public int compare(QualityDataSetDTO o1, QualityDataSetDTO o2) {
+		int num = o1.getUuid().compareTo(o2.getUuid());
+		return num;
 	}
 	
 	

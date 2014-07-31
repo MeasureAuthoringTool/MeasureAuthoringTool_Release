@@ -15,7 +15,6 @@ import mat.client.shared.SpacerWidget;
 import mat.client.shared.SuccessMessageDisplay;
 import mat.client.shared.search.HasPageSelectionHandler;
 import mat.client.shared.search.HasPageSizeSelectionHandler;
-import mat.client.shared.search.SearchResults;
 import mat.client.shared.search.SearchView;
 import com.google.gwt.event.dom.client.HasClickHandlers;
 import com.google.gwt.event.logical.shared.HasSelectionHandlers;
@@ -30,6 +29,7 @@ import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class ManageMeasureSearchView.
  */
@@ -45,7 +45,7 @@ ManageMeasurePresenter.SearchDisplay {
 	 */
 	
 	CustomButton createMeasureButton = (CustomButton) getImage("Create Measure",
-			ImageResources.INSTANCE.createMeasure(), "Create Measure");
+			ImageResources.INSTANCE.createMeasure(), "Create Measure" , "createMeasurePlusButton");
 	
 	/** The create measure widget. */
 	private CreateMeasureWidget createMeasureWidget = new CreateMeasureWidget();
@@ -65,6 +65,8 @@ ManageMeasurePresenter.SearchDisplay {
 	/** The form. */
 	final FormPanel form = new FormPanel();
 	
+	
+	
 	/** The msfp. */
 	/*
 	 * private MeasureSearchFilterPanel msfp = new MeasureSearchFilterPanel();
@@ -82,6 +84,8 @@ ManageMeasurePresenter.SearchDisplay {
 	
 	/** The most recent vertical panel. */
 	VerticalPanel mostRecentVerticalPanel = new VerticalPanel();
+	
+	//MeasureSearchView measureSearchView;
 	
 	/** The options. */
 	/*
@@ -102,12 +106,17 @@ ManageMeasurePresenter.SearchDisplay {
 	private SuccessMessageDisplay successMeasureDeletion = new SuccessMessageDisplay();
 	
 	/** The view. */
-	SearchView<ManageMeasureSearchModel.Result> view = new MeasureSearchView(
-			"Measures");
+	private SearchView<ManageMeasureSearchModel.Result> view  = new SearchView<ManageMeasureSearchModel.Result>();
+	
+	/** The search view. */
+	MeasureSearchView searchView;
+	
+	/** The view. */
+	MeasureSearchView measureSearchView = new MeasureSearchView("Measures");
 	
 	/** The zoom button. */
 	CustomButton zoomButton = (CustomButton) getImage("Search",
-			ImageResources.INSTANCE.search_zoom(), "Search");
+			ImageResources.INSTANCE.search_zoom(), "Search" , "MeasureSearchButton");
 	/** Instantiates a new manage measure search view. */
 	public ManageMeasureSearchView() {
 		HorizontalPanel mainHorizontalPanel = new HorizontalPanel();
@@ -128,16 +137,17 @@ ManageMeasurePresenter.SearchDisplay {
 		buildMostRecentWidget();
 		mainHorizontalPanel.add(mostRecentVerticalPanel);
 		mainHorizontalPanel.add(measureFilterVP);
-		
 		mainPanel.add(mainHorizontalPanel);
 		mainPanel.add(successMeasureDeletion);
 		mainPanel.add(errorMeasureDeletion);
 		mainPanel.add(new SpacerWidget());
 		mainPanel.add(errorMessages);
 		mainPanel.add(new SpacerWidget());
-		mainPanel.add(view.asWidget());
+		mainPanel.add(measureSearchView.asWidget());
 		mainPanel
 		.add(ManageLoadingView.buildLoadingPanel("loadingPanelExport"));
+		mainPanel.add(new SpacerWidget());
+		mainPanel.add(new SpacerWidget());
 		mainPanel.add(buildBottomButtonWidget((PrimaryButton) bulkExportButton,
 				errorMessagesForBulkExport));
 		MatContext.get().setManageMeasureSearchView(this);
@@ -154,24 +164,24 @@ ManageMeasurePresenter.SearchDisplay {
 	
 	/**
 	 * Builds the bottom button widget.
-	 * 
-	 * @param button
-	 *            the button
-	 * @param errorMessageDisplay
-	 *            the error message display
+	 *
+	 * @param bulkExportButton the bulk export button
+	 * @param errorMessageDisplay the error message display
 	 * @return the widget
 	 */
-	private Widget buildBottomButtonWidget(PrimaryButton button,
+	private Widget buildBottomButtonWidget(PrimaryButton bulkExportButton,
 			ErrorMessageDisplay errorMessageDisplay) {
 		FlowPanel flowPanel = new FlowPanel();
 		flowPanel.getElement().setId("measureLibrary_bottomPanel");
 		flowPanel.add(errorMessageDisplay);
 		flowPanel.setStyleName("rightAlignButton");
-		flowPanel.add(button);
+		bulkExportButton.setTitle("Bulk Export");
+		flowPanel.add(bulkExportButton);
 		form.setWidget(flowPanel);
 		form.getElement().setId("measureLibrary_bottomPanelForm");
 		return form;
 	}
+	
 	
 	/*
 	 * (non-Javadoc)
@@ -179,10 +189,11 @@ ManageMeasurePresenter.SearchDisplay {
 	 * @see mat.client.measure.ManageMeasurePresenter.SearchDisplay#buildDataTable(mat.client.shared.search.SearchResults)
 	 */
 	@Override
-	public void buildDataTable(
-			SearchResults<ManageMeasureSearchModel.Result> results) {
-		view.buildDataTable(results);
+	public void buildDataTable(ManageMeasureSearchModel
+			manageMeasureSearchModel, int filter, String searchText) {
+		measureSearchView.buildCellTable(manageMeasureSearchModel,filter,searchText);
 	}
+	
 	
 	/* (non-Javadoc)
 	 * @see mat.client.measure.ManageMeasurePresenter.SearchDisplay#buildMostRecentWidget()
@@ -349,20 +360,20 @@ ManageMeasurePresenter.SearchDisplay {
 	/**
 	 * Add Image on Button with invisible text. This text will be available when
 	 * css is turned off.
-	 * @param action
-	 *            - {@link String}
-	 * @param url
-	 *            - {@link ImageResource}.
-	 * @param key
-	 *            - {@link String}.
+	 *
+	 * @param action - {@link String}
+	 * @param url - {@link ImageResource}.
+	 * @param key - {@link String}.
+	 * @param id the id
 	 * @return - {@link Widget}.
 	 */
-	private Widget getImage(String action, ImageResource url, String key) {
+	private Widget getImage(String action, ImageResource url, String key , String id) {
 		CustomButton image = new CustomButton();
 		image.removeStyleName("gwt-button");
 		image.setStylePrimaryName("invisibleButtonTextMeasureLibrary");
 		image.setTitle(action);
 		image.setResource(url, action);
+		image.getElement().setAttribute("id", id);
 		return image;
 	}
 	
@@ -396,6 +407,14 @@ ManageMeasurePresenter.SearchDisplay {
 		return mostRecentMeasureWidget;
 	}
 	
+	/* (non-Javadoc)
+	 * @see mat.client.measure.ManageMeasurePresenter.SearchDisplay#getMeasureSearchView()
+	 */
+	@Override
+	public MeasureSearchView getMeasureSearchView() {
+		return measureSearchView;
+	}
+	//
 	/* (non-Javadoc)
 	 * @see mat.client.measure.ManageMeasurePresenter.SearchDisplay#getPageSize()
 	 */
@@ -468,7 +487,7 @@ ManageMeasurePresenter.SearchDisplay {
 	 */
 	@Override
 	public HasSelectionHandlers<ManageMeasureSearchModel.Result> getSelectIdForEditTool() {
-		return view;
+		return measureSearchView;
 	}
 	
 	/* (non-Javadoc)
@@ -533,5 +552,7 @@ ManageMeasurePresenter.SearchDisplay {
 			SuccessMessageDisplay successMeasureDeletion) {
 		this.successMeasureDeletion = successMeasureDeletion;
 	}
+	
+	
 	
 }

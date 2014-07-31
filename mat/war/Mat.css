@@ -73,8 +73,27 @@ body#main select, body#main input, body#main textarea {
 	height: 100%;
 }
 
+.cellTableEvenRow{
+	background: #f3f7fb !important;
+}
+
+.cellTableOddRow{
+	background: #ffffff !important;
+}
+
+.pos_fixed
+{
+position:fixed;
+top:30px;
+left:50px;
+}
+
 .gwt-TextBox{
 	vertical-align: middle!important;
+}
+
+.gwt-TextBoxRed{
+	border: 2px solid #FF0000 ;
 }
 
 .manageCodeRightForm{
@@ -83,6 +102,49 @@ body#main select, body#main input, body#main textarea {
 	background-color:rgb(243,247,245);
 	padding: 10px;
 	overflow: auto;
+}
+
+.textEmptySpaces{
+	background-color: transparent; 
+	border-color: transparent;
+	width:30px;
+	cursor: hand;
+}
+
+#container{ 
+    width: 250px; 
+}
+
+#div1{
+    float: left;
+    width:30px; 
+    margin-left: 0;
+}
+
+#div2{
+    float:left; 
+    width:220px; 
+    margin-right:0;
+}
+
+.textAlign{
+ text-align: justify;	
+}
+
+.transButtonWidth{
+	background-color: transparent; 
+	border-color: transparent;
+	width:48px;
+}
+.emptySpaces{
+ text-indent: 5px;
+}
+
+.textCssStyle{
+	font-size:70%;
+    color:blue;
+    text-decoration:underline;	
+    cursor: hand;
 }
 
 
@@ -160,7 +222,32 @@ body#main select, body#main input, body#main textarea {
   	cursor: hand;
 }
 
+.customCascadeButton {
+    background: url("images/application_cascade.png");
+    background-position:center;
+	background-repeat:no-repeat;
+	height: 25px;
+    width: 30px;
+    border: 0px;
+    font-size: 0;
+  	cursor: pointer;
+  	cursor: hand;
+}
+
+
 .customExportButton {
+    background: url("images/g_package_go_v3.png");
+    background-position:center;
+    background-repeat:no-repeat;
+    height: 25px;
+    width: 30px;
+    border: 0px;
+    font-size: 0;
+    cursor: pointer;
+    cursor: hand;
+}
+
+.customExportButtonRed {
     background: url("images/g_package_go.gif");
     background-position:center;
     background-repeat:no-repeat;
@@ -171,6 +258,122 @@ body#main select, body#main input, body#main textarea {
     cursor: pointer;
     cursor: hand;
 }
+
+
+
+.customEditButton {
+    background: url("images/g_package_edit.png");
+    background-position:center;
+    background-repeat:no-repeat;
+    height: 25px;
+    width: 30px;
+    border: 0px;
+    font-size: 0;
+    cursor: pointer;
+    cursor: hand;
+}
+.customLockedButton {
+    background: url("images/g_lock.gif");
+    background-position:center;
+    background-repeat:no-repeat;
+    height: 25px;
+    width: 30px;
+    border: 0px;
+    font-size: 0;
+    cursor: pointer;
+    cursor: hand;
+}
+.customReadOnlyButton {
+    background: url("images/application_view_detail_1.png");
+    background-position:center;
+    background-repeat:no-repeat;
+    height: 25px;
+    width: 30px;
+    font-size: 0;
+    border: 0px;
+    cursor: text;
+}
+
+.customAddRightButton {
+    background: url("images/addRight.png");
+    background-position:center;
+    background-repeat:no-repeat;
+    background-color:#D3D3D3; 
+    height: 25px;
+    width: 30px;
+    cursor: hand;
+}
+
+.customAddLeftButton {
+    background: url("images/addLeft.png");
+    background-position:center;
+    background-repeat:no-repeat;
+    background-color:#D3D3D3;
+    height: 25px;
+    width: 30px;
+    cursor: hand;
+}
+
+.customAddALlRightButton {
+    background: url("images/addAllRight.png");
+    background-position:center;
+    background-repeat:no-repeat;
+    background-color:#D3D3D3;
+    height: 25px;
+    width: 30px;
+    cursor: hand;
+}
+
+.customAddAllLeftButton {
+    background: url("images/addAllLeft.png");
+    background-position:center;
+    background-repeat:no-repeat;
+    background-color:#D3D3D3;
+    height: 25px;
+    width: 30px;
+    cursor: hand;
+}
+
+.customDeleteButton {
+    background: url("images/trash.png");
+    background-position:center;
+    background-repeat:no-repeat;
+    height: 25px;
+    width: 30px;
+    border: 0px;
+    font-size: 0;
+    cursor: pointer;
+    cursor: hand;
+}
+
+.customCompositeEmptyCell{
+	cursor: text;
+}
+
+.customShareButton {
+    background: url("images/g_package_share.png");
+    background-position:center;
+    background-repeat:no-repeat;
+    height: 25px;
+    width: 30px;
+    font-size: 0;
+    border: 0px;
+    cursor: pointer;
+    cursor: hand;
+}
+
+.customCloneButton {
+    background: url("images/g_page_copy.gif");
+    background-position:center;
+    background-repeat:no-repeat;
+    height: 25px;
+    width: 30px;
+    border: 0px;
+    font-size: 0;
+    cursor: pointer;
+    cursor: hand;
+}
+
 
 .primaryGreyButton {
     background: url("images/bg_btnGrey-secondary.png");
@@ -378,12 +581,34 @@ body#main select, body#main input, body#main textarea {
 	float:right;
 }
  .scrollable {
-      height: 250px;
-      width: 850px;
+      height: 200px;
+      width: 200px;
       border: 1px solid #ccc;
       text-align: left;
+      margin-left:14px;
+      margin-right:14px;
+      
  }
-
+ 
+ .measurePackagerSupplementalDatascrollable {
+      height: 200px;
+      width: 200px;
+      border: 1px solid #ccc;
+      text-align: left;
+      margin-right:14px;
+      margin-top:3px;
+ }
+ 
+  .measurePackageCellListscrollable {
+      height: 200px;
+      width: 220px;
+      border: 1px solid #ccc;
+      text-align: left;
+      margin-left:14px;
+      margin-right:14px;
+      margin-top:3px;
+ }
+ 
  .qdmCellList{
  	margin-top:-12px;
  	margin-left:10px;
@@ -460,6 +685,19 @@ body#main select, body#main input, body#main textarea {
 	
 	
 }
+
+.alertMessageDialogBox {
+	 background: no-repeat scroll 6px 50% #FFDDDD;
+    border: 1px solid #FF0000;
+    color: #000000;
+    display: block;
+    font-weight: bold;
+    margin: 2px auto 14px;
+    padding-left: 5px;
+    text-align: left;
+	
+	
+}
 .gwt-PopupPanelGlass {
   background-color: #000;
   opacity: 0.3;
@@ -490,6 +728,20 @@ body#main select, body#main input, body#main textarea {
     font-weight: bold;
     margin: 2px auto 14px;
     padding: 6px 6px 6px 30px;
+    text-align: left;
+}
+
+.successMessageCommentPanel {
+    /*color: green;
+    font-size: .8em;
+    font-weight: bold;*/
+    background: /*url('images/success.png')*/ no-repeat scroll 6px 50% #F4FDEF;
+    border: 1px solid #ACDFA7;
+    color: #000000;
+    display: block;
+    font-weight: bold;
+    margin: 2px 10px 14px;
+    padding: 6px 6px 0px 30px;
     text-align: left;
 }
 
@@ -852,6 +1104,12 @@ body#main select, body#main input, body#main textarea {
 .floatRight {
 	float:right;
 }
+
+.floatRightButtonPanel {
+	float:right;
+	margin-right: 5px;
+}
+
 .marginLeft20px {
 	margin-left: 20px;
 }
@@ -1080,12 +1338,36 @@ padding: 2px;
     margin: 6px;
 }
 
+.addCommentPanel {
+   /*  -moz-box-sizing:border-box;
+    background-color:#F0F0F0;
+    border:1px solid #C0C0C0; */
+     border:1px solid lightgray;
+    -moz-box-sizing: border-box;
+    background-image: url("images/bg_box-blue.png");
+    background-repeat:repeat-x;
+    height:98%;
+    overflow:auto;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-bottom:5px;
+    margin: 6px;
+    margin-left : 30px;
+}
 
 .contentPanel {
     padding: 5px;
 	-moz-box-sizing:border-box;
     background-color:white;
     border:1px solid #C0C0C0;
+}
+
+.umlscontentPanel {
+    padding: 5px;
+    -moz-box-sizing:border-box;
+    background-color:white;
+    border:1px solid #C0C0C0;
+    width:100%;
 }
 
 .qdsContentPanel{
@@ -1268,7 +1550,7 @@ padding: 2px;
 }
 
 .div-wrapper{
-	width: 900px;
+	width: 920px;
 	position: relative;
 	overflow: hidden; 
 }
@@ -1280,8 +1562,22 @@ padding: 2px;
 }
 
 .div-second{
-	widtrh:300px;
+	 /*  -moz-box-sizing:border-box;
+    background-color:#F0F0F0;
+    border:1px solid #C0C0C0; */
+	border:1px solid lightgray;
+    -moz-box-sizing: border-box;
+    background-image: url("images/bg_box-blue.png");
+    background-repeat:repeat-x;
 	overflow:hidden;
+  	margin-top: 5px;
+  	padding: 2px 5px 5px 5px;	
+}
+
+.div-second-comment-box{
+    width:320px;
+    overflow:hidden;
+    float: right;
 }
 
 .leftpadding4px{
@@ -1318,7 +1614,9 @@ padding: 2px;
    
 }
 
-
+.clauseLibraryLabel{
+   border-bottom: 3px solid #B8B8D9;
+}
 .popupMenuBar{
 	background: #888888;
 	box-shadow: 2px 2px 4px #888888; 
@@ -1341,7 +1639,7 @@ padding: 2px;
   cursor: default !important;
   font-size: 75% !important;
   padding: 1px 2px 2px 2px !important;
-  width: 175px;
+  width: 200px;
 }
 .gwt-MenuBar .gwt-MenuItem-selected {
   /*background: #D4D0C8 !important;*/
@@ -1543,6 +1841,11 @@ padding: 2px;
 	color:red;
 }
 
+.populationWorkSpaceCommentNode{
+    font-weight:bold;
+    color:#021D4D;
+}
+
 .gwt-DisclosurePanel .content {
     /* background-color: lightgray; */
     background-image: url("images/bg_box-blue.png");
@@ -1659,11 +1962,25 @@ padding: 2px;
     padding: 0px 0px 8px 0px;
 }
 .valueSetHeader{
-	background-color: #6B97B8; 
+	background-color: #6B97B8;
 	font-size: small;
     font-weight: bold;
     color: white;
     padding: 5px;
+}
+
+ .measureGroupingTableHeader{
+	background-color: #6B97B8;
+	font-size: small;
+    font-weight: bold;
+    color: white;
+    padding: 5px;
+    text-align: left;
+}
+
+.measureGroupPackageName{
+	font-weight:bold;
+	margin-left:15px;
 }
 .valueSetMarginTop{
 	margin-top: 4px;
@@ -1708,4 +2025,39 @@ padding: 2px;
     vertical-align: bottom;
     position: relative;
     overflow: hidden;
+}
+
+.newGreySecondaryButton{
+	background: url("images/bg_btnGrey-secondary.png");
+    background-repeat:repeat-x;
+    font-weight: bold;
+    border:1px solid #C0C0C0;
+    -moz-box-sizing:border-box;
+    height: 15px;
+    width: 30px;
+    text-align: center;
+    vertical-align: middle;
+    padding:5px;
+    cursor: pointer;
+}
+
+.newGreySecondaryButton img {
+	padding:1px;
+}
+
+.measurePackageLeftRightPanelHolder{
+	border:1px solid #ADD8E6;
+	-moz-box-sizing:border-box;
+	padding:5px;
+}
+
+.measurePackageLeftRightPanel .newColumn {
+	margin-top: 14px;
+	margin-left: 14px;
+	margin-right: 14px;
+	float: left;
+}
+
+.qdmElementAddButtonPanel{
+	margin-top: 30px;
 }

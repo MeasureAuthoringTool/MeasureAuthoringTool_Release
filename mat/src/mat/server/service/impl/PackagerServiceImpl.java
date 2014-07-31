@@ -7,15 +7,15 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-
-import mat.client.clause.clauseworkspace.presenter.ClauseConstants;
+import mat.client.clause.clauseworkspace.presenter.PopulationWorkSpaceConstants;
 import mat.client.measurepackage.MeasurePackageClauseDetail;
 import mat.client.measurepackage.MeasurePackageDetail;
 import mat.client.measurepackage.MeasurePackageOverview;
+import mat.client.measurepackage.service.MeasurePackageSaveResult;
+import mat.client.shared.MatContext;
 import mat.dao.clause.MeasureXMLDAO;
 import mat.model.QualityDataModelWrapper;
 import mat.model.QualityDataSetDTO;
@@ -23,7 +23,7 @@ import mat.model.clause.MeasureXML;
 import mat.server.service.PackagerService;
 import mat.server.util.ResourceLoader;
 import mat.server.util.XmlProcessor;
-
+import mat.shared.MeasurePackageClauseValidator;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -37,6 +37,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class PackagerServiceImpl.
  */
@@ -46,7 +47,7 @@ public class PackagerServiceImpl implements PackagerService {
 	private static final Log logger = LogFactory.getLog(PackagerServiceImpl.class);
 	
 	/** The Constant MEASURE. */
-	private static final String MEASURE ="measure";
+	private static final String MEASURE = "measure";
 	
 	/** The Constant SUPPLEMENT_DATA_ELEMENTS. */
 	private static final String SUPPLEMENT_DATA_ELEMENTS = "supplementalDataElements";
@@ -87,20 +88,38 @@ public class PackagerServiceImpl implements PackagerService {
 		MeasureXML measureXML = measureXMLDAO.findForMeasure(measureId);
 		XmlProcessor  processor = new XmlProcessor(measureXML.getMeasureXMLAsString());
 		boolean isGroupRemoved = false;
+		List<QualityDataSetDTO> qdmSelectedList;
 		try {
 			// get all CLAUSE type nodes except for Stratum.
 			NodeList measureClauses = processor.findNodeList(processor.getOriginalDoc(),
 					XmlProcessor.XPATH_MEASURE_CLAUSE);
 			if ((null != measureClauses) && (measureClauses.getLength() > 0)) {
+				qdmSelectedList = new ArrayList<QualityDataSetDTO>();
 				// find the GROUP/PACKAGECLAUSES that are not in the main CLAUSE nodes using the clause node UUID
 				String xpathGrpUuid = XmlProcessor.XPATH_FIND_GROUP_CLAUSE;
 				for (int i = 0; i < measureClauses.getLength(); i++) {
 					NamedNodeMap namedNodeMap = measureClauses.item(i).getAttributes();
-					Node uuidNode = namedNodeMap.getNamedItem(ClauseConstants.UUID);
-					Node displayNameNode = namedNodeMap.getNamedItem(ClauseConstants.DISPLAY_NAME);
-					Node typeNode = namedNodeMap.getNamedItem(ClauseConstants.TYPE);
-					clauses.add(createMeasurePackageClauseDetail(
-							uuidNode.getNodeValue(), displayNameNode.getNodeValue(), typeNode.getNodeValue()));
+					Node uuidNode = namedNodeMap.getNamedItem(PopulationWorkSpaceConstants.UUID);
+					Node displayNameNode = namedNodeMap.getNamedItem(PopulationWorkSpaceConstants.DISPLAY_NAME);
+					Node typeNode = namedNodeMap.getNamedItem(PopulationWorkSpaceConstants.TYPE);
+					Node associatedClauseUUIDNode = namedNodeMap.getNamedItem("associatedPopulationUUID");
+					String associatedClauseUUID = null;
+					if(associatedClauseUUIDNode != null){
+						associatedClauseUUID = associatedClauseUUIDNode.getNodeValue();
+					}
+					
+					if(typeNode == null)
+					{
+						clauses.add(createMeasurePackageClauseDetail(
+								uuidNode.getNodeValue(), displayNameNode.getNodeValue(), XmlProcessor.STRATIFICATION,
+								associatedClauseUUID,qdmSelectedList));
+					}
+					else
+					{
+						clauses.add(createMeasurePackageClauseDetail(
+								uuidNode.getNodeValue(), displayNameNode.getNodeValue(), typeNode.getNodeValue(),
+								associatedClauseUUID,qdmSelectedList));
+					}
 					//adding all Clause type uuid's
 					xpathGrpUuid = xpathGrpUuid + "@uuid != '" + uuidNode.getNodeValue() + "' and";
 				}
@@ -122,7 +141,6 @@ public class PackagerServiceImpl implements PackagerService {
 					XmlProcessor.XPATH_MEASURE_GROUPING_GROUP); // XPath to get all Group
 			Map<Integer, MeasurePackageDetail> seqDetailMap =
 					new HashMap<Integer, MeasurePackageDetail>();
-			
 			// iterate through the measure groupings and get the sequence number
 			//attribute and insert in a map with sequence as key and MeasurePackageDetail as value
 			if ((measureGroups != null) && (measureGroups.getLength() > 0)) {
@@ -141,20 +159,48 @@ public class PackagerServiceImpl implements PackagerService {
 					//Iterate through the PACKAGECLAUSE nodes and  convert it into
 					//MeasurePackageClauseDetail add it to the list in MeasurePackageDetail
 					for (int j = 0; j < pkgClauses.getLength(); j++) {
-						if (!ClauseConstants.PACKAGE_CLAUSE_NODE.equals(
+						qdmSelectedList = new ArrayList<QualityDataSetDTO>();
+						if (!PopulationWorkSpaceConstants.PACKAGE_CLAUSE_NODE.equals(
 								pkgClauses.item(j).getNodeName())) {
 							// group node can contain tab or new lines
 							// which can be counted as it's child.Those should be filtered.
 							continue;
 						}
+						
+						NodeList itemCountNodeList = pkgClauses.item(j).getChildNodes();
+						for(int k = 0; k < itemCountNodeList.getLength(); k++){
+							if(itemCountNodeList.item(k).getNodeName().equals("itemCount")){
+								NodeList elementRefNode = itemCountNodeList.item(k).getChildNodes();
+								for(int l = 0; l < elementRefNode.getLength(); l++){
+									QualityDataSetDTO qdmSet = new QualityDataSetDTO();
+									Node newNode = elementRefNode.item(l);
+									qdmSet.setCodeListName(newNode.getAttributes().getNamedItem("name").getNodeValue());
+									qdmSet.setDataType(newNode.getAttributes().getNamedItem("dataType").getNodeValue());
+									qdmSet.setUuid(newNode.getAttributes().getNamedItem("id").getNodeValue());
+									qdmSet.setOid(newNode.getAttributes().getNamedItem("oid").getNodeValue());
+									if(newNode.getAttributes().getNamedItem("instance")!=null){
+										qdmSet.setOccurrenceText(newNode.getAttributes().getNamedItem("instance").getNodeValue());
+									}
+									qdmSelectedList.add(qdmSet);
+								}
+							}
+						}
+						
 						NamedNodeMap pkgClauseMap = pkgClauses.item(j).getAttributes();
+						Node associatedClauseNode = pkgClauseMap.getNamedItem("associatedPopulationUUID");
+						String associatedClauseNodeUuid = null;
+						if(associatedClauseNode != null) {
+							associatedClauseNodeUuid = associatedClauseNode.getNodeValue();
+						}
 						detail.getPackageClauses().add(
 								createMeasurePackageClauseDetail(
 										pkgClauseMap.getNamedItem(
-												ClauseConstants.UUID).getNodeValue()
+												PopulationWorkSpaceConstants.UUID).getNodeValue()
 												, pkgClauseMap.getNamedItem("name").
 												getNodeValue(), pkgClauseMap.getNamedItem(
-												ClauseConstants.TYPE).getNodeValue()));
+														PopulationWorkSpaceConstants.TYPE).getNodeValue(),
+														associatedClauseNodeUuid,
+														qdmSelectedList));
 					}
 				}
 			}
@@ -192,15 +238,15 @@ public class PackagerServiceImpl implements PackagerService {
 			marshaller.marshal(qualityDataSetDTO);
 			logger.info("Marshalling of QualityDataSetDTO is successful in convertQDMOToSuppleDataXML()" + stream.toString());
 		} catch (Exception e) {
-			if(e instanceof IOException){
+			if (e instanceof IOException) {
 				logger.info("Failed to load QualityDataModelMapping.xml in convertQDMOToSuppleDataXML()" + e);
-			}else if(e instanceof MappingException){
+			} else if (e instanceof MappingException) {
 				logger.info("Mapping Failed in convertQDMOToSuppleDataXML()" + e);
-			}else if(e instanceof MarshalException){
+			} else if (e instanceof MarshalException) {
 				logger.info("Unmarshalling Failed in convertQDMOToSuppleDataXML()" + e);
-			}else if(e instanceof ValidationException){
+			} else if (e instanceof ValidationException) {
 				logger.info("Validation Exception in convertQDMOToSuppleDataXML()" + e);
-			}else{
+			} else {
 				logger.info("Other Exception in convertQDMOToSuppleDataXML()" + e);
 			}
 		}
@@ -228,15 +274,15 @@ public class PackagerServiceImpl implements PackagerService {
 			marshaller.marshal(detail);
 			logger.info("Marshalling of MeasurePackageDetail is successful.." + stream.toString());
 		} catch (Exception e) {
-			if(e instanceof IOException){
+			if (e instanceof IOException) {
 				logger.info("Failed to load MeasurePackageClauseDetail.xml" + e);
-			}else if(e instanceof MappingException){
+			} else if (e instanceof MappingException) {
 				logger.info("Mapping Failed" + e);
-			}else if(e instanceof MarshalException){
+			} else if (e instanceof MarshalException) {
 				logger.info("Unmarshalling Failed" + e);
-			}else if(e instanceof ValidationException){
+			} else if (e instanceof ValidationException) {
 				logger.info("Validation Exception" + e);
-			}else{
+			} else {
 				logger.info("Other Exception" + e);
 			}
 		}
@@ -245,20 +291,22 @@ public class PackagerServiceImpl implements PackagerService {
 	
 	/**
 	 * Creates the measure package clause detail.
-	 * 
-	 * @param id
-	 *            the id
-	 * @param name
-	 *            the name
-	 * @param type
-	 *            the type
+	 *
+	 * @param id the id
+	 * @param name the name
+	 * @param type the type
+	 * @param associatedPopulationUUID the associated population uuid
+	 * @param itemCountList the item count list
 	 * @return the measure package clause detail
 	 */
-	private MeasurePackageClauseDetail createMeasurePackageClauseDetail(String id, String name, String type) {
+	private MeasurePackageClauseDetail createMeasurePackageClauseDetail(String id, String name, String type,
+			String associatedPopulationUUID, List<QualityDataSetDTO> itemCountList) {
 		MeasurePackageClauseDetail detail = new MeasurePackageClauseDetail();
 		detail.setId(id);
 		detail.setName(name);
 		detail.setType(type);
+		detail.setAssociatedPopulationUUID(associatedPopulationUUID);
+		detail.setItemCountList(itemCountList);
 		return detail;
 	}
 	
@@ -272,11 +320,12 @@ public class PackagerServiceImpl implements PackagerService {
 		XmlProcessor  processor = new XmlProcessor(measureXML.getMeasureXMLAsString());
 		Node groupNode = null;
 		try {
-			groupNode = processor.findNode(processor.getOriginalDoc(), XmlProcessor.XPATH_GROUP_SEQ_START + detail.getSequence() +  XmlProcessor.XPATH_GROUP_SEQ_END);
+			groupNode = processor.findNode(processor.getOriginalDoc(), XmlProcessor.XPATH_GROUP_SEQ_START
+					+ detail.getSequence() +  XmlProcessor.XPATH_GROUP_SEQ_END);
 		} catch (XPathExpressionException e) {
 			logger.info("Xpath Expression is incorrect" + e);
 		}
-		if(groupNode != null){
+		if (groupNode != null) {
 			Node measureGroupingNode = groupNode.getParentNode();
 			measureGroupingNode.removeChild(groupNode);
 		}
@@ -293,12 +342,12 @@ public class PackagerServiceImpl implements PackagerService {
 	 *            the measure id
 	 * @return the intersection of qdm and sde
 	 */
-	private Map<String,ArrayList<QualityDataSetDTO>> getIntersectionOfQDMAndSDE(String measureId){
+	private Map<String, ArrayList<QualityDataSetDTO>> getIntersectionOfQDMAndSDE(String measureId) {
 		MeasureXML measureXML = measureXMLDAO.findForMeasure(measureId);
-		Map<String,ArrayList<QualityDataSetDTO>> finalMap = new HashMap<String,ArrayList<QualityDataSetDTO>>();
+		Map<String, ArrayList<QualityDataSetDTO>> finalMap = new HashMap<String, ArrayList<QualityDataSetDTO>>();
 		XmlProcessor processor = new XmlProcessor(measureXML.getMeasureXMLAsString());
 		finalMap = processor.sortSDEAndQDMsForMeasurePackager();
-		logger.info("finalMap()of QualityDataSetDTO ::"+ finalMap.size());
+		logger.info("finalMap()of QualityDataSetDTO ::" + finalMap.size());
 		return finalMap;
 		
 	}
@@ -318,34 +367,52 @@ public class PackagerServiceImpl implements PackagerService {
 	 *            the detail
 	 */
 	@Override
-	public void save(MeasurePackageDetail detail) {
-		
-		MeasureXML measureXML = measureXMLDAO.findForMeasure(detail.getMeasureId());
-		XmlProcessor  processor = new XmlProcessor(measureXML.getMeasureXMLAsString());
-		Node groupNode = null;
-		Node measureGroupingNode = null;
-		try {
-			//fetches the Group node from Measure_XML with the sequence number from MeasurePackageDetail
-			groupNode = processor.findNode(processor.getOriginalDoc(), XmlProcessor.XPATH_GROUP_SEQ_START + detail.getSequence() +  XmlProcessor.XPATH_GROUP_SEQ_END);
-			//fetches the MeasureGrouping node from the Measure_xml
-			measureGroupingNode = processor.findNode(processor.getOriginalDoc(), XmlProcessor.XPATH_MEASURE_GROUPING);// get the MEASUREGROUPING node
-		} catch (XPathExpressionException e) {
-			logger.info("Xpath Expression is incorrect" + e);
+	public MeasurePackageSaveResult save(MeasurePackageDetail detail) {
+		MeasurePackageClauseValidator clauseValidator = new MeasurePackageClauseValidator();
+		List<String> messages = clauseValidator.isValidMeasurePackage(detail.getPackageClauses());
+		MeasurePackageSaveResult result = new MeasurePackageSaveResult();
+		if (messages.size() == 0) {
+			result.setSuccess(true);
+			MeasureXML measureXML = measureXMLDAO.findForMeasure(detail.getMeasureId());
+			XmlProcessor  processor = new XmlProcessor(measureXML.getMeasureXMLAsString());
+			Node groupNode = null;
+			Node measureGroupingNode = null;
+			try {
+				//fetches the Group node from Measure_XML with the sequence number from MeasurePackageDetail
+				groupNode = processor.findNode(processor.getOriginalDoc(), XmlProcessor.XPATH_GROUP_SEQ_START
+						+ detail.getSequence() +  XmlProcessor.XPATH_GROUP_SEQ_END);
+				//fetches the MeasureGrouping node from the Measure_xml
+				measureGroupingNode = processor.findNode(processor.getOriginalDoc(),
+						XmlProcessor.XPATH_MEASURE_GROUPING); // get the MEASUREGROUPING node
+			} catch (XPathExpressionException e) {
+				logger.info("Xpath Expression is incorrect" + e);
+			}
+			if ((null != groupNode) && groupNode.hasChildNodes()) { //if Same sequence , remove and update.
+				logger.info("Removing Group with seq number" + detail.getSequence());
+				measureGroupingNode.removeChild(groupNode);
+			}
+			//Converts MeasurePackageDetail to measureGroupingXml through castor.
+			String measureGroupingXml = createGroupingXml(detail);
+			XmlProcessor measureGrpProcessor = new XmlProcessor(measureGroupingXml);
+			// get the converted XML's first child and appends it the Measure Grouping.
+			Node newGroupNode = measureGrpProcessor.getOriginalDoc()
+					.getElementsByTagName("measureGrouping").item(0).getFirstChild();
+			measureGroupingNode.appendChild(processor.getOriginalDoc().importNode(newGroupNode, true));
+			logger.info("new Group appended");
+			String xml = measureGrpProcessor.transform(processor.getOriginalDoc());
+			measureXML.setMeasureXMLAsByteArray(xml);
+			measureXMLDAO.save(measureXML);
+		} else {
+			for (String message: messages) {
+				logger.info("Server-Side Validation failed for MeasurePackageClauseValidator for Login ID: "
+						+ MatContext.get().getLoggedinLoginId() + " And failure Message is :" + message);
+			}
+			result.setSuccess(false);
+			result.setMessages(messages);
+			result.setFailureReason(MeasurePackageSaveResult.SERVER_SIDE_VALIDATION);
 		}
-		if((null != groupNode) && groupNode.hasChildNodes()){//if Same sequence , remove and update.
-			logger.info("Removing Group with seq number" + detail.getSequence());
-			measureGroupingNode.removeChild(groupNode);
-		}
-		String measureGroupingXml = createGroupingXml(detail);//Converts MeasurePackageDetail to measureGroupingXml through castor
-		XmlProcessor measureGrpProcessor = new XmlProcessor(measureGroupingXml);
-		Node newGroupNode = measureGrpProcessor.getOriginalDoc().getElementsByTagName("measureGrouping").item(0).getFirstChild(); // get the converted XML's first child and appends it the Measure Grouping
-		measureGroupingNode.appendChild(processor.getOriginalDoc().importNode(newGroupNode, true));
-		logger.info("new Group appended");
-		String xml = measureGrpProcessor.transform(processor.getOriginalDoc());
-		measureXML.setMeasureXMLAsByteArray(xml);
-		measureXMLDAO.save(measureXML);
+		return result;
 	}
-	
 	/* (non-Javadoc)
 	 * @see mat.server.service.PackagerService#saveQDMData(mat.client.measurepackage.MeasurePackageDetail)
 	 */
@@ -357,16 +424,18 @@ public class PackagerServiceImpl implements PackagerService {
 		ByteArrayOutputStream stream = convertQDMOToSuppleDataXML(wrapper);
 		MeasureXML measureXML = measureXMLDAO.findForMeasure(detail.getMeasureId());
 		XmlProcessor  processor = new XmlProcessor(measureXML.getMeasureXMLAsString());
-		if(supplementDataElementsAll.size() >0){
+		if (supplementDataElementsAll.size() > 0) {
 			processor.replaceNode(stream.toString(), SUPPLEMENT_DATA_ELEMENTS, MEASURE);
-		}else{
+		} else {
 			
 			try {
 				// In case all elements from SupplementDataElements are moved to QDM, this will remove all.
 				javax.xml.xpath.XPath xPath = XPathFactory.newInstance().newXPath();
-				NodeList nodesSupplementalData = (NodeList) xPath.evaluate(XPATH_MEASURE_SUPPLEMENTAL_DATA_ELEMENTS_ELEMENTREF, processor.getOriginalDoc().getDocumentElement(), XPathConstants.NODESET);
-				for(int i=0 ;i<nodesSupplementalData.getLength();i++){
-					String xPathString = XPATH_MEASURE_SUPPLEMENTAL_DATA_ELEMENTS_EXPRESSION.concat("='").concat(nodesSupplementalData.item(i).getNodeValue().toString()).concat("']");
+				NodeList nodesSupplementalData = (NodeList) xPath.evaluate(XPATH_MEASURE_SUPPLEMENTAL_DATA_ELEMENTS_ELEMENTREF,
+						processor.getOriginalDoc().getDocumentElement(), XPathConstants.NODESET);
+				for (int i = 0; i < nodesSupplementalData.getLength(); i++) {
+					String xPathString = XPATH_MEASURE_SUPPLEMENTAL_DATA_ELEMENTS_EXPRESSION.concat("='")
+							.concat(nodesSupplementalData.item(i).getNodeValue().toString()).concat("']");
 					Node newNode = processor.findNode(processor.getOriginalDoc(), xPathString);
 					Node parentNode = newNode.getParentNode();
 					parentNode.removeChild(newNode);

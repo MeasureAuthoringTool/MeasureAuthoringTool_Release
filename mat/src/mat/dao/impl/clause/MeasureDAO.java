@@ -13,6 +13,8 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import mat.client.measure.ManageMeasureDetailModel;
+import mat.client.measure.ManageMeasureSearchModel;
+import mat.client.measure.ManageMeasureSearchModel.Result;
 import mat.client.measure.MeasureSearchFilterPanel;
 import mat.dao.search.GenericDAO;
 import mat.dao.service.DAOService;
@@ -38,6 +40,8 @@ import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.context.ApplicationContext;
 
+
+// TODO: Auto-generated Javadoc
 /**
  * The Class MeasureDAO.
  */
@@ -181,6 +185,32 @@ mat.dao.clause.MeasureDAO {
 			mCriteria.createAlias("shares", "share", Criteria.LEFT_JOIN);
 		}
 		
+		mCriteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
+		return mCriteria;
+	}
+	
+	/* (non-Javadoc)
+	 * @see mat.dao.clause.MeasureDAO#getComponentMeasureInfoForMeasures(java.util.List)
+	 */
+	@Override
+	public List<Measure> getComponentMeasureInfoForMeasures(List<String> measureIds) {
+		Criteria mCriteria = buildComponentMeasureShareForUserCriteria(measureIds);
+	    List<Measure> measure = mCriteria.list();
+	    System.out.println("Measure List Size: "+ measure.size());
+		return measure;
+	}
+	
+	/**
+	 * Builds the component measure share for user criteria.
+	 *
+	 * @param listComponentMeasureIds the list component measure ids
+	 * @return the criteria
+	 */
+	private Criteria buildComponentMeasureShareForUserCriteria(List<String> listComponentMeasureIds) {
+		Criteria mCriteria = getSessionFactory().getCurrentSession()
+				.createCriteria(Measure.class);
+			//mCriteria.add(Restrictions.eq("id", "8a4d8cb2452d647301452d88111b000a"));
+		mCriteria.add(Restrictions.in("id", listComponentMeasureIds));
 		mCriteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
 		return mCriteria;
 	}
@@ -338,7 +368,7 @@ mat.dao.clause.MeasureDAO {
 		dto.setMeasureSetId(measure.getMeasureSet().getId());
 		dto.seteMeasureId(measure.geteMeasureId());
 		dto.setPrivateMeasure(measure.getIsPrivate());
-		
+		dto.setRevisionNumber(measure.getRevisionNumber());
 		boolean isLocked = isLocked(measure.getLockedOutDate());
 		dto.setLocked(isLocked);
 		if (isLocked && (measure.getLockedUser() != null)) {
@@ -758,6 +788,10 @@ mat.dao.clause.MeasureDAO {
 			return orderedDTOList;
 		}
 	}
+	
+	/* (non-Javadoc)
+	 * @see mat.dao.clause.MeasureDAO#getMeasureShareInfoForMeasureAndUser(java.lang.String, java.lang.String)
+	 */
 	@Override
 	public List<MeasureShareDTO> getMeasureShareInfoForMeasureAndUser(String user, String measureId) {
 		Criteria shareCriteria = getSessionFactory().getCurrentSession()
@@ -900,6 +934,7 @@ mat.dao.clause.MeasureDAO {
 	/* (non-Javadoc)
 	 * @see mat.dao.clause.MeasureDAO#getMeasureShareInfoForUserWithFilter(java.lang.String, mat.model.User, int, int, int)
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<MeasureShareDTO> getMeasureShareInfoForUserWithFilter(
 			String searchText, User user, int startIndex, int pageSize,
@@ -1011,9 +1046,12 @@ mat.dao.clause.MeasureDAO {
 	@Override
 	public boolean isMeasureLocked(String measureId) {
 		Session session = getSessionFactory().getCurrentSession();
-		String sql = "select lockedOutDate from mat.model.clause.Measure m  where id = '"
-				+ measureId + "'";
+		//String sql = "select lockedOutDate from mat.model.clause.Measure m  where id = '"
+		//		+ measureId + "'";
+		String sql = "select lockedOutDate from mat.model.clause.Measure m  where id = :measureId";
+			
 		Query query = session.createQuery(sql);
+		query.setString("measureId", measureId);
 		List<Timestamp> result = query.list();
 		Timestamp lockedOutDate = null;
 		if (!result.isEmpty()) {
@@ -1046,8 +1084,6 @@ mat.dao.clause.MeasureDAO {
 			query.setString("measureId", m.getId());
 			int rowCount = query.executeUpdate();
 			tx.commit();
-			System.out.println("Rows affected: while releasing lock "
-					+ rowCount);
 		} finally {
 			rollbackUncommitted(tx);
 			closeSession(session);
@@ -1063,10 +1099,14 @@ mat.dao.clause.MeasureDAO {
 		int eMeasureId = getMaxEMeasureId() + 1;
 		MeasureSet ms = measure.getMeasureSet();
 		Session session = getSessionFactory().getCurrentSession();
-		SQLQuery query = session
-				.createSQLQuery("update MEASURE m set m.EMEASURE_ID = "
-						+ eMeasureId + " where m.MEASURE_SET_ID = '"
-						+ ms.getId() + "';");
+//		SQLQuery query = session
+//				.createSQLQuery("update MEASURE m set m.EMEASURE_ID = "
+//						+ eMeasureId + " where m.MEASURE_SET_ID = '"
+//						+ ms.getId() + "';");
+		String sql = "update MEASURE m set m.EMEASURE_ID = :eMeasureId where m.MEASURE_SET_ID = :MEASURE_SET_ID";
+		SQLQuery query = session.createSQLQuery(sql);
+		query.setInteger("eMeasureId", eMeasureId);
+		query.setString("MEASURE_SET_ID", ms.getId());
 		query.executeUpdate();
 		return eMeasureId;
 		
@@ -1189,5 +1229,23 @@ mat.dao.clause.MeasureDAO {
 			closeSession(session);
 		}
 	}
+
+	/* (non-Javadoc)
+	 * @see mat.dao.clause.MeasureDAO#getMeasure(java.lang.String)
+	 */
+	@Override
+	public boolean getMeasure(String measureId) {
+		Criteria mCriteria = getSessionFactory().getCurrentSession()
+				.createCriteria(Measure.class);
+		mCriteria.add(Restrictions.eq("id", measureId));
+		mCriteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
+		List<Measure> measure = mCriteria.list();
+		boolean isMeasureDeleted = false;
+		if(measure.size()>0){
+			isMeasureDeleted = true;
+		}
+		return isMeasureDeleted;
+	}
+
 	
 }

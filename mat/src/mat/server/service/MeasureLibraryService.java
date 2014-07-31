@@ -1,7 +1,9 @@
 package mat.server.service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+
 import mat.DTO.MeasureNoteDTO;
 import mat.client.clause.clauseworkspace.model.MeasureXmlModel;
 import mat.client.measure.ManageMeasureDetailModel;
@@ -17,6 +19,7 @@ import mat.model.QualityDataSetDTO;
 import mat.model.RecentMSRActivityLog;
 import mat.server.util.XmlProcessor;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Interface MeasureLibraryService.
  */
@@ -61,7 +64,7 @@ public interface MeasureLibraryService {
 	 * @param measureID
 	 *            the measure id
 	 */
-	void createAndSaveElementLookUp(ArrayList<QualityDataSetDTO> list,
+	void createAndSaveElementLookUp(List<QualityDataSetDTO> list,
 			String measureID);
 	
 	/**
@@ -282,14 +285,13 @@ public interface MeasureLibraryService {
 	
 	/**
 	 * Search users.
-	 * 
-	 * @param startIndex
-	 *            the start index
-	 * @param pageSize
-	 *            the page size
+	 *
+	 * @param searchText the search text
+	 * @param startIndex the start index
+	 * @param pageSize the page size
 	 * @return the transfer measure owner ship model
 	 */
-	TransferMeasureOwnerShipModel searchUsers(int startIndex,
+	TransferMeasureOwnerShipModel searchUsers(String searchText, int startIndex,
 			int pageSize);
 	
 	/**
@@ -366,4 +368,97 @@ public interface MeasureLibraryService {
 	 */
 	ValidateMeasureResult validateMeasureForExport(String key,
 			List<MatValueSet> matValueSetList) throws MatException;
+	
+	/**
+	 * Save measure at package.
+	 *
+	 * @param model the model
+	 * @return the save measure result
+	 */
+	SaveMeasureResult saveMeasureAtPackage(ManageMeasureDetailModel model);
+	
+	/**
+	 * Save SubTree - Append new node if new else update exisiting subTreeNode in measureXml.
+	 *
+	 * @param measureXmlModel the measure xml model
+	 * @param nodeName the node name
+	 * @param nodeUUID the node uuid
+	 */
+	void saveSubTreeInMeasureXml(MeasureXmlModel measureXmlModel, String nodeName, String nodeUUID);
+
+	/**
+	 * Check and delete sub tree.
+	 *
+	 * @param measureId the measure id
+	 * @param subTreeUUID the sub tree uuid
+	 * @return true, if successful
+	 */
+	boolean checkAndDeleteSubTree(String measureId, String subTreeUUID);
+
+	/**
+	 * Gets the formatted release date.
+	 *
+	 * @param releaseDate the release date
+	 * @return the formatted release date
+	 */
+	Date getFormattedReleaseDate(String releaseDate);
+
+	/**
+	 * Gets the release date.
+	 *
+	 * @return the release date
+	 */
+	String getReleaseDate();
+
+	/**
+	 * Checks if is sub tree referred in logic.
+	 *
+	 * @param measureId the measure id
+	 * @param subTreeUUID the sub tree uuid
+	 * @return true, if is sub tree referred in logic
+	 */
+	boolean isSubTreeReferredInLogic(String measureId, String subTreeUUID);
+
+	/**
+	 * Gets the human readable for node.
+	 *
+	 * @param measureId the measure id
+	 * @param populationSubXML the population sub xml
+	 * @return the human readable for node
+	 */
+	String getHumanReadableForNode(String measureId, String populationSubXML);
+	
+	/**
+	 * Gets the component measures.
+	 *
+	 * @param measureIds the measure ids
+	 * @return the component measures
+	 */
+	ManageMeasureSearchModel getComponentMeasures(List<String> measureIds);
+
+	
+
+	/**
+	 * Validate package grouping.
+	 *
+	 * @param model the model
+	 * @return the string
+	 */
+	boolean validatePackageGrouping(ManageMeasureDetailModel model);
+
+	/**
+	 * Validate measure xmlinpopulation workspace.
+	 *
+	 * @param measureXmlModel the measure xml model
+	 * @return the object
+	 */
+	boolean validateMeasureXmlAtCreateMeasurePackager(
+			MeasureXmlModel measureXmlModel);
+	
+	/**
+	 * Update component measures on deletion.
+	 *
+	 * @param measureId the measure id
+	 */
+	void updateComponentMeasuresOnDeletion(String measureId);
 }

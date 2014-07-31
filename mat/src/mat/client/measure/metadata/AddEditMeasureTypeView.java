@@ -3,6 +3,7 @@ package mat.client.measure.metadata;
 import java.util.List;
 
 import mat.client.codelist.HasListBox;
+import mat.client.measure.ManageMeasureSearchModel;
 import mat.client.shared.ErrorMessageDisplayInterface;
 import mat.client.shared.ListBoxMVP;
 import mat.client.shared.MatContext;
@@ -17,6 +18,7 @@ import com.google.gwt.user.client.ui.HasValue;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.Widget;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class AddEditMeasureTypeView.
  */
@@ -192,6 +194,16 @@ public class AddEditMeasureTypeView extends AddEditMetadataBaseView implements M
 	@Override
 	public HasValue<String> getOtherMeasureType() {
 		return otherSpecifyBox;
+	}
+
+	/* (non-Javadoc)
+	 * @see mat.client.measure.metadata.BaseMetaDataPresenter.BaseAddEditDisplay#buildCellTable(mat.client.measure.ManageMeasureSearchModel)
+	 */
+	@Override
+	public void buildCellTable(ManageMeasureSearchModel result,String searchText, 
+			List<ManageMeasureSearchModel.Result> measureSelectedList) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

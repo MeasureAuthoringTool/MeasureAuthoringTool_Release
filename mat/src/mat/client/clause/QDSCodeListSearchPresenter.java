@@ -3,9 +3,9 @@ package mat.client.clause;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import mat.client.Mat;
 import mat.client.MatPresenter;
+import mat.client.MeasureComposerPresenter;
 import mat.client.clause.clauseworkspace.model.MeasureXmlModel;
 import mat.client.clause.event.QDSElementCreatedEvent;
 import mat.client.codelist.HasListBox;
@@ -22,7 +22,6 @@ import mat.client.umls.service.VsacApiResult;
 import mat.model.MatValueSet;
 import mat.model.MatValueSetTransferObject;
 import mat.model.QualityDataSetDTO;
-
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.FocusEvent;
@@ -251,7 +250,7 @@ public class QDSCodeListSearchPresenter implements MatPresenter {
 	/**
 	 * ArrayList of All appliedQDM's.
 	 */
-	private ArrayList<QualityDataSetDTO> appliedQDMList = new ArrayList<QualityDataSetDTO>();
+	private List<QualityDataSetDTO> appliedQDMList = new ArrayList<QualityDataSetDTO>();
 	
 	/**
 	 * When retrieving value set from VSAC, "Loading Please Wait..." message is displayed.
@@ -596,6 +595,8 @@ public class QDSCodeListSearchPresenter implements MatPresenter {
 	public  void beforeDisplay() {
 		displaySearch();
 		setWidgetsReadOnly(MatContext.get().getMeasureLockService().checkForEditPermission());
+		MeasureComposerPresenter.setSubSkipEmbeddedLink("subContainerPanel");
+		Mat.focusSkipLists("MeasureComposer");
 	}
 	
 	/**
@@ -677,7 +678,7 @@ public class QDSCodeListSearchPresenter implements MatPresenter {
 		String measureId = MatContext.get().getCurrentMeasureId();
 		if ((measureId != null) && !measureId.equals("")) {
 			service.getAppliedQDMFromMeasureXml(measureId, true,
-					new AsyncCallback<ArrayList<QualityDataSetDTO>>() {
+					new AsyncCallback<List<QualityDataSetDTO>>() {
 				
 				@Override
 				public void onFailure(final Throwable caught) {
@@ -687,9 +688,10 @@ public class QDSCodeListSearchPresenter implements MatPresenter {
 				
 				@Override
 				public void onSuccess(
-						final ArrayList<QualityDataSetDTO> result) {
+						final List<QualityDataSetDTO> result) {
 					appliedQDMList = result;
 					addSelectedCodeListtoMeasure(isUserDefined);
+					System.out.println("getListOfAppliedQDMs invoked");
 				}
 			});
 		}

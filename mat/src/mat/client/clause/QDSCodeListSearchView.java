@@ -103,6 +103,7 @@ public class QDSCodeListSearchView  implements QDSCodeListSearchPresenter.Search
 
 	/** Effective Date. */
 	private CustomCheckBox effectiveDate = new CustomCheckBox("Select Effective Date", "Effective Date", 1);
+	
 
 	/** EffectiveDate change handler. */
 	private  ValueChangeHandler<Boolean> effectiveDateChangeHandler = new ValueChangeHandler<Boolean>() {
@@ -183,7 +184,7 @@ public class QDSCodeListSearchView  implements QDSCodeListSearchPresenter.Search
 		mainPanel.getElement().setId("mainPanel_HorizontalPanel");
 		mainPanel.setWidth("100%");
 		mainPanel.add(vp);
-		containerPanel.getElement().setId("containerPanel_SimplePanel");
+		containerPanel.getElement().setId("subContainerPanel");
 		containerPanel.setWidth("100%");
 		containerPanel.add(mainPanel);
 		containerPanel.setStyleName("qdsContentPanel");
@@ -243,6 +244,8 @@ public class QDSCodeListSearchView  implements QDSCodeListSearchPresenter.Search
 		oidInput.setTitle("Enter OID");
 		oidInput.setWidth("300px");
 		oidInput.setMaxLength(200);
+		effectiveDate.getElement().setAttribute("id", "effectiveDate_CheckBox");
+		version.getElement().setAttribute("id", "version_CheckBox");
 		HorizontalPanel versionEffectiveDatePanel = new HorizontalPanel();
 		versionEffectiveDatePanel.getElement().setId("versionEffectiveDate_HorizontalPanel");
 		versionEffectiveDatePanel.add(version);

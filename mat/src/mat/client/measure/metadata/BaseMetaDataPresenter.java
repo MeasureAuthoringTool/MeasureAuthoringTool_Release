@@ -4,6 +4,7 @@ import java.util.List;
 
 import mat.client.codelist.HasListBox;
 import mat.client.codelist.ListBoxCodeProvider;
+import mat.client.measure.ManageMeasureSearchModel;
 import mat.client.measure.metadata.MetaDataPresenter.AddEditAuthorsDisplay;
 import mat.client.measure.metadata.MetaDataPresenter.AddEditMeasureTypeDisplay;
 import mat.client.shared.ErrorMessageDisplay;
@@ -17,6 +18,7 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Widget;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class BaseMetaDataPresenter.
  */
@@ -139,6 +141,7 @@ public class BaseMetaDataPresenter {
 		 * @return the save error msg
 		 */
 		public ErrorMessageDisplay  getSaveErrorMsg();
+
 	}
 	
 	/**
@@ -163,6 +166,16 @@ public class BaseMetaDataPresenter {
 		 *            the search results
 		 */
 		public void buildDataTable(SearchResults<T> searchResults);
+		
+		/**
+		 * Builds the cell table.
+		 *
+		 * @param result the result
+		 * @param searchText the search text
+		 * @param measureSelectedList the measure selected list
+		 */
+		public void buildCellTable(ManageMeasureSearchModel result, String searchText, 
+				List<ManageMeasureSearchModel.Result> measureSelectedList);
 		
 		/**
 		 * Gets the save button.
@@ -231,6 +244,7 @@ public class BaseMetaDataPresenter {
 		 *            the new return to link
 		 */
 		public void setReturnToLink(String s);
+
 		
 	}
 

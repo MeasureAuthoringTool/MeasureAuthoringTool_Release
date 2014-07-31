@@ -12,6 +12,7 @@ import java.util.Map;
 import mat.dao.UserDAO;
 import mat.model.User;
 import mat.server.service.UserService;
+import mat.server.util.ServerConstants;
 
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.logging.Log;
@@ -332,6 +333,15 @@ public class CheckUserChangePasswordLimit {
 					//Creation of the model map can be its own method.
 					content.put("User", "Measure Authoring Tool User");
 					
+					/**
+					 * If the user is not a normal user then set the user role in the email
+					 */
+					String userRole = "";
+					if(! (user.getSecurityRole().getId().trim().equals("3")) ){
+						userRole = "("+user.getSecurityRole().getDescription()+")";
+					}
+					content.put("rolename",userRole);
+					
 					//5 days Expiry Date
 				     if(passwordexpiryDayLimit==noOfDaysPasswordLimit) {
 						
@@ -345,13 +355,13 @@ public class CheckUserChangePasswordLimit {
 						text = VelocityEngineUtils.mergeTemplateIntoString(
 					               velocityEngine, warningMailTemplate,model);
 						simpleMailMessage.setText(text);
-						simpleMailMessage.setSubject(warningMailSubject);
+						simpleMailMessage.setSubject(warningMailSubject + ServerConstants.getEnvName());
 					}
 					else if (EXPIRY_EMAIL_FLAG.equals(emailType)){
 						text = VelocityEngineUtils.mergeTemplateIntoString(
 					               velocityEngine, expiryMailTemplate, model);
 						simpleMailMessage.setText(text);
-						simpleMailMessage.setSubject(expiryMailSubject);
+						simpleMailMessage.setSubject(expiryMailSubject + ServerConstants.getEnvName());
 						
 						//Update Termination Date for User.
 						//updateUserTerminationDate(user);
@@ -484,6 +494,4 @@ public class CheckUserChangePasswordLimit {
 		String returnDateString  = simpleDateFormat.format(calendar.getTime());
 		return returnDateString;
 	}
-
-
 }

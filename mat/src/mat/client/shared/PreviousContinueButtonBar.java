@@ -2,12 +2,11 @@ package mat.client.shared;
 
 import mat.client.Enableable;
 import mat.client.shared.search.MATAnchor;
-
 import com.google.gwt.event.dom.client.HasClickHandlers;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.SimplePanel;
- 
+
 /**
  * The Class PreviousContinueButtonBar.
  */
@@ -29,51 +28,53 @@ public class PreviousContinueButtonBar extends Composite implements HasVisible, 
 	 * Sets the page names on state.
 	 */
 	public void setPageNamesOnState(){
-		if(state<=0){
-			state =0;
-			if(subState == 0){
-				setPageNames("UNDEFINED", "QDM Elements");				
+		if (state <= 0) {
+			state = 0;
+			if (subState == 0) {
+				setPageNames("UNDEFINED", "QDM Elements");
 				buttonPanel.remove(previousButton);
 				buttonPanel.remove(continueButton);
 				buttonPanel.add(continueButton);
 			}
-		}
-		else if(state ==1){
-			
+		} else if (state == 1) {
 			setPageNames("Measure Details", "Clause Workspace");
-			
 			buttonPanel.remove(previousButton);
 			buttonPanel.remove(continueButton);
 			buttonPanel.add(previousButton);
 			buttonPanel.add(continueButton);
-		}
-		else if(state ==2){
-			
-			setPageNames("QDM Elements", "Measure Packager");
-			
+		} else if (state == 2) {
+			setPageNames("QDM Elements", "Population Workspace");
 			buttonPanel.remove(previousButton);
 			buttonPanel.remove(continueButton);
 			buttonPanel.add(previousButton);
 			buttonPanel.add(continueButton);
-		}
-		else if(state ==3){
-			
-			state =3;
-			setPageNames("Clause Workspace", "Measure Notes");
+		} /*else if (state == 3) {
+			state = 3;
+			setPageNames("Clause Workspace", "Old Measure Packager");
+			buttonPanel.remove(previousButton);
+			buttonPanel.remove(continueButton);
+			buttonPanel.add(previousButton);
+			buttonPanel.add(continueButton);//commented to hide the Old Measure Packager from PreviousContinueButtonBar
+		} */else if (state == 3) {
+			state = 3;
+			setPageNames("Clause Workspace", "Measure Packager");
 			buttonPanel.remove(previousButton);
 			buttonPanel.remove(continueButton);
 			buttonPanel.add(previousButton);
 			buttonPanel.add(continueButton);
-			
-		}
-		else if(state >=4){
-			
-			state =4;
+		} else if (state == 4) {
+			state = 4;
+			setPageNames("Population Workspace", "Measure Notes");
+			buttonPanel.remove(previousButton);
+			buttonPanel.remove(continueButton);
+			buttonPanel.add(previousButton);
+			buttonPanel.add(continueButton);
+		} else if (state >= 5) {
+			state = 5;
 			setPageNames("Measure Packager", "UNDEFINED");
 			buttonPanel.remove(previousButton);
 			buttonPanel.remove(continueButton);
 			buttonPanel.add(previousButton);
-			
 		}
 	}
 	
@@ -151,6 +152,7 @@ public class PreviousContinueButtonBar extends Composite implements HasVisible, 
 	/* (non-Javadoc)
 	 * @see mat.client.Enableable#setEnabled(boolean)
 	 */
+	@Override
 	public void setEnabled(boolean enabled){
 		previousButton.setEnabled(enabled);
 		continueButton.setEnabled(enabled);

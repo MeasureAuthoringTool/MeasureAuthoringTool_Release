@@ -2,6 +2,7 @@ package mat.server;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import mat.DTO.MeasureNoteDTO;
 import mat.client.clause.clauseworkspace.model.MeasureXmlModel;
 import mat.client.measure.ManageMeasureDetailModel;
@@ -17,7 +18,9 @@ import mat.model.MatValueSet;
 import mat.model.QualityDataSetDTO;
 import mat.model.RecentMSRActivityLog;
 import mat.server.service.MeasureLibraryService;
+import mat.server.util.XmlProcessor;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class MeasureServiceImpl.
  */
@@ -51,7 +54,7 @@ MeasureService {
 	 * @see mat.client.measure.service.MeasureService#createAndSaveElementLookUp(java.util.ArrayList, java.lang.String)
 	 */
 	@Override
-	public void createAndSaveElementLookUp(ArrayList<QualityDataSetDTO> list,
+	public void createAndSaveElementLookUp(List<QualityDataSetDTO> list,
 			String measureID) {
 		this.getMeasureLibraryService().createAndSaveElementLookUp(list, measureID);
 	}
@@ -93,7 +96,7 @@ MeasureService {
 	 * @see mat.client.measure.service.MeasureService#getAppliedQDMFromMeasureXml(java.lang.String, boolean)
 	 */
 	@Override
-	public ArrayList<QualityDataSetDTO> getAppliedQDMFromMeasureXml(
+	public List<QualityDataSetDTO> getAppliedQDMFromMeasureXml(
 			String measureId, boolean checkForSupplementData) {
 		return this.getMeasureLibraryService().getAppliedQDMFromMeasureXml(measureId, checkForSupplementData);
 	}
@@ -244,7 +247,7 @@ MeasureService {
 	public ManageMeasureSearchModel searchMeasuresForDraft(String searchText) {
 		return this.getMeasureLibraryService().searchMeasuresForDraft(searchText);
 	}
-
+	
 	/* (non-Javadoc)
 	 * @see mat.client.measure.service.MeasureService#searchMeasuresForVersion(java.lang.String)
 	 */
@@ -252,16 +255,16 @@ MeasureService {
 	public ManageMeasureSearchModel searchMeasuresForVersion(String searchText) {
 		return this.getMeasureLibraryService().searchMeasuresForVersion(searchText);
 	}
-
+	
 	/* (non-Javadoc)
 	 * @see mat.client.measure.service.MeasureService#searchUsers(int, int)
 	 */
 	@Override
-	public TransferMeasureOwnerShipModel searchUsers(int startIndex,
+	public TransferMeasureOwnerShipModel searchUsers(String searchText, int startIndex,
 			int pageSize) {
-		return this.getMeasureLibraryService().searchUsers(startIndex, pageSize);
+		return this.getMeasureLibraryService().searchUsers(searchText, startIndex, pageSize);
 	}
-
+	
 	/* (non-Javadoc)
 	 * @see mat.client.measure.service.MeasureService#transferOwnerShipToUser(java.util.List, java.lang.String)
 	 */
@@ -321,4 +324,82 @@ MeasureService {
 			throws MatException {
 		return this.getMeasureLibraryService().validateMeasureForExport(key, matValueSetList);
 	}
+	
+	/* (non-Javadoc)
+	 * @see mat.client.measure.service.MeasureService#getHumanReadableForNode(java.lang.String, java.lang.String)
+	 */
+	@Override
+	public String getHumanReadableForNode(String measureId, String populationSubXML){
+		return this.getMeasureLibraryService().getHumanReadableForNode(measureId, populationSubXML);
+	}
+	
+	/* (non-Javadoc)
+	 * @see mat.client.measure.service.MeasureService#saveMeasureAtPackage(mat.client.measure.ManageMeasureDetailModel)
+	 */
+	@Override
+	public SaveMeasureResult saveMeasureAtPackage(ManageMeasureDetailModel model) {
+		return this.getMeasureLibraryService().saveMeasureAtPackage(model);
+	}
+	
+	/* (non-Javadoc)
+	 * @see mat.client.measure.service.MeasureService#saveSubTreeInMeasureXml(mat.client.clause.clauseworkspace.model.MeasureXmlModel, java.lang.String, java.lang.String)
+	 */
+	@Override
+	public void saveSubTreeInMeasureXml(MeasureXmlModel measureXmlModel , String nodeName, String nodeUUID) {
+		this.getMeasureLibraryService().saveSubTreeInMeasureXml(measureXmlModel , nodeName, nodeUUID);
+	}
+	
+	/* (non-Javadoc)
+	 * @see mat.client.measure.service.MeasureService#checkAndDeleteSubTree(java.lang.String, java.lang.String)
+	 */
+	@Override
+	public boolean checkAndDeleteSubTree(String measureId, String subTreeUUID){
+		return this.getMeasureLibraryService().checkAndDeleteSubTree(measureId, subTreeUUID);
+	}
+	
+	/* (non-Javadoc)
+	 * @see mat.client.measure.service.MeasureService#isSubTreeReferredInLogic(java.lang.String, java.lang.String)
+	 */
+	@Override
+	public boolean isSubTreeReferredInLogic(String measureId, String subTreeUUID){
+		return this.getMeasureLibraryService().isSubTreeReferredInLogic(measureId, subTreeUUID);
+	}
+	
+	/* (non-Javadoc)
+	 * @see mat.client.measure.service.MeasureService#getComponentMeasures(java.util.List)
+	 */
+	@Override
+	public ManageMeasureSearchModel getComponentMeasures(List<String> measureIds){
+		return getMeasureLibraryService().getComponentMeasures(measureIds);
+	}
+
+	
+	/* (non-Javadoc)
+	 * @see mat.client.measure.service.MeasureService#validatePackageGrouping(mat.client.measure.ManageMeasureDetailModel)
+	 */
+	@Override
+	public boolean validatePackageGrouping(
+			ManageMeasureDetailModel model) {
+		return this.getMeasureLibraryService().validatePackageGrouping(
+				model);
+	}
+
+	/* (non-Javadoc)
+	 * @see mat.client.measure.service.MeasureService#validateMeasureXmlinpopulationWorkspace(mat.client.clause.clauseworkspace.model.MeasureXmlModel)
+	 */
+	@Override
+	public boolean validateMeasureXmlinpopulationWorkspace(
+			MeasureXmlModel measureXmlModel) {
+		return this.getMeasureLibraryService().validateMeasureXmlAtCreateMeasurePackager(measureXmlModel);
+	}
+
+	/* (non-Javadoc)
+	 * @see mat.client.measure.service.MeasureService#updateComponentMeasuresFromXml(java.lang.String)
+	 */
+	@Override
+	public void updateComponentMeasuresFromXml(String measureId) {
+		// TODO Auto-generated method stub
+		 this.getMeasureLibraryService().updateComponentMeasuresOnDeletion(measureId);
+	}
+	
 }

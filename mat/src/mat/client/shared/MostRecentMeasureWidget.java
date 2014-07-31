@@ -1,15 +1,20 @@
 package mat.client.shared;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
 import mat.client.measure.ManageMeasureSearchModel;
 import mat.client.measure.ManageMeasureSearchModel.Result;
 import mat.client.util.CellTableUtility;
 import mat.shared.ClickableSafeHtmlCell;
+
 import com.google.gwt.cell.client.Cell;
-import com.google.gwt.cell.client.Cell.Context;
+import com.google.gwt.cell.client.CompositeCell;
 import com.google.gwt.cell.client.FieldUpdater;
+import com.google.gwt.cell.client.HasCell;
+import com.google.gwt.cell.client.SafeHtmlCell;
 import com.google.gwt.dom.client.Element;
-import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.dom.client.TableCaptionElement;
 import com.google.gwt.event.logical.shared.HasSelectionHandlers;
@@ -42,9 +47,15 @@ public class MostRecentMeasureWidget extends Composite implements HasSelectionHa
 		/** On export clicked.
 		 * @param result the result */
 		void onExportClicked(ManageMeasureSearchModel.Result result);
+		/**
+		 * On edit clicked.
+		 * @param result
+		 *            the result
+		 */
+		void onEditClicked(ManageMeasureSearchModel.Result result);
 	}
 	/** Cell Table Column Count. */
-	private static final int MAX_TABLE_COLUMN_SIZE = 3;
+	private static final int MAX_TABLE_COLUMN_SIZE = 4;
 	/** Cell Table Instance. */
 	private CellTable<ManageMeasureSearchModel.Result> cellTable = new CellTable<ManageMeasureSearchModel.Result>();
 	/** HandlerManager Instance. */
@@ -73,8 +84,8 @@ public class MostRecentMeasureWidget extends Composite implements HasSelectionHa
 				public SafeHtml getValue(ManageMeasureSearchModel.Result object) {
 					SafeHtmlBuilder sb = new SafeHtmlBuilder();
 					sb.appendHtmlConstant("<a href=\"javascript:void(0);\" "
-							+ "style=\"text-decoration:none\" title='" + object.getName()
-							+ "' >");
+							+ "style=\"text-decoration:none\" title=\" " + object.getName()
+							+ "\">");
 					sb.appendEscaped(object.getName());
 					sb.appendHtmlConstant("</a>");
 					return sb.toSafeHtml();
@@ -98,31 +109,72 @@ public class MostRecentMeasureWidget extends Composite implements HasSelectionHa
 			};
 			table.addColumn(version, SafeHtmlUtils.fromSafeConstant(
 					"<span title='Version'>" + "Version" + "</span>"));
-			Cell<String> exportButton = new MatButtonCell("Click to Export", "customExportButton");
-			Column<Result, String> exportColumn =
-					new Column<ManageMeasureSearchModel.Result, String>(exportButton) {
+			//Edit
+			Column<ManageMeasureSearchModel.Result, SafeHtml> editColumn =
+					new Column<ManageMeasureSearchModel.Result, SafeHtml>(
+							new ClickableSafeHtmlCell()) {
 				@Override
-				public String getValue(ManageMeasureSearchModel.Result object) {
-					return "Export";
-				}
-				@Override
-				public void onBrowserEvent(Context context, Element elem,
-						final ManageMeasureSearchModel.Result object, NativeEvent event) {
-					if ((object != null) && object.isExportable()) {
-						super.onBrowserEvent(context, elem, object, event);
+				public SafeHtml getValue(Result object) {
+					SafeHtmlBuilder sb = new SafeHtmlBuilder();
+					String title;
+					String cssClass;
+					if (object.isEditable()) {
+						if (object.isMeasureLocked()) {
+							String emailAddress = object.getLockedUserInfo().getEmailAddress();
+							title = "Measure in use by " + emailAddress;
+							cssClass = "customLockedButton";
+						} else {
+							title = "Edit";
+							cssClass = "customEditButton";
+						}
+						sb.appendHtmlConstant("<button type=\"button\" title='"
+								+ title + "' tabindex=\"0\" class=\" " + cssClass + "\"></button>");
+					} else {
+						title = "ReadOnly";
+						cssClass = "customReadOnlyButton";
+						sb.appendHtmlConstant("<div title='" + title + "' class='" + cssClass + "'></div>");
 					}
-				}
-				@Override
-				public void render(Cell.Context context, ManageMeasureSearchModel.Result object,
-						SafeHtmlBuilder sb) {
-					if (object.isExportable()) {
-						super.render(context, object, sb);
-					}
+					return sb.toSafeHtml();
 				}
 			};
-			exportColumn.setFieldUpdater(new FieldUpdater<ManageMeasureSearchModel.Result, String>() {
+			editColumn.setFieldUpdater(new FieldUpdater<ManageMeasureSearchModel.Result, SafeHtml>() {
 				@Override
-				public void update(int index, ManageMeasureSearchModel.Result object, String value) {
+				public void update(int index, Result object,
+						SafeHtml value) {
+					if (object.isEditable() && !object.isMeasureLocked()) {
+						observer.onEditClicked(object);
+					}
+				}
+			});
+			table.addColumn(editColumn, SafeHtmlUtils.fromSafeConstant("<span title='Edit'>" + "Edit" + "</span>"));
+			
+			Cell<SafeHtml> exportButton = new ClickableSafeHtmlCell();
+			Column<Result,SafeHtml> exportColumn = new Column<ManageMeasureSearchModel.Result, SafeHtml>(exportButton) {
+
+				@Override
+				public SafeHtml getValue(Result object) {
+					SafeHtmlBuilder sb = new SafeHtmlBuilder();
+					String title = "";
+					String cssClass = "";
+					if ((object != null) && object.isExportable()) {
+						if(object.isHQMFR1()){
+							title = "Click to Export MATv3";
+							cssClass = "customExportButton";
+							sb.appendHtmlConstant("<button type=\"button\" title='" + title 
+									+ "' tabindex=\"0\" class=\" " + cssClass + "\"></button>");	
+							} else {
+								title = "Click to Export MATv4";
+								cssClass = "customExportButtonRed";
+								sb.appendHtmlConstant("<button type=\"button\" title='" + title 
+										+ "' tabindex=\"0\" class=\" " + cssClass + "\"></button>");	
+								}
+						}
+					return sb.toSafeHtml();
+					}
+				};
+			exportColumn.setFieldUpdater(new FieldUpdater<ManageMeasureSearchModel.Result, SafeHtml>() {
+				@Override
+				public void update(int index, ManageMeasureSearchModel.Result object, SafeHtml value) {
 					if ((object != null) && object.isExportable()) {
 						observer.onExportClicked(object);
 					}
@@ -131,9 +183,11 @@ public class MostRecentMeasureWidget extends Composite implements HasSelectionHa
 			table.addColumn(exportColumn,
 					SafeHtmlUtils.fromSafeConstant("<span title='Export'>"
 							+ "Export" + "</span>"));
-			table.setColumnWidth(0, 65.0, Unit.PCT);
-			table.setColumnWidth(1, 30.0, Unit.PCT);
+			
+			table.setColumnWidth(0, 50.0, Unit.PCT);
+			table.setColumnWidth(1, 25.0, Unit.PCT);
 			table.setColumnWidth(2, 5.0, Unit.PCT);
+			table.setColumnWidth(3, 20.0, Unit.PCT);
 		}
 		return table;
 	}

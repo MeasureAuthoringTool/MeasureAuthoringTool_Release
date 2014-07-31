@@ -2,6 +2,7 @@ package mat.client.measure.service;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import mat.DTO.MeasureNoteDTO;
 import mat.client.clause.clauseworkspace.model.MeasureXmlModel;
 import mat.client.measure.ManageMeasureDetailModel;
@@ -12,8 +13,11 @@ import mat.client.measure.TransferMeasureOwnerShipModel;
 import mat.model.MatValueSet;
 import mat.model.QualityDataSetDTO;
 import mat.model.RecentMSRActivityLog;
+import mat.server.util.XmlProcessor;
+
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Interface MeasureServiceAsync.
  */
@@ -57,7 +61,7 @@ public interface MeasureServiceAsync {
 	 * @param callback
 	 *            the callback
 	 */
-	void createAndSaveElementLookUp(ArrayList<QualityDataSetDTO> list,
+	void createAndSaveElementLookUp(List<QualityDataSetDTO> list,
 			String measureID, AsyncCallback<Void> callback);
 	
 	/**
@@ -112,7 +116,7 @@ public interface MeasureServiceAsync {
 	 */
 	void getAppliedQDMFromMeasureXml(String measureId,
 			boolean checkForSupplementData,
-			AsyncCallback<ArrayList<QualityDataSetDTO>> callback);
+			AsyncCallback<List<QualityDataSetDTO>> asyncCallback);
 	
 	/**
 	 * Gets the max e measure id.
@@ -308,15 +312,13 @@ public interface MeasureServiceAsync {
 	
 	/**
 	 * Search users.
-	 * 
-	 * @param startIndex
-	 *            the start index
-	 * @param pageSize
-	 *            the page size
-	 * @param callback
-	 *            the callback
+	 *
+	 * @param searchText the search text
+	 * @param startIndex the start index
+	 * @param pageSize the page size
+	 * @param callback the callback
 	 */
-	void searchUsers(int startIndex, int pageSize,
+	void searchUsers(String searchText, int startIndex, int pageSize,
 			AsyncCallback<TransferMeasureOwnerShipModel> callback);
 	
 	/**
@@ -405,4 +407,90 @@ public interface MeasureServiceAsync {
 	 *            the callback
 	 */
 	void validateMeasureForExport(String key, List<MatValueSet> matValueSetList, AsyncCallback<ValidateMeasureResult> callback);
+	
+	/**
+	 * Save Called To update Revision Number at Create New Package button Click.
+	 *
+	 * @param model -ManageMeasureDetailModel.
+	 * @param callback the callback
+	 */
+	void saveMeasureAtPackage(ManageMeasureDetailModel model, AsyncCallback<SaveMeasureResult> callback);
+	
+	/**
+	 * Save sub tree in measure xml.
+	 *
+	 * @param measureXmlModel the measure xml model
+	 * @param nodeName the node name
+	 * @param nodeUUID the node uuid
+	 * @param callback the callback
+	 */
+	void saveSubTreeInMeasureXml(MeasureXmlModel measureXmlModel, String nodeName, String nodeUUID, AsyncCallback<Void> callback);
+
+	/**
+	 * Check and delete sub tree.
+	 *
+	 * @param measureId the measure id
+	 * @param subTreeUUID the sub tree uuid
+	 * @param callback the callback
+	 */
+	void checkAndDeleteSubTree(String measureId, String subTreeUUID,
+			AsyncCallback<Boolean> callback);
+
+	/**
+	 * Checks if is sub tree referred in logic.
+	 *
+	 * @param measureId the measure id
+	 * @param subTreeUUID the sub tree uuid
+	 * @param callback the callback
+	 */
+	void isSubTreeReferredInLogic(String measureId, String subTreeUUID,
+			AsyncCallback<Boolean> callback);
+
+	/**
+	 * Gets the human readable for node.
+	 *
+	 * @param measureId the measure id
+	 * @param populationSubXML the population sub xml
+	 * @param callback the callback
+	 * @return the human readable for node
+	 */
+	void getHumanReadableForNode(String measureId, String populationSubXML,
+			AsyncCallback<String> callback);
+	
+	/**
+	 * Gets the component measures.
+	 *
+	 * @param measureIds the measure ids
+	 * @param callback the callback
+	 * @return the component measures
+	 */
+	void getComponentMeasures(List<String> measureIds, AsyncCallback<ManageMeasureSearchModel> callback);
+
+	/**
+	 * Validate package grouping.
+	 *
+	 * @param model the model
+	 * @param asyncCallback the async callback
+	 */
+	void validatePackageGrouping(ManageMeasureDetailModel model,
+			AsyncCallback<Boolean> asyncCallback);
+
+	/**
+	 * Validate measure xmlinpopulation workspace.
+	 *
+	 * @param measureXmlModel the measure xml model
+	 * @param asyncCallback the async callback
+	 */
+	void validateMeasureXmlinpopulationWorkspace(
+			MeasureXmlModel measureXmlModel, AsyncCallback<Boolean> asyncCallback);
+	
+	
+	/**
+	 * Update component measures from xml.
+	 *
+	 * @param measureId the measure id
+	 * @param asyncCallback the async callback
+	 */
+	void updateComponentMeasuresFromXml(String measureId, AsyncCallback<Void> asyncCallback);
+			
 }

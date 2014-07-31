@@ -16,6 +16,10 @@ import java.util.zip.ZipException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
@@ -23,15 +27,19 @@ import mat.dao.ListObjectDAO;
 import mat.dao.QualityDataSetDAO;
 import mat.dao.clause.MeasureDAO;
 import mat.dao.clause.MeasureExportDAO;
+import mat.dao.clause.MeasureXMLDAO;
 import mat.model.ListObject;
 import mat.model.MatValueSet;
 import mat.model.QualityDataSetDTO;
 import mat.model.clause.MeasureExport;
+import mat.model.clause.MeasureXML;
 import mat.server.service.MeasurePackageService;
 import mat.server.service.SimpleEMeasureService;
+import mat.server.simplexml.HumanReadableGenerator;
 import mat.shared.ConstantMessages;
 import mat.shared.DateUtility;
 import mat.shared.StringUtility;
+import net.sf.saxon.TransformerFactoryImpl;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.logging.Log;
@@ -45,6 +53,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
+// TODO: Auto-generated Javadoc
 /** SimpleEMeasureServiceImpl.java **/
 public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 
@@ -70,20 +79,26 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 	private static final String XPATH_ALL_GROUPED_ELEMENTREF_ID =
 			"/measure/measureGrouping/group/clause//elementRef[not(@id = preceding:: clause//elementRef/@id)]/@id";
 	/**X-path for Measure Observation Element Ref.**/
-	private static final String XPATH_ALL_MSR_OBS_ELEMENTREF_ID =
-			"/measure/measureObservations/clause//elementRef[not(@id = preceding:: clause//elementRef/@id)]/@id";
+	//private static final String XPATH_ALL_MSR_OBS_ELEMENTREF_ID =
+	//		"/measure/measureObservations/clause//elementRef[not(@id = preceding:: clause//elementRef/@id)]/@id";
 	/**X-path for Stratification Element Ref.**/
-	private static final String XPATH_ALL_STARTA_ELEMENTREF_ID =
-			"/measure/strata/clause//elementRef[not(@id = preceding:: clause//elementRef/@id)]/@id";
+	//private static final String XPATH_ALL_STARTA_ELEMENTREF_ID =
+			//"/measure/strata/clause//elementRef[not(@id = preceding:: clause//elementRef/@id)]/@id";
 	/**X-path for Grouping Attributes.**/
 	private static final String XPATH_ALL_GROUPED_ATTRIBUTES_UUID =
 			"/measure/measureGrouping/group/clause//attribute[not(@qdmUUID = preceding:: clause//attribute/@qdmUUID)]/@qdmUUID";
 	/**X-path for Measure Observation Attributes.**/
-	private static final String XPATH_ALL_MSR_OBS_ATTRIBUTES_UUID =
-			"/measure/measureObservations/clause//attribute[not(@qdmUUID = preceding:: clause//attribute/@qdmUUID)]/@qdmUUID";
+	//private static final String XPATH_ALL_MSR_OBS_ATTRIBUTES_UUID =
+		//	"/measure/measureObservations/clause//attribute[not(@qdmUUID = preceding:: clause//attribute/@qdmUUID)]/@qdmUUID";
 	/**X-path for Stratification Attributes.**/
-	private static final String XPATH_ALL_STARTA_ATTRIBUTES_UUID =
-			"/measure/strata/clause//attribute[not(@qdmUUID = preceding:: clause//attribute/@qdmUUID)]/@qdmUUID";
+	//private static final String XPATH_ALL_STARTA_ATTRIBUTES_UUID =
+		//	"/measure/strata/clause//attribute[not(@qdmUUID = preceding:: clause//attribute/@qdmUUID)]/@qdmUUID";
+	
+	private static final String XPATH_ALL_SUBTREE_ELEMENTREF_ID = 
+			"/measure/subTreeLookUp/subTree//elementRef[not(@id = preceding:: subTree//elementRef/@id)]/@id";
+	
+	private static final String XPATH_ALL_SUBTREE_ATTRIBUTES_UUID = 
+			"/measure/subTreeLookUp/subTree//attribute[not(@qdmUUID = preceding:: subTree//attribute/@qdmUUID)]/@qdmUUID";
 	/**Logger.**/
 	private static final Log LOGGER = LogFactory
 			.getLog(SimpleEMeasureServiceImpl.class);
@@ -91,6 +106,10 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 	/**MeasureDAO.**/
 	@Autowired
 	private MeasureDAO measureDAO;
+	
+	/** MeasureXMLDAO*. */
+	@Autowired
+	private MeasureXMLDAO measureXMLDAO;
 
 	/**MeasureExportDAO.**/
 	@Autowired
@@ -117,10 +136,10 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 	@Override
 	public final ExportResult exportMeasureIntoSimpleXML(final String measureId,
 			final String xmlString, final List<MatValueSet> matValueSets)
-			throws Exception {
-
-		System.out.println("exportMeasureIntoSimpleXML...xmlString:"
-				+ xmlString);
+					throws Exception {
+		
+		//	System.out.println("exportMeasureIntoSimpleXML...xmlString:"
+		//			+ xmlString);
 		ExportResult result = new ExportResult();
 
 		DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance()
@@ -133,30 +152,40 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 		List<String> supplRefID = new ArrayList<String>();
 		List<QualityDataSetDTO> masterRefID = new ArrayList<QualityDataSetDTO>();
 
+		transform(originalDoc);
 		NodeList allGroupedElementRefIDs = (NodeList) xPath.evaluate(
 				XPATH_ALL_GROUPED_ELEMENTREF_ID,
 				originalDoc.getDocumentElement(), XPathConstants.NODESET);
-		NodeList allMsrObsElementRefIDs = (NodeList) xPath.evaluate(
-				XPATH_ALL_MSR_OBS_ELEMENTREF_ID,
-				originalDoc.getDocumentElement(), XPathConstants.NODESET);
-		NodeList allStrataElementRefIDs = (NodeList) xPath.evaluate(
-				XPATH_ALL_STARTA_ELEMENTREF_ID,
-				originalDoc.getDocumentElement(), XPathConstants.NODESET);
+//		NodeList allMsrObsElementRefIDs = (NodeList) xPath.evaluate(
+//				XPATH_ALL_MSR_OBS_ELEMENTREF_ID,
+//				originalDoc.getDocumentElement(), XPathConstants.NODESET);
+//		NodeList allStrataElementRefIDs = (NodeList) xPath.evaluate(
+//				XPATH_ALL_STARTA_ELEMENTREF_ID,
+//				originalDoc.getDocumentElement(), XPathConstants.NODESET);
 		NodeList allGroupedAttributesUUIDs = (NodeList) xPath.evaluate(
 				XPATH_ALL_GROUPED_ATTRIBUTES_UUID,
 				originalDoc.getDocumentElement(), XPathConstants.NODESET);
-		NodeList allMsrObsAttributesUUIDs = (NodeList) xPath.evaluate(
-				XPATH_ALL_MSR_OBS_ATTRIBUTES_UUID,
-				originalDoc.getDocumentElement(), XPathConstants.NODESET);
-		NodeList allStrataAttributesUUIDs = (NodeList) xPath.evaluate(
-				XPATH_ALL_STARTA_ATTRIBUTES_UUID,
-				originalDoc.getDocumentElement(), XPathConstants.NODESET);
+//		NodeList allMsrObsAttributesUUIDs = (NodeList) xPath.evaluate(
+//				XPATH_ALL_MSR_OBS_ATTRIBUTES_UUID,
+//				originalDoc.getDocumentElement(), XPathConstants.NODESET);
+//		NodeList allStrataAttributesUUIDs = (NodeList) xPath.evaluate(
+//				XPATH_ALL_STARTA_ATTRIBUTES_UUID,
+//				originalDoc.getDocumentElement(), XPathConstants.NODESET);
 		NodeList allQDMRefIDs = (NodeList) xPath.evaluate(
 				XPATH_ELEMENTLOOKUP_QDM, originalDoc.getDocumentElement(),
 				XPathConstants.NODESET);
 		NodeList allSupplementIDs = (NodeList) xPath.evaluate(
 				XPATH_SUPPLEMENTDATA_ELEMENTREF,
 				originalDoc.getDocumentElement(), XPathConstants.NODESET);
+		NodeList allSubTreeElementRefIDs = (NodeList) xPath.evaluate(
+				XPATH_ALL_SUBTREE_ELEMENTREF_ID,
+				originalDoc.getDocumentElement(), XPathConstants.NODESET);
+		
+		NodeList allSubTreeAttributeIDs = (NodeList) xPath.evaluate(
+				XPATH_ALL_SUBTREE_ATTRIBUTES_UUID,
+				originalDoc.getDocumentElement(), XPathConstants.NODESET);
+		
+		
 
 		for (int i = 0; i < allQDMRefIDs.getLength(); i++) {
 			Node newNode = allQDMRefIDs.item(i);
@@ -170,10 +199,13 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 
 		findAndAddDTO(allGroupedElementRefIDs, masterRefID, qdmRefID);
 		findAndAddDTO(allGroupedAttributesUUIDs, masterRefID, qdmRefID);
-		findAndAddDTO(allMsrObsElementRefIDs, masterRefID, qdmRefID);
-		findAndAddDTO(allMsrObsAttributesUUIDs, masterRefID, qdmRefID);
-		findAndAddDTO(allStrataElementRefIDs, masterRefID, qdmRefID);
-		findAndAddDTO(allStrataAttributesUUIDs, masterRefID, qdmRefID);
+//		findAndAddDTO(allMsrObsElementRefIDs, masterRefID, qdmRefID);
+//		findAndAddDTO(allMsrObsAttributesUUIDs, masterRefID, qdmRefID);
+//		findAndAddDTO(allStrataElementRefIDs, masterRefID, qdmRefID);
+//		findAndAddDTO(allStrataAttributesUUIDs, masterRefID, qdmRefID);
+		findAndAddDTO(allSubTreeElementRefIDs, masterRefID, qdmRefID);
+		findAndAddDTO(allSubTreeAttributeIDs, masterRefID, qdmRefID);
+		
 
 		Set<String> uniqueRefIds = new HashSet<String>(qdmRefID);
 		qdmRefID = new ArrayList<String>(uniqueRefIds);
@@ -183,6 +215,24 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 		result.wkbkbarr = getHSSFWorkbookBytes(wkbk);
 		wkbk = null;
 		return result;
+	}
+	
+	private static String transform(Node node){	
+		//_logger.info("In transform() method");
+		ByteArrayOutputStream arrayOutputStream = new ByteArrayOutputStream();
+		TransformerFactory transformerFactory = TransformerFactoryImpl.newInstance();
+		DOMSource source = new DOMSource(node);
+		StreamResult result = new StreamResult(arrayOutputStream);
+		
+		try {
+			transformerFactory.newTransformer().transform(source, result);
+		} catch (TransformerException e) {
+			//_logger.info("Document object to ByteArray transformation failed "+e.getStackTrace());
+			e.printStackTrace();
+		}
+		//_logger.info("Document object to ByteArray transformation complete");
+		System.out.println(arrayOutputStream.toString());
+		return arrayOutputStream.toString();
 	}
 
 	/**
@@ -285,6 +335,16 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 		result.export = html;
 		return result;
 	}
+	
+	@Override
+	public final ExportResult getNewEMeasureHTML(final String measureId) throws Exception {
+		MeasureExport measureExport = getMeasureExport(measureId);
+		String emeasureHTMLStr = getHumanReadableForMeasure(measureId, measureExport.getSimpleXML());
+		ExportResult exportResult = new ExportResult();
+		exportResult.export = emeasureHTMLStr;
+		exportResult.measureName = measureExport.getMeasure().getaBBRName();
+		return exportResult;
+	}
 
 	/**
 	 * Emeasure xml to emeasure html.
@@ -298,6 +358,22 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 		String html = xmlUtility.applyXSL(emeasureXMLStr,
 				xmlUtility.getXMLResource(conversionFileHtml));
 		return html;
+	}
+	
+	/* (non-Javadoc)
+	 * @see mat.server.service.SimpleEMeasureService#getHumanReadableForNode(java.lang.String, java.lang.String)
+	 */
+	@Override
+	public ExportResult getHumanReadableForNode(final String measureId, final String populationSubXML) throws Exception{
+		ExportResult result = new ExportResult();
+		
+		MeasureXML measureExport = measureXMLDAO.findForMeasure(measureId);
+		String measureXML = measureExport.getMeasureXMLAsString();
+		String html = HumanReadableGenerator.generateHTMLForPopulationOrSubtree(measureId,populationSubXML,measureXML);
+		//String html = "<html><body>This is human readable HTML. If you can read this you are definitely human. If not, err, Best of luck.</body></html>";
+		
+		result.export = html;
+		return result;
 	}
 
 	/**
@@ -385,7 +461,7 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 		result.valueSetName = lo.getName();
 		result.lastModifiedDate = lo.getLastModified() != null ? DateUtility
 				.convertDateToStringNoTime2(lo.getLastModified()) : null;
-		return result;
+				return result;
 	}
 
 	/**
@@ -407,26 +483,69 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 	 * @see mat.server.service.SimpleEMeasureService#getEMeasureZIP(java.lang.String)
 	 */
 	@Override
-	public final ExportResult getEMeasureZIP(final String measureId) throws Exception {
+	public final ExportResult getEMeasureZIP(final String measureId,final Date exportDate, final Date releaseDate) throws Exception {
 		ExportResult result = new ExportResult();
 		result.measureName = getMeasureName(measureId).getaBBRName();
 		MeasureExport me = getMeasureExport(measureId);
-		result.zipbarr = getZipBarr(measureId, me);
+		if(exportDate.before(releaseDate)){
+		result.zipbarr = getZipBarr(measureId,exportDate,releaseDate, me);
+		
+		}else{
+			result.zipbarr = getZipBarr(measureId,me);
+
+		}
 		return result;
 	}
 
 	/**
 	 * Gets the zip barr.
-	 * 
-	 * @param measureId
-	 *            - String.
-	 * @param me
-	 *            - MeasureExport.
-	 * @return byte[].
-	 * @throws Exception
-	 *             - Exception. *
+	 *
+	 * @param measureId the measure id
+	 * @param me the me
+	 * @return the zip barr
+	 * @throws Exception the exception
 	 */
-	public final byte[] getZipBarr(final String measureId, final MeasureExport me)
+	public final byte[] getZipBarr(final String measureId,final MeasureExport me)
+			throws Exception {
+				byte[] wkbkbarr = null;
+				if (me.getCodeList() == null) {
+					wkbkbarr = getHSSFWorkbookBytes(createErrorEMeasureXLS());
+				} else {
+					wkbkbarr = me.getCodeListBarr();
+				}
+				
+				String simpleXmlStr = me.getSimpleXML();
+				String emeasureHTMLStr = getHumanReadableForMeasure(measureId, simpleXmlStr);
+
+				ZipPackager zp = new ZipPackager();
+				return zp.getZipBarr(me.getMeasure().getaBBRName(), wkbkbarr, (new Date()).toString(), emeasureHTMLStr, simpleXmlStr);
+			}
+
+	/**
+	 * Gets the human readable for measure.
+	 *
+	 * @param measureId the measure id
+	 * @param simpleXmlStr the simple xml str
+	 * @return the human readable for measure
+	 */
+	private String getHumanReadableForMeasure(String measureId,
+			String simpleXmlStr) {
+		String html = HumanReadableGenerator.generateHTMLForMeasure(measureId,simpleXmlStr);
+		return html;
+
+	}
+
+	/**
+	 * Gets the zip barr.
+	 *
+	 * @param measureId            - String.
+	 * @param exportDate the export date
+	 * @param releaseDate the release date
+	 * @param me            - MeasureExport.
+	 * @return byte[].
+	 * @throws Exception             - Exception. *
+	 */
+	public final byte[] getZipBarr(final String measureId,Date exportDate, final Date releaseDate, final MeasureExport me)
 			throws Exception {
 		byte[] wkbkbarr = null;
 		if (me.getCodeList() == null) {
@@ -450,7 +569,7 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 		String emeasureXSLUrl = xmlUtility.getXMLResource(conversionFileHtml);
 
 		ZipPackager zp = new ZipPackager();
-		return zp.getZipBarr(emeasureName, wkbkbarr, emeasureXMLStr,
+		return zp.getZipBarr(emeasureName,exportDate, releaseDate, wkbkbarr, emeasureXMLStr,
 				emeasureHTMLStr, emeasureXSLUrl, (new Date()).toString(), simpleXmlStr);
 	}
 
@@ -470,7 +589,7 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 		StringUtility su = new StringUtility();
 
 		// 1 add finalizedDate field
-		if (fdts != null && !emeasureXMLStr.contains("<finalizedDate")) {
+		if ((fdts != null) && !emeasureXMLStr.contains("<finalizedDate")) {
 			String fdstr = convertTimestampToString(fdts);
 			String repee = "</measureDetails>";
 			String repor = su.nl + "<finalizedDate value=\"" + fdstr + "\"/>"
@@ -500,10 +619,10 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 					+ emeasureXMLStr.substring(offset + repee.length());
 			measureExport.setSimpleXML(emeasureXMLStr);
 		}
-
+		
 		return measureExport;
 	}
-
+	
 	/**
 	 * Convert timestamp to string.
 	 * 
@@ -552,7 +671,7 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 	 * @see mat.server.service.SimpleEMeasureService#getBulkExportZIP(java.lang.String[])
 	 */
 	@Override
-	public final ExportResult getBulkExportZIP(final String[] measureIds)
+	public final ExportResult getBulkExportZIP(final String[] measureIds, final Date[] exportDates, final Date releasDate )
 			throws Exception {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		ZipOutputStream zip = new ZipOutputStream(baos);
@@ -560,13 +679,21 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 		ExportResult result = null;
 		int fileNameCounter = 1;
 		DecimalFormat format = new DecimalFormat("#00");
-
+		Date exportDate;
 		for (String measureId : measureIds) {
 			result = new ExportResult();
 			result.measureName = getMeasureName(measureId).getaBBRName();
+			exportDate = getMeasureName(measureId).getExportedDate();
 			MeasureExport me = getMeasureExport(measureId);
-			createFilesInBulkZip(measureId, me, filesMap,
+			if(exportDate.before(releasDate)){
+				createFilesInBulkZip(measureId,exportDate, releasDate, me, filesMap,
 					format.format(fileNameCounter++));
+			}
+			else{
+				createFilesInBulkZip(measureId,me, filesMap,
+						format.format(fileNameCounter++));
+
+			}
 		}
 
 		ZipPackager zp = new ZipPackager();
@@ -587,21 +714,58 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 
 	/**
 	 * Creates the files in bulk zip.
-	 * 
-	 * @param measureId
-	 *            - String.
-	 * @param me
-	 *            - MeasureExport.
-	 * @param filesMap
-	 *            - Map.
-	 * @param seqNum
-	 *            - String.
-	 * @throws Exception
-	 *             - Exception.
+	 *
+	 * @param measureId the measure id
+	 * @param me the me
+	 * @param filesMap the files map
+	 * @param seqNum the seq num
+	 * @throws Exception the exception
+	 */
+	private void createFilesInBulkZip(final String measureId,
+			final MeasureExport me, final Map<String, byte[]> filesMap,
+			final String seqNum) throws Exception {
+		// TODO Auto-generated method stub
+		
+		byte[] wkbkbarr = null;
+		if (me.getCodeList() == null) {
+			wkbkbarr = getHSSFWorkbookBytes(createErrorEMeasureXLS());
+		} else {
+			wkbkbarr = me.getCodeListBarr();
+		}
+		StringUtility su = new StringUtility();
+		ExportResult emeasureXMLResult = getEMeasureXML(measureId, me);
+		String emeasureName = emeasureXMLResult.measureName;
+		String emeasureXMLStr = emeasureXMLResult.export;
+		String repee = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+		String repor = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+				+ su.nl
+				+ "<?xml-stylesheet type=\"text/xsl\" href=\"xslt/eMeasure.xsl\"?>";
+		emeasureXMLStr = repor + emeasureXMLStr.substring(repee.length());
+		String emeasureHTMLStr = emeasureXMLToEmeasureHTML(emeasureXMLStr);
+		String simpleXmlStr = me.getSimpleXML();
+		XMLUtility xmlUtility = new XMLUtility();
+		String emeasureXSLUrl = xmlUtility.getXMLResource(conversionFileHtml);
+		
+		ZipPackager zp = new ZipPackager();
+		zp.createBulkExportZip(emeasureName, wkbkbarr, emeasureXMLStr,
+				emeasureHTMLStr, emeasureXSLUrl, (new Date()).toString(), simpleXmlStr, filesMap,
+				seqNum);
+	}
+
+	/**
+	 * Creates the files in bulk zip.
+	 *
+	 * @param measureId            - String.
+	 * @param exportDate the export date
+	 * @param releaseDate the release date
+	 * @param me            - MeasureExport.
+	 * @param filesMap            - Map.
+	 * @param seqNum            - String.
+	 * @throws Exception             - Exception.
 	 * 
 	 *             *
 	 */
-	public final void createFilesInBulkZip(final String measureId,
+	public final void createFilesInBulkZip(final String measureId,final Date exportDate, final Date releaseDate,
 			final MeasureExport me, final Map<String, byte[]> filesMap,
 			final String seqNum) throws Exception {
 		byte[] wkbkbarr = null;
@@ -623,9 +787,9 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 		String simpleXmlStr = me.getSimpleXML();
 		XMLUtility xmlUtility = new XMLUtility();
 		String emeasureXSLUrl = xmlUtility.getXMLResource(conversionFileHtml);
-
+		
 		ZipPackager zp = new ZipPackager();
-		zp.createBulkExportZip(emeasureName, wkbkbarr, emeasureXMLStr,
+		zp.createBulkExportZip(emeasureName,exportDate,releaseDate, wkbkbarr, emeasureXMLStr,
 				emeasureHTMLStr, emeasureXSLUrl, (new Date()).toString(), simpleXmlStr, filesMap,
 				seqNum);
 	}

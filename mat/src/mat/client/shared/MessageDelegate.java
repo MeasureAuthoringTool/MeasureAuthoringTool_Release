@@ -17,6 +17,11 @@ public class MessageDelegate {
 	/** The Constant CHANGES_SAVED. */
 	public static final String CHANGES_SAVED = "Changes are successfully saved.";
 	
+	/**
+	 * The Constant NO_MARKUP_ALLOWED
+	 */
+	public static final String NO_MARKUP_ALLOWED = "No markup text allowed in any text fields.";
+	
 	/** The Constant CODE_LIST_ADDED. */
 	public static final String CODE_LIST_ADDED = "Code has been successfully added to the value set.";
 	
@@ -52,6 +57,9 @@ public class MessageDelegate {
 	
 	/** The Constant LOGIN_ID_REQUIRED. */
 	public static final String LOGIN_ID_REQUIRED = "User ID is required.";
+	
+	/** The Constant EMAIL_ID_INCORRECT_FORMAT. */
+	public static final String EMAIL_ID_INCORRECT_FORMAT = "Email Address has an incorrect format.";
 	
 	/** The Constant LOGIN_USER_REQUIRED. */
 	public static final String LOGIN_USER_REQUIRED = "User Name is required.";
@@ -125,7 +133,14 @@ public class MessageDelegate {
 	public static final String VALUE_SET_DRAFT_SAVED = "Value Set successfully saved as a draft.";
 	
 	/** The Constant VSAC_VERSION_OR_EFFECTIVE_DATE_REQUIRED. */
-	public static final String VSAC_VERSION_OR_EFFECTIVE_DATE_REQUIRED = "Value set version or effective date has been selected. Please enter a date to continue.";
+	public static final String VSAC_VERSION_OR_EFFECTIVE_DATE_REQUIRED = "Value set version or effective date has been selected."
+			+ " Please enter a date to continue.";
+	/**
+	 * Ratio Measure - Association Required for Numerator/Denominator in case of more than 1 IP.
+	 */
+	public static final String RATIO_NUM_DENO_ASSOCIATION_REQUIRED = "For Ratio measures, in case of more than one Population, "
+			+ " Numerator and Denominator must contain one association.";
+	
 	
 	/**
 	 * Gets the measure save server error message.
@@ -160,16 +175,16 @@ public class MessageDelegate {
 	private final String ABV_NAME_REQUIRED = "Abbreviated Name is required.";
 	
 	/** The account locked. */
-	private final String ACCOUNT_LOCKED = "Your account has been locked.Please Contact Helpdesk.";
+	private final String ACCOUNT_LOCKED = "Your account has been locked. Please contact Support.";
 	
 	/** The ACCOUN t_ locke d2. */
-	private final String ACCOUNT_LOCKED2 = "Your account has been locked. Please contact the Helpdesk.";
+	private final String ACCOUNT_LOCKED2 = "Your account has been locked. Please contact Support.";
 	
 	/** The account revoked. */
-	private final String ACCOUNT_REVOKED = "Your account has been revoked. Please contact the Helpdesk.";
+	private final String ACCOUNT_REVOKED = "Your account has been revoked. Please contact Support.";
 	
 	/** The account termination. */
-	private final String ACCOUNT_TERMINATION = "Your account has been Terminated.Please Contact Helpdesk for more information.";
+	private final String ACCOUNT_TERMINATION = "Your account has been terminated. Please contact Support for more information.";
 	
 	/** The all password fields required. */
 	private final String ALL_PASSWORD_FIELDS_REQUIRED = "All password fields are required.";
@@ -179,10 +194,17 @@ public class MessageDelegate {
 	
 	/** The clause work space validation error. */
 	private final String CLAUSE_WORK_SPACE_VALIDATION_ERROR = "Measure logic is incomplete."
-			+ " LHS and RHS are required for Timings and Relationships.";
+			+ " LHS and RHS are required for Timings, Relationships and Satisfies functions.";
 	
 	/** The clause work space validation success. */
 	private final String CLAUSE_WORK_SPACE_VALIDATION_SUCCESS = "Measure logic validation successful.";
+	
+	/** The clause work space validation error. */
+	private final String POPULATION_WORK_SPACE_VALIDATION_ERROR = "Measure logic is incorrect."
+			+ " Logic must only contain Clauses and Logical operators.";	
+
+	/** The clause work space validation success. */
+	private final String POPULATION_WORK_SPACE_VALIDATION_SUCCESS = " Measure Logic validation successful.";
 	
 	/** The code list required. */
 	private final String CODE_LIST_REQUIRED = "Value Set is required.";
@@ -190,6 +212,14 @@ public class MessageDelegate {
 	/** The code required. */
 	private final String CODE_REQUIRED = "Code is required.";
 	
+	public String getPOPULATION_WORK_SPACE_VALIDATION_ERROR() {
+		return POPULATION_WORK_SPACE_VALIDATION_ERROR;
+	}
+
+	public String getPOPULATION_WORK_SPACE_VALIDATION_SUCCESS() {
+		return POPULATION_WORK_SPACE_VALIDATION_SUCCESS;
+	}
+
 	/** The code system required. */
 	private final String CODE_SYSTEM_REQUIRED = "Code System is required.";
 	
@@ -204,7 +234,7 @@ public class MessageDelegate {
 	 */
 	/** The continuous variable wrong num. */
 	private final String CONTINUOUS_VARIABLE_WRONG_NUM = "For a Continuous Variable measure, a grouping must contain exactly one of each of the following: "
-			+ "Population, Measure Population, and Measure Observation.";
+			+ "Population, Measure Population, and at least one Measure Observation.";
 	
 	/** The delete measure warning message. */
 	private final String DELETE_MEASURE_WARNING_MESSAGE = "Deleting a draft or version of a measure will"
@@ -389,20 +419,32 @@ public class MessageDelegate {
 	 */
 	/** The proportion wrong num. */
 	private final String PROPORTION_WRONG_NUM = "For a Proportion measure, a grouping must contain exactly one of each of the following: "
-			+ "Population and Denominator.";
+			+ "Population, Denominator and Numerator.";
 	
 	/** The ratio may not contain. */
-	private final String RATIO_MAY_NOT_CONTAIN = "For a Ratio measure, a grouping may not contain a Denominator Exception, Measure Observation, or Measure Population.";
+	private final String RATIO_MAY_NOT_CONTAIN = "For a Ratio measure, a grouping may not contain a Denominator Exception, or Measure Population.";
 	
 	/** The ratio too many. */
 	private final String RATIO_TOO_MANY = "For a Ratio measure, a grouping may not contain more than one of each of the following: Denominator Exclusion and Numerator Exclusion.";
 	
+	private final String RATIO_TOO_MANY_POPULATIONS = "For a Ratio measure, a grouping may not contain more than two of the following: Populations.";
 	/*
 	 * RATIO
 	 */
 	/** The ratio wrong num. */
 	private final String RATIO_WRONG_NUM = "For a Ratio measure, a grouping must contain exactly one of each of the following: "
-			+ "Population, Denominator, and Numerator.";
+			+ "Denominator and Numerator.";
+	
+	private final String RATIO_TOO_FEW_POPULATIONS = "For a Ratio measure, a grouping must contain at least one Population.";
+	
+	/**
+	 * @return the rATIO_TOO_FEW_POPULATIONS
+	 */
+	public String getRATIO_TOO_FEW_POPULATIONS() {
+		return RATIO_TOO_FEW_POPULATIONS;
+	}
+	
+	private final String COHORT_WRONG_NUM = "For a Cohort measure, a grouping must contain exactly one Population.";
 	
 	/** The rationale required. */
 	private final String RATIONALE_REQUIRED = "Rationale is required.";
@@ -499,6 +541,17 @@ public class MessageDelegate {
 	/** The vsac update successfull. */
 	private final String VSAC_UPDATE_SUCCESSFULL = "Successfully updated applied QDM list with VSAC data.";
 	
+	
+	private final String COMMENT_ADDED_SUCCESSFULLY ="Comment Changes Added.";
+	
+	private final String COMPARISON_DILOAG_BOX_ERROR_DISPLAY="Please enter Quantity field.";
+	
+	private final String COMPONENT_MEASURES_ADDED_SUCCESSFULLY="Component Measures updated successfully. Changes must be saved on the previous page.";
+	
+	public String getCOMPONENT_MEASURES_ADDED_SUCCESSFULLY() {
+		return COMPONENT_MEASURES_ADDED_SUCCESSFULLY;
+	}
+
 	/**
 	 * Gets the abv name required message.
 	 * 
@@ -551,6 +604,15 @@ public class MessageDelegate {
 	 */
 	public String getAlertLoadingMessage() {
 		return ALERT_LOADING_MESSAGE;
+	}
+	
+	/**
+	 * Gets the markup not allowed message.
+	 * 
+	 * @return String
+	 */
+	public String getNoMarkupAllowedMessage() {
+		return NO_MARKUP_ALLOWED;
 	}
 	
 	/**
@@ -1014,6 +1076,15 @@ public class MessageDelegate {
 	 */
 	public String getLoginIDRequiredMessage() {
 		return LOGIN_ID_REQUIRED;
+	}
+	
+	/**
+	 * Gets the email id incorrect format message.
+	 * 
+	 * @return String
+	 */
+	public String getEmailIdFormatIncorrectMessage() {
+		return EMAIL_ID_INCORRECT_FORMAT;
 	}
 	
 	/**
@@ -1859,7 +1930,7 @@ public class MessageDelegate {
 	public String getIS_NOT_PREVIOUS_PASSWORD() {
 		return IS_NOT_PREVIOUS_PASSWORD;
 	}
-
+	
 	/**
 	 * Gets the change old password.
 	 *
@@ -1876,5 +1947,37 @@ public class MessageDelegate {
 	 */
 	public String getIS_NOT_CURRENT_PASSWORD() {
 		return IS_NOT_CURRENT_PASSWORD;
+	}
+	
+	/**
+	 * @return the cOMMENT_ADDED_SUCCESSFULLY
+	 */
+	public String getCOMMENT_ADDED_SUCCESSFULLY() {
+		return COMMENT_ADDED_SUCCESSFULLY;
+	}
+	
+	/**
+	 * @return the cOHORT_WRONG_NUM
+	 */
+	public String getCOHORT_WRONG_NUM() {
+		return COHORT_WRONG_NUM;
+	}
+	
+	public String getComparisonDiloagBoxErrorDisplay() {
+		return COMPARISON_DILOAG_BOX_ERROR_DISPLAY;
+	}
+	
+	/**
+	 * @return the rATIO_TOO_MANY_POPULATIONS
+	 */
+	public String getRATIO_TOO_MANY_POPULATIONS() {
+		return RATIO_TOO_MANY_POPULATIONS;
+	}
+	
+	/**
+	 * @return the ratioNumDenoAssociationRequired
+	 */
+	public String getRatioNumDenoAssociationRequired() {
+		return RATIO_NUM_DENO_ASSOCIATION_REQUIRED;
 	}
 }

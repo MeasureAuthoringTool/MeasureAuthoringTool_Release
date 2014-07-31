@@ -1,5 +1,6 @@
 package mat.server.service;
 
+import java.util.Date;
 import java.util.List;
 
 import mat.model.MatValueSet;
@@ -90,7 +91,7 @@ public interface SimpleEMeasureService {
 	 * @throws Exception
 	 *             the exception
 	 */
-	public ExportResult getEMeasureZIP(String measureId) throws Exception;
+	public ExportResult getEMeasureZIP(String measureId,Date exportDate, Date releaseDate) throws Exception;
 	
 	/**
 	 * Gets the value set xls.
@@ -112,7 +113,7 @@ public interface SimpleEMeasureService {
 	 * @throws Exception
 	 *             the exception
 	 */
-	public ExportResult getBulkExportZIP(String[] measureIds) throws Exception;
+	public ExportResult getBulkExportZIP(String[] measureIds, Date[] exportDates, Date releaseDate) throws Exception;
 	
 	/**
 	 * Export measure into simple xml.
@@ -129,5 +130,9 @@ public interface SimpleEMeasureService {
 	 */
 	ExportResult exportMeasureIntoSimpleXML(String measureId, String xmlString, List<MatValueSet> matValueSetList)
 			throws Exception;
+
+	ExportResult getHumanReadableForNode(String measureId, String populationSubXML) throws Exception;
+
+	ExportResult getNewEMeasureHTML(String measureId) throws Exception;
 
 }
