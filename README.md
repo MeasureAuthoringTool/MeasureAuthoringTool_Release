@@ -1,4 +1,4 @@
-MeasureAuhtoringTool_Latest
+MeasureAuthoringTool_Latest
 ===========================
 
 Repo for CMS Measure Authoring Tool codebase.
