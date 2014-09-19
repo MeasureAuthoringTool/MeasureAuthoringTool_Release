@@ -1,7 +1,7 @@
 package mat.client.clause;
 
-import java.util.ArrayList;
 import java.util.List;
+
 import mat.client.CustomPager;
 import mat.client.shared.ErrorMessageDisplay;
 import mat.client.shared.ErrorMessageDisplayInterface;
@@ -15,6 +15,7 @@ import mat.client.shared.SuccessMessageDisplayInterface;
 import mat.client.util.CellTableUtility;
 import mat.model.QualityDataSetDTO;
 import mat.shared.ConstantMessages;
+
 import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.cell.client.SafeHtmlCell;
 import com.google.gwt.core.client.GWT;
@@ -40,6 +41,7 @@ import com.google.gwt.view.client.SingleSelectionModel;
 
 
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class QDSAppliedListView.
  */
@@ -172,14 +174,7 @@ public class QDSAppliedListView  implements QDSAppliedListPresenter.SearchDispla
 						value = object.getCodeListName();
 						title = title.append("Name : ").append(value);
 					}
-					if (ConstantMessages.USER_DEFINED_QDM_OID.equalsIgnoreCase(object.getOid())) {
-						return getNameColumnToolTip(value, title, object.getHasModifiedAtVSAC(),
-								object.isNotFoundInVSAC());
-					} else {
-						return getNameColumnToolTip(value, title, object.getHasModifiedAtVSAC(),
-								object.isNotFoundInVSAC());
-					}
-					// return getColumnToolTip(value, title);
+					return CellTableUtility.getColumnToolTip(value, title.toString());
 				}
 			};
 			table.addColumn(nameColumn, SafeHtmlUtils.fromSafeConstant(
@@ -189,7 +184,8 @@ public class QDSAppliedListView  implements QDSAppliedListPresenter.SearchDispla
 				public SafeHtml getValue(QualityDataSetDTO object) {
 					StringBuilder title = new StringBuilder();
 					title = title.append("Datatype : ").append(object.getDataType());
-					return CellTableUtility.getColumnToolTip(object.getDataType(), title.toString());
+					return getDataTypeColumnToolTip(object.getDataType(), title, object.getHasModifiedAtVSAC(), 
+                             object.isDataTypeHasRemoved());
 				}
 			};
 			table.addColumn(dataTypeColumn, SafeHtmlUtils.fromSafeConstant("<span title=\"Datatype\">" + "Datatype"
@@ -206,7 +202,8 @@ public class QDSAppliedListView  implements QDSAppliedListPresenter.SearchDispla
 						title = title.append("OID : ").append(object.getOid());
 						oid = object.getOid();
 					}
-					return CellTableUtility.getColumnToolTip(oid, title.toString());
+					return getOIDColumnToolTip(oid, title, object.getHasModifiedAtVSAC(),
+							object.isNotFoundInVSAC());
 				}
 			};
 			table.addColumn(oidColumn, SafeHtmlUtils.fromSafeConstant("<span title=\"OID\">" + "OID" + "</span>"));
@@ -257,7 +254,7 @@ public class QDSAppliedListView  implements QDSAppliedListPresenter.SearchDispla
 			table.setColumnWidth(0, 2.0, Unit.PCT);
 			table.setColumnWidth(1, 20.0, Unit.PCT);
 			table.setColumnWidth(2, 20.0, Unit.PCT);
-			table.setColumnWidth(3, 25.0, Unit.PCT);
+			table.setColumnWidth(3, 27.0, Unit.PCT);
 			table.setColumnWidth(4, 10.0, Unit.PCT);
 			table.setColumnWidth(5, 15.0, Unit.PCT);
 		}
@@ -405,12 +402,17 @@ public class QDSAppliedListView  implements QDSAppliedListPresenter.SearchDispla
 	public Button getModifyButton() {
 		return modify;
 	}
-	/** @param columnText - String.
+	
+	/**
+	 * Gets the name column tool tip.
+	 *
+	 * @param columnText - String.
 	 * @param title - StringBuilder.
 	 * @param hasImage - Boolean.
 	 * @param isUserDefined Boolean.
-	 * @return */
-	private SafeHtml getNameColumnToolTip(String columnText, StringBuilder title, boolean hasImage,
+	 * @return the name column tool tip
+	 */
+	private SafeHtml getOIDColumnToolTip(String columnText, StringBuilder title, boolean hasImage,
 			boolean isUserDefined) {
 		if (hasImage && !isUserDefined) {
 			String htmlConstant = "<html>"
@@ -427,6 +429,44 @@ public class QDSAppliedListView  implements QDSAppliedListPresenter.SearchDispla
 					+ "alt=\"Warning : QDM not available in VSAC.\""
 					+ " title=\"QDM not available in VSAC.\"/>"
 					+ "<span tabIndex = \"0\" title='" + title + "'>"
+					+ columnText
+					+ "</span></body>"
+					+ "</html>";
+			return new SafeHtmlBuilder().appendHtmlConstant(htmlConstant).toSafeHtml();
+		} else {
+			String htmlConstant = "<html>" + "<head> </head> <Body><span tabIndex = \"0\" title='" + title + "'>" + columnText
+					+ "</span></body>"
+					+ "</html>";
+			return new SafeHtmlBuilder().appendHtmlConstant(htmlConstant).toSafeHtml();
+		}
+	}
+	
+	/**
+	 * Gets the data type column tool tip.
+	 *
+	 * @param columnText the column text
+	 * @param title the title
+	 * @param hasImage the has image
+	 * @param dataTypeHasRemoved the data type has removed
+	 * @return the data type column tool tip
+	 */
+	private SafeHtml getDataTypeColumnToolTip(String columnText, StringBuilder title, boolean hasImage,
+			boolean dataTypeHasRemoved) {
+		if (hasImage && !dataTypeHasRemoved) {
+			String htmlConstant = "<html>"
+					+ "<head> </head> <Body><img src =\"images/bullet_tick.png\" alt=\"DataType is Valid.\""
+					+ "title = \"DataType is Valid.\"/>"
+					+ "<span tabIndex = \"0\" title='" + title + "'>"
+					+ columnText
+					+ "</span></body>"
+					+ "</html>";
+			return new SafeHtmlBuilder().appendHtmlConstant(htmlConstant).toSafeHtml();
+		} else if (hasImage && dataTypeHasRemoved) {
+			String htmlConstant = "<html>"
+					+ "<head> </head> <Body><img src =\"images/userDefinedWarning.png\""
+					+ "alt=\"Warning : DataType is not Valid.\""
+					+ " title=\"DataType is not Valid.\"/>"
+					+ "<span tabIndex = \"0\" title='" + title + "' class='clauseWorkSpaceInvalidNode'>"
 					+ columnText
 					+ "</span></body>"
 					+ "</html>";
@@ -467,9 +507,13 @@ public class QDSAppliedListView  implements QDSAppliedListPresenter.SearchDispla
 	public Button getUpdateVsacButton() {
 		return updateVsacButton;
 	}
-	/** Initialize cell list content.
-	 * @param appliedListModel the applied list model
-	 * @return the cell list */
+	
+	/**
+	 * Initialize cell list content.
+	 *
+	 * @param appliedQDMList the new applied qdm list
+	 * @return the cell list
+	 */
 	/*
 	 * private CellList<QualityDataSetDTO> initializeCellListContent(final QDSAppliedListModel appliedListModel) {
 	 * ArrayList<HasCell<QualityDataSetDTO, ?>> hasCells = new ArrayList<HasCell<QualityDataSetDTO, ?>>(); // final

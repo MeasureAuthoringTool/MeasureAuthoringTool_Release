@@ -41,10 +41,10 @@
       <bind-xml name="version" node="element"/>
     </field>
        
-    <field name="measureStatus"
+   <!--  <field name="measureStatus"
            type="java.lang.String">
       <bind-xml name="status" node="element"/>
-    </field> 
+    </field> -->
     
     <field name="NqfModel"
            type="mat.client.measure.NqfModel">
@@ -87,7 +87,7 @@
      <bind-xml name="steward" node="element"/>
     </field>
     
-     <field name="authorList"
+     <field name="authorSelectedList"
            type="mat.model.Author"
            collection="arraylist">
       <bind-xml name="developer" location="developers">
@@ -142,7 +142,7 @@
       <bind-xml name="id" node="attribute" location="scoring"/>
     </field>
 	    
-    <field name="measureTypeList"
+    <field name="measureTypeSelectedList"
            type="mat.model.MeasureType"
            collection="arraylist">
       <bind-xml name="type" location="types">
@@ -332,20 +332,20 @@
 	      <bind-xml name="startDate" node="element"/>
 	    </field>
 	    
-	    <field name="startDateUuid"
+	    <!-- <field name="startDateUuid"
 	           type="java.lang.String">
 	      <bind-xml name="uuid" node="attribute" location="startDate"/>
-	    </field>
+	    </field> -->
 	    
 	     <field name="stopDate"
 	           type="java.lang.String">
 	      <bind-xml name="stopDate" node="element"/>
 	    </field>
 	    
-	     <field name="stopDateUuid"
+	     <!-- <field name="stopDateUuid"
 	           type="java.lang.String">
 	      <bind-xml name="uuid" node="attribute" location="stopDate"/>
-	    </field>
+	    </field> -->
   	</class>
   	
   	<class name="mat.client.measure.NqfModel">

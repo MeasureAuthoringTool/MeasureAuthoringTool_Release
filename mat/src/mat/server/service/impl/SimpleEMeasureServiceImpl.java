@@ -61,6 +61,7 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 	private static final String conversionFile1 = "xsl/New_HQMF.xsl";
 	/** Constant for mat_narrGen.xsl. **/
 	private static final String conversionFile2 = "xsl/mat_narrGen.xsl";
+	private static final String conversionFileForHQMF_Header = "xsl/new_measureDetails.xsl";
 	/** Constant for eMeasure.xsl. **/
 	private static final String conversionFileHtml = "xsl/eMeasure.xsl";
 	/** Filtered User Defined QDM's as these are dummy QDM's created by user and
@@ -281,7 +282,9 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 	public final ExportResult getSimpleXML(final String measureId) throws Exception {
 		mat.model.clause.Measure measure = measureDAO.find(measureId);
 		MeasureExport measureExport = getMeasureExport(measureId);
-
+		if(measureExport == null){
+			return null;
+		}
 		ExportResult result = new ExportResult();
 		result.measureName = measure.getaBBRName();
 		result.export = measureExport.getSimpleXML();
@@ -488,11 +491,9 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 		result.measureName = getMeasureName(measureId).getaBBRName();
 		MeasureExport me = getMeasureExport(measureId);
 		if(exportDate.before(releaseDate)){
-		result.zipbarr = getZipBarr(measureId,exportDate,releaseDate, me);
-		
+			result.zipbarr = getZipBarr(measureId,exportDate,releaseDate, me);		
 		}else{
 			result.zipbarr = getZipBarr(measureId,me);
-
 		}
 		return result;
 	}
@@ -516,11 +517,21 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 				
 				String simpleXmlStr = me.getSimpleXML();
 				String emeasureHTMLStr = getHumanReadableForMeasure(measureId, simpleXmlStr);
-
+				//String emeasureXML = getEMeasureXML(me);
+				String emeasureXML = "";
 				ZipPackager zp = new ZipPackager();
-				return zp.getZipBarr(me.getMeasure().getaBBRName(), wkbkbarr, (new Date()).toString(), emeasureHTMLStr, simpleXmlStr);
-			}
+				return zp.getZipBarr(me.getMeasure().getaBBRName(), wkbkbarr, (new Date()).toString(), emeasureHTMLStr, simpleXmlStr,emeasureXML);
+		}
+	
+	
+	private String getEMeasureXML(MeasureExport me){
+		XMLUtility xmlUtility = new XMLUtility();
+		
+		String eMeasureXML = xmlUtility.applyXSL(me.getSimpleXML(),
+				xmlUtility.getXMLResource(conversionFileForHQMF_Header));
 
+		return eMeasureXML;
+	}
 	/**
 	 * Gets the human readable for measure.
 	 *
@@ -553,7 +564,7 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 		} else {
 			wkbkbarr = me.getCodeListBarr();
 		}
-
+		System.out.println("MAKING THE ZIP FILE!!!!!!");
 		StringUtility su = new StringUtility();
 		ExportResult emeasureXMLResult = getEMeasureXML(measureId);
 		String emeasureName = emeasureXMLResult.measureName;
@@ -583,6 +594,9 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 	private MeasureExport getMeasureExport(final String measureId) {
 		MeasureExport measureExport = measureExportDAO
 				.findForMeasure(measureId);
+		if(measureExport == null){
+			return null;
+		}
 		String emeasureXMLStr = measureExport.getSimpleXML();
 		mat.model.clause.Measure measure = measureDAO.find(measureId);
 		Timestamp fdts = measure.getFinalizedDate();
@@ -602,7 +616,7 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 		// 2 add version field
 		final String versionStart = "<version>";
 		final String versionEnd = "</version>";
-		String vStr = measure.getMajorVersionStr();
+		String vStr = measure.getMajorVersionStr() + "." + measure.getMinorVersionStr() + "." + measure.getRevisionNumber();
 		if (emeasureXMLStr.contains(versionStart)) {
 			int start = emeasureXMLStr.indexOf(versionStart)
 					+ versionStart.length();
@@ -724,7 +738,6 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 	private void createFilesInBulkZip(final String measureId,
 			final MeasureExport me, final Map<String, byte[]> filesMap,
 			final String seqNum) throws Exception {
-		// TODO Auto-generated method stub
 		
 		byte[] wkbkbarr = null;
 		if (me.getCodeList() == null) {
@@ -732,23 +745,16 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 		} else {
 			wkbkbarr = me.getCodeListBarr();
 		}
-		StringUtility su = new StringUtility();
-		ExportResult emeasureXMLResult = getEMeasureXML(measureId, me);
-		String emeasureName = emeasureXMLResult.measureName;
-		String emeasureXMLStr = emeasureXMLResult.export;
-		String repee = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
-		String repor = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-				+ su.nl
-				+ "<?xml-stylesheet type=\"text/xsl\" href=\"xslt/eMeasure.xsl\"?>";
-		emeasureXMLStr = repor + emeasureXMLStr.substring(repee.length());
-		String emeasureHTMLStr = emeasureXMLToEmeasureHTML(emeasureXMLStr);
-		String simpleXmlStr = me.getSimpleXML();
-		XMLUtility xmlUtility = new XMLUtility();
-		String emeasureXSLUrl = xmlUtility.getXMLResource(conversionFileHtml);
 		
+		String simpleXmlStr = me.getSimpleXML();
+		String emeasureHTMLStr = getHumanReadableForMeasure(measureId, simpleXmlStr);
+//		String emeasureXMLStr = getEMeasureXML(me);
+		String emeasureXMLStr = "";
+		String emeasureName = me.getMeasure().getaBBRName();
+
 		ZipPackager zp = new ZipPackager();
 		zp.createBulkExportZip(emeasureName, wkbkbarr, emeasureXMLStr,
-				emeasureHTMLStr, emeasureXSLUrl, (new Date()).toString(), simpleXmlStr, filesMap,
+				emeasureHTMLStr, (new Date()).toString(), simpleXmlStr, filesMap,
 				seqNum);
 	}
 

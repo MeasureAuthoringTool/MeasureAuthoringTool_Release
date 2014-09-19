@@ -2,6 +2,8 @@ package mat.client.clause.clauseworkspace.model;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
 
+
+// TODO: Auto-generated Javadoc
 /**
  * The Class MeasureXmlModel.
  */
@@ -15,13 +17,14 @@ public class MeasureXmlModel implements IsSerializable {
 
 	/** The xml. */
 	private String xml;
+	
 
 	/** The to replace node. */
 	private String toReplaceNode;
 
 	/** The parent node. */
 	private String parentNode;
-
+	
 	/**
 	 * Gets the meausre export id.
 	 * 

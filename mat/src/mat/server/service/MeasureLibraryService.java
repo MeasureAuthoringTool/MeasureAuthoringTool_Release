@@ -2,9 +2,11 @@ package mat.server.service;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
-
 import mat.DTO.MeasureNoteDTO;
+import mat.client.clause.clauseworkspace.model.SortedClauseMapResult;
 import mat.client.clause.clauseworkspace.model.MeasureXmlModel;
 import mat.client.measure.ManageMeasureDetailModel;
 import mat.client.measure.ManageMeasureSearchModel;
@@ -14,7 +16,9 @@ import mat.client.measure.TransferMeasureOwnerShipModel;
 import mat.client.measure.service.SaveMeasureResult;
 import mat.client.measure.service.ValidateMeasureResult;
 import mat.client.shared.MatException;
+import mat.model.Author;
 import mat.model.MatValueSet;
+import mat.model.MeasureType;
 import mat.model.QualityDataSetDTO;
 import mat.model.RecentMSRActivityLog;
 import mat.server.util.XmlProcessor;
@@ -383,9 +387,10 @@ public interface MeasureLibraryService {
 	 * @param measureXmlModel the measure xml model
 	 * @param nodeName the node name
 	 * @param nodeUUID the node uuid
+	 * @return the sorted clause map result
 	 */
-	void saveSubTreeInMeasureXml(MeasureXmlModel measureXmlModel, String nodeName, String nodeUUID);
-
+	SortedClauseMapResult saveSubTreeInMeasureXml(MeasureXmlModel measureXmlModel, String nodeName, String nodeUUID);
+	
 	/**
 	 * Check and delete sub tree.
 	 *
@@ -393,8 +398,8 @@ public interface MeasureLibraryService {
 	 * @param subTreeUUID the sub tree uuid
 	 * @return true, if successful
 	 */
-	boolean checkAndDeleteSubTree(String measureId, String subTreeUUID);
-
+	HashMap<String, String> checkAndDeleteSubTree(String measureId, String subTreeUUID);
+	
 	/**
 	 * Gets the formatted release date.
 	 *
@@ -402,14 +407,14 @@ public interface MeasureLibraryService {
 	 * @return the formatted release date
 	 */
 	Date getFormattedReleaseDate(String releaseDate);
-
+	
 	/**
 	 * Gets the release date.
 	 *
 	 * @return the release date
 	 */
 	String getReleaseDate();
-
+	
 	/**
 	 * Checks if is sub tree referred in logic.
 	 *
@@ -418,7 +423,7 @@ public interface MeasureLibraryService {
 	 * @return true, if is sub tree referred in logic
 	 */
 	boolean isSubTreeReferredInLogic(String measureId, String subTreeUUID);
-
+	
 	/**
 	 * Gets the human readable for node.
 	 *
@@ -435,9 +440,9 @@ public interface MeasureLibraryService {
 	 * @return the component measures
 	 */
 	ManageMeasureSearchModel getComponentMeasures(List<String> measureIds);
-
 	
-
+	
+	
 	/**
 	 * Validate package grouping.
 	 *
@@ -445,7 +450,7 @@ public interface MeasureLibraryService {
 	 * @return the string
 	 */
 	boolean validatePackageGrouping(ManageMeasureDetailModel model);
-
+	
 	/**
 	 * Validate measure xmlinpopulation workspace.
 	 *
@@ -461,4 +466,72 @@ public interface MeasureLibraryService {
 	 * @param measureId the measure id
 	 */
 	void updateComponentMeasuresOnDeletion(String measureId);
+	
+	/**
+	 * Validate for group.
+	 *
+	 * @param model the model
+	 * @return the validate measure result
+	 */
+	ValidateMeasureResult validateForGroup(ManageMeasureDetailModel model);
+	
+	/**
+	 * Gets the applied qdm for item count.
+	 *
+	 * @param measureId the measure id
+	 * @param checkForSupplementData the check for supplement data
+	 * @return the applied qdm for item count
+	 */
+	List<QualityDataSetDTO> getAppliedQDMForItemCount(String measureId,
+			boolean checkForSupplementData);
+	
+	/**
+	 * Gets the all measure types.
+	 *
+	 * @return the all measure types
+	 */
+	List<MeasureType> getAllMeasureTypes();
+	
+	/**
+	 * Gets the all authors.
+	 *
+	 * @return the all authors
+	 */
+	List<Author> getAllAuthors();
+	
+	/**
+	 * Save sub tree occurrence.
+	 *
+	 * @param measureXmlModel the measure xml model
+	 * @param nodeName the node name
+	 * @param nodeUUID the node uuid
+	 * @return the sorted clause map result
+	 */
+	SortedClauseMapResult saveSubTreeOccurrence(MeasureXmlModel measureXmlModel, String nodeName, String nodeUUID);
+	
+	/**
+	 * Checks if is QDM variable enabled.
+	 *
+	 * @param measureId the measure id
+	 * @param subTreeUUID the sub tree uuid
+	 * @return true, if is QDM variable enabled
+	 */
+	boolean isQDMVariableEnabled(String measureId, String subTreeUUID);
+
+	/**
+	 * Gets the sorted clause map.
+	 *
+	 * @param measureId the measure id
+	 * @return the sorted clause map
+	 */
+	LinkedHashMap<String, String> getSortedClauseMap(String measureId);
+
+	/**
+	 * Gets the measure xml for measure and sorted sub tree map.
+	 *
+	 * @param measureId the measure id
+	 * @return the measure xml for measure and sorted sub tree map
+	 */
+	SortedClauseMapResult getMeasureXmlForMeasureAndSortedSubTreeMap(
+			String measureId);
 }

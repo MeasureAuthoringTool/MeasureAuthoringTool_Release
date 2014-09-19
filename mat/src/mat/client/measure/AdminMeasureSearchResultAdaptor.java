@@ -1,13 +1,16 @@
 package mat.client.measure;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
+
 import mat.client.measure.ManageMeasureSearchModel.Result;
 import mat.client.shared.MatButtonCell;
 import mat.client.shared.MatCheckBoxCell;
 import mat.client.shared.MatSafeHTMLCell;
-import mat.client.shared.search.SearchResults;
 import mat.client.util.CellTableUtility;
+
 import com.google.gwt.cell.client.Cell;
 import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.dom.client.Style.Unit;
@@ -19,12 +22,12 @@ import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.ColumnSortEvent.ListHandler;
 import com.google.gwt.user.cellview.client.HasKeyboardSelectionPolicy.KeyboardSelectionPolicy;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.Widget;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class AdminMeasureSearchResultAdaptor.
  */
-public class AdminMeasureSearchResultAdaptor implements SearchResults<ManageMeasureSearchModel.Result> {
+public class AdminMeasureSearchResultAdaptor /*implements SearchResults<ManageMeasureSearchModel.Result> */{
 	/**
 	 * The Interface Observer.
 	 */
@@ -44,17 +47,15 @@ public class AdminMeasureSearchResultAdaptor implements SearchResults<ManageMeas
 	}
 	/** CellTable Column Size. */
 	private static final int COL_SIZE = 6;
-	/** The headers. */
-	private static String[] headers = new String[] { "Measure Name", "Version", "Finalized Date",
-		"Status", "History", "TransferMeasureClear" };
-	/** The widths. */
-	private static String[] widths = new String[] { "35%", "16%", "16%", "8%", "5%","5%","10%" };
 	/** The data. */
 	private ManageMeasureSearchModel data = new ManageMeasureSearchModel();
 	/** The is history clicked. */
 	private boolean isHistoryClicked;
 	/** The observer. */
 	private Observer observer;
+	/** The selected list. */
+	List<ManageMeasureSearchModel.Result> selectedList = new ArrayList<ManageMeasureSearchModel.Result>();
+	
 	/**
 	 * Adds the column to table.
 	 * @param table
@@ -78,7 +79,7 @@ public class AdminMeasureSearchResultAdaptor implements SearchResults<ManageMeas
 					ManageMeasureSearchModel.Result, SafeHtml>(new MatSafeHTMLCell()) {
 				@Override
 				public SafeHtml getValue(ManageMeasureSearchModel.Result object) {
-					return CellTableUtility.getColumnToolTip(object.getName());
+					return CellTableUtility.getColumnToolTip(object.getName(), object.getName());
 				}
 			};
 			measureName.setSortable(true);
@@ -171,12 +172,34 @@ public class AdminMeasureSearchResultAdaptor implements SearchResults<ManageMeas
 			Column<Result, Boolean> transferColumn = new Column<ManageMeasureSearchModel.Result, Boolean>(transferCB) {
 				@Override
 				public Boolean getValue(ManageMeasureSearchModel.Result object) {
+					if (selectedList.size() > 0) {
+						for (int i = 0; i < selectedList.size(); i++) {
+							if (selectedList.get(i).getId().equalsIgnoreCase(object.getId())) {
+								object.setTransferable(true);
+								break;
+							}
+						}
+					} else {
+						object.setTransferable(false);
+						}
 					return object.isTransferable();
 				}
 			};
 			transferColumn.setFieldUpdater(new FieldUpdater<ManageMeasureSearchModel.Result, Boolean>() {
 				@Override
 				public void update(int index, ManageMeasureSearchModel.Result object, Boolean value) {
+					if(value){
+						if(!selectedList.contains(object)){
+						selectedList.add(object);
+						}
+					} else {
+						for (int i = 0; i < selectedList.size(); i++) {
+							if (selectedList.get(i).getId().equalsIgnoreCase(object.getId())) {
+								selectedList.remove(i);
+								break;
+							}
+						}
+					}
 					object.setTransferable(value);
 					observer.onTransferSelectedClicked(object);
 				}
@@ -214,27 +237,7 @@ public class AdminMeasureSearchResultAdaptor implements SearchResults<ManageMeas
 				+ " " + hoursStr + ":" + mins + " " + ap;
 		return tsStr;
 	}
-	/* (non-Javadoc)
-	 * @see mat.client.shared.search.SearchResults#get(int)
-	 */
-	@Override
-	public ManageMeasureSearchModel.Result get(int row) {
-		return data.get(row);
-	}
-	/* (non-Javadoc)
-	 * @see mat.client.shared.search.SearchResults#getColumnHeader(int)
-	 */
-	@Override
-	public String getColumnHeader(int columnIndex) {
-		return headers[columnIndex];
-	}
-	/* (non-Javadoc)
-	 * @see mat.client.shared.search.SearchResults#getColumnWidth(int)
-	 */
-	@Override
-	public String getColumnWidth(int columnIndex) {
-		return widths[columnIndex];
-	}
+	
 	/**
 	 * Gets the data.
 	 * @return the data
@@ -242,92 +245,7 @@ public class AdminMeasureSearchResultAdaptor implements SearchResults<ManageMeas
 	public ManageMeasureSearchModel getData() {
 		return data;
 	}
-	/* (non-Javadoc)
-	 * @see mat.client.shared.search.SearchResults#getKey(int)
-	 */
-	@Override
-	public String getKey(int row) {
-		return data.get(row).getId();
-	}
-	/* (non-Javadoc)
-	 * @see mat.client.shared.search.SearchResults#getNumberOfColumns()
-	 */
-	@Override
-	public int getNumberOfColumns() {
-		return headers.length;
-	}
-	/* (non-Javadoc)
-	 * @see mat.client.shared.search.SearchResults#getNumberOfRows()
-	 */
-	@Override
-	public int getNumberOfRows() {
-		return data.getNumberOfRows();
-	}
-	/* (non-Javadoc)
-	 * @see mat.client.shared.search.SearchResults#getResultsTotal()
-	 */
-	@Override
-	public int getResultsTotal() {
-		return data.getResultsTotal();
-	}
-	/* (non-Javadoc)
-	 * @see mat.client.shared.search.SearchResults#getStartIndex()
-	 */
-	@Override
-	public int getStartIndex() {
-		return data.getStartIndex();
-	}
-	//TODO - need to remove this method going forward as we replace the Grid Table with Cel T
-	/* (non-Javadoc)
-	 * @see mat.client.shared.search.SearchResults#getValue(int, int)
-	 */
-	@Override
-	public Widget getValue(int row, int column) {
-		return null;
-	}
-	/* (non-Javadoc)
-	 * @see mat.client.shared.search.SearchResults#isColumnFiresSelection(int)
-	 */
-	@Override
-	public boolean isColumnFiresSelection(int columnIndex) {
-		return columnIndex == 0;
-	}
-	/* (non-Javadoc)
-	 * @see mat.client.shared.search.SearchResults#isColumnSelectAll(int)
-	 */
-	@Override
-	public boolean isColumnSelectAll(int columnIndex) {
-		return false;
-	}
-	/* (non-Javadoc)
-	 * @see mat.client.shared.search.SearchResults#isColumnSortable(int)
-	 */
-	@Override
-	public boolean isColumnSortable(int columnIndex) {
-		return false;
-	}
-	/*
-	public MultiSelectionModel<CodeListSearchDTO> addSelectionHandlerOnTable(){
-		final MultiSelectionModel<CodeListSearchDTO> selectionModel = new  MultiSelectionModel<CodeListSearchDTO>();
-		selectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
-			@Override
-			public void onSelectionChange(SelectionChangeEvent event) {
-				Set<CodeListSearchDTO> codeListSet = selectionModel.getSelectedSet();
-				if(codeListSet !=null){
-					//lastSelectedCodeList = codeListObject;
-					MatContext.get().clearDVIMessages();
-					MatContext.get().clearModifyPopUpMessages();
-					List<CodeListSearchDTO> selectedCodeList = new ArrayList<CodeListSearchDTO>(codeListSet);
-					setLastSelectedCodeList(selectedCodeList);
-					setSelectedCodeList(selectedCodeList);
-					MatContext.get().getEventBus().fireEvent( new OnChangeOptionsEvent());
-
-				}
-			}
-		});
-		return selectionModel;
-	}
-	 */
+		 
 	/**
 	 * Checks if is history clicked.
 	 * @return true, if is history clicked
@@ -358,5 +276,14 @@ public class AdminMeasureSearchResultAdaptor implements SearchResults<ManageMeas
 	 */
 	public void setObserver(Observer observer) {
 		this.observer = observer;
+	}
+	
+	/**
+	 * Gets the selected list.
+	 *
+	 * @return the selected list
+	 */
+	public List<ManageMeasureSearchModel.Result> getSelectedList() {
+		return selectedList;
 	}
 }

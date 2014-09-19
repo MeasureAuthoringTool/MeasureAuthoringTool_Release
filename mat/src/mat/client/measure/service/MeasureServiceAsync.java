@@ -1,20 +1,21 @@
 package mat.client.measure.service;
 
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
-
 import mat.DTO.MeasureNoteDTO;
+import mat.client.clause.clauseworkspace.model.SortedClauseMapResult;
 import mat.client.clause.clauseworkspace.model.MeasureXmlModel;
 import mat.client.measure.ManageMeasureDetailModel;
 import mat.client.measure.ManageMeasureSearchModel;
 import mat.client.measure.ManageMeasureShareModel;
 import mat.client.measure.MeasureNotesModel;
 import mat.client.measure.TransferMeasureOwnerShipModel;
+import mat.model.Author;
 import mat.model.MatValueSet;
+import mat.model.MeasureType;
 import mat.model.QualityDataSetDTO;
 import mat.model.RecentMSRActivityLog;
-import mat.server.util.XmlProcessor;
-
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
 // TODO: Auto-generated Javadoc
@@ -105,13 +106,10 @@ public interface MeasureServiceAsync {
 	
 	/**
 	 * Gets the applied qdm from measure xml.
-	 * 
-	 * @param measureId
-	 *            the measure id
-	 * @param checkForSupplementData
-	 *            the check for supplement data
-	 * @param callback
-	 *            the callback
+	 *
+	 * @param measureId            the measure id
+	 * @param checkForSupplementData            the check for supplement data
+	 * @param asyncCallback the async callback
 	 * @return the applied qdm from measure xml
 	 */
 	void getAppliedQDMFromMeasureXml(String measureId,
@@ -424,8 +422,9 @@ public interface MeasureServiceAsync {
 	 * @param nodeUUID the node uuid
 	 * @param callback the callback
 	 */
-	void saveSubTreeInMeasureXml(MeasureXmlModel measureXmlModel, String nodeName, String nodeUUID, AsyncCallback<Void> callback);
-
+	void saveSubTreeInMeasureXml(MeasureXmlModel measureXmlModel, String nodeName, String nodeUUID,
+			AsyncCallback<SortedClauseMapResult> callback);
+	
 	/**
 	 * Check and delete sub tree.
 	 *
@@ -433,9 +432,8 @@ public interface MeasureServiceAsync {
 	 * @param subTreeUUID the sub tree uuid
 	 * @param callback the callback
 	 */
-	void checkAndDeleteSubTree(String measureId, String subTreeUUID,
-			AsyncCallback<Boolean> callback);
-
+	void checkAndDeleteSubTree(String measureId, String subTreeUUID, AsyncCallback<HashMap<String, String>> callback);
+	
 	/**
 	 * Checks if is sub tree referred in logic.
 	 *
@@ -445,7 +443,7 @@ public interface MeasureServiceAsync {
 	 */
 	void isSubTreeReferredInLogic(String measureId, String subTreeUUID,
 			AsyncCallback<Boolean> callback);
-
+	
 	/**
 	 * Gets the human readable for node.
 	 *
@@ -465,7 +463,7 @@ public interface MeasureServiceAsync {
 	 * @return the component measures
 	 */
 	void getComponentMeasures(List<String> measureIds, AsyncCallback<ManageMeasureSearchModel> callback);
-
+	
 	/**
 	 * Validate package grouping.
 	 *
@@ -474,7 +472,7 @@ public interface MeasureServiceAsync {
 	 */
 	void validatePackageGrouping(ManageMeasureDetailModel model,
 			AsyncCallback<Boolean> asyncCallback);
-
+	
 	/**
 	 * Validate measure xmlinpopulation workspace.
 	 *
@@ -492,5 +490,82 @@ public interface MeasureServiceAsync {
 	 * @param asyncCallback the async callback
 	 */
 	void updateComponentMeasuresFromXml(String measureId, AsyncCallback<Void> asyncCallback);
-			
+	
+	/**
+	 * Validate for group.
+	 *
+	 * @param model the model
+	 * @param asyncCallback the async callback
+	 */
+	void validateForGroup(ManageMeasureDetailModel model,
+			AsyncCallback<ValidateMeasureResult> asyncCallback);
+	
+	/**
+	 * Gets the applied qdm for item count.
+	 *
+	 * @param measureId the measure id
+	 * @param checkForSupplementData the check for supplement data
+	 * @param asyncCallback the async callback
+	 * @return the applied qdm for item count
+	 */
+	void getAppliedQDMForItemCount(String measureId,boolean checkForSupplementData,
+			AsyncCallback<List<QualityDataSetDTO>> asyncCallback);
+	
+	/**
+	 * Gets the all measure types.
+	 *
+	 * @param asyncCallback the async callback
+	 * @return the all measure types
+	 */
+	void getAllMeasureTypes(AsyncCallback<List<MeasureType>> asyncCallback);
+	
+	/**
+	 * Gets the all add edit authors.
+	 *
+	 * @param asyncCallback the async callback
+	 * @return the all add edit authors
+	 */
+	void getAllAddEditAuthors(AsyncCallback<List<Author>> asyncCallback);
+	
+	/**
+	 * Save sub tree occurrence.
+	 *
+	 * @param measureXmlModel the measure xml model
+	 * @param nodeName the node name
+	 * @param nodeUUID the node uuid
+	 * @param callback the callback
+	 */
+	void saveSubTreeOccurrence(MeasureXmlModel measureXmlModel, String nodeName, String nodeUUID,
+			AsyncCallback<SortedClauseMapResult> callback);
+	
+	/**
+	 * Checks if is qdm variable enabled.
+	 *
+	 * @param measureId the measure id
+	 * @param subTreeUUID the sub tree uuid
+	 * @param callback the callback
+	 */
+	void isQDMVariableEnabled(String measureId, String subTreeUUID, AsyncCallback<Boolean> callback);	
+	
+	/**
+	 * Gets the sorted clause map.
+	 *
+	 * @param measureId the measure id
+	 * @param callback the callback
+	 * @return the sorted clause map
+	 */
+	void getSortedClauseMap(String measureId,
+			AsyncCallback<LinkedHashMap<String, String>> callback);
+
+	/**
+	 * Gets the measure xml for measure and sorted sub tree map.
+	 *
+	 * @param currentMeasureId the current measure id
+	 * @param asyncCallback the async callback
+	 * @return the measure xml for measure and sorted sub tree map
+	 */
+	void getMeasureXmlForMeasureAndSortedSubTreeMap(
+			String currentMeasureId,
+			AsyncCallback<SortedClauseMapResult> Callback);
+		
 }

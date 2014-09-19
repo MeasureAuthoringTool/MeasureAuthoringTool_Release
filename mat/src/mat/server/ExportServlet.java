@@ -12,6 +12,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.xpath.XPathExpressionException;
 
 import mat.model.MeasureNotes;
 import mat.model.User;
@@ -22,15 +23,20 @@ import mat.server.service.MeasurePackageService;
 import mat.server.service.SimpleEMeasureService;
 import mat.server.service.SimpleEMeasureService.ExportResult;
 import mat.server.service.UserService;
+import mat.server.simplexml.MATCssUtil;
+import mat.server.util.XmlProcessor;
 import mat.shared.FileNameUtility;
 import mat.shared.InCorrectUserRoleException;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jsoup.nodes.Element;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
+import org.w3c.dom.Node;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class ExportServlet.
  */
@@ -51,7 +57,7 @@ public class ExportServlet extends HttpServlet {
 	/** The Constant ZIP. */
 	private static final String ZIP = "zip";
 	
-	/** Human readable for Subtree Node **/
+	/** Human readable for Subtree Node *. */
 	private static final String SUBTREE_HTML = "subtreeHTML";
 	
 	/** The Constant CODELIST. */
@@ -116,9 +122,16 @@ public class ExportServlet extends HttpServlet {
 		String format = req.getParameter(FORMAT_PARAM);
 		String type = req.getParameter(TYPE_PARAM);
 		String[] matVersion ={"_v3","_v4"}; 
-		Measure measure = service.getById(id);
+		Measure measure = null;
 		ExportResult export = null;
-		Date exportDate = measure.getExportedDate();
+		Date exportDate = null;
+		
+		System.out.println("FOMAT: " + format);
+		
+		if (id!= null) {
+			measure = service.getById(id);
+			exportDate = measure.getExportedDate();
+			}
 		Date releaseDate = measureLibraryService.getFormattedReleaseDate(measureLibraryService.getReleaseDate());
 		FileNameUtility fnu = new FileNameUtility();
 		try {
@@ -235,12 +248,15 @@ public class ExportServlet extends HttpServlet {
 					resp.getOutputStream().close();
 				}
 			} else if (EXPORT_MEASURE_NOTES_FOR_MEASURE.equals(format)) {
-				String csvFileString = generateCSVToExportMeasureNotes(id);
+				System.out.println("testing the print out!");
+				//String csvFileString = generateCSVToExportMeasureNotes(id);
+				export = getService().getSimpleXML(id);
+				String csvFileString = generateHTMLToExportMeasureNotes(id,export,measure.getDescription());
 				Format formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 				String measureNoteDate = formatter.format(new Date());
 				resp.setHeader(CONTENT_DISPOSITION, ATTACHMENT_FILENAME
-						+ fnu.getCSVFileName("MeasureNotes", measureNoteDate) + ";");
-				resp.setContentType("text/csv");
+						+ fnu.getHTMLFileName("MeasureNotes", measureNoteDate) + ";");
+				resp.setContentType("html");
 				resp.getOutputStream().write(csvFileString.getBytes());
 				resp.getOutputStream().close();
 			}
@@ -252,7 +268,107 @@ public class ExportServlet extends HttpServlet {
 			resp.getOutputStream().println(export.export);
 		}
 	}
+
+	/**
+	 * Generate html to export measure notes.
+	 *
+	 * @param measureId the measure id
+	 * @param export the export
+	 * @param name the name
+	 * @return the string
+	 * @throws XPathExpressionException the x path expression exception
+	 */
+	private String generateHTMLToExportMeasureNotes(final String measureId, ExportResult export,String name) throws XPathExpressionException{
+		List<MeasureNotes> allMeasureNotes = getMeasureNoteService().getAllMeasureNotesByMeasureID(measureId);
+		org.jsoup.nodes.Document htmlDocument = new org.jsoup.nodes.Document("");
+		Element html = htmlDocument.appendElement("html");
+		html.appendElement("head");
+		html.appendElement("body");
+		Element head = htmlDocument.head();
+		htmlDocument.title("Measure Notes");
+		
+		String styleTagString = MATCssUtil.getCSS();
+		head.append(styleTagString);
+		Element header = htmlDocument.body().appendElement("h1");
+		Node eMeasureId = null;
+		if(export != null){
+			XmlProcessor measureXMLProcessor = new XmlProcessor(export.export);
+			eMeasureId = measureXMLProcessor.findNode(measureXMLProcessor.getOriginalDoc(), "//measureDetails/emeasureid");
+		}
+		if(eMeasureId != null){
+			header.appendText(name+ " (CMS " + eMeasureId.getTextContent() + ") " + "Measure Notes");
+		}else{
+			header.appendText(name + " Measure Notes");
+		}
+		Element table = htmlDocument.body().appendElement("table");
+		table.attr("class", "header_table");
+		table.attr("width", "100%");
+		Element row = table.appendElement("tr");
+		createHeader(row);
+		for(MeasureNotes measureNotes:allMeasureNotes){
+			row = table.appendElement("tr");
+			createBody(row, measureNotes.getNoteTitle(),false,"20%");
+			createBody(row,measureNotes.getNoteDesc(), true,"33%");
+			createBody(row,convertDateToString(measureNotes.getLastModifiedDate()),false,"17%");
+			createBody(row,measureNotes.getCreateUser().getEmailAddress(),false,"15%");
+			if (measureNotes.getModifyUser() != null) {
+				createBody(row,measureNotes.getModifyUser().getEmailAddress(),false,"15%");
+			}else{
+				createBody(row,"",false,"15%");
+			}
+		}
+		
+		return htmlDocument.toString();
+	}
 	
+	/**
+	 * Creates the body.
+	 *
+	 * @param row the row
+	 * @param message the message
+	 * @param html the html
+	 * @param width the width
+	 */
+	private void createBody(Element row, String message,Boolean html,String width){
+		Element col = row.appendElement("td");
+		col.attr("width", width);
+		if(!html){
+			col.appendText(message);
+		}else{
+			col.append(message);
+		}
+	}
+	
+	/**
+	 * Creates the header.
+	 *
+	 * @param row the row
+	 */
+	private void createHeader(Element row){
+		createHeaderRows(row,"Title","20%");
+		createHeaderRows(row,"Description","33%");
+		createHeaderRows(row,"Last Modified Date","17%");
+		createHeaderRows(row,"Created By","15%");
+		createHeaderRows(row,"Modified By","15%");
+	}
+	
+	/**
+	 * Creates the header rows.
+	 *
+	 * @param row the row
+	 * @param header the header
+	 * @param width the width
+	 */
+	private void createHeaderRows(Element row, String header,String width){
+		Element col = row.appendElement("td");
+		col.attr("bgcolor", "#656565");
+		col.attr("style", "background-color:#656565");
+		Element span = col.appendElement("span");
+		span.attr("class", "td_label");
+		span.attr("width", width);
+		span.appendText(header);
+		
+	}
 	/**
 	 * Generate csv to export measure notes.
 	 * 
@@ -407,10 +523,20 @@ public class ExportServlet extends HttpServlet {
 		return (MeasureNotesService) context.getBean("measureNotesService");
 	}
 	
+	/**
+	 * Gets the measure package service.
+	 *
+	 * @return the measure package service
+	 */
 	private MeasurePackageService getMeasurePackageService() {
 		return (MeasurePackageService) context.getBean("measurePackageService");
 	}
 	
+	/**
+	 * Gets the measure library service.
+	 *
+	 * @return the measure library service
+	 */
 	private MeasureLibraryService getMeasureLibraryService(){
 		return (MeasureLibraryService) context.getBean("measureLibraryService");
 	}

@@ -27,6 +27,7 @@ import mat.client.umls.service.VSACAPIServiceAsync;
 import mat.client.umls.service.VsacApiResult;
 import mat.model.MatValueSet;
 import mat.model.QualityDataSetDTO;
+import mat.shared.ConstantMessages;
 import mat.shared.MeasurePackageClauseValidator;
 
 import com.google.gwt.core.client.GWT;
@@ -334,14 +335,10 @@ public class MeasurePackagePresenter implements MatPresenter {
 			
 			@Override
 			public void onClick(ClickEvent event) {
-				clearMessages();
+				clearMessages();				
 				((Button) view.getPackageMeasureButton()).setEnabled(false);
 				isMeasurePackageExportSuccess = false;
-				//MatContext.get().getMeasureService().saveMeasureAtPackage(model, new AsyncCallback<SaveMeasureResult>()
-				
-				//Validate Package Grouping at the time of creating measure Package.
-				validatePackageGrouping();
-				
+				validateGroup();				
 			}
 		});
 		
@@ -352,7 +349,7 @@ public class MeasurePackagePresenter implements MatPresenter {
 				clearMessages();
 				((Button) view.getPackageMeasureButton()).setEnabled(false);
 				isMeasurePackageExportSuccess = true;
-				validatePackageGrouping();
+				validateGroup();
 			}
 		});
 		
@@ -369,6 +366,7 @@ public class MeasurePackagePresenter implements MatPresenter {
 								new AsyncCallback<Void>() {
 							@Override
 							public void onFailure(final Throwable caught) {
+								Mat.hideLoadingMessage();
 								view.getPackageErrorMessageDisplay().
 								setMessage(MatContext.get().
 										getMessageDelegate().
@@ -423,16 +421,53 @@ public class MeasurePackagePresenter implements MatPresenter {
 			}
 		});
 	}
+	
+	/**
+	 * Validate group.
+	 */
+	protected void validateGroup() {
+		MatContext.get().getMeasureService()
+		.validateForGroup(model,new AsyncCallback<ValidateMeasureResult>() {
+			@Override
+			public void onFailure(final Throwable caught) {
+				Mat.hideLoadingMessage();				
+				((Button) view.getPackageMeasureButton())
+				.setEnabled(true);				
+				view.getPackageErrorMessageDisplay().setMessage(
+						MatContext.get().getMessageDelegate().getUnableToProcessMessage());
+			}
+			
+			@Override
+			public void onSuccess(final ValidateMeasureResult result) {					
+					Mat.showLoadingMessage();				
+					if(result.isValid()){						
+						validatePackageGrouping();						
+					}else {
+						Mat.hideLoadingMessage();
+						view.getMeasureErrorMessageDisplay()
+						.setMessages(result.getValidationMessages());
+						((Button) view.getPackageMeasureButton()).setEnabled(true);
+				}
+			}
+			
+		});
+		
+		
+	}
+
 	/**
 	 * Valid grouping check.
 	 * @return boolean.
 	 */
 	private boolean isValid() {
+		
 		List<MeasurePackageClauseDetail> detailList = view
 				.getPackageGroupingWidget().getGroupingPopulationList();
 		List<String> messages = new ArrayList<String>();
 		MeasurePackageClauseValidator clauseValidator = new MeasurePackageClauseValidator();
+		MeasurePackageClauseCellListWidget measurePackageClauseCellListWidget = new MeasurePackageClauseCellListWidget();		
 		messages = clauseValidator.isValidMeasurePackage(detailList);
+		measurePackageClauseCellListWidget.CheckForNumberOfStratification((ArrayList<MeasurePackageClauseDetail>) detailList, messages);
 		if (messages.size() > 0) {
 			view.getPackageErrorMessageDisplay().setMessages(messages);
 		} else {
@@ -463,22 +498,9 @@ public class MeasurePackagePresenter implements MatPresenter {
 	public final void getAppliedQDMList(boolean checkForSupplementData) {
 		String measureId = MatContext.get().getCurrentMeasureId();
 		if ((measureId != null) && !measureId.equals("")) {
-			service.getAppliedQDMFromMeasureXml(measureId,
+			service.getAppliedQDMForItemCount(measureId,
 					checkForSupplementData,
 					new AsyncCallback<List<QualityDataSetDTO>>() {
-				
-				private void filterTimingAndAttributeQDMs(
-						List<QualityDataSetDTO> result) {
-					List<QualityDataSetDTO> timingAndAttributeQDMs = new ArrayList<QualityDataSetDTO>();
-					for (QualityDataSetDTO qdsDTO : result) {
-						if ("Timing Element".equals(qdsDTO
-								.getDataType()) || "attribute".equals(qdsDTO.getDataType())) {
-							timingAndAttributeQDMs.add(qdsDTO);
-						}
-					}
-					result.removeAll(timingAndAttributeQDMs);
-				}
-				
 				@Override
 				public void onFailure(final Throwable caught) {
 					Window.alert(MatContext.get().getMessageDelegate()
@@ -489,7 +511,6 @@ public class MeasurePackagePresenter implements MatPresenter {
 				public void onSuccess(
 						final List<QualityDataSetDTO> result) {
 					QDSAppliedListModel appliedListModel = new QDSAppliedListModel();
-					filterTimingAndAttributeQDMs(result);
 					appliedListModel.setAppliedQDMs(result);
 					view.setAppliedQdmList(appliedListModel);
 				}
@@ -909,18 +930,20 @@ public class MeasurePackagePresenter implements MatPresenter {
 			
 			@Override
 			public void onFailure(Throwable caught) {
+				Mat.hideLoadingMessage();
 				((Button) view.getPackageMeasureButton()).setEnabled(true);
 			}
 			
 			@Override
-			public void onSuccess(Boolean result) {
+			public void onSuccess(Boolean result) {				
 				if(!result){
 					//view.getPackageSuccessMessageDisplay().setMessage("Validation Successful");
 					saveMeasureAtPackage();
 					
 				} else {
+					Mat.hideLoadingMessage();
 					view.getMeasurePackageWarningMsg().
-					setMessage("Unable to create measure package. Please validate your measure logic in both Population Workspace and clause workspace tabs");
+					setMessage("Unable to create measure package. Please validate your measure logic in both Population Workspace and Clause Workspace.");
 					
 				}
 				((Button) view.getPackageMeasureButton()).setEnabled(true);
@@ -939,6 +962,7 @@ public class MeasurePackagePresenter implements MatPresenter {
 			
 			@Override
 			public void onFailure(Throwable caught) {
+				Mat.hideLoadingMessage();
 				((Button) view.getPackageMeasureButton()).setEnabled(true);
 			}
 			
@@ -950,9 +974,8 @@ public class MeasurePackagePresenter implements MatPresenter {
 			@Override
 			public void onSuccess(SaveMeasureResult result) {
 				updateComponentMeasuresFromXml();
-				//added by hari
+				
 				if (result.isSuccess()) {
-					Mat.showLoadingMessage();
 					String measureId = MatContext.get()
 							.getCurrentMeasureId();
 					if (view.getIncludeVSACData().getValue().equals(Boolean.TRUE)) {
@@ -961,7 +984,8 @@ public class MeasurePackagePresenter implements MatPresenter {
 						validateMeasureAndExport(measureId, null);
 					}
 				} else {
-					((Button) view.getPackageMeasureButton()).setEnabled(true);
+					Mat.hideLoadingMessage();
+					((Button) view.getPackageMeasureButton()).setEnabled(true);					
 					if (result.getFailureReason()
 							== SaveMeasureResult.INVALID_VALUE_SET_DATE) {
 						String message = MatContext.get()
@@ -1005,6 +1029,7 @@ public class MeasurePackagePresenter implements MatPresenter {
 			
 			@Override
 			public void onFailure(final Throwable caught) {
+				Mat.hideLoadingMessage();
 			}
 			
 			@Override
@@ -1032,24 +1057,21 @@ public class MeasurePackagePresenter implements MatPresenter {
 				new AsyncCallback<ValidateMeasureResult>() {
 			@Override
 			public void onFailure(final Throwable caught) {
-				// O&M 17
+				Mat.hideLoadingMessage();				
 				((Button) view.getPackageMeasureButton())
-				.setEnabled(true);
-				Mat.hideLoadingMessage();
+				.setEnabled(true);				
 				view.getPackageErrorMessageDisplay().setMessage(
 						MatContext.get().getMessageDelegate().getUnableToProcessMessage());
 			}
 			
 			@Override
-			public void onSuccess(final ValidateMeasureResult result) {
-				// O&M 17
-				((Button) view.getPackageMeasureButton()).setEnabled(true);
-				
-				Mat.hideLoadingMessage();
+			public void onSuccess(final ValidateMeasureResult result) {				
+				((Button) view.getPackageMeasureButton()).setEnabled(true);				
+     			Mat.hideLoadingMessage();
 				if (updateVsacResult != null) {
 					if (result.isValid() && updateVsacResult.isSuccess()) {
 						if(updateVsacResult.getRetrievalFailedOIDs().size() > 0){
-							if (isMeasurePackageExportSuccess) {
+							if (isMeasurePackageExportSuccess) {								
 								saveExport();
 							} else {
 								view.getMeasurePackageSuccessMsg()
@@ -1057,21 +1079,19 @@ public class MeasurePackagePresenter implements MatPresenter {
 										.getPackageSuccessAmberMessage());
 							}
 							
-						} else {
-							
-							if (isMeasurePackageExportSuccess) {
+						} else {														
+							if (isMeasurePackageExportSuccess) {								
 								saveExport();
-							} else {
+							} else {								
 								view.getMeasurePackageSuccessMsg()
 								.setMessage(MatContext.get().getMessageDelegate()
 										.getPackageSuccessMessage());
 							}
 						}
 						
-					} else if (result.isValid() && !updateVsacResult.isSuccess()) {
+					} else if (result.isValid() && !updateVsacResult.isSuccess()) {						
 						if (updateVsacResult.getFailureReason()
 								== VsacApiResult.UMLS_NOT_LOGGEDIN) {
-							
 							if (isMeasurePackageExportSuccess) {
 								saveExport();
 							} else {
@@ -1079,26 +1099,26 @@ public class MeasurePackagePresenter implements MatPresenter {
 							.setMessage(MatContext.get().getMessageDelegate()
 									.getMEASURE_PACKAGE_UMLS_NOT_LOGGED_IN());
 							}
-						}else if(VsacApiResult.VSAC_REQUEST_TIMEOUT == updateVsacResult.getFailureReason()){
+						}else if(VsacApiResult.VSAC_REQUEST_TIMEOUT == updateVsacResult.getFailureReason()){							
 							view.getMeasureErrorMessageDisplay()
 							.setMessage(MatContext.get().getMessageDelegate()
 									.getMEASURE_PACKAGE_VSAC_TIMEOUT());
 						}
-					} else {
+					} else {						
 						view.getMeasureErrorMessageDisplay()
 						.setMessages(result.getValidationMessages());
 					}
 				} else {
-					if (result.isValid()) {
+					if (result.isValid()) {						
 						//to Export the Measure.
 						if (isMeasurePackageExportSuccess) {
 							saveExport();
-						} else {
+						} else {							
 							view.getMeasurePackageSuccessMsg()
 							.setMessage(MatContext.get().getMessageDelegate()
 									.getPackageSuccessMessage());
 						}
-					} else {
+					} else {						
 						view.getMeasureErrorMessageDisplay()
 						.setMessages(result.getValidationMessages());
 					}
@@ -1110,10 +1130,11 @@ public class MeasurePackagePresenter implements MatPresenter {
 	/**
 	 * Save export.
 	 */
-	private void saveExport() {
+	private void saveExport() {		
 		String url = GWT.getModuleBaseURL() + "export?id=" + model.getId()
 				+ "&format=zip";
-		Window.open(url + "&type=save", "_self", "");
+		Window.Location.replace(url + "&type=save"); 
+	
 	}
 	
 }

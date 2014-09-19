@@ -7,9 +7,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+
 import mat.client.clause.clauseworkspace.presenter.PopulationWorkSpaceConstants;
 import mat.client.measurepackage.MeasurePackageClauseDetail;
 import mat.client.measurepackage.MeasurePackageDetail;
@@ -24,6 +26,7 @@ import mat.server.service.PackagerService;
 import mat.server.util.ResourceLoader;
 import mat.server.util.XmlProcessor;
 import mat.shared.MeasurePackageClauseValidator;
+
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -58,6 +61,12 @@ public class PackagerServiceImpl implements PackagerService {
 	/** The Constant XPATH_MEASURE_SUPPLEMENTAL_DATA_ELEMENTS_EXPRESSION. */
 	private static final String XPATH_MEASURE_SUPPLEMENTAL_DATA_ELEMENTS_EXPRESSION = "/measure/supplementalDataElements/elementRef[@id";
 	
+	/** The Constant XPATH_MEASURE_ELEMENT_LOOK_UP_EXPRESSION. */
+	//private static final String XPATH_MEASURE_ELEMENT_LOOK_UP_EXPRESSION = "/measure/elementLookUp/qdm[@uuid='";
+	
+	
+	
+	
 	/** The measure xmldao. */
 	@Autowired
 	private MeasureXMLDAO measureXMLDAO;
@@ -84,6 +93,8 @@ public class PackagerServiceImpl implements PackagerService {
 		
 		List<MeasurePackageClauseDetail> clauses = new ArrayList<MeasurePackageClauseDetail>();
 		List<MeasurePackageDetail> pkgs = new ArrayList<MeasurePackageDetail>();
+		//get all the list of allowed populations at package
+		List<String> allowedPopulationsInPackage = MatContext.get().getAllowedPopulationsInPackage();
 		// Load Measure Xml
 		MeasureXML measureXML = measureXMLDAO.findForMeasure(measureId);
 		XmlProcessor  processor = new XmlProcessor(measureXML.getMeasureXMLAsString());
@@ -103,6 +114,7 @@ public class PackagerServiceImpl implements PackagerService {
 					Node displayNameNode = namedNodeMap.getNamedItem(PopulationWorkSpaceConstants.DISPLAY_NAME);
 					Node typeNode = namedNodeMap.getNamedItem(PopulationWorkSpaceConstants.TYPE);
 					Node associatedClauseUUIDNode = namedNodeMap.getNamedItem("associatedPopulationUUID");
+					
 					String associatedClauseUUID = null;
 					if(associatedClauseUUIDNode != null){
 						associatedClauseUUID = associatedClauseUUIDNode.getNodeValue();
@@ -113,9 +125,8 @@ public class PackagerServiceImpl implements PackagerService {
 						clauses.add(createMeasurePackageClauseDetail(
 								uuidNode.getNodeValue(), displayNameNode.getNodeValue(), XmlProcessor.STRATIFICATION,
 								associatedClauseUUID,qdmSelectedList));
-					}
-					else
-					{
+						
+					} else if(allowedPopulationsInPackage.contains(typeNode.getNodeValue())){//filter unAllowed populations in package
 						clauses.add(createMeasurePackageClauseDetail(
 								uuidNode.getNodeValue(), displayNameNode.getNodeValue(), typeNode.getNodeValue(),
 								associatedClauseUUID,qdmSelectedList));
@@ -362,9 +373,9 @@ public class PackagerServiceImpl implements PackagerService {
 	 * if the Group not Present appends the new Group from measureGrouping XML
 	 * to the parent measureGrouping node in Measure_XML Finally Save the
 	 * Measure_xml
-	 * 
-	 * @param detail
-	 *            the detail
+	 *
+	 * @param detail the detail
+	 * @return the measure package save result
 	 */
 	@Override
 	public MeasurePackageSaveResult save(MeasurePackageDetail detail) {
@@ -426,6 +437,12 @@ public class PackagerServiceImpl implements PackagerService {
 		XmlProcessor  processor = new XmlProcessor(measureXML.getMeasureXMLAsString());
 		if (supplementDataElementsAll.size() > 0) {
 			processor.replaceNode(stream.toString(), SUPPLEMENT_DATA_ELEMENTS, MEASURE);
+			//try {
+			//	setSupplementalDataForQDMs(processor.getOriginalDoc(), detail.getSuppDataElements(), detail.getQdmElements());
+			//} catch (XPathExpressionException e) {
+			// TODO Auto-generated catch block
+			//	e.printStackTrace();
+			//}
 		} else {
 			
 			try {
@@ -440,6 +457,7 @@ public class PackagerServiceImpl implements PackagerService {
 					Node parentNode = newNode.getParentNode();
 					parentNode.removeChild(newNode);
 				}
+				//setSupplementalDataForQDMs(processor.getOriginalDoc(), detail.getSuppDataElements(), detail.getQdmElements());
 			} catch (XPathExpressionException e) {
 				
 				e.printStackTrace();
@@ -448,5 +466,37 @@ public class PackagerServiceImpl implements PackagerService {
 		measureXML.setMeasureXMLAsByteArray(processor.transform(processor.getOriginalDoc()));
 		measureXMLDAO.save(measureXML);
 	}
+	
+	
+	
+	/**
+	 * Sets the supplemental data for qd ms.
+	 *
+	 * @param originalDoc the new supplemental data for qd ms
+	 * @param supplementalDataElemnts the supplemental data elemnts
+	 * @param qdmElemnts the qdm elemnts
+	 * @throws XPathExpressionException the x path expression exception
+	 *///commented Out
+	//	private void setSupplementalDataForQDMs(Document originalDoc, List<QualityDataSetDTO> supplementalDataElemnts,
+	//			List<QualityDataSetDTO> qdmElemnts) throws XPathExpressionException {
+	//
+	//		//to set QDM's that are used in Supplemental Data ELements tab.
+	//		for(int i = 0; i<supplementalDataElemnts.size(); i++){
+	//			javax.xml.xpath.XPath xPath = XPathFactory.newInstance().newXPath();
+	//			Node nodeSupplementalDataNode = (Node) xPath.evaluate(XPATH_MEASURE_ELEMENT_LOOK_UP_EXPRESSION +supplementalDataElemnts.get(i).getUuid()+"']",
+	//					originalDoc.getDocumentElement(), XPathConstants.NODE);
+	//			nodeSupplementalDataNode.getAttributes().getNamedItem("suppDataElement").setNodeValue("true");
+	//		}
+	//
+	//		//to set QDM's that are used in QDM Elements Tab
+	//
+	//		for(int j = 0; j<qdmElemnts.size(); j++){
+	//			javax.xml.xpath.XPath xPath = XPathFactory.newInstance().newXPath();
+	//			Node nodeSupplementalDataNode = (Node) xPath.evaluate(XPATH_MEASURE_ELEMENT_LOOK_UP_EXPRESSION +qdmElemnts.get(j).getUuid()+"']",
+	//					originalDoc.getDocumentElement(), XPathConstants.NODE);
+	//			nodeSupplementalDataNode.getAttributes().getNamedItem("suppDataElement").setNodeValue("false");
+	//		}
+	//
+	//	}
 	
 }

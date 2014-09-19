@@ -14,19 +14,20 @@ public class MessageDelegate {
 	/** The Constant ALERT_LOADING_MESSAGE. */
 	public static final String ALERT_LOADING_MESSAGE = "Please wait until loading is complete.";
 	
+	/** The Constant MEASURE_DEVELOPER_ADDED_SUCCESSFULLY. */
+	public static final String MEASURE_DEVELOPER_ADDED_SUCCESSFULLY= "Measure Developer updated successfully. Changes must be saved on the previous page.";
+	
 	/** The Constant CHANGES_SAVED. */
 	public static final String CHANGES_SAVED = "Changes are successfully saved.";
 	
-	/**
-	 * The Constant NO_MARKUP_ALLOWED
-	 */
+	/** The Constant NO_MARKUP_ALLOWED. */
 	public static final String NO_MARKUP_ALLOWED = "No markup text allowed in any text fields.";
 	
 	/** The Constant CODE_LIST_ADDED. */
 	public static final String CODE_LIST_ADDED = "Code has been successfully added to the value set.";
 	
 	/** The Constant CODE_LIST_ADDED_GROUP. */
-	public static final String CODE_LIST_ADDED_GROUP = "Value Set has been successfully added to the grouped value set.";
+	public static final String CODE_LIST_ADDED_GROUP = "Value set has been successfully added to the grouped value set.";
 	
 	/** The Constant COMPLETE. */
 	public static final int COMPLETE = 1;
@@ -41,10 +42,10 @@ public class MessageDelegate {
 	public static final String FIRST_NAME_REQUIRED = "First Name is required.";
 	
 	/** The Constant GROUPED_VALUE_SET_COMPLETE_SAVED. */
-	public static final String GROUPED_VALUE_SET_COMPLETE_SAVED = "Grouped Value Set successfully saved as complete.";
+	public static final String GROUPED_VALUE_SET_COMPLETE_SAVED = "Grouped value set successfully saved as complete.";
 	
 	/** The Constant GROUPED_VALUE_SET_DRAFT_SAVED. */
-	public static final String GROUPED_VALUE_SET_DRAFT_SAVED = "Grouped Value Set successfully saved as a draft.";
+	public static final String GROUPED_VALUE_SET_DRAFT_SAVED = "Grouped value set successfully saved as a draft.";
 	
 	/** The Constant GROUPING_SAVED. */
 	public static final String GROUPING_SAVED = "Grouping has been saved.";
@@ -60,15 +61,16 @@ public class MessageDelegate {
 	
 	/** The Constant EMAIL_ID_INCORRECT_FORMAT. */
 	public static final String EMAIL_ID_INCORRECT_FORMAT = "Email Address has an incorrect format.";
-	
+	/** The Constant EMAIL_ID_REQUIRED. */
+	public static final String EMAIL_ID_REQUIRED = "Email Address is required.";
 	/** The Constant LOGIN_USER_REQUIRED. */
 	public static final String LOGIN_USER_REQUIRED = "User Name is required.";
 	
 	/** The Constant NO_CODE_LISTS. */
-	public static final String NO_CODE_LISTS = "No Value Sets returned. Please search again.";
+	public static final String NO_CODE_LISTS = "No value sets returned. Please search again.";
 	
 	/** The Constant NO_MEASURES. */
-	public static final String NO_MEASURES = "No Measures returned. Please search again.";
+	public static final String NO_MEASURES = "No measures returned. Please search again.";
 	
 	/** The Constant OID_REQUIRED. */
 	public static final String OID_REQUIRED = "OID is required.";
@@ -77,7 +79,7 @@ public class MessageDelegate {
 	public static final String OID_TOO_LONG = "OID cannot exceed 50 characters.";
 	
 	/** The Constant ONE_AND. */
-	public static final String ONE_AND = "A Clause should start with only one AND.";
+	public static final String ONE_AND = "A clause should start with only one AND.";
 	
 	/** The Constant ORG_REQUIRED. */
 	public static final String ORG_REQUIRED = "Organization is required.";
@@ -127,10 +129,10 @@ public class MessageDelegate {
 	public static final String TEMP_EMAIL_SENT = "Temporary Password E-mail has been sent.";
 	
 	/** The Constant VALUE_SET_COMPLETE_SAVED. */
-	public static final String VALUE_SET_COMPLETE_SAVED = "Value Set successfully saved as complete.";
+	public static final String VALUE_SET_COMPLETE_SAVED = "Value set successfully saved as complete.";
 	
 	/** The Constant VALUE_SET_DRAFT_SAVED. */
-	public static final String VALUE_SET_DRAFT_SAVED = "Value Set successfully saved as a draft.";
+	public static final String VALUE_SET_DRAFT_SAVED = "Value set successfully saved as a draft.";
 	
 	/** The Constant VSAC_VERSION_OR_EFFECTIVE_DATE_REQUIRED. */
 	public static final String VSAC_VERSION_OR_EFFECTIVE_DATE_REQUIRED = "Value set version or effective date has been selected."
@@ -138,8 +140,10 @@ public class MessageDelegate {
 	/**
 	 * Ratio Measure - Association Required for Numerator/Denominator in case of more than 1 IP.
 	 */
-	public static final String RATIO_NUM_DENO_ASSOCIATION_REQUIRED = "For Ratio measures, in case of more than one Population, "
+	public static final String RATIO_NUM_DENO_ASSOCIATION_REQUIRED = "For Ratio measures, in the case of more than one Population, "
 			+ " Numerator and Denominator must contain one association.";
+	
+	
 	
 	
 	/**
@@ -193,33 +197,61 @@ public class MessageDelegate {
 	private final String CATEGORY_REQUIRED = "Category is required.";
 	
 	/** The clause work space validation error. */
-	private final String CLAUSE_WORK_SPACE_VALIDATION_ERROR = "Measure logic is incomplete."
-			+ " LHS and RHS are required for Timings, Relationships and Satisfies functions.";
+	private final String MEASURE_LOGIC_IS_INCOMPLETE = " Measure logic is incomplete.";
+	
+	/** The lhs rhs required. */
+	private final String LHS_RHS_REQUIRED = " LHS and RHS are required for Timings, Relationships and Satisfies functions.";
+	
+	/** The atleast one child required. */
+	private final String ATLEAST_ONE_CHILD_REQUIRED = " Union, Intersection, and Functions must contain at least one child node.";
 	
 	/** The clause work space validation success. */
 	private final String CLAUSE_WORK_SPACE_VALIDATION_SUCCESS = "Measure logic validation successful.";
 	
 	/** The clause work space validation error. */
-	private final String POPULATION_WORK_SPACE_VALIDATION_ERROR = "Measure logic is incorrect."
-			+ " Logic must only contain Clauses and Logical operators.";	
-
+	private final String POPULATION_WORK_SPACE_VALIDATION_ERROR = "Logic must only contain Clauses and Logical operators.";
+	
+	/** The measure logic is incorrect. */
+	private final String MEASURE_LOGIC_IS_INCORRECT = " Measure logic is incorrect.";
+	/** The population work space measure observation validation error. */
+	private final String POPULATION_WORK_SPACE_MEASURE_OBSERVATION_VALIDATION_ERROR = " Logic must only contain Clauses.";
+	
+	/** The invalid character validation error. */
+	private final String INVALID_CHARACTER_VALIDATION_ERROR =" Value set name cannot contain any of the following characters : + * ? : - | ! ; %";
+	
+	/** The organization success message. */
+	private final String ORGANIZATION_SUCCESS_MESSAGE = "Organization successfully added.";
+	
+	/** The user success message. */
+	private final String USER_SUCCESS_MESSAGE = "User information saved successfully.";
+	
 	/** The clause work space validation success. */
-	private final String POPULATION_WORK_SPACE_VALIDATION_SUCCESS = " Measure Logic validation successful.";
+	private final String POPULATION_WORK_SPACE_VALIDATION_SUCCESS = " Measure logic validation successful.";
 	
 	/** The code list required. */
-	private final String CODE_LIST_REQUIRED = "Value Set is required.";
+	private final String CODE_LIST_REQUIRED = "Value set is required.";
 	
 	/** The code required. */
 	private final String CODE_REQUIRED = "Code is required.";
 	
+	/**
+	 * Gets the population work space validation error.
+	 *
+	 * @return the population work space validation error
+	 */
 	public String getPOPULATION_WORK_SPACE_VALIDATION_ERROR() {
 		return POPULATION_WORK_SPACE_VALIDATION_ERROR;
 	}
-
+	
+	/**
+	 * Gets the population work space validation success.
+	 *
+	 * @return the population work space validation success
+	 */
 	public String getPOPULATION_WORK_SPACE_VALIDATION_SUCCESS() {
 		return POPULATION_WORK_SPACE_VALIDATION_SUCCESS;
 	}
-
+	
 	/** The code system required. */
 	private final String CODE_SYSTEM_REQUIRED = "Code System is required.";
 	
@@ -427,6 +459,7 @@ public class MessageDelegate {
 	/** The ratio too many. */
 	private final String RATIO_TOO_MANY = "For a Ratio measure, a grouping may not contain more than one of each of the following: Denominator Exclusion and Numerator Exclusion.";
 	
+	/** The ratio too many populations. */
 	private final String RATIO_TOO_MANY_POPULATIONS = "For a Ratio measure, a grouping may not contain more than two of the following: Populations.";
 	/*
 	 * RATIO
@@ -435,16 +468,27 @@ public class MessageDelegate {
 	private final String RATIO_WRONG_NUM = "For a Ratio measure, a grouping must contain exactly one of each of the following: "
 			+ "Denominator and Numerator.";
 	
+	/** The ratio too few populations. */
 	private final String RATIO_TOO_FEW_POPULATIONS = "For a Ratio measure, a grouping must contain at least one Population.";
 	
+	private final String INVALID_LOGIC_POPULATION_WORK_SPACE = "Measure Logic is incomplete.Please validate your measure logic in both Population Workspace and Clause Workspace.";
+	
+	private final String INVALIDLOGIC_CLAUSE_WORK_SPACE = "Clause logic is incomplete.Please validate your Clause logic.";
 	/**
+	 * Gets the ratio too few populations.
+	 *
 	 * @return the rATIO_TOO_FEW_POPULATIONS
 	 */
 	public String getRATIO_TOO_FEW_POPULATIONS() {
 		return RATIO_TOO_FEW_POPULATIONS;
 	}
 	
+	/** The cohort wrong num. */
 	private final String COHORT_WRONG_NUM = "For a Cohort measure, a grouping must contain exactly one Population.";
+	
+	/** The stratification validation for grouping. */
+	private final String STRATIFICATION_VALIDATION_FOR_GROUPING = " Measure Grouping cannot contain more than one Stratification.";
+	
 	
 	/** The rationale required. */
 	private final String RATIONALE_REQUIRED = "Rationale is required.";
@@ -542,16 +586,28 @@ public class MessageDelegate {
 	private final String VSAC_UPDATE_SUCCESSFULL = "Successfully updated applied QDM list with VSAC data.";
 	
 	
+	/** The comment added successfully. */
 	private final String COMMENT_ADDED_SUCCESSFULLY ="Comment Changes Added.";
 	
+	/** The comparison diloag box error display. */
 	private final String COMPARISON_DILOAG_BOX_ERROR_DISPLAY="Please enter Quantity field.";
 	
+	/** The component measures added successfully. */
 	private final String COMPONENT_MEASURES_ADDED_SUCCESSFULLY="Component Measures updated successfully. Changes must be saved on the previous page.";
 	
+	/** The removed functions error message. */
+	private final String POPULATION_WORKSPACE_DATETIMEDIFF_ERROR_MESSAGE = "Highlighted clause contains DATETIMEDIFF Function.";
+	
+	
+	/**
+	 * Gets the component measures added successfully.
+	 *
+	 * @return the component measures added successfully
+	 */
 	public String getCOMPONENT_MEASURES_ADDED_SUCCESSFULLY() {
 		return COMPONENT_MEASURES_ADDED_SUCCESSFULLY;
 	}
-
+	
 	/**
 	 * Gets the abv name required message.
 	 * 
@@ -642,14 +698,6 @@ public class MessageDelegate {
 		return CHANGES_SAVED;
 	}
 	
-	/**
-	 * Gets the clause work space validation error.
-	 * 
-	 * @return String the cLAUSE_WORK_SPACE_VALIDATION_ERROR
-	 */
-	public String getCLAUSE_WORK_SPACE_VALIDATION_ERROR() {
-		return CLAUSE_WORK_SPACE_VALIDATION_ERROR;
-	}
 	
 	/**
 	 * Gets the clause work space validation success.
@@ -1950,6 +1998,8 @@ public class MessageDelegate {
 	}
 	
 	/**
+	 * Gets the comment added successfully.
+	 *
 	 * @return the cOMMENT_ADDED_SUCCESSFULLY
 	 */
 	public String getCOMMENT_ADDED_SUCCESSFULLY() {
@@ -1957,17 +2007,26 @@ public class MessageDelegate {
 	}
 	
 	/**
+	 * Gets the cohort wrong num.
+	 *
 	 * @return the cOHORT_WRONG_NUM
 	 */
 	public String getCOHORT_WRONG_NUM() {
 		return COHORT_WRONG_NUM;
 	}
 	
+	/**
+	 * Gets the comparison diloag box error display.
+	 *
+	 * @return the comparison diloag box error display
+	 */
 	public String getComparisonDiloagBoxErrorDisplay() {
 		return COMPARISON_DILOAG_BOX_ERROR_DISPLAY;
 	}
 	
 	/**
+	 * Gets the ratio too many populations.
+	 *
 	 * @return the rATIO_TOO_MANY_POPULATIONS
 	 */
 	public String getRATIO_TOO_MANY_POPULATIONS() {
@@ -1975,9 +2034,131 @@ public class MessageDelegate {
 	}
 	
 	/**
+	 * Gets the ratio num deno association required.
+	 *
 	 * @return the ratioNumDenoAssociationRequired
 	 */
 	public String getRatioNumDenoAssociationRequired() {
 		return RATIO_NUM_DENO_ASSOCIATION_REQUIRED;
 	}
+	
+	/**
+	 * Gets the measure logic is incomplete.
+	 *
+	 * @return the mEASURE_LOGIC_IS_INCOMPLETE
+	 */
+	public String getMEASURE_LOGIC_IS_INCOMPLETE() {
+		return MEASURE_LOGIC_IS_INCOMPLETE;
+	}
+	
+	/**
+	 * Gets the lhs rhs required.
+	 *
+	 * @return the lHS_RHS_REQUIRED
+	 */
+	public String getLHS_RHS_REQUIRED() {
+		return LHS_RHS_REQUIRED;
+	}
+	
+	/**
+	 * Gets the atleaste one child required.
+	 *
+	 * @return the aTLEASTE_ONE_CHILD_REQUIRED
+	 */
+	public String getATLEAST_ONE_CHILD_REQUIRED() {
+		return ATLEAST_ONE_CHILD_REQUIRED;
+	}
+	
+	/**
+	 * Gets the population work space measure observation validation error.
+	 *
+	 * @return the pOPULATION_WORK_SPACE_MEASURE_OBSERVATION_VALIDATION_ERROR
+	 */
+	public String getPOPULATION_WORK_SPACE_MEASURE_OBSERVATION_VALIDATION_ERROR() {
+		return POPULATION_WORK_SPACE_MEASURE_OBSERVATION_VALIDATION_ERROR;
+	}
+	
+	
+	/**
+	 * Gets the invalid character validation error.
+	 *
+	 * @return the invalid character validation error
+	 */
+	public String getINVALID_CHARACTER_VALIDATION_ERROR() {
+		return INVALID_CHARACTER_VALIDATION_ERROR;
+	}
+	
+	/**
+	 * Gets the measure developer added successfully.
+	 *
+	 * @return the measureDeveloperAddedSuccessfully
+	 */
+	public static String getMeasureDeveloperAddedSuccessfully() {
+		return MEASURE_DEVELOPER_ADDED_SUCCESSFULLY;
+	}
+	
+	/**
+	 * Gets the measure logic is incorrect.
+	 *
+	 * @return the mEASURE_LOGIC_IS_INCORRECT
+	 */
+	public String getMEASURE_LOGIC_IS_INCORRECT() {
+		return MEASURE_LOGIC_IS_INCORRECT;
+	}
+	
+	/**
+	 * Gets the stratification validation for grouping.
+	 *
+	 * @return the stratification validation for grouping
+	 */
+	public String getSTRATIFICATION_VALIDATION_FOR_GROUPING() {
+		return STRATIFICATION_VALIDATION_FOR_GROUPING;
+	}
+	
+	/**
+	 * Gets the organization success message.
+	 *
+	 * @return the oRGANIZATION_SUCCESS_MESSAGE
+	 */
+	public String getORGANIZATION_SUCCESS_MESSAGE() {
+		return ORGANIZATION_SUCCESS_MESSAGE;
+	}
+	
+	/**
+	 * Gets the user success message.
+	 *
+	 * @return the uSER_SUCCESS_MESSAGE
+	 */
+	public String getUSER_SUCCESS_MESSAGE() {
+		return USER_SUCCESS_MESSAGE;
+	}
+	
+	/**
+	 * Gets the email id required.
+	 *
+	 * @return the emailIdRequired
+	 */
+	public String getEmailIdRequired() {
+		return EMAIL_ID_REQUIRED;
+	}
+	
+	public String getPOPULATION_WORKSPACE_DATETIMEDIFF_ERROR_MESSAGE() {
+		return POPULATION_WORKSPACE_DATETIMEDIFF_ERROR_MESSAGE;
+	}
+	
+	/**
+	 * @return the iNVALID_LOGIC_POPULATION_WORK_SPACE
+	 */
+	public String getINVALID_LOGIC_POPULATION_WORK_SPACE() {
+		return INVALID_LOGIC_POPULATION_WORK_SPACE;
+	}
+
+	/**
+	 * @return the iNVALIDLOGIC_CLAUSE_WORK_SPACE
+	 */
+	public String getINVALIDLOGIC_CLAUSE_WORK_SPACE() {
+		return INVALIDLOGIC_CLAUSE_WORK_SPACE;
+	}
+	
+	
 }

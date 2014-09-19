@@ -2,6 +2,7 @@ package mat.client.measure;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import mat.client.CustomPager;
 import mat.client.measure.ManageMeasureSearchModel.Result;
 import mat.client.shared.ErrorMessageDisplay;
@@ -11,11 +12,12 @@ import mat.client.shared.MatContext;
 import mat.client.shared.MatSimplePager;
 import mat.client.shared.PrimaryButton;
 import mat.client.shared.SpacerWidget;
-import mat.client.shared.search.SearchView;
+
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.HasClickHandlers;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.ColumnSortEvent.ListHandler;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.FormPanel;
@@ -23,14 +25,17 @@ import com.google.gwt.user.client.ui.HasValue;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextBox;
+import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
-import com.google.gwt.view.client.ListDataProvider;
+import com.google.gwt.view.client.AsyncDataProvider;
+import com.google.gwt.view.client.HasData;
 
 // TODO: Auto-generated Javadoc
 /**
  * The Class AdminManageMeasureSearchView.
  */
 public class AdminManageMeasureSearchView implements ManageMeasurePresenter.AdminSearchDisplay {
+	
 	/** Cell Table Page Size. */
 	private static final int PAGE_SIZE = 25;
 	/** The clear button. */
@@ -49,24 +54,23 @@ public class AdminManageMeasureSearchView implements ManageMeasurePresenter.Admi
 	private TextBox searchInput = new TextBox();
 	/** The selected measure list. */
 	private List<Result> selectedMeasureList;
-	//Used custom pager class - for disabling next/last button when on last page and for showing correct pagination number.
-	/** The spager. */
-	private MatSimplePager spager;
 	/** The transfer button. */
 	private Button transferButton = new PrimaryButton("Transfer", "primaryGreyButton");
-	/** The view. */
-	private SearchView<ManageMeasureSearchModel.Result> view = new SearchView<ManageMeasureSearchModel.Result>(true);
+	/** The measure vpanel. */
+	private VerticalPanel measureVpanel = new VerticalPanel();
+	/** The index. */
+	private int index;
+	/** The cell table. */
+	CellTable<ManageMeasureSearchModel.Result> cellTable;
+	
 	/**
 	 * Instantiates a new admin manage measure search view.
 	 */
 	public AdminManageMeasureSearchView() {
-		CustomPager.Resources pagerResources = GWT.create(CustomPager.Resources.class);
-		spager = new MatSimplePager(CustomPager.TextLocation.CENTER, pagerResources, false, 0, true);
-		spager.setPageStart(0);
 		mainPanel.add(new SpacerWidget());
 		mainPanel.add(buildSearchWidget());
 		mainPanel.add(new SpacerWidget());
-		mainPanel.add(view.asWidget());
+		mainPanel.add(measureVpanel);
 		mainPanel.setStyleName("contentPanel");
 		mainPanel.add(new SpacerWidget());
 		mainPanel.add(buildBottomButtonWidget((PrimaryButton) transferButton,
@@ -75,6 +79,11 @@ public class AdminManageMeasureSearchView implements ManageMeasurePresenter.Admi
 	}
 	/* (non-Javadoc)
 	 * @see mat.client.measure.ManageMeasurePresenter.AdminSearchDisplay#asWidget()
+	 */
+	/**
+	 * As widget.
+	 *
+	 * @return the widget
 	 */
 	@Override
 	public Widget asWidget() {
@@ -94,7 +103,6 @@ public class AdminManageMeasureSearchView implements ManageMeasurePresenter.Admi
 			ErrorMessageDisplay errorMessageDisplay) {
 		FlowPanel flowPanel = new FlowPanel();
 		flowPanel.add(errorMessageDisplay);
-		//flowPanel.setStyleName("rightAlignButton");
 		transferButton.setTitle("Transfer");
 		clearButton.setTitle("Clear");
 		flowPanel.add(transferButton);
@@ -106,39 +114,72 @@ public class AdminManageMeasureSearchView implements ManageMeasurePresenter.Admi
 	 * (non-Javadoc)
 	 * @see mat.client.measure.ManageMeasurePresenter.AdminSearchDisplay#buildDataTable( mat.client.measure.AdminMeasureSearchResultAdaptor)
 	 */
+	/**
+	 * Builds the data table.
+	 *
+	 * @param results the results
+	 * @param filter the filter
+	 * @param searchText the search text
+	 */
 	@Override
-	public void buildDataTable(AdminMeasureSearchResultAdaptor results) {
-		buildMeasureDataTable(results);
+	public void buildDataTable(AdminMeasureSearchResultAdaptor results, int filter, String searchText) {
+		buildMeasureDataTable(results, filter, searchText);
 	}
+	
 	/**
 	 * Builds the measure data table.
-	 * @param results
-	 *            the results
+	 *
+	 * @param results the results
+	 * @param filter the filter
+	 * @param searchText the search text
 	 */
-	private void buildMeasureDataTable(AdminMeasureSearchResultAdaptor results) {
+	private void buildMeasureDataTable(AdminMeasureSearchResultAdaptor results, final int filter, final String searchText) {
 		if (results == null) {
 			return;
 		}
 		errorMessagesForTransferOS.clear();
-		CellTable<ManageMeasureSearchModel.Result> cellTable = new CellTable<ManageMeasureSearchModel.Result>();
-		ListDataProvider<ManageMeasureSearchModel.Result> sortProvider = new ListDataProvider<ManageMeasureSearchModel.Result>();
+		cellTable = new CellTable<ManageMeasureSearchModel.Result>();
 		selectedMeasureList = new ArrayList<Result>();
 		selectedMeasureList.addAll(results.getData().getData());
-		// Display 50 rows on a page
+		cellTable.setRowData(selectedMeasureList);
+		cellTable.setRowCount(results.getData().getResultsTotal(), true);
 		cellTable.setPageSize(PAGE_SIZE);
 		cellTable.redraw();
-		cellTable.setRowCount(selectedMeasureList.size(), true);
-		sortProvider.refresh();
-		sortProvider.getList().addAll(results.getData().getData());
 		ListHandler<ManageMeasureSearchModel.Result> sortHandler = new ListHandler<
-				ManageMeasureSearchModel.Result>(sortProvider.getList());
+				ManageMeasureSearchModel.Result>(results.getData().getData());
 		cellTable.addColumnSortHandler(sortHandler);
+		AsyncDataProvider<ManageMeasureSearchModel.Result> provider = new AsyncDataProvider<ManageMeasureSearchModel.Result>() {
+			@Override
+			protected void onRangeChanged(
+					HasData<ManageMeasureSearchModel.Result> display) {
+				final int start = display.getVisibleRange().getStart();
+				index = start;
+				AsyncCallback<ManageMeasureSearchModel> callback = new AsyncCallback<ManageMeasureSearchModel>() {
+					@Override
+					public void onFailure(Throwable caught) {
+					}
+
+					@Override
+					public void onSuccess(ManageMeasureSearchModel result) {
+						List<ManageMeasureSearchModel.Result> manageMeasureSearchList = new ArrayList<ManageMeasureSearchModel.Result>();
+						manageMeasureSearchList.addAll(result.getData());
+						selectedMeasureList = manageMeasureSearchList;
+						updateRowData(start, manageMeasureSearchList);
+					}
+				};
+
+				MatContext.get().getMeasureService()
+						.search(searchText, start + 1, start + PAGE_SIZE, filter, callback);
+			}
+		};
 		cellTable = results.addColumnToTable(cellTable, sortHandler);
-		sortProvider.addDataDisplay(cellTable);
+		provider.addDataDisplay(cellTable);
+		CustomPager.Resources pagerResources = GWT.create(CustomPager.Resources.class);
+		MatSimplePager spager = new MatSimplePager(CustomPager.TextLocation.CENTER, pagerResources, false, 0, true);
+		spager.setPageStart(0);
 		spager.setDisplay(cellTable);
 		spager.setPageSize(PAGE_SIZE);
-		/* spager.setToolTipAndTabIndex(spager); */
-		view.getvPanelForQDMTable().clear();
+		measureVpanel.clear();
 		Label invisibleLabel = (Label) LabelBuilder.buildInvisibleLabel(
 				"measureOwnerShipSummary",
 				"In the following Transfer Ownership table, Measure Name is given in the first column, "
@@ -147,12 +188,14 @@ public class AdminManageMeasureSearchView implements ManageMeasurePresenter.Admi
 						+ "Transfer in the sixth column with Check boxes positioned to the right of the table");
 		cellTable.getElement().setAttribute("id", "measureOwnerShipCellTable");
 		cellTable.getElement().setAttribute("aria-describedby", "measureOwnerShipSummary");
-		view.getvPanelForQDMTable().setStyleName("cellTablePanel");
-		view.getvPanelForQDMTable().add(invisibleLabel);
-		view.getvPanelForQDMTable().add(cellTable);
-		view.getvPanelForQDMTable().add(new SpacerWidget());
-		view.getvPanelForQDMTable().add(spager);
+		measureVpanel.setStyleName("cellTablePanel");
+		measureVpanel.add(invisibleLabel);
+		measureVpanel.add(cellTable);
+		measureVpanel.add(new SpacerWidget());
+		measureVpanel.add(spager);
 	}
+	
+	
 	/**
 	 * Builds the search widget.
 	 * @return the widget
@@ -170,17 +213,26 @@ public class AdminManageMeasureSearchView implements ManageMeasurePresenter.Admi
 	/* (non-Javadoc)
 	 * @see mat.client.measure.ManageMeasurePresenter.AdminSearchDisplay#clearTransferCheckBoxes()
 	 */
+	/**
+	 * Clear transfer check boxes.
+	 */
 	@Override
 	public void clearTransferCheckBoxes() {
-		for (ManageMeasureSearchModel.Result result : selectedMeasureList) {
+		AdminMeasureSearchResultAdaptor adapter = new AdminMeasureSearchResultAdaptor();
+		for (ManageMeasureSearchModel.Result result : adapter.getSelectedList()) {
 			result.setTransferable(false);
 		}
-		AdminMeasureSearchResultAdaptor adapter = new AdminMeasureSearchResultAdaptor();
+		adapter.getSelectedList().clear();
 		adapter.getData().setData(selectedMeasureList);
-		buildDataTable(adapter);
+		cellTable.redraw();
 	}
 	/* (non-Javadoc)
 	 * @see mat.client.measure.ManageMeasurePresenter.AdminSearchDisplay#getClearButton()
+	 */
+	/**
+	 * Gets the clear button.
+	 *
+	 * @return the clear button
 	 */
 	@Override
 	public HasClickHandlers getClearButton() {
@@ -189,12 +241,22 @@ public class AdminManageMeasureSearchView implements ManageMeasurePresenter.Admi
 	/* (non-Javadoc)
 	 * @see mat.client.measure.ManageMeasurePresenter.AdminSearchDisplay#getErrorMessageDisplay()
 	 */
+	/**
+	 * Gets the error message display.
+	 *
+	 * @return the error message display
+	 */
 	@Override
 	public ErrorMessageDisplayInterface getErrorMessageDisplay() {
 		return errorMessagePanel;
 	}
 	/* (non-Javadoc)
 	 * @see mat.client.measure.ManageMeasurePresenter.AdminSearchDisplay#getErrorMessagesForTransferOS()
+	 */
+	/**
+	 * Gets the error messages for transfer os.
+	 *
+	 * @return the error messages for transfer os
 	 */
 	@Override
 	public ErrorMessageDisplayInterface getErrorMessagesForTransferOS() {
@@ -203,6 +265,11 @@ public class AdminManageMeasureSearchView implements ManageMeasurePresenter.Admi
 	/* (non-Javadoc)
 	 * @see mat.client.measure.ManageMeasurePresenter.AdminSearchDisplay#getSearchButton()
 	 */
+	/**
+	 * Gets the search button.
+	 *
+	 * @return the search button
+	 */
 	@Override
 	public HasClickHandlers getSearchButton() {
 		return searchButton;
@@ -210,12 +277,22 @@ public class AdminManageMeasureSearchView implements ManageMeasurePresenter.Admi
 	/* (non-Javadoc)
 	 * @see mat.client.measure.ManageMeasurePresenter.AdminSearchDisplay#getSearchString()
 	 */
+	/**
+	 * Gets the search string.
+	 *
+	 * @return the search string
+	 */
 	@Override
 	public HasValue<String> getSearchString() {
 		return searchInput;
 	}
 	/* (non-Javadoc)
 	 * @see mat.client.measure.ManageMeasurePresenter.AdminSearchDisplay#getTransferButton()
+	 */
+	/**
+	 * Gets the transfer button.
+	 *
+	 * @return the transfer button
 	 */
 	@Override
 	public HasClickHandlers getTransferButton() {
@@ -229,4 +306,5 @@ public class AdminManageMeasureSearchView implements ManageMeasurePresenter.Admi
 	public void setClearButton(Button clearButton) {
 		this.clearButton = clearButton;
 	}
+	
 }

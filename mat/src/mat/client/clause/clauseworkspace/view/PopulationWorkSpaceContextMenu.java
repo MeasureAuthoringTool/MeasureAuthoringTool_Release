@@ -1,29 +1,14 @@
 package mat.client.clause.clauseworkspace.view;
 
 import mat.client.clause.clauseworkspace.model.CellTreeNode;
-import mat.client.clause.clauseworkspace.presenter.PopulationWorkSpaceConstants;
 import mat.client.clause.clauseworkspace.presenter.XmlConversionlHelper;
 import mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay;
 import mat.client.shared.MatContext;
-import mat.client.shared.SecondaryButton;
-
-import com.google.gwt.core.client.GWT;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.user.cellview.client.CellTree;
-import com.google.gwt.user.cellview.client.TreeNode;
 import com.google.gwt.user.client.Command;
-import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.DialogBox;
-import com.google.gwt.user.client.ui.HasHorizontalAlignment;
-import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.ListBox;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.MenuBar;
 import com.google.gwt.user.client.ui.MenuItem;
 import com.google.gwt.user.client.ui.PopupPanel;
-import com.google.gwt.user.client.ui.ScrollPanel;
-import com.google.gwt.user.client.ui.VerticalPanel;
-import com.google.gwt.xml.client.Node;
 // TODO: Auto-generated Javadoc
 /**
  * The Class PopulationWorkSpaceContextMenu.
@@ -35,11 +20,16 @@ public class PopulationWorkSpaceContextMenu extends ClauseWorkspaceContextMenu {
 	 * Stratum Node name.
 	 */
 	private static final String STRATUM = "Stratum";
+	
+	/** The Constant MEASURE_OBSERVATION. */
+	private static final String MEASURE_OBSERVATION = "Measure Observation";
 	/**
 	 * Stratification Node name.
 	 */
 	private static final String STRATIFICATION = "Stratification";
 	
+	private static final String MEASURE_OBSERVATIONS = "Measure Observations";
+	MenuItem viewHumanReadableMenu;
 	/**
 	 * Instantiates a new population work space context menu.
 	 *
@@ -49,6 +39,38 @@ public class PopulationWorkSpaceContextMenu extends ClauseWorkspaceContextMenu {
 	
 	public PopulationWorkSpaceContextMenu(XmlTreeDisplay treeDisplay, PopupPanel popPanel) {
 		super(treeDisplay, popPanel);
+		Command viewHumanReadableCmd = new Command() {
+			@Override
+			public void execute() {
+				System.out.println("View Human Readable clicked...");
+				popupPanel.hide();
+				CellTreeNode selectedNode = xmlTreeDisplay.getSelectedNode();
+				if ((selectedNode.getNodeType() == CellTreeNode.CLAUSE_NODE)
+						|| (selectedNode.getNodeType() == CellTreeNode.SUBTREE_NODE)) {
+					String xmlForPopulationNode = XmlConversionlHelper.createXmlFromTree(selectedNode);
+					final String populationName = selectedNode.getName();
+					String measureId = MatContext.get().getCurrentMeasureId();
+					//					String url = GWT.getModuleBaseURL() + "export?id=" +measureId+ "&xml=" + xmlForPopulationNode+ "&format=subtreeHTML";
+					//					Window.open(url + "&type=open", "_blank", "");
+					xmlTreeDisplay.validatePopulationCellTreeNodes(xmlTreeDisplay.getSelectedNode());
+					if (xmlTreeDisplay.isValidHumanReadable()) {
+						MatContext.get().getMeasureService().getHumanReadableForNode(measureId, xmlForPopulationNode, new AsyncCallback<String>() {
+							@Override
+							public void onSuccess(String result) {
+								showHumanReadableDialogBox(result, populationName);
+							}
+							@Override
+							public void onFailure(Throwable caught) {
+							}
+						});
+					} else {
+						xmlTreeDisplay.getErrorMessageDisplay().setMessage(MatContext.get()
+								.getMessageDelegate().getINVALID_LOGIC_POPULATION_WORK_SPACE());
+					}
+				}
+			}
+		};
+		viewHumanReadableMenu = new MenuItem(template.menuTable("View Human Readable", ""), viewHumanReadableCmd);
 	}
 	/* (non-Javadoc)
 	 * @see mat.client.clause.clauseworkspace.view.ClauseWorkspaceContextMenu#displayMenuItems(com.google.gwt.user.client.ui.PopupPanel)
@@ -63,8 +85,14 @@ public class PopulationWorkSpaceContextMenu extends ClauseWorkspaceContextMenu {
 		deleteMenu.setEnabled(false);
 		pasteMenu.setEnabled(false);
 		cutMenu.setEnabled(false);
+		/*
+		 * POC Global Copy Paste.
+		 * copyToClipBoardMenu.setEnabled(false);
+		pasteFromClipboardMenu.setEnabled(false);
+		CellTreeNode copiedNode = MatContext.get().getCopiedNode();*/
 		viewHumanReadableMenu.setEnabled(false);
 		showHideExpandMenu();
+		
 		switch (xmlTreeDisplay.getSelectedNode().getNodeType()) {
 			case CellTreeNode.MASTER_ROOT_NODE:
 				if (xmlTreeDisplay.getSelectedNode().getName().equalsIgnoreCase(STRATIFICATION)) {
@@ -85,6 +113,14 @@ public class PopulationWorkSpaceContextMenu extends ClauseWorkspaceContextMenu {
 									.equals(xmlTreeDisplay.getSelectedNode()))) {
 						pasteMenu.setEnabled(true);
 					}
+					/*
+					 * POC Global Copy Paste.
+					 * if ((copiedNode != null)
+							&& (copiedNode.getParent()
+									.equals(xmlTreeDisplay.getSelectedNode()))) {
+						pasteMenu.setEnabled(true);
+						pasteFromClipboardMenu.setEnabled(true);
+					}*/
 				}
 				addCommonMenus();
 				break;
@@ -111,11 +147,23 @@ public class PopulationWorkSpaceContextMenu extends ClauseWorkspaceContextMenu {
 						&& xmlTreeDisplay.getCopiedNode().getParent().equals(xmlTreeDisplay.getSelectedNode())) {
 					pasteMenu.setEnabled(true);
 				}
+				/*
+				 * POC Global Copy Paste.
+				 * if ((copiedNode != null)
+						&& copiedNode.getParent().getName().equals(xmlTreeDisplay.getSelectedNode().getName())) {
+					pasteMenu.setEnabled(true);
+					pasteFromClipboardMenu.setEnabled(true);
+				}*/
 				cutMenu.setEnabled(false);
 				if (xmlTreeDisplay.getSelectedNode().getName().contains(STRATIFICATION)) {
 					copyMenu.setEnabled(true);
+					/*
+					 * POC Global Copy Paste.
+					 * copyToClipBoardMenu.setEnabled(true);*/
 				}
-				if (xmlTreeDisplay.getSelectedNode().getParent().getChilds().size() > 1) {
+				if ((xmlTreeDisplay.getSelectedNode().getName().contains(STRATIFICATION)
+						|| xmlTreeDisplay.getSelectedNode().getName().contains(MEASURE_OBSERVATIONS))
+						&& (xmlTreeDisplay.getSelectedNode().getParent().getChilds().size() > 1)) {
 					deleteMenu.setEnabled(true);
 				}
 				break;
@@ -134,6 +182,24 @@ public class PopulationWorkSpaceContextMenu extends ClauseWorkspaceContextMenu {
 							equals(xmlTreeDisplay.getSelectedNode())) {
 						pasteMenu.setEnabled(true);
 					}
+					/*
+					 * POC Global Copy Paste.
+					 * if ((copiedNode != null)
+							&& copiedNode.getParent().
+							equals(xmlTreeDisplay.getSelectedNode())) {
+						pasteMenu.setEnabled(true);
+						pasteFromClipboardMenu.setEnabled(true);
+					}*/
+				}
+				//show the fist level menu to add clause
+				if(xmlTreeDisplay.getSelectedNode().getName().contains(MEASURE_OBSERVATION)
+						&& !xmlTreeDisplay.getSelectedNode().hasChildren()){
+					subMenuBar = new MenuBar(true);
+					popupMenuBar.setAutoOpen(true);
+					subMenuBar.setAutoOpen(true);
+					createAddClauseMenuItem(subMenuBar);
+					addMenu = new MenuItem("Add", subMenuBar);
+					popupMenuBar.addItem(addMenu);
 				}
 				addCommonMenus();
 				//Add "View Human Readable" right click option for all populations: Start
@@ -141,6 +207,9 @@ public class PopulationWorkSpaceContextMenu extends ClauseWorkspaceContextMenu {
 				viewHumanReadableMenu.setEnabled(true);
 				//Add "View Human Readable" right click option for all populations: End
 				copyMenu.setEnabled(true);
+				/*
+				 * POC Global Copy Paste.
+				 * copyToClipBoardMenu.setEnabled(true);*/
 				//pasteMenu.setEnabled(false);
 				if (xmlTreeDisplay.getSelectedNode().getParent().getChilds().size() > 1) {
 					deleteMenu.setEnabled(true);
@@ -158,14 +227,24 @@ public class PopulationWorkSpaceContextMenu extends ClauseWorkspaceContextMenu {
 				popupMenuBar.addItem(addMenu);
 				addCommonMenus();
 				copyMenu.setEnabled(true);
-				//can paste LOGOP,RELOP, QDM, TIMING & FUNCS
 				if ((xmlTreeDisplay.getCopiedNode() != null)
 						&& (xmlTreeDisplay.getCopiedNode().getNodeType() != CellTreeNode.CLAUSE_NODE)
 						&& (xmlTreeDisplay.getCopiedNode().getNodeType() != CellTreeNode.ROOT_NODE)) {
 					pasteMenu.setEnabled(true);
 				}
+				/*
+				 * POC Global Copy Paste.
+				 * copyToClipBoardMenu.setEnabled(true);
+				//can paste LOGOP,RELOP, QDM, TIMING & FUNCS
+				if ((copiedNode != null)
+						&& (copiedNode.getNodeType() != CellTreeNode.CLAUSE_NODE)
+						&& (copiedNode.getNodeType() != CellTreeNode.ROOT_NODE)) {
+					pasteMenu.setEnabled(true);
+					pasteFromClipboardMenu.setEnabled(true);
+				}*/
 				if ((xmlTreeDisplay.getSelectedNode().getParent().getNodeType() != CellTreeNode.CLAUSE_NODE)
-						|| (xmlTreeDisplay.getSelectedNode().getParent().getName().contains(STRATUM))) {
+						|| (xmlTreeDisplay.getSelectedNode().getParent().getName().contains(STRATUM))
+						|| (xmlTreeDisplay.getSelectedNode().getParent().getName().contains(MEASURE_OBSERVATION))) {
 					deleteMenu.setEnabled(true);
 				}
 				if (((xmlTreeDisplay.getSelectedNode().getParent().getNodeType() != CellTreeNode.CLAUSE_NODE)
@@ -186,6 +265,7 @@ public class PopulationWorkSpaceContextMenu extends ClauseWorkspaceContextMenu {
 				break;
 			case CellTreeNode.TIMING_NODE:
 				addCommonMenus();
+				//commonMenuEnableState(false, false, true, false, true);
 				copyMenu.setEnabled(false);
 				cutMenu.setEnabled(false);
 				deleteMenu.setEnabled(true);
@@ -194,6 +274,7 @@ public class PopulationWorkSpaceContextMenu extends ClauseWorkspaceContextMenu {
 				break;
 			case CellTreeNode.ELEMENT_REF_NODE:
 				addCommonMenus();
+				//commonMenuEnableState(false, false, true, false, true);
 				copyMenu.setEnabled(false);
 				cutMenu.setEnabled(false);
 				deleteMenu.setEnabled(true);
@@ -202,6 +283,7 @@ public class PopulationWorkSpaceContextMenu extends ClauseWorkspaceContextMenu {
 				break;
 			case CellTreeNode.FUNCTIONS_NODE:
 				addCommonMenus();
+				//commonMenuEnableState(false, false, true, false, true);
 				copyMenu.setEnabled(false);
 				cutMenu.setEnabled(false);
 				deleteMenu.setEnabled(true);
@@ -210,6 +292,7 @@ public class PopulationWorkSpaceContextMenu extends ClauseWorkspaceContextMenu {
 				break;
 			case CellTreeNode.RELATIONSHIP_NODE:
 				addCommonMenus();
+				//commonMenuEnableState(false, false, true, false, true);
 				copyMenu.setEnabled(false);
 				cutMenu.setEnabled(false);
 				deleteMenu.setEnabled(true);
@@ -239,6 +322,9 @@ public class PopulationWorkSpaceContextMenu extends ClauseWorkspaceContextMenu {
 				popupMenuBar.addItem(moveDownMenu);
 				moveDownMenu.setEnabled(checkIfLastChildNode());
 				deleteMenu.setEnabled(true);
+				/*
+				 * POC Global Copy Paste.
+				 * copyToClipBoardMenu.setEnabled(true);*/
 				Command editClauseCmd = new Command() {
 					@Override
 					public void execute() {
@@ -253,6 +339,23 @@ public class PopulationWorkSpaceContextMenu extends ClauseWorkspaceContextMenu {
 			default:
 				break;
 		}
+	}
+	/**
+	 * Common Menu's ie : (Cut/Paste/Delete/Copy/Expand) Enable/Disabled state.
+	 * @param isCopyEnabled - boolean.
+	 * @param isCutEnabled - boolean
+	 * @param isDeleteEnabled - boolean
+	 * @param isPasteEnabled - boolean
+	 * @param isExpandEnabled - boolean
+	 */
+	@SuppressWarnings("unused")
+	private void commonMenuEnableState(boolean isCopyEnabled , boolean isCutEnabled, boolean isDeleteEnabled
+			, boolean isPasteEnabled , boolean isExpandEnabled) {
+		copyMenu.setEnabled(isCopyEnabled);
+		cutMenu.setEnabled(isCutEnabled);
+		deleteMenu.setEnabled(isDeleteEnabled);
+		pasteMenu.setEnabled(isPasteEnabled);
+		expandMenu.setEnabled(isExpandEnabled);
 	}
 	/**
 	 * Creates the add clause menu item.
@@ -270,6 +373,6 @@ public class PopulationWorkSpaceContextMenu extends ClauseWorkspaceContextMenu {
 		};
 		MenuItem item = new MenuItem("Clause", true, addClauseCmd);
 		menuBar.addItem(item);
-	}	
+	}
 	
 }

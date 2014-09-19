@@ -10,7 +10,7 @@ import mat.client.event.MATClickHandler;
 import mat.client.event.MeasureEditEvent;
 import mat.client.event.TimedOutEvent;
 import mat.client.login.service.SessionManagementService;
-import mat.client.measure.AdminManageMeasureSearchView;
+//import mat.client.measure.AdminManageMeasureSearchView;
 import mat.client.measure.ManageMeasureDetailView;
 import mat.client.measure.ManageMeasureDraftView;
 import mat.client.measure.ManageMeasureExportView;
@@ -221,8 +221,8 @@ public class Mat extends MainLayout implements EntryPoint, Enableable{
 	private ManageMeasurePresenter buildMeasureLibraryWidget(Boolean isAdmin) {
 		ManageMeasurePresenter measurePresenter = null;
 		if(isAdmin){
-			/*ManageMeasureSearchView measureSearchView = new ManageMeasureSearchView();*/
-			AdminManageMeasureSearchView adminManageMeasureSearchView = new AdminManageMeasureSearchView();
+			ManageMeasureSearchView measureSearchView = new ManageMeasureSearchView();
+			//AdminManageMeasureSearchView adminManageMeasureSearchView = new AdminManageMeasureSearchView();
 			/*ManageMeasureDetailView measureDetailView = new ManageMeasureDetailView();
 			ManageMeasureVersionView versionView = new ManageMeasureVersionView();
 			ManageMeasureDraftView measureDraftView = new ManageMeasureDraftView();*/
@@ -235,9 +235,8 @@ public class Mat extends MainLayout implements EntryPoint, Enableable{
 			}else{
 				measureExportView = new ManageMeasureExportView(false);
 			}*/
-			measurePresenter =
-					new ManageMeasurePresenter(null, adminManageMeasureSearchView,null, null, null,
-							historyView,null,null,transferOS);
+			
+			measurePresenter = new ManageMeasurePresenter(measureSearchView, null, null, null, historyView, null, null, transferOS);
 		}else{
 			ManageMeasureSearchView measureSearchView = new ManageMeasureSearchView();
 			/*AdminManageMeasureSearchView adminManageMeasureSearchView = new AdminManageMeasureSearchView();*/
@@ -253,9 +252,8 @@ public class Mat extends MainLayout implements EntryPoint, Enableable{
 			}else{
 				measureExportView = new ManageMeasureExportView(false);
 			}
-			measurePresenter =
-					new ManageMeasurePresenter(measureSearchView, null,measureDetailView, measureShareView, measureExportView,
-							historyView,versionView,measureDraftView,null);
+			
+			measurePresenter = new ManageMeasurePresenter(measureSearchView, measureDetailView, measureShareView, measureExportView, historyView, versionView, measureDraftView, null);
 		}
 		return measurePresenter;
 		

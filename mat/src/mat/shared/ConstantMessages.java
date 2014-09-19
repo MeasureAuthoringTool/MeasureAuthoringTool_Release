@@ -1,6 +1,7 @@
 package mat.shared;
 
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class ConstantMessages.
  */
@@ -99,6 +100,7 @@ public  class ConstantMessages {
 	/** The Constant STRATIFICATION_CONTEXT_ID. */
 	public static final String STRATIFICATION_CONTEXT_ID = "stratification";
 	
+	/** The Constant STRATIFIER_CONTEXT_ID. */
 	public static final String STRATIFIER_CONTEXT_ID = "stratum";
 	
 	/** The Constant USER_DEFINED_CONTEXT_ID. */
@@ -454,4 +456,24 @@ public  class ConstantMessages {
 	
 	/** The Constant USER_DEFINED_QDM_NAME. */
 	public static final String USER_DEFINED_QDM_NAME="User Defined QDM";
+	
+	/** The Constant PATIENT_CHARACTERISTIC_BIRTHDATE. */
+	public static final String PATIENT_CHARACTERISTIC_BIRTHDATE = "Patient Characteristic Birthdate";
+	
+	/** The Constant PATIENT_CHARACTERISTIC_EXPIRED. */
+	public static final String PATIENT_CHARACTERISTIC_EXPIRED = "Patient Characteristic Expired";
+	
+	/** The Constant EXPIRED. */
+	public static final String EXPIRED = "Expired";
+	
+	/** The Constant BIRTHDATE. */
+	public static final String BIRTHDATE = "Birthdate";
+	
+    /** The Constant EXPIRED_OID. */
+    public static final String EXPIRED_OID = "419099009";
+	
+	/** The Constant BIRTHDATE. */
+	public static final String BIRTHDATE_OID = "21112-8";
+	
+	
 }

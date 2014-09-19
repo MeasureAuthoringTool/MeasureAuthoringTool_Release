@@ -391,7 +391,11 @@ public class MatTabLayoutPanel extends MATTabPanel implements BeforeSelectionHan
 			saveButton = metaDataPresenter.getMetaDataDisplay().getSaveBtn();
 			if (metaDataPresenter.isSubView()) {
 				metaDataPresenter.backToDetail();
-			}
+				metaDataPresenter.getMetaDataDisplay().setSaveButtonEnabled(
+						MatContext.get().getMeasureLockService().checkForEditPermission());	
+				metaDataPresenter.getComponentMeasures();
+				metaDataPresenter.getMeasureDeveloperAuthors();
+				}
 			showErrorMessage(metaDataPresenter.getMetaDataDisplay().getSaveErrorMsg());
 			metaDataPresenter.getMetaDataDisplay().getSaveErrorMsg().getButtons().get(0).setFocus(true);
 			handleClickEventsOnUnsavedErrorMsg(selectedIndex, metaDataPresenter.getMetaDataDisplay()
@@ -437,7 +441,8 @@ public class MatTabLayoutPanel extends MATTabPanel implements BeforeSelectionHan
 			return;
 		}
 		xmlTreePresenter.getXmlTreeDisplay().clearMessages();
-		if (xmlTreePresenter.getXmlTreeDisplay().isDirty()) {
+		if (xmlTreePresenter.getXmlTreeDisplay().isDirty() 
+				|| xmlTreePresenter.getXmlTreeDisplay().isQdmVariableDirty()) {
 			isUnsavedData = true;
 			saveButton = xmlTreePresenter.getXmlTreeDisplay().getSaveButton();
 			showErrorMessage(xmlTreePresenter.getXmlTreeDisplay().getErrorMessageDisplay());
@@ -531,8 +536,8 @@ public class MatTabLayoutPanel extends MATTabPanel implements BeforeSelectionHan
 			//dont show dirty check message when measure is deleted.
 			return true;
 		} else {
-			pageData.setToCompareAuthor(pageData.getAuthorList());
-			pageData.setToCompareMeasure(pageData.getMeasureTypeList());
+			pageData.setToCompareAuthor(pageData.getAuthorSelectedList());
+			pageData.setToCompareMeasure(pageData.getMeasureTypeSelectedList());
 			pageData.setToCompareItemCount(pageData.getQdsSelectedList());
 			pageData.setToCompareComponentMeasures(pageData.getComponentMeasuresSelectedList());
 			dbData.setToCompareAuthor(metaDataPresenter.getDbAuthorList());

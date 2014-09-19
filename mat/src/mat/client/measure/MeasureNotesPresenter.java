@@ -17,10 +17,11 @@ import com.google.gwt.event.dom.client.HasClickHandlers;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.TextArea;
+import com.google.gwt.user.client.ui.RichTextArea;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class MeasureNotesPresenter.
  */
@@ -68,7 +69,7 @@ public class MeasureNotesPresenter implements MatPresenter{
 		 * 
 		 * @return the measure note composer
 		 */
-		public TextArea getMeasureNoteComposer();
+		public RichTextArea getMeasureNoteComposer();
 		
 		/**
 		 * Gets the success message display.
@@ -163,7 +164,7 @@ public class MeasureNotesPresenter implements MatPresenter{
 	private void generateCSVToExportMeasureNotes(){
 		MatContext.get().recordTransactionEvent(MatContext.get().getCurrentMeasureId(), null, "MEASURE_NOTES_EXPORT", "Measure Notes Exported", ConstantMessages.DB_LOG);
 		String url = GWT.getModuleBaseURL() + "export?id=" + MatContext.get().getCurrentMeasureId() + "&format=exportMeasureNotesForMeasure";
-		Window.open(url + "&type=save", "_self", "");
+		Window.open(url + "&type=save","_blank", "");
 	}
 	
 	/**
@@ -230,7 +231,7 @@ public class MeasureNotesPresenter implements MatPresenter{
 	 */
 	private void saveMeasureNote(){
 		String noteTitle = notesDisplay.getMeasureNoteTitle().getText();
-		String noteDescription = notesDisplay.getMeasureNoteComposer().getText();
+		String noteDescription = notesDisplay.getMeasureNoteComposer().getHTML();
 		if((noteTitle != null) && !noteTitle.isEmpty() && (noteDescription != null) && !noteDescription.isEmpty()){
 			showSearchingBusy(true);
 			service.saveMeasureNote(noteTitle, noteDescription,MatContext.get().getCurrentMeasureId(),MatContext.get().getLoggedinUserId(), new AsyncCallback<Void>() {

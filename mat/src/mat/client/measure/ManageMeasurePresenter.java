@@ -2,6 +2,7 @@ package mat.client.measure;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import mat.DTO.AuditLogDTO;
 import mat.DTO.SearchHistoryDTO;
 import mat.client.Mat;
@@ -14,6 +15,7 @@ import mat.client.event.MeasureEditEvent;
 import mat.client.event.MeasureSelectedEvent;
 import mat.client.history.HistoryModel;
 import mat.client.measure.ManageMeasureSearchModel.Result;
+import mat.client.measure.MeasureSearchView.AdminObserver;
 import mat.client.measure.metadata.CustomCheckBox;
 import mat.client.measure.metadata.Grid508;
 import mat.client.measure.service.MeasureCloningService;
@@ -36,16 +38,11 @@ import mat.client.shared.SkipListBuilder;
 import mat.client.shared.SuccessMessageDisplay;
 import mat.client.shared.SuccessMessageDisplayInterface;
 import mat.client.shared.SynchronizationDelegate;
-import mat.client.shared.search.HasPageSelectionHandler;
-import mat.client.shared.search.HasPageSizeSelectionHandler;
-import mat.client.shared.search.PageSelectionEvent;
-import mat.client.shared.search.PageSelectionEventHandler;
-import mat.client.shared.search.PageSizeSelectionEvent;
-import mat.client.shared.search.PageSizeSelectionEventHandler;
 import mat.client.shared.search.SearchResultUpdate;
 import mat.client.shared.search.SearchResults;
 import mat.client.util.ClientConstants;
 import mat.shared.ConstantMessages;
+
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -73,8 +70,6 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
-import com.google.gwt.view.client.AsyncDataProvider;
-import com.google.gwt.view.client.HasData;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -82,75 +77,7 @@ import com.google.gwt.view.client.HasData;
  */
 @SuppressWarnings("deprecation")
 public class ManageMeasurePresenter implements MatPresenter {
-	/**
-	 * The Interface AdminSearchDisplay.
-	 */
-	public static interface AdminSearchDisplay {
-		
 		/**
-		 * As widget.
-		 * 
-		 * @return the widget
-		 */
-		public Widget asWidget();
-		
-		/**
-		 * Builds the data table.
-		 * 
-		 * @param results
-		 *            the results
-		 */
-		public void buildDataTable(AdminMeasureSearchResultAdaptor results);
-		
-		/**
-		 * Clear transfer check boxes.
-		 */
-		public void clearTransferCheckBoxes();
-		
-		/**
-		 * Gets the clear button.
-		 * 
-		 * @return the clear button
-		 */
-		public HasClickHandlers getClearButton();
-		
-		/**
-		 * Gets the error message display.
-		 * 
-		 * @return the error message display
-		 */
-		public ErrorMessageDisplayInterface getErrorMessageDisplay();
-		
-		/**
-		 * Gets the error messages for transfer os.
-		 * 
-		 * @return the error messages for transfer os
-		 */
-		public ErrorMessageDisplayInterface getErrorMessagesForTransferOS();
-		
-		/**
-		 * Gets the search button.
-		 * 
-		 * @return the search button
-		 */
-		public HasClickHandlers getSearchButton();
-		
-		/**
-		 * Gets the search string.
-		 * 
-		 * @return the search string
-		 */
-		public HasValue<String> getSearchString();
-		
-		/**
-		 * Gets the transfer button.
-		 * 
-		 * @return the transfer button
-		 */
-		public HasClickHandlers getTransferButton();;
-	}
-	
-	/**
 	 * The Interface BaseDisplay.
 	 */
 	public static interface BaseDisplay {
@@ -384,41 +311,10 @@ public class ManageMeasurePresenter implements MatPresenter {
 	 */
 	public static interface HistoryDisplay extends BaseDisplay {
 		
-		/**
-		 * Builds the data table.
-		 * 
-		 * @param results
-		 *            the results
-		 * @param pageCount
-		 *            the page count
-		 * @param totalResults
-		 *            the total results
-		 * @param currentPage
-		 *            the current page
-		 * @param pageSize
-		 *            the page size
-		 */
-		public void buildDataTable(SearchResults<AuditLogDTO> results,
-				int pageCount, long totalResults, int currentPage, int pageSize);
-		
-		/**
+	   /**
 		 * Clear error message.
 		 */
 		public void clearErrorMessage();
-		
-		/**
-		 * Gets the clear button.
-		 * 
-		 * @return the clear button
-		 */
-		public HasClickHandlers getClearButton();
-		
-		/**
-		 * Gets the current page.
-		 * 
-		 * @return the current page
-		 */
-		public int getCurrentPage();
 		
 		/**
 		 * Gets the measure id.
@@ -433,28 +329,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 		 * @return the measure name
 		 */
 		public String getMeasureName();
-		
-		/**
-		 * Gets the page selection tool.
-		 * 
-		 * @return the page selection tool
-		 */
-		public HasPageSelectionHandler getPageSelectionTool();
-		
-		/**
-		 * Gets the page size.
-		 * 
-		 * @return the page size
-		 */
-		public int getPageSize();
-		
-		/**
-		 * Gets the page size selection tool.
-		 * 
-		 * @return the page size selection tool
-		 */
-		public HasPageSizeSelectionHandler getPageSizeSelectionTool();
-		
+	
 		/**
 		 * Gets the return to link.
 		 * 
@@ -462,33 +337,11 @@ public class ManageMeasurePresenter implements MatPresenter {
 		 */
 		public HasClickHandlers getReturnToLink();
 		
-		/**
-		 * Gets the save button.
-		 * 
-		 * @return the save button
-		 */
-		public HasClickHandlers getSaveButton();
-		
-		/**
-		 * Gets the user comment.
-		 * 
-		 * @return the user comment
-		 */
-		public HasValue<String> getUserComment();
-		
-		/**
-		 * Sets the current page.
-		 * 
-		 * @param pageNumber
-		 *            the new current page
-		 */
-		public void setCurrentPage(int pageNumber);
 		
 		/**
 		 * Sets the error message.
-		 * 
-		 * @param s
-		 *            the new error message
+		 *
+		 * @param s the new error message
 		 */
 		public void setErrorMessage(String s);
 		
@@ -510,11 +363,10 @@ public class ManageMeasurePresenter implements MatPresenter {
 		
 		/**
 		 * Sets the page size.
-		 * 
-		 * @param pageNumber
-		 *            the new page size
+		 *
+		 * @param s the new return to link text
 		 */
-		public void setPageSize(int pageNumber);
+//		public void setPageSize(int pageNumber);
 		
 		/**
 		 * Sets the return to link text.
@@ -525,18 +377,86 @@ public class ManageMeasurePresenter implements MatPresenter {
 		public void setReturnToLinkText(String s);
 		
 		/**
-		 * Sets the user comments read only.
-		 * 
-		 * @param readOnly
-		 *            the new user comments read only
+		 * Builds the cell table.
+		 *
+		 * @param results the results
 		 */
-		public void setUserCommentsReadOnly(boolean readOnly);
+		public void buildCellTable(List<AuditLogDTO> results);
 	}
 	
 	/**
 	 * The Interface SearchDisplay.
 	 */
 	public static interface SearchDisplay extends BaseDisplay {
+		/**
+		 * As widget.
+		 * 
+		 * @return the widget
+		 */
+		public Widget asWidget();
+		
+		/**
+		 * Builds the data table.
+		 *
+		 * @param manageMeasureSearchModel the manage measure search model
+		 * @param filter TODO
+		 * @param searchText TODO
+		 */
+		public void buildDataTable(ManageMeasureSearchModel manageMeasureSearchModel, int filter, String searchText);
+		
+		/**
+		 * Clear transfer check boxes.
+		 */
+		public void clearTransferCheckBoxes();
+		
+		/**
+		 * Gets the clear button.
+		 * 
+		 * @return the clear button
+		 */
+		public HasClickHandlers getClearButton();
+		
+		/**
+		 * Gets the error message display.
+		 * 
+		 * @return the error message display
+		 */
+		public ErrorMessageDisplayInterface getErrorMessageDisplay();
+		
+		/**
+		 * Gets the error messages for transfer os.
+		 * 
+		 * @return the error messages for transfer os
+		 */
+		public ErrorMessageDisplayInterface getErrorMessagesForTransferOS();
+		
+		/**
+		 * Gets the search button.
+		 * 
+		 * @return the search button
+		 */
+		//public HasClickHandlers getSearchButton();
+		
+		/**
+		 * Gets the search string.
+		 * 
+		 * @return the search string
+		 */
+		//public HasValue<String> getSearchString();
+		
+		/**
+		 * Gets the transfer button.
+		 * 
+		 * @return the transfer button
+		 */
+		public HasClickHandlers getTransferButton();
+
+		/**
+		 * Sets the admin observer.
+		 *
+		 * @param adminObserver the new admin observer
+		 */
+		void setAdminObserver(AdminObserver adminObserver);
 		
 		/**
 		 * Builds the data table.
@@ -545,7 +465,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 		 * @param filter the filter
 		 * @param searchText the search text
 		 */
-		public void buildDataTable(
+		public void buildCellTable(
 				ManageMeasureSearchModel manageMeasureSearchModel, int filter, String searchText);
 		
 		
@@ -622,7 +542,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 		 * 
 		 * @return the measure data table
 		 */
-		public Grid508 getMeasureDataTable();
+		//public Grid508 getMeasureDataTable();
 		
 		/**
 		 * Gets the measure search filter widget.
@@ -648,7 +568,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 		 * 
 		 * @return the page selection tool
 		 */
-		public HasPageSelectionHandler getPageSelectionTool();
+		//public HasPageSelectionHandler getPageSelectionTool();
 		
 		/*public MeasureSearchFilterPanel getMeasureSearchFilterPanel();*/
 		
@@ -657,14 +577,14 @@ public class ManageMeasurePresenter implements MatPresenter {
 		 * 
 		 * @return the page size
 		 */
-		public int getPageSize();
+		//public int getPageSize();
 		
 		/**
 		 * Gets the page size selection tool.
 		 * 
 		 * @return the page size selection tool
 		 */
-		public HasPageSizeSelectionHandler getPageSizeSelectionTool();
+		//public HasPageSizeSelectionHandler getPageSizeSelectionTool();
 		
 		/**
 		 * Gets the search button.
@@ -674,11 +594,25 @@ public class ManageMeasurePresenter implements MatPresenter {
 		public HasClickHandlers getSearchButton();
 		
 		/**
+		 * Gets the admin search button.
+		 *
+		 * @return the admin search button
+		 */
+		public HasClickHandlers getAdminSearchButton();
+		
+		/**
 		 * Gets the search string.
 		 * 
 		 * @return the search string
 		 */
 		public HasValue<String> getSearchString();
+		
+		/**
+		 * Gets the admin search string.
+		 *
+		 * @return the admin search string
+		 */
+		public HasValue<String> getAdminSearchString();
 		
 		/**
 		 * Gets the selected filter.
@@ -711,8 +645,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 		/** Gets the zoom button.
 		 * 
 		 * @return the zoom button */
-		CustomButton getZoomButton();
-		
+		CustomButton getZoomButton();		
 	}
 	
 	/**
@@ -739,21 +672,21 @@ public class ManageMeasurePresenter implements MatPresenter {
 		 * 
 		 * @return the page selection tool
 		 */
-		public HasPageSelectionHandler getPageSelectionTool();
+		//public HasPageSelectionHandler getPageSelectionTool();
 		
 		/**
 		 * Gets the page size.
 		 * 
 		 * @return the page size
 		 */
-		public int getPageSize();
+		//public int getPageSize();
 		
 		/**
 		 * Gets the page size selection tool.
 		 * 
 		 * @return the page size selection tool
 		 */
-		public HasPageSizeSelectionHandler getPageSizeSelectionTool();
+		//public HasPageSizeSelectionHandler getPageSizeSelectionTool();
 		
 		/**
 		 * Gets the share button.
@@ -933,8 +866,6 @@ public class ManageMeasurePresenter implements MatPresenter {
 		CustomButton getZoomButton();
 	}
 	
-	/** The admin search display. */
-	private AdminSearchDisplay adminSearchDisplay;
 	
 	/** The bulk export measure ids. */
 	private List<String> bulkExportMeasureIds;
@@ -1063,35 +994,23 @@ public class ManageMeasurePresenter implements MatPresenter {
 	
 	/**
 	 * Instantiates a new manage measure presenter.
-	 * 
-	 * @param sDisplayArg
-	 *            the s display arg
-	 * @param adminSearchDisplayArg
-	 *            the admin search display arg
-	 * @param dDisplayArg
-	 *            the d display arg
-	 * @param shareDisplayArg
-	 *            the share display arg
-	 * @param exportDisplayArg
-	 *            the export display arg
-	 * @param hDisplay
-	 *            the h display
-	 * @param vDisplay
-	 *            the v display
-	 * @param dDisplay
-	 *            the d display
-	 * @param transferDisplay
-	 *            the transfer display
+	 *
+	 * @param sDisplayArg            the s display arg
+	 * @param dDisplayArg            the d display arg
+	 * @param shareDisplayArg            the share display arg
+	 * @param exportDisplayArg            the export display arg
+	 * @param hDisplay            the h display
+	 * @param vDisplay            the v display
+	 * @param dDisplay            the d display
+	 * @param transferDisplay            the transfer display
 	 */
 	public ManageMeasurePresenter(SearchDisplay sDisplayArg,
-			AdminSearchDisplay adminSearchDisplayArg,
 			DetailDisplay dDisplayArg, ShareDisplay shareDisplayArg,
 			ExportDisplay exportDisplayArg, HistoryDisplay hDisplay,
 			VersionDisplay vDisplay, DraftDisplay dDisplay,
 			final TransferDisplay transferDisplay) {
 		
 		searchDisplay = sDisplayArg;
-		adminSearchDisplay = adminSearchDisplayArg;
 		detailDisplay = dDisplayArg;
 		historyDisplay = hDisplay;
 		shareDisplay = shareDisplayArg;
@@ -1105,9 +1024,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 			searchDisplay.getCreateMeasureWidget().setVisible(isCreateMeasureWidgetVisible);
 			searchDisplayHandlers(searchDisplay);
 		}
-		if (adminSearchDisplay != null) {
-			adminSearchDisplayHandlers(adminSearchDisplay);
-		}
+		
 		if (draftDisplay != null) {
 			draftDisplayHandlers(draftDisplay);
 		}
@@ -1186,56 +1103,6 @@ public class ManageMeasurePresenter implements MatPresenter {
 				PrimaryButton button = (PrimaryButton) versionDisplay
 						.getSaveButton();
 				button.setFocus(true);
-			}
-		});
-		
-	}
-	
-	
-	/**
-	 * Admin search display handlers.
-	 * 
-	 * @param adminSearchDisplay
-	 *            the admin search display
-	 */
-	private void adminSearchDisplayHandlers(
-			final AdminSearchDisplay adminSearchDisplay) {
-		
-		adminSearchDisplay.getSearchButton().addClickHandler(
-				new ClickHandler() {
-					@Override
-					public void onClick(ClickEvent event) {
-						int startIndex = 1;
-						adminSearchDisplay.getErrorMessageDisplay().clear();
-						int filter = 1;
-						search(adminSearchDisplay.getSearchString().getValue(),
-								startIndex, Integer.MAX_VALUE, filter);
-					}
-				});
-		
-		adminSearchDisplay.getTransferButton().addClickHandler(
-				new ClickHandler() {
-					@Override
-					public void onClick(ClickEvent event) {
-						 adminSearchDisplay.clearTransferCheckBoxes();
-						transferDisplay.getSearchString().setValue("");
-						displayTransferView("",startIndex,
-								Integer.MAX_VALUE);
-					}
-				});
-		
-		adminSearchDisplay.getClearButton().addClickHandler(new ClickHandler() {
-			@Override
-			public void onClick(ClickEvent event) {
-				manageMeasureSearchModel.getSelectedTransferResults()
-				.removeAll(
-						manageMeasureSearchModel
-						.getSelectedTransferResults());
-				manageMeasureSearchModel.getSelectedTransferIds().removeAll(
-						manageMeasureSearchModel.getSelectedTransferIds());
-				int filter = 1;
-				search(adminSearchDisplay.getSearchString().getValue(), 1,
-						Integer.MAX_VALUE, filter);
 			}
 		});
 		
@@ -1566,10 +1433,8 @@ public class ManageMeasurePresenter implements MatPresenter {
 	 *            the measure name
 	 */
 	private void displayHistory(String measureId, String measureName) {
-		
-		int pageNumber = historyDisplay.getCurrentPage();
-		int pageSize = historyDisplay.getPageSize();
-		int startIndex = pageSize * (pageNumber - 1);
+		int startIndex = 0;
+		int pageSize = Integer.MAX_VALUE;
 		String heading = "My Measures > History";
 		if (ClientConstants.ADMINISTRATOR.equalsIgnoreCase(MatContext.get()
 				.getLoggedInUserRole())) {
@@ -1601,9 +1466,9 @@ public class ManageMeasurePresenter implements MatPresenter {
 				.getLoggedInUserRole())) {
 			heading = "";
 			filter = 1;// ALL Measures
-			search(adminSearchDisplay.getSearchString().getValue(), 1,
+			search(searchDisplay.getAdminSearchString().getValue(), 1,
 					Integer.MAX_VALUE, filter);
-			fp.add(adminSearchDisplay.asWidget());
+			fp.add(searchDisplay.asWidget());
 		} else {
 			// MAT-1929 : Retain filters at measure library screen
 			searchDisplay.getCreateMeasureWidget().setVisible(false);
@@ -1613,7 +1478,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 			searchDisplay.getMeasureSearchFilterWidget().getSearchFilterDisclosurePanel().setOpen(false);
 			filter = searchDisplay.getSelectedFilter();
 			search(searchDisplay.getSearchString().getValue(), 1,
-					searchDisplay.getPageSize(), filter);
+					Integer.MAX_VALUE, filter);
 			searchRecentMeasures();
 			panel.getButtonPanel().clear();
 			panel.setButtonPanel(searchDisplay.getCreateMeasureButton(), searchDisplay.getZoomButton());
@@ -1655,11 +1520,11 @@ public class ManageMeasurePresenter implements MatPresenter {
 		final ArrayList<ManageMeasureSearchModel.Result> transferMeasureResults = (ArrayList<Result>) manageMeasureSearchModel
 				.getSelectedTransferResults();
 		pageSize = Integer.MAX_VALUE;
-		adminSearchDisplay.getErrorMessageDisplay().clear();
-		adminSearchDisplay.getErrorMessagesForTransferOS().clear();
+		searchDisplay.getErrorMessageDisplay().clear();
+		searchDisplay.getErrorMessagesForTransferOS().clear();
 		transferDisplay.getErrorMessageDisplay().clear();
 		if (transferMeasureResults.size() != 0) {
-			showAdminSearchingBusy(true);
+			showSearchingBusy(true);
 			MatContext
 			.get()
 			.getMeasureService()
@@ -1671,7 +1536,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 					Window.alert(MatContext.get()
 							.getMessageDelegate()
 							.getGenericErrorMessage());
-					showAdminSearchingBusy(false);
+					showSearchingBusy(false);
 				}
 				
 				@Override
@@ -1685,12 +1550,12 @@ public class ManageMeasurePresenter implements MatPresenter {
 							"Measure Library Ownership >  Measure Ownership Transfer",
 							"MeasureLibrary");
 					panel.setContent(transferDisplay.asWidget());
-					showAdminSearchingBusy(false);
+					showSearchingBusy(false);
 					model = result;
 				}
 			});
 		} else {
-			adminSearchDisplay.getErrorMessagesForTransferOS().setMessage(
+			searchDisplay.getErrorMessagesForTransferOS().setMessage(
 					MatContext.get().getMessageDelegate()
 					.getTransferCheckBoxErrorMeasure());
 		}
@@ -2042,107 +1907,10 @@ public class ManageMeasurePresenter implements MatPresenter {
 	 *            the history display
 	 */
 	private void historyDisplayHandlers(final HistoryDisplay historyDisplay) {
-		historyDisplay.getSaveButton().addClickHandler(new ClickHandler() {
-			@Override
-			public void onClick(ClickEvent event) {
-				
-				if (historyDisplay.getUserComment().getValue().length() > 2000) {
-					String s = historyDisplay.getUserComment().getValue();
-					historyDisplay.getUserComment().setValue(
-							s.substring(0, 2000));
-				}
-				historyDisplay.clearErrorMessage();
-				String measureId = historyDisplay.getMeasureId();
-				String eventType = ConstantMessages.USER_COMMENT;
-				String additionalInfo = historyDisplay.getUserComment()
-						.getValue();
-				MatContext
-				.get()
-				.getAuditService()
-				.recordMeasureEvent(measureId, eventType,
-						additionalInfo, false,
-						new AsyncCallback<Boolean>() {
-					@Override
-					public void onFailure(Throwable caught) {
-						historyDisplay
-						.setErrorMessage(MatContext
-								.get()
-								.getMessageDelegate()
-								.getUnableToProcessMessage());
-						// set error message
-					}
-					
-					@Override
-					public void onSuccess(Boolean result) {
-						
-						if (result) {
-							// add user message
-							historyDisplay.getUserComment()
-							.setValue("");
-							displayHistory(historyDisplay
-									.getMeasureId(),
-									historyDisplay
-									.getMeasureName());
-						}
-					}
-				});
-			}
-		});
-		
-		historyDisplay.getClearButton().addClickHandler(new ClickHandler() {
-			@Override
-			public void onClick(ClickEvent event) {
-				historyDisplay.clearErrorMessage();
-				historyDisplay.getUserComment().setValue("");
-				
-			}
-		});
-		
-		historyDisplay.getPageSizeSelectionTool().addPageSizeSelectionHandler(
-				new PageSizeSelectionEventHandler() {
-					
-					@Override
-					public void onPageSizeSelection(PageSizeSelectionEvent event) {
-						historyDisplay.setPageSize(event.getPageSize());
-						displayHistory(historyDisplay.getMeasureId(),
-								historyDisplay.getMeasureName());
-					}
-				});
-		
-		historyDisplay.getPageSelectionTool().addPageSelectionHandler(
-				new PageSelectionEventHandler() {
-					
-					@Override
-					public void onPageSelection(PageSelectionEvent event) {
-						int pageNumber = event.getPageNumber();
-						if (pageNumber == -1) { // if next button clicked
-							if (historyDisplay.getCurrentPage() == historyModel
-									.getTotalpages()) {
-								pageNumber = historyDisplay.getCurrentPage();
-							} else {
-								pageNumber = historyDisplay.getCurrentPage() + 1;
-							}
-						} else if (pageNumber == 0) { // if first button clicked
-							pageNumber = 1;
-						} else if (pageNumber == -9) { // if first button
-							// clicked
-							if (historyDisplay.getCurrentPage() == 1) {
-								pageNumber = historyDisplay.getCurrentPage();
-							} else {
-								pageNumber = historyDisplay.getCurrentPage() - 1;
-							}
-						}
-						historyDisplay.setCurrentPage(pageNumber);
-						displayHistory(historyDisplay.getMeasureId(),
-								historyDisplay.getMeasureName());
-					}
-				});
 		
 		historyDisplay.getReturnToLink().addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
-				// detailDisplay.getName().setValue("");
-				// detailDisplay.getShortName().setValue("");
 				displaySearch();
 				
 			}
@@ -2307,8 +2075,9 @@ public class ManageMeasurePresenter implements MatPresenter {
 				// This to fetch all Measures if user role is Admin. This will go away
 				// when Pagination will be implemented in Measure Library.
 				if (currentUserRole.equalsIgnoreCase(ClientConstants.ADMINISTRATOR)) {
-					pageSize = Integer.MAX_VALUE;
-					showAdminSearchingBusy(true);
+					//pageSize = Integer.MAX_VALUE;
+					pageSize = 25;
+					showSearchingBusy(true);
 					MatContext
 					.get()
 					.getMeasureService()
@@ -2341,48 +2110,48 @@ public class ManageMeasurePresenter implements MatPresenter {
 							result.setSelectedTransferIds(new ArrayList<String>());
 							result.setSelectedTransferResults(new ArrayList<Result>());
 							manageMeasureSearchModel = result;
-							AdminMeasureSearchResultAdaptor searchAdminResults = new AdminMeasureSearchResultAdaptor();
-							searchAdminResults.setData(result);
+							MeasureSearchView measureSearchView = new MeasureSearchView();
+							measureSearchView.setData(result);
+							
 							MatContext.get()
 							.setManageMeasureSearchModel(
 									manageMeasureSearchModel);
-							searchAdminResults
-							.setObserver(new AdminMeasureSearchResultAdaptor.Observer() {
+							searchDisplay.setAdminObserver(new MeasureSearchView.AdminObserver() {
+								
 								@Override
-								public void onHistoryClicked(
-										Result result) {
+								public void onTransferSelectedClicked(Result result) {
+									searchDisplay
+								.getErrorMessageDisplay()
+									.clear();
+									searchDisplay
+								.getErrorMessagesForTransferOS()
+									.clear();
+									updateTransferIDs(result,
+											manageMeasureSearchModel);
+									
+								}
+								
+								@Override
+								public void onHistoryClicked(Result result) {
 									historyDisplay
 									.setReturnToLinkText("<< Return to MeasureLibrary Owner Ship");
-									if (!result.isEditable()) {
-										historyDisplay
-										.setUserCommentsReadOnly(true);
-									} else {
-										historyDisplay
-										.setUserCommentsReadOnly(false);
-									}
+//									if (!result.isEditable()) {
+//										historyDisplay
+//										.setUserCommentsReadOnly(true);
+//									} else {
+//										historyDisplay
+//										.setUserCommentsReadOnly(false);
+//									}
 									
 									displayHistory(
 											result.getId(),
 											result.getName());
+									
 								}
-								
-								@Override
-								public void onTransferSelectedClicked(
-										Result result) {
-									adminSearchDisplay
-									.getErrorMessageDisplay()
-									.clear();
-									adminSearchDisplay
-									.getErrorMessagesForTransferOS()
-									.clear();
-									updateTransferIDs(result,
-											manageMeasureSearchModel);
-								}
-								
 							});
 							if ((result.getResultsTotal() == 0)
 									&& !lastSearchText.isEmpty()) {
-								adminSearchDisplay
+								searchDisplay
 								.getErrorMessageDisplay()
 								.setMessage(
 										MatContext
@@ -2390,23 +2159,23 @@ public class ManageMeasurePresenter implements MatPresenter {
 										.getMessageDelegate()
 										.getNoMeasuresMessage());
 							} else {
-								adminSearchDisplay
+								searchDisplay
 								.getErrorMessageDisplay()
 								.clear();
-								adminSearchDisplay
+								searchDisplay
 								.getErrorMessagesForTransferOS()
 								.clear();
 							}
 							SearchResultUpdate sru = new SearchResultUpdate();
 							sru.update(result,
-									(TextBox) adminSearchDisplay
-									.getSearchString(),
+									(TextBox) searchDisplay
+									.getAdminSearchString(),
 									lastSearchText);
-							adminSearchDisplay
-							.buildDataTable(searchAdminResults);
-							panel.setContent(adminSearchDisplay
+							searchDisplay
+							.buildDataTable(manageMeasureSearchModel, filter,searchText);
+					panel.setContent(searchDisplay
 									.asWidget());
-							showAdminSearchingBusy(false);
+					showAdminSearchingBusy(false);
 							
 						}
 					});
@@ -2535,11 +2304,11 @@ public class ManageMeasurePresenter implements MatPresenter {
 									searchDisplay.getErrorMeasureDeletion().clear();
 									historyDisplay
 									.setReturnToLinkText("<< Return to Measure Library");
-									if (!result.isEditable()) {
-										historyDisplay.setUserCommentsReadOnly(true);
-									} else {
-										historyDisplay.setUserCommentsReadOnly(false);
-									}
+//									if (!result.isEditable()) {
+//										historyDisplay.setUserCommentsReadOnly(true);
+//									} else {
+//										historyDisplay.setUserCommentsReadOnly(false);
+//									}
 									
 									displayHistory(result.getId(), result.getName());
 								}
@@ -2614,7 +2383,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 							SearchResultUpdate sru = new SearchResultUpdate();
 							sru.update(result, (TextBox) searchDisplay
 									.getSearchString(), lastSearchText);
-							searchDisplay.buildDataTable(manageMeasureSearchModel,filter,searchText);
+							searchDisplay.buildCellTable(manageMeasureSearchModel,filter,searchText);
 							showSearchingBusy(false);
 							
 						}
@@ -2788,56 +2557,6 @@ public class ManageMeasurePresenter implements MatPresenter {
 			}
 		});
 		
-		searchDisplay.getPageSelectionTool().addPageSelectionHandler(
-				new PageSelectionEventHandler() {
-					
-					@SuppressWarnings("static-access")
-					@Override
-					public void onPageSelection(PageSelectionEvent event) {
-						measureDeletion = false;
-						isMeasureDeleted = false;
-						searchDisplay.getErrorMeasureDeletion().clear();
-						searchDisplay.getSuccessMeasureDeletion().clear();
-						/*int filter = searchDisplay
-								.getMeasureSearchFilterPanel()
-								.getSelectedIndex();*/
-						int filter = searchDisplay
-								.getSelectedFilter();
-						if (ClientConstants.ADMINISTRATOR
-								.equalsIgnoreCase(MatContext.get()
-										.getLoggedInUserRole())) {
-							filter = searchDisplay
-									.getMeasureSearchFilterWidget().ALL_MEASURES;
-							/*filter = searchDisplay
-									.getMeasureSearchFilterPanel().ALL_MEASURES;*/
-						}
-						startIndex = (searchDisplay.getPageSize()
-								* (event.getPageNumber() - 1)) + 1;
-						search(searchDisplay.getSearchString().getValue(),
-								startIndex, searchDisplay.getPageSize(), filter);
-					}
-				});
-		searchDisplay.getPageSizeSelectionTool().addPageSizeSelectionHandler(
-				new PageSizeSelectionEventHandler() {
-					@SuppressWarnings("static-access")
-					@Override
-					public void onPageSizeSelection(PageSizeSelectionEvent event) {
-						measureDeletion = false;
-						isMeasureDeleted = false;
-						searchDisplay.getErrorMeasureDeletion().clear();
-						searchDisplay.getSuccessMeasureDeletion().clear();
-						int filter = searchDisplay.getSelectedFilter();
-						
-						if (ClientConstants.ADMINISTRATOR
-								.equalsIgnoreCase(MatContext.get()
-										.getLoggedInUserRole())) {
-							filter = searchDisplay
-									.getMeasureSearchFilterWidget().ALL_MEASURES;
-						}
-						search(searchDisplay.getSearchString().getValue(),
-								startIndex, searchDisplay.getPageSize(), filter);
-					}
-				});
 		searchDisplay.getSearchButton().addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
@@ -2848,7 +2567,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 				searchDisplay.getErrorMessageDisplay().clear();
 				int filter = searchDisplay.getSelectedFilter();
 				search(searchDisplay.getSearchString().getValue(), startIndex,
-						searchDisplay.getPageSize(), filter);
+						Integer.MAX_VALUE, filter);
 			}
 		});
 		searchDisplay.getZoomButton().addClickHandler(new ClickHandler() {
@@ -2945,6 +2664,44 @@ public class ManageMeasurePresenter implements MatPresenter {
 				}
 			}
 		});
+		//added by hari
+		searchDisplay.getAdminSearchButton().addClickHandler(
+				new ClickHandler() {
+					@Override
+					public void onClick(ClickEvent event) {
+						int startIndex = 1;
+						searchDisplay.getErrorMessageDisplay().clear();
+						int filter = 1;
+						search(searchDisplay.getAdminSearchString().getValue(),
+								startIndex, Integer.MAX_VALUE, filter);
+					}
+				});
+		
+		searchDisplay.getTransferButton().addClickHandler(
+				new ClickHandler() {
+					@Override
+					public void onClick(ClickEvent event) {
+						searchDisplay.clearTransferCheckBoxes();
+						transferDisplay.getSearchString().setValue("");
+						displayTransferView("",startIndex,
+								Integer.MAX_VALUE);
+					}
+				});
+		
+		searchDisplay.getClearButton().addClickHandler(new ClickHandler() {
+			@Override
+			public void onClick(ClickEvent event) {
+				manageMeasureSearchModel.getSelectedTransferResults()
+				.removeAll(
+						manageMeasureSearchModel
+						.getSelectedTransferResults());
+				manageMeasureSearchModel.getSelectedTransferIds().removeAll(
+						manageMeasureSearchModel.getSelectedTransferIds());
+				int filter = 1;
+				search(searchDisplay.getAdminSearchString().getValue(), 1,
+						Integer.MAX_VALUE, filter);
+			}
+		});
 		
 	}
 	
@@ -2996,14 +2753,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 			@Override
 			public void onSuccess(SearchHistoryDTO data) {
 				historyModel = new HistoryModel(data.getLogs());
-				historyModel.setPageSize(historyDisplay
-						.getPageSize());
-				historyModel.setTotalPages(data.getPageCount());
-				historyDisplay.buildDataTable(historyModel,
-						data.getPageCount(),
-						data.getTotalResults(),
-						historyDisplay.getCurrentPage(),
-						historyDisplay.getPageSize());
+				historyDisplay.buildCellTable(data.getLogs());
 			}
 		});
 	}
@@ -3134,25 +2884,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 	 *            the share display
 	 */
 	private void shareDisplayHandlers(final ShareDisplay shareDisplay) {
-		shareDisplay.getPageSelectionTool().addPageSelectionHandler(
-				new PageSelectionEventHandler() {
-					
-					@Override
-					public void onPageSelection(PageSelectionEvent event) {
-						shareStartIndex = (shareDisplay.getPageSize()
-								* (event.getPageNumber() - 1)) + 1;
-						getShareDetails(currentShareDetails.getMeasureId(),
-								shareStartIndex);
-					}
-				});
-		shareDisplay.getPageSizeSelectionTool().addPageSizeSelectionHandler(
-				new PageSizeSelectionEventHandler() {
-					@Override
-					public void onPageSizeSelection(PageSizeSelectionEvent event) {
-						getShareDetails(currentShareDetails.getMeasureId(),
-								shareStartIndex);
-					}
-				});
+		
 		shareDisplay.getCancelButton().addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
@@ -3238,8 +2970,8 @@ public class ManageMeasurePresenter implements MatPresenter {
 		} else {
 			Mat.hideLoadingMessage();
 		}
-		((Button) adminSearchDisplay.getSearchButton()).setEnabled(!busy);
-		((TextBox) (adminSearchDisplay.getSearchString())).setEnabled(!busy);
+		((Button) searchDisplay.getAdminSearchButton()).setEnabled(!busy);
+		((TextBox) (searchDisplay.getAdminSearchString())).setEnabled(!busy);
 		((Button) transferDisplay.getSearchButton()).setEnabled(!busy);
 		((TextBox) (transferDisplay.getSearchString())).setEnabled(!busy);
 		
