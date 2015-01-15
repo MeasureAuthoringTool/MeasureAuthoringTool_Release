@@ -11,6 +11,9 @@ import mat.shared.ConstantMessages;
  */
 public class MessageDelegate {
 	
+	/** The Constant WELCOME_MESSAGE. */
+	public static final String WELCOME_MESSAGE = "You have successfully logged into the MAT.";
+	
 	/** The Constant ALERT_LOADING_MESSAGE. */
 	public static final String ALERT_LOADING_MESSAGE = "Please wait until loading is complete.";
 	
@@ -123,7 +126,10 @@ public class MessageDelegate {
 	public static final String SEC_QUESTIONS_UPDATED = "Your security questions have been updated.";
 	
 	/** The Constant SUPP_DATA_SAVED. */
-	public static final String SUPP_DATA_SAVED = "Supplemental data elements have been saved.";
+	public static final String SUPP_DATA_SAVED = "Supplemental Data Elements have been saved.";
+	
+	/** The Constant RISK_ADJ_SAVED. */
+	public static final String RISK_ADJ_SAVED = "Risk Adjustment Variables have been saved.";
 	
 	/** The Constant TEMP_EMAIL_SENT. */
 	public static final String TEMP_EMAIL_SENT = "Temporary Password E-mail has been sent.";
@@ -140,7 +146,7 @@ public class MessageDelegate {
 	/**
 	 * Ratio Measure - Association Required for Numerator/Denominator in case of more than 1 IP.
 	 */
-	public static final String RATIO_NUM_DENO_ASSOCIATION_REQUIRED = "For Ratio measures, in the case of more than one Population, "
+	public static final String RATIO_NUM_DENO_ASSOCIATION_REQUIRED = "For Ratio measures, in the case of more than one Initial Population, "
 			+ " Numerator and Denominator must contain one association.";
 	
 	
@@ -209,12 +215,12 @@ public class MessageDelegate {
 	private final String CLAUSE_WORK_SPACE_VALIDATION_SUCCESS = "Measure logic validation successful.";
 	
 	/** The clause work space validation error. */
-	private final String POPULATION_WORK_SPACE_VALIDATION_ERROR = "Logic must only contain Clauses and Logical operators.";
+	private final String POPULATION_WORK_SPACE_VALIDATION_ERROR = "Logic must only contain clauses and logical operators.";
 	
 	/** The measure logic is incorrect. */
 	private final String MEASURE_LOGIC_IS_INCORRECT = " Measure logic is incorrect.";
 	/** The population work space measure observation validation error. */
-	private final String POPULATION_WORK_SPACE_MEASURE_OBSERVATION_VALIDATION_ERROR = " Logic must only contain Clauses.";
+	private final String POPULATION_WORK_SPACE_MEASURE_OBSERVATION_VALIDATION_ERROR = " Logic must only contain clauses.";
 	
 	/** The invalid character validation error. */
 	private final String INVALID_CHARACTER_VALIDATION_ERROR =" Value set name cannot contain any of the following characters : + * ? : - | ! ; %";
@@ -266,7 +272,7 @@ public class MessageDelegate {
 	 */
 	/** The continuous variable wrong num. */
 	private final String CONTINUOUS_VARIABLE_WRONG_NUM = "For a Continuous Variable measure, a grouping must contain exactly one of each of the following: "
-			+ "Population, Measure Population, and at least one Measure Observation.";
+			+ "Initial Population, Measure Population,and at least one Measure Observation.";
 	
 	/** The delete measure warning message. */
 	private final String DELETE_MEASURE_WARNING_MESSAGE = "Deleting a draft or version of a measure will"
@@ -359,7 +365,7 @@ public class MessageDelegate {
 			+ "Value set data is not included in the measure package as you are not logged into UMLS.";
 	
 	/** The measure package failed vsac timeout. */
-	private final String MEASURE_PACKAGE_FAILED_VSAC_TIMEOUT = "Measure Package Failed. VSAC request timed out. Please contact HelpDesk.";
+	private final String MEASURE_PACKAGE_FAILED_VSAC_TIMEOUT = "Measure Package Failed. VSAC request timed out.Please contact Help Desk.";
 	
 	/** The measure selection error. */
 	private final String MEASURE_SELECTION_ERROR = "Please select at least one measure";
@@ -437,7 +443,7 @@ public class MessageDelegate {
 	private final String PHONE_10_DIGIT = "Phone Number is required to be 10 digits.";
 	
 	/** The proportion may not contain. */
-	private final String PROPORTION_MAY_NOT_CONTAIN = "For a Proportion measure, a grouping may not contain a Numerator Exclusion, Measure Population, or Measure Observation.";
+	private final String PROPORTION_MAY_NOT_CONTAIN = "For a Proportion measure,a grouping may not contain a Numerator Exclusion,Measure Population,or Measure Observation.";
 	
 	/** The proportion too few. */
 	private final String PROPORTION_TOO_FEW = "For a Proportion measure, a grouping may not contain less than one Numerator.";
@@ -451,16 +457,16 @@ public class MessageDelegate {
 	 */
 	/** The proportion wrong num. */
 	private final String PROPORTION_WRONG_NUM = "For a Proportion measure, a grouping must contain exactly one of each of the following: "
-			+ "Population, Denominator and Numerator.";
+			+ "Initial Population, Denominator and Numerator.";
 	
 	/** The ratio may not contain. */
-	private final String RATIO_MAY_NOT_CONTAIN = "For a Ratio measure, a grouping may not contain a Denominator Exception, or Measure Population.";
+	private final String RATIO_MAY_NOT_CONTAIN = "For a Ratio measure,a grouping may not contain a Denominator Exception,or Measure Population.";
 	
 	/** The ratio too many. */
 	private final String RATIO_TOO_MANY = "For a Ratio measure, a grouping may not contain more than one of each of the following: Denominator Exclusion and Numerator Exclusion.";
 	
 	/** The ratio too many populations. */
-	private final String RATIO_TOO_MANY_POPULATIONS = "For a Ratio measure, a grouping may not contain more than two of the following: Populations.";
+	private final String RATIO_TOO_MANY_POPULATIONS = "For a Ratio measure, a grouping may not contain more than two of the following: Initial Populations.";
 	/*
 	 * RATIO
 	 */
@@ -469,11 +475,13 @@ public class MessageDelegate {
 			+ "Denominator and Numerator.";
 	
 	/** The ratio too few populations. */
-	private final String RATIO_TOO_FEW_POPULATIONS = "For a Ratio measure, a grouping must contain at least one Population.";
+	private final String RATIO_TOO_FEW_POPULATIONS = "For a Ratio measure, a grouping must contain at least one Initial Population.";
 	
+	/** The invalid logic population work space. */
 	private final String INVALID_LOGIC_POPULATION_WORK_SPACE = "Measure Logic is incomplete.Please validate your measure logic in both Population Workspace and Clause Workspace.";
 	
-	private final String INVALIDLOGIC_CLAUSE_WORK_SPACE = "Clause logic is incomplete.Please validate your Clause logic.";
+	/** The invalidlogic clause work space. */
+	private final String INVALIDLOGIC_CLAUSE_WORK_SPACE = "Clause logic is incomplete.Please validate your clause logic.";
 	/**
 	 * Gets the ratio too few populations.
 	 *
@@ -484,7 +492,7 @@ public class MessageDelegate {
 	}
 	
 	/** The cohort wrong num. */
-	private final String COHORT_WRONG_NUM = "For a Cohort measure, a grouping must contain exactly one Population.";
+	private final String COHORT_WRONG_NUM = "For a Cohort measure, a grouping must contain exactly one Initial Population.";
 	
 	/** The stratification validation for grouping. */
 	private final String STRATIFICATION_VALIDATION_FOR_GROUPING = " Measure Grouping cannot contain more than one Stratification.";
@@ -596,9 +604,10 @@ public class MessageDelegate {
 	private final String COMPONENT_MEASURES_ADDED_SUCCESSFULLY="Component Measures updated successfully. Changes must be saved on the previous page.";
 	
 	/** The removed functions error message. */
-	private final String POPULATION_WORKSPACE_DATETIMEDIFF_ERROR_MESSAGE = "Highlighted clause contains DATETIMEDIFF Function.";
+	private final String POPULATION_WORKSPACE_DATETIMEDIFF_ERROR_MESSAGE = "Highlighted clause contains DATETIMEDIFF function.";
 	
-	
+	/** The clause work space invalid nested clause. */
+	private final String CLAUSE_WORK_SPACE_INVALID_NESTED_CLAUSE ="Invalid clause(s) used in logic.";
 	/**
 	 * Gets the component measures added successfully.
 	 *
@@ -1741,6 +1750,14 @@ public class MessageDelegate {
 	}
 	
 	/**
+	 * Gets the risk adj saved message.
+	 *
+	 * @return the risk adj saved message
+	 */
+	public String getRiskAdjSavedMessage() {
+		return RISK_ADJ_SAVED;
+	}
+	/**
 	 * Gets the system error message.
 	 * 
 	 * @return String
@@ -2142,22 +2159,49 @@ public class MessageDelegate {
 		return EMAIL_ID_REQUIRED;
 	}
 	
+	/**
+	 * Gets the population workspace datetimediff error message.
+	 *
+	 * @return the population workspace datetimediff error message
+	 */
 	public String getPOPULATION_WORKSPACE_DATETIMEDIFF_ERROR_MESSAGE() {
 		return POPULATION_WORKSPACE_DATETIMEDIFF_ERROR_MESSAGE;
 	}
 	
 	/**
+	 * Gets the invalid logic population work space.
+	 *
 	 * @return the iNVALID_LOGIC_POPULATION_WORK_SPACE
 	 */
 	public String getINVALID_LOGIC_POPULATION_WORK_SPACE() {
 		return INVALID_LOGIC_POPULATION_WORK_SPACE;
 	}
-
+	
 	/**
+	 * Gets the invalidlogic clause work space.
+	 *
 	 * @return the iNVALIDLOGIC_CLAUSE_WORK_SPACE
 	 */
 	public String getINVALIDLOGIC_CLAUSE_WORK_SPACE() {
 		return INVALIDLOGIC_CLAUSE_WORK_SPACE;
+	}
+	
+	/**
+	 * Gets the clause work space invalid nested clause.
+	 *
+	 * @return the cLAUSE_WORK_SPACE_INVALID_NESTED_CLAUSE
+	 */
+	public String getCLAUSE_WORK_SPACE_INVALID_NESTED_CLAUSE() {
+		return CLAUSE_WORK_SPACE_INVALID_NESTED_CLAUSE;
+	}
+	
+	/**
+	 * Gets the welcome message.
+	 *
+	 * @return the welcome message
+	 */
+	public static String getWelcomeMessage() {
+		return WELCOME_MESSAGE;
 	}
 	
 	

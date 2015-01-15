@@ -91,12 +91,16 @@ public class ManageMeasureDetailView
 		fPanel.setWidth("90%");	
 		fPanel.setHeight("100%");
 		fPanel.add(measureNameLabel);
+		measureNameLabel.getElement().setId("measureNameLabel_MeasureNameLabel");
 		fPanel.add(instructions);
+		instructions.getElement().setId("instructions_HTML");
 		fPanel.add(new SpacerWidget());
 		fPanel.add(requiredInstructions);
+		requiredInstructions.getElement().setId("requiredInstructions_HTML");
 		fPanel.add(new SpacerWidget());
 		
 		fPanel.add(errorMessages);
+		errorMessages.getElement().setId("errorMessages_ErrorMessageDisplay");
 		
 		FlowPanel leftPanel = new FlowPanel();
 		leftPanel.getElement().setId("leftPanel_FlowPanel");
@@ -104,21 +108,26 @@ public class ManageMeasureDetailView
 		
 		leftPanel.add(LabelBuilder.buildLabel(name, nameLabel));
 		leftPanel.add(name);
+		name.getElement().setId("name_TextAreaWithMaxLength");
 		leftPanel.add(new SpacerWidget());
 		
 		
 		leftPanel.add(LabelBuilder.buildLabel(shortName, shortNameLabel));
 		leftPanel.add(shortName);
+		shortName.getElement().setId("shortName_TextBox");
 		leftPanel.add(new SpacerWidget());
 		//US 195 Adding Static Caution Message
 		HorizontalPanel hp = new HorizontalPanel();
 		leftPanel.getElement().setId("hp_HorizontalPanel");
 		hp.add(measScoringInput);
+		measScoringInput.getElement().setId("measScoringInput_ListBoxMVP");
 		hp.add(new HTML("&nbsp;"));
 		hp.add(cautionMsgPlaceHolder);
+		cautionMsgPlaceHolder.getElement().setId("cautionMsgPlaceHolder_HTML");
 		
 		//US 421. Measure scoring choice is now part of measure creation process.
 		leftPanel.add(LabelBuilder.buildLabel(measScoringInput, scoringLabel));
+		measScoringInput.getElement().setId("measScoringInput_ListBoxMVP");
 		leftPanel.add(hp);
 		leftPanel.add(new SpacerWidget());
 

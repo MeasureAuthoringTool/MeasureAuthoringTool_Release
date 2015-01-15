@@ -336,16 +336,25 @@ left:50px;
 
 .customDeleteButton {
     background: url("images/trash.png");
-    background-position:center;
+    background-position:left;
     background-repeat:no-repeat;
     height: 25px;
     width: 30px;
     border: 0px;
     font-size: 0;
-    cursor: pointer;
     cursor: hand;
 }
 
+  .customDeleteDisableButton {
+    background: url("images/trashDisable.png");
+    background-position:left;
+    background-repeat:no-repeat;
+    height: 25px;
+    width: 30px;
+    border: 0px;
+    font-size: 0;
+    cursor: cursor;
+}  
 .customCompositeEmptyCell{
 	cursor: text;
 }
@@ -434,19 +443,22 @@ left:50px;
 .continueButton{
 	float: right;
 	}
-
+.successIcon{
+	padding-right:2px;
+}
 .topBanner {
 	/*
     position: absolute; 
 	: 0pt; 
 	top: 0pt;
 	*/ 
-	overflow: visible; 
-	height: 75px; 
+	overflow: visible; 	 
 	/*border: 1px solid rgb(160, 160, 160);*/ 
 	background-image: url('images/hpgradient_small.jpg');
-	background-repeat: repeat-x;
-	background-position: left top; 
+	/* background-size: only supported by IE 9 and +*/
+	background-size: 100% 100%;
+	background-repeat: repeat-x;		
+	background-position: left top;	
     padding-left:25px;
     padding-right:25px;
     -moz-box-sizing: border-box; 
@@ -455,8 +467,7 @@ left:50px;
 	/*margin-left: 2px;*/ 
     margin-right: 2px; 
     margin-bottom: 10px; 
-    width: 100%;
-   
+    width:100%;   
 }
 
 .footer {
@@ -730,7 +741,18 @@ left:50px;
     padding: 6px 6px 6px 30px;
     text-align: left;
 }
-
+.matLoginSuccessMessage {
+	/*color: green;
+	font-size: .8em;
+	font-weight: bold;*/
+	background: /*url('images/success.png')*/ no-repeat scroll 6px 50% #F4FDEF;
+    border: 1px solid #ACDFA7;
+    display: block;
+    font-weight: bold;
+    margin: 2px auto -5px;    
+    padding: 6px 6px 0 6px; 
+    text-align: left;    
+}
 .successMessageCommentPanel {
     /*color: green;
     font-size: .8em;
@@ -1142,7 +1164,7 @@ padding: 2px;
 .logoutPanel{
 	float: right;
 	position: relative;
-	padding-top: 12px;
+	padding-top: 5px;
 	cursor: pointer;
 	font-size:small;
 }
@@ -1153,11 +1175,16 @@ padding: 2px;
 	padding-top: 12px;
 	font-size:small;
 }
-
-.logoutAndUMLSPanel{
+.welcomeUserPanel{
 	float: right;
 	position: relative;
 	padding-top: 12px;
+	font-size:small;	
+}
+.logoutAndUMLSPanel{
+	float: right;
+	position: relative;
+	/*padding-top: 12px;*/
 	font-size:small;
 }
 
@@ -1831,7 +1858,6 @@ padding: 2px;
 	position:relative;
 	/* font-style:Italic; */
 }
-
 .imageMiddleAlign{
 	vertical-align:middle;	
 }
@@ -2083,4 +2109,38 @@ padding: 2px;
     margin-top: 8px;
     width: 99%;
 	margin-left:5px important!;
+}
+
+.measureDetailLabelStyle{
+    background-color: #DCE9F5; 
+    font-weight: bold;
+    padding: 5px;
+    width: 495px;
+    text-align:left;
+    margin-bottom: 2px;
+}
+
+.measureDetailTableHeader{
+    background-color: #DCE9F5; 
+    font-weight: bold;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left:5px;
+    margin-bottom:-7px;
+    margin-left:3px;
+    width:505px;
+    text-align:left;
+}
+
+.measurementPeriodHeader{
+	background-color: #DCE9F5;
+	font-size: small;
+    font-weight: bold;
+    color: black;
+    padding: 5px;
+}
+
+.invisibleTableCaption{
+    color:transparent;
+    font-size:0;
 }

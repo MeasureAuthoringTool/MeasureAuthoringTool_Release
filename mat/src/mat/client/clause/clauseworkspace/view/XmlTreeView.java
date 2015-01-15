@@ -217,6 +217,8 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 	/** The success message display. */
 	private SuccessMessageDisplay successMessageAddCommentDisplay = new SuccessMessageDisplay();
 	
+	private boolean isClauseWorkSpace = false;
+	
 	/** The add comment panel. */
 	VerticalPanel addCommentPanel;
 	/**
@@ -351,7 +353,9 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 		expandCollapse.setStyleName("leftAndTopPadding");
 		expandCollapse.setSize("100px", "20px");
 		buttonExpand.setStylePrimaryName("expandAllButton");
+		buttonExpand.getElement().setId("buttonExpand_Button");
 		buttonCollapse.setStylePrimaryName("collapseAllButton");
+		buttonCollapse.getElement().setId("buttonCollapse_Button");
 		buttonExpand.setTitle("Expand All (Shift +)");
 		buttonCollapse.setTitle("Collapse All (Shift -)");
 		expandCollapse.add(buttonExpand);
@@ -370,16 +374,20 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 		savePanel.getElement().setId("savePanel_VerticalPanel");
 		//savePanel.add(new SpacerWidget());
 		vp.add(successMessageDisplay);
+		successMessageDisplay.getElement().setId("successMessageDisplay_SuccessMessageDisplay");
 		savePanel.add(saveBtn);
 		//Commented Validate Button from Population Work Space as part of Mat-3162
 		validateBtnPopulationWorkspace.setTitle("Validate");//uncommented
+		validateBtnPopulationWorkspace.getElement().setId("validateBtnPopulationWorkspace_Button");
 		savePanel.add(validateBtnPopulationWorkspace);// uncommented
 		vp.add(warningMessageDisplay);//uncommented
+		warningMessageDisplay.getElement().setId("warningMessageDisplay_WarningMessageDisplay");
 		vp.add(savePanel);
 		bottomSavePanel.add(vp);
 		SimplePanel errPanel = new SimplePanel();
 		errPanel.getElement().setId("errPanel_SimplePanel");
 		errPanel.add(errorMessageDisplay);
+		errorMessageDisplay.getElement().setId("errorMessageDisplay_ErrorMessageDisplay");
 		addCommentPanel = addCommentPanelToRightPanel();
 		addCommentPanel.setVisible(false);
 		rightPanel.add(addCommentPanel);
@@ -389,6 +397,7 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 		mainPanel.add(bottomSavePanel);
 		focusPanel.addKeyDownHandler(this);
 		focusPanel.addFocusHandler(this);
+		isClauseWorkSpace = false;
 	}
 	
 	/**
@@ -436,6 +445,7 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 		this.cellTree = cellTree;
 		mainPanel.clear();
 		mainPanel.setStyleName("div-wrapper"); //main div
+		mainPanel.getElement().setId("mainPanel_FlowPanel");
 		SimplePanel leftPanel = new SimplePanel();
 		leftPanel.getElement().setId("leftPanel_SimplePanelCW");
 		leftPanel.setStyleName("div-first bottomPadding10px"); //left side div which will  have tree
@@ -480,15 +490,21 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 		HorizontalPanel clauseButtonPanel = new HorizontalPanel();
 		clauseButtonPanel.setWidth("100%");
 		clauseButtonPanel.add(openClauseButton);
+		openClauseButton.getElement().setId("openClauseButton_Button");
 		clauseButtonPanel.add(deleteClauseButton);
+		deleteClauseButton.getElement().setId("deleteClauseButton_Button");
 		clauseButtonPanel.setCellHorizontalAlignment(openClauseButton, HasHorizontalAlignment.ALIGN_LEFT);
 		clauseButtonPanel.setCellHorizontalAlignment(deleteClauseButton, HasHorizontalAlignment.ALIGN_RIGHT);
 		
 		rightVerticalPanel.add(clauseLibraryLabel);
+		clauseLibraryLabel.getElement().setId("clauseLibraryLabel_Label");
 		searchSuggestTextBox.getElement().setAttribute("id", "searchSuggestTextBox");
 		rightVerticalPanel.add(searchSuggestTextBox);
+		searchSuggestTextBox.getElement().setId("searchSuggestTextBox_SuggestBox");
 		rightVerticalPanel.add(subTreeNameListBox);
+		subTreeNameListBox.getElement().setId("subTreeNameListBox_ListBox");
 		rightVerticalPanel.add(clauseButtonPanel);
+		clauseButtonPanel.getElement().setId("clauseButtonPanel_HorizontalPanel");
 		
 		rightVerticalPanel.setCellHorizontalAlignment(clauseLibraryLabel, HasHorizontalAlignment.ALIGN_LEFT);
 		
@@ -503,7 +519,9 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 		buttonExpandClauseWorkSpace.setTitle("Expand All (Shift +)");
 		buttonCollapseClauseWorkSpace.setTitle("Collapse All (Shift -)");
 		expandCollapse.add(buttonExpandClauseWorkSpace);
+		buttonExpandClauseWorkSpace.getElement().setId("buttonExpandClauseWorkSpace_Button");
 		expandCollapse.add(buttonCollapseClauseWorkSpace);
+		buttonCollapseClauseWorkSpace.getElement().setId("buttonCollapseClauseWorkSpace_Button");
 		buttonExpandClauseWorkSpace.setFocus(true);
 		buttonCollapseClauseWorkSpace.setVisible(true);
 		if (cellTree != null) {
@@ -535,6 +553,7 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 		clearClauseWorkSpace.setTitle("Clear Clause WorkSpace");
 		savePanel.add(validateBtnClauseWorkSpace);
 		savePanel.add(clearClauseWorkSpace);
+		clearClauseWorkSpace.getElement().setId("clearClauseWorkSpace_Button");
 		vp.add(warningMessageDisplay);
 		vp.add(savePanel);
 		bottomSavePanel.add(vp);
@@ -548,6 +567,7 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 		mainPanel.add(bottomSavePanel);
 		focusPanel.addKeyDownHandler(this);
 		focusPanel.addFocusHandler(this);
+		isClauseWorkSpace = true;
 	}
 	
 	/**
@@ -571,9 +591,12 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 		buttonExpandClauseWorkSpace.setStylePrimaryName("expandAllButton");
 		buttonCollapseClauseWorkSpace.setStylePrimaryName("collapseAllButton");
 		buttonExpandClauseWorkSpace.setTitle("Expand All (Shift +)");
+		
 		buttonCollapseClauseWorkSpace.setTitle("Collapse All (Shift -)");
 		expandCollapse.add(buttonExpandClauseWorkSpace);
 		expandCollapse.add(buttonCollapseClauseWorkSpace);
+		buttonExpandClauseWorkSpace.getElement().setId("buttonExpandClauseWorkSpace_Button");
+		buttonCollapseClauseWorkSpace.getElement().setId("buttonCollapseClauseWorkSpace_Button");
 		buttonExpandClauseWorkSpace.setFocus(true);
 		buttonCollapseClauseWorkSpace.setVisible(true);
 		if (cellTree != null) {
@@ -954,10 +977,12 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 							String subStringText = commentAreaUpdatedText.substring(0,
 									maxLength);
 							CommentAreaTextBox.this.setValue(subStringText);
+							setCursorPos(maxLength);
 						} else {
 							CommentAreaTextBox.this.setValue(commentAreaUpdatedText);
+							setCursorPos(pos);
 						}
-						setCursorPos(pos);
+						
 						setDirty(true);
 						onTextAreaContentChanged(remainingCharsLabel);
 					}
@@ -1059,7 +1084,7 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 					== CellTreeNode.MASTER_ROOT_NODE)
 					|| (cellTreeNode.getNodeType()
 							== CellTreeNode.ROOT_NODE)) {
-				sb.append(template.outerDiv(getStyleClass(cellTreeNode), UUIDUtilClient.uuid().concat("_treeNode"),
+				sb.append(template.outerDiv(getStyleClass(cellTreeNode), UUIDUtilClient.uuid(5).concat("_treeNode_"+cellTreeNode.getLabel()),
 						cellTreeNode.getTitle(),
 						cellTreeNode.getLabel() != null
 						? cellTreeNode.getLabel() : cellTreeNode.getName()));
@@ -1075,7 +1100,7 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 									&& (treeNode.getNodeText().length() > 0)
 									&& (treeNode.getNodeText().trim() != StringUtils.EMPTY)) {
 								sb.append(template.outerDivItemWithSpan(getStyleClass(cellTreeNode),
-										UUIDUtilClient.uuid().concat("_treeNode"), cellTreeNode.getTitle(),
+										UUIDUtilClient.uuid(5).concat("_treeNode_"+cellTreeNode.getLabel()), cellTreeNode.getTitle(),
 										cellTreeNode.getLabel() != null
 										? cellTreeNode.getLabel() : cellTreeNode.getName()));
 								foundComment = true;
@@ -1085,7 +1110,7 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 					}
 					if(!foundComment) {
 						sb.append(template.outerDivItem(getStyleClass(cellTreeNode),
-								UUIDUtilClient.uuid().concat("_treeNode"), cellTreeNode.getTitle(),
+								UUIDUtilClient.uuid(5).concat("_treeNode_"+cellTreeNode.getLabel()), cellTreeNode.getTitle(),
 								cellTreeNode.getLabel() != null
 								? cellTreeNode.getLabel() : cellTreeNode.getName()));
 					}
@@ -1488,6 +1513,11 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 			selectedNode.setName(name);
 			selectedNode.setLabel(label);
 			closeParentOpenNodes(cellTree.getRootTreeNode());
+			selectionModel.setSelected(selectedNode.getParent(), true);
+			// This is done to invoke focus event on Parent node to show Inline comment in Comment Area
+			//when Edit Operation is Performed on ClauseWorspace or PopulationWorkspace.
+			((NodeCell) getNodeInfo(selectedNode.getParent()).getCell()).
+			onBrowserEvent(new Context(0, 0, null), null, selectedNode.getParent(), Document.get().createFocusEvent(), null);
 		}
 	}
 	/**
@@ -1569,7 +1599,12 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 								break;
 							case CellTreeNode.LOGICAL_OP_NODE: case CellTreeNode.FUNCTIONS_NODE:
 							case CellTreeNode.SET_OP_NODE:
-								if (copiedNode.getNodeType() != CellTreeNode.CLAUSE_NODE) {
+								if(selectedNode.getName().contains("SATISFIES")){
+									if((selectedNode.getChilds()!=null) && (selectedNode.getChilds().size()>=1)){
+										canPaste = true;
+									}
+								}
+								else if (copiedNode.getNodeType() != CellTreeNode.CLAUSE_NODE) {
 									canPaste = true;
 								}
 								break;
@@ -1820,7 +1855,6 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 			List<String> inValidNodeAtPopulationWorkspace){
 		int nodeType = cellTreeNode.getNodeType();
 		switch(nodeType){
-			
 			case CellTreeNode.LOGICAL_OP_NODE:
 				if(cellTreeNode.getParent().getName()
 						.contains(MEASURE_OBSERVATION)){
@@ -1842,6 +1876,11 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 				}
 				break;
 			case CellTreeNode.SUBTREE_REF_NODE:
+				// Added check for Measure Observation - For DateTimeDiff Fnx.
+				if (cellTreeNode.getParent().getName()
+						.contains(MEASURE_OBSERVATION)) {
+					setMeasureObservations(true);
+				}
 				boolean checkValidation = validateSubTreeRefNode(cellTreeNode);
 				editNode(!checkValidation, cellTreeNode);
 				if (isDateTimeDiffNotInMO) {
@@ -1964,12 +2003,13 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 				if(!isValid) {
 					setValid(!(inValideNodesList.size() == 0));
 				}
-				
-				if (!isMeasureObservations
-						&& subTreeCellTreeNode.getName().contains("DATETIMEDIFF")) {
-					setValid(true);
-					isDateTimeDiffNotInMO = true;
-					setValidHumanReadable(false);
+				if(!isClauseWorkSpace) { // Check for measure Ob and datetimediff is to be performed on Population workspace only.
+					if (!isMeasureObservations
+							&& subTreeCellTreeNode.getName().contains("DATETIMEDIFF")) {
+						setValid(true);
+						isDateTimeDiffNotInMO = true;
+						setValidHumanReadable(false);
+					}
 				}
 				break;
 		}
@@ -2021,13 +2061,13 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 	
 	
 	/* (non-Javadoc)
-	 * @see mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay#validateCellTreeNodes(com.google.gwt.user.cellview.client.TreeNode)
+	 * @see mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay#validateCellTreeNodes
+	 * (com.google.gwt.user.cellview.client.TreeNode)
 	 */
 	@Override
 	public void validateCellTreeNodes(TreeNode treeNode , boolean isValidateButtonClicked) {
 		validateClauseWorkspaceCellTreeNodes(treeNode , isValidateButtonClicked);
 	}
-	
 	/**
 	 * Validate clause workspace cell tree nodes.
 	 *
@@ -2036,12 +2076,9 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 	 */
 	private void validateClauseWorkspaceCellTreeNodes(final TreeNode treeNode , final boolean isValidateButtonClicked) {
 		List<String> inValidNodeList = new ArrayList<String>();
-		
-		
 		if (treeNode != null) {
 			openAllNodes(treeNode);
 			for (int i = 0; i < treeNode.getChildCount(); i++) {
-				//TreeNode subTree = null;
 				CellTreeNode node = (CellTreeNode) treeNode.getChildValue(i);
 				validateClauseWorkspaceCellTreeNodes(node, PopulationWorkSpaceConstants.getDatatypeMap(), inValidNodeList);
 			}
@@ -2057,21 +2094,21 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 						MatContext.get().getMessageDelegate().
 						getCLAUSE_WORK_SPACE_VALIDATION_SUCCESS());
 			} else {
-				for(String element: inValidNodeList){
-					if(element.equalsIgnoreCase("inValidAtTimingRelationShip")){
+				for (String element: inValidNodeList) {
+					if (element.equalsIgnoreCase("inValidAtTimingRelationShip")) {
 						warningMessages.add(MatContext.get().getMessageDelegate().getLHS_RHS_REQUIRED());
-						
-					} else if(element.equalsIgnoreCase("inValidAtSetoperatorAndOrFunction")){
+					} else if (element.equalsIgnoreCase("inValidAtSetoperatorAndOrFunction")) {
 						warningMessages.add(MatContext.get().getMessageDelegate().getATLEAST_ONE_CHILD_REQUIRED());
-					} /*else if (element.equalsIgnoreCase("invalidClauseLogic")){
-						warningMessages.add("Invalid Clause is used.");
-					}*/
-					
+					} else if (element.equalsIgnoreCase("invalidClauseLogic")) {
+						warningMessages.add(MatContext.get().getMessageDelegate()
+								.getCLAUSE_WORK_SPACE_INVALID_NESTED_CLAUSE());
+					}
 				}
-				
-				if(warningMessages.size()>0){
-					if(!warningMessages.get(0).equalsIgnoreCase(MatContext.get().getMessageDelegate().getMEASURE_LOGIC_IS_INCOMPLETE())){
-						warningMessages.add(0, MatContext.get().getMessageDelegate().getMEASURE_LOGIC_IS_INCOMPLETE());
+				if (warningMessages.size() > 0) {
+					if (!warningMessages.get(0).equalsIgnoreCase(MatContext.get().getMessageDelegate()
+							.getMEASURE_LOGIC_IS_INCOMPLETE())) {
+						warningMessages.add(0, MatContext.get().getMessageDelegate()
+								.getMEASURE_LOGIC_IS_INCOMPLETE());
 					}
 					getWarningMessageDisplay().setMessages(warningMessages);
 				}
@@ -2084,12 +2121,7 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 				errorMessageDisplay.setMessage(MatContext.get().getMessageDelegate().getINVALIDLOGIC_CLAUSE_WORK_SPACE());
 			}
 		}
-		
-		
-		
-		
 	}
-	
 	/**
 	 * Validate clause workspace cell tree nodes.
 	 *
@@ -2111,7 +2143,6 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 		if (treeNode != null) {
 			String attributeValue = "";
 			CellTreeNode node = treeNode;
-			
 			switch (node.getNodeType()) {
 				case CellTreeNode.ELEMENT_REF_NODE :
 					String nodeName = node.getName();
@@ -2140,6 +2171,11 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 						} else if (attributeValue.isEmpty()) {
 							if (!dataTypeMap.containsKey(nodeDataType)) {
 								inValidAtQdmNode(node, inValidNodeList);
+							} else { //Removed attributes when
+								//replaced with blank still showing red.Added else to set text to black.
+								if (!node.getValidNode()) {
+									editNode(true, node);
+								}
 							}
 						} else if (!attributeValue.isEmpty() && (attributeValue.length() > 0)) {
 							if (!dataTypeMap.containsKey(nodeDataType)) {
@@ -2148,6 +2184,12 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 								List<String> attribList = dataTypeMap.get(nodeDataType);
 								if (!attribList.contains(attributeValue)) {
 									inValidAtQdmNode(node, inValidNodeList);
+								} else { //Removed attributes when
+									//replaced with valid attributes still showing red.
+									//Added else to set text to black.
+									if (!node.getValidNode()) {
+										editNode(true, node);
+									}
 								}
 							}
 						} else {
@@ -2159,28 +2201,26 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 					break;
 				case CellTreeNode.TIMING_NODE:
 				case CellTreeNode.RELATIONSHIP_NODE:
-					if (((node.getChilds() != null) && (node.getChilds().size()== 2))) {
-						//							if (!node.getValidNode() && (MatContext.get().relationships.contains(node.getName())
-						//							|| MatContext.get().timings.contains(node.getName()))) {
+					if (((node.getChilds() != null) && (node.getChilds().size() == 2))) {
 						if (!node.getValidNode() && (MatContext.get().relationships.contains(node.getName())
-								|| (node.getNodeType()==CellTreeNode.TIMING_NODE))) {
+								|| (node.getNodeType() == CellTreeNode.TIMING_NODE))) {
 							editNode(true, node);
 						} else if (!MatContext.get().relationships.contains(node.getName())
-								&& (node.getNodeType()!=CellTreeNode.TIMING_NODE)){
+								&& (node.getNodeType() != CellTreeNode.TIMING_NODE)) {
 							editNode(false, node);
-							if(!inValidNodeList.contains("inValidAtRelationshipNode")){
+							if (!inValidNodeList.contains("inValidAtRelationshipNode")) {
 								inValidNodeList.add("inValidAtRelationshipNode");
 							}
 						}
 					} else {
 						editNode(false, node);
-						if(!inValidNodeList.contains("inValidAtTimingRelationShip")){
+						if (!inValidNodeList.contains("inValidAtTimingRelationShip")) {
 							inValidNodeList.add("inValidAtTimingRelationShip");
 						}
 					}
 					break;
 				case CellTreeNode.SET_OP_NODE:
-					if (((node.getChilds() != null) && (node.getChilds().size()>= 1))) {
+					if (((node.getChilds() != null) && (node.getChilds().size() >= 1))) {
 						if (!node.getValidNode()) {
 							editNode(true, node);
 						}
@@ -2224,7 +2264,7 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 						}
 					}
 					break;
-					/*case CellTreeNode.SUBTREE_REF_NODE:
+				case CellTreeNode.SUBTREE_REF_NODE:
 					boolean checkForValidation = validateSubTreeRefNode(node);
 					if(checkForValidation){
 						if(!inValidNodeList.contains("invalidClauseLogic")){
@@ -2232,7 +2272,7 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 						}
 						editNode(false, node);
 					}
-					break;*/
+					break;
 				default:
 					break;
 			}
@@ -2312,6 +2352,11 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 			selectedNode.setLabel(label);
 			selectedNode.setUUID(uuid);
 			closeParentOpenNodes(cellTree.getRootTreeNode());
+			selectionModel.setSelected(selectedNode.getParent(), true);
+			// This is done to invoke focus event on Parent node to show Inline comment in Comment Area
+			//when Edit Operation is Performed on ClauseWorspace or PopulationWorkspace.
+			((NodeCell) getNodeInfo(selectedNode.getParent()).getCell()).
+			onBrowserEvent(new Context(0, 0, null), null, selectedNode.getParent(), Document.get().createFocusEvent(), null);
 		}
 	}
 	

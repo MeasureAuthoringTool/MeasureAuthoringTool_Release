@@ -27,7 +27,7 @@ import mat.client.umls.service.VSACAPIServiceAsync;
 import mat.client.umls.service.VsacApiResult;
 import mat.model.MatValueSet;
 import mat.model.QualityDataSetDTO;
-import mat.shared.ConstantMessages;
+import mat.model.RiskAdjustmentDTO;
 import mat.shared.MeasurePackageClauseValidator;
 
 import com.google.gwt.core.client.GWT;
@@ -66,6 +66,9 @@ public class MeasurePackagePresenter implements MatPresenter {
 	
 	/** The db supp data elements. */
 	private List<QualityDataSetDTO> dbSuppDataElements = new ArrayList<QualityDataSetDTO>();
+	
+	/** The db risk adj vars. */
+	private List<RiskAdjustmentDTO> dbRiskAdjVars = new ArrayList<RiskAdjustmentDTO>();
 	
 	/** The is measure package success. */
 	private boolean isMeasurePackageExportSuccess = false;
@@ -107,6 +110,25 @@ public class MeasurePackagePresenter implements MatPresenter {
 	public void setDbPackageClauses(
 			List<MeasurePackageClauseDetail> dbPackageClauses) {
 		this.dbPackageClauses = dbPackageClauses;
+	}
+	
+	/**
+	 * Gets the db risk adj vars.
+	 *
+	 * @return the db risk adj vars
+	 */
+	public List<RiskAdjustmentDTO> getDbRiskAdjVars() {
+		Collections.sort(dbRiskAdjVars,new RiskAdjustmentDTO.Comparator());
+		return dbRiskAdjVars;
+	}
+
+	/**
+	 * Sets the db risk adj vars.
+	 *
+	 * @param dbRiskAdjVars the new db risk adj vars
+	 */
+	public void setDbRiskAdjVars(List<RiskAdjustmentDTO> dbRiskAdjVars) {
+		this.dbRiskAdjVars = dbRiskAdjVars;
 	}
 
 	/** The service. */
@@ -201,6 +223,13 @@ public class MeasurePackagePresenter implements MatPresenter {
 		 * @return the adds the qdm elements to measure button
 		 */
 		HasClickHandlers getAddQDMElementsToMeasureButton();
+		
+		/**
+		 * Gets the adds the risk adj variables to measure.
+		 *
+		 * @return the adds the risk adj variables to measure
+		 */
+		HasClickHandlers getaddRiskAdjVariablesToMeasure();
 		
 		/**
 		 * Gets the supp data success message display.
@@ -299,6 +328,36 @@ public class MeasurePackagePresenter implements MatPresenter {
 		 * @return the package measure and export button
 		 */
 		HasClickHandlers getPackageMeasureAndExportButton();
+		
+		/**
+		 * Sets the risk adj clause list.
+		 *
+		 * @param riskAdjClauseList the new risk adj clause list
+		 */
+		void setSubTreeClauseList(List<RiskAdjustmentDTO> riskAdjClauseList);
+		
+		/**
+		 * Gets the risk adj clauses.
+		 *
+		 * @return the risk adj clauses
+		 */
+		List<RiskAdjustmentDTO> getRiskAdjClauses();
+		
+		/**
+		 * Gets the risk adj var.
+		 *
+		 * @return the risk adj var
+		 */
+		List<RiskAdjustmentDTO> getRiskAdjVar();
+		
+		/**
+		 * Gets the risk adj success message display.
+		 *
+		 * @return the risk adj success message display
+		 */
+		SuccessMessageDisplayInterface getRiskAdjSuccessMessageDisplay();
+		void setSubTreeInRiskAdjVarList(
+				List<RiskAdjustmentDTO> riskAdjClauseList);
 	}
 	
 	/** The vsacapi service async. */
@@ -352,7 +411,48 @@ public class MeasurePackagePresenter implements MatPresenter {
 				validateGroup();
 			}
 		});
-		
+		view.getaddRiskAdjVariablesToMeasure().addClickHandler(
+				new ClickHandler() {
+
+					@Override
+					public void onClick(ClickEvent event) {
+						clearMessages();
+						updateRiskAdjFromView(currentDetail);
+						MatContext
+								.get()
+								.getPackageService()
+								.saveRiskVariables(currentDetail,
+										new AsyncCallback<Void>() {
+											@Override
+											public void onFailure(
+													final Throwable caught) {
+												Mat.hideLoadingMessage();
+												view.getPackageErrorMessageDisplay()
+														.setMessage(
+																MatContext
+																		.get()
+																		.getMessageDelegate()
+																		.getUnableToProcessMessage());
+											}
+
+											@Override
+											public void onSuccess(
+													final Void result) {
+												getMeasurePackageOverview(MatContext
+														.get()
+														.getCurrentMeasureId());
+												view.getRiskAdjSuccessMessageDisplay()
+														.setMessage(
+																MatContext
+																		.get()
+																		.getMessageDelegate()
+																		.getRiskAdjSavedMessage());
+											}
+										});
+
+					}
+				});
+
 		view.getAddQDMElementsToMeasureButton().addClickHandler(
 				new ClickHandler() {
 					@Override
@@ -529,6 +629,7 @@ public class MeasurePackagePresenter implements MatPresenter {
 		view.getMeasurePackageWarningMsg().clear();
 		view.getMeasureErrorMessageDisplay().clear();
 		view.getSaveErrorMessageDisplay().clear();
+		view.getRiskAdjSuccessMessageDisplay().clear();
 		
 	}
 	/**
@@ -700,7 +801,17 @@ public class MeasurePackagePresenter implements MatPresenter {
 		currentDetail.setSuppDataElements(view.getQDMElementsInSuppElements());
 		currentDetail.setQdmElements(view.getQDMElements());
 		currentDetail.setToCompareSuppDataElements(dbSuppDataElements);
-		
+	}
+	
+	/**
+	 * Update risk adj from view.
+	 *
+	 * @param currentDetail the current detail
+	 */
+	public void updateRiskAdjFromView(MeasurePackageDetail currentDetail){
+		currentDetail.setRiskAdjClauses(view.getRiskAdjClauses());
+		currentDetail.setRiskAdjVars(view.getRiskAdjVar());
+		currentDetail.setToCompareRiskAdjVars(dbRiskAdjVars);
 	}
 	/**
 	 * set Overview.
@@ -710,6 +821,8 @@ public class MeasurePackagePresenter implements MatPresenter {
 		packageOverview = result;
 		List <MeasurePackageClauseDetail> clauseList = new ArrayList<MeasurePackageClauseDetail>(result.getClauses());
 		view.setClauses(clauseList);
+		//SubTree Clauses		
+		view.setSubTreeClauseList(result.getSubTreeClauseList());
 		// QDM elements
 		view.setQDMElements(result.getQdmElements());
 		List<MeasurePackageDetail> packageList = new ArrayList<MeasurePackageDetail>(result.getPackages());
@@ -849,10 +962,14 @@ public class MeasurePackagePresenter implements MatPresenter {
 		view.setClauses(remainingClauses);
 		view.setQDMElementsInSuppElements(packageOverview.getSuppDataElements());
 		view.setQDMElements(packageOverview.getQdmElements());
+		view.setSubTreeInRiskAdjVarList(packageOverview.getRiskAdjList());
+		view.setSubTreeClauseList(packageOverview.getSubTreeClauseList());
 		dbPackageClauses.clear();
 		dbPackageClauses.addAll(currentDetail.getPackageClauses());
 		dbSuppDataElements.clear();
 		dbSuppDataElements.addAll(packageOverview.getSuppDataElements());
+		dbRiskAdjVars.clear();
+		dbRiskAdjVars.addAll(packageOverview.getRiskAdjList());
 		
 	}
 	
@@ -964,6 +1081,7 @@ public class MeasurePackagePresenter implements MatPresenter {
 			public void onFailure(Throwable caught) {
 				Mat.hideLoadingMessage();
 				((Button) view.getPackageMeasureButton()).setEnabled(true);
+				Window.alert(MatContext.get().getMessageDelegate().getGenericErrorMessage());
 			}
 			
 			/**
@@ -973,16 +1091,9 @@ public class MeasurePackagePresenter implements MatPresenter {
 			 */
 			@Override
 			public void onSuccess(SaveMeasureResult result) {
-				updateComponentMeasuresFromXml();
-				
-				if (result.isSuccess()) {
-					String measureId = MatContext.get()
-							.getCurrentMeasureId();
-					if (view.getIncludeVSACData().getValue().equals(Boolean.TRUE)) {
-						updateValueSetsBeforePackaging(measureId);
-					} else {
-						validateMeasureAndExport(measureId, null);
-					}
+				if (result.isSuccess()) {					
+					updateMeasureXmlForDeletedComponentMeasureAndOrg();
+					
 				} else {
 					Mat.hideLoadingMessage();
 					((Button) view.getPackageMeasureButton()).setEnabled(true);					
@@ -1004,21 +1115,30 @@ public class MeasurePackagePresenter implements MatPresenter {
 	/**
 	 * Update component measures from xml.
 	 */
-	private void updateComponentMeasuresFromXml(){
+	private void updateMeasureXmlForDeletedComponentMeasureAndOrg(){
 		
-		MatContext.get().getMeasureService().updateComponentMeasuresFromXml(model.getId(), new AsyncCallback<Void>() {
+		MatContext.get().getMeasureService().updateMeasureXmlForDeletedComponentMeasureAndOrg(model.getId(), new AsyncCallback<Void>() {
 
 			@Override
 			public void onFailure(Throwable caught) {
-				System.out.println(" Updation of Component Measures on Creation of Measure Packager: " + caught.getStackTrace());
+				Mat.hideLoadingMessage();
+				((Button) view.getPackageMeasureButton()).setEnabled(true);				
+				Window.alert(MatContext.get().getMessageDelegate().getGenericErrorMessage());
 			}
 
 			@Override
-			public void onSuccess(Void result) {
-				//view.getPackageSuccessMessageDisplay().setMessage("Component Measures Updated");
+			public void onSuccess(Void result) {				
+				String measureId = MatContext.get()
+						.getCurrentMeasureId();
+				if (view.getIncludeVSACData().getValue().equals(Boolean.TRUE)) {
+					updateValueSetsBeforePackaging(measureId);
+				} else {
+					validateMeasureAndExport(measureId, null);
+				}
 			}
 		});
 	}
+		
 	/**
 	 * Service call to VSAC to update Measure Xml before invoking simple xml and value set sheet generation.
 	 * @param measureId - String.
@@ -1030,6 +1150,7 @@ public class MeasurePackagePresenter implements MatPresenter {
 			@Override
 			public void onFailure(final Throwable caught) {
 				Mat.hideLoadingMessage();
+				Window.alert(MatContext.get().getMessageDelegate().getGenericErrorMessage());
 			}
 			
 			@Override
@@ -1136,6 +1257,8 @@ public class MeasurePackagePresenter implements MatPresenter {
 		Window.Location.replace(url + "&type=save"); 
 	
 	}
+
+	
 	
 }
 

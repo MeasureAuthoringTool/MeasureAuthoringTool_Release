@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import mat.client.Enableable;
 import mat.client.MatPresenter;
 import mat.client.MeasureComposerPresenter;
@@ -394,13 +397,13 @@ public class MatTabLayoutPanel extends MATTabPanel implements BeforeSelectionHan
 				metaDataPresenter.getMetaDataDisplay().setSaveButtonEnabled(
 						MatContext.get().getMeasureLockService().checkForEditPermission());	
 				metaDataPresenter.getComponentMeasures();
-				metaDataPresenter.getMeasureDeveloperAuthors();
+				metaDataPresenter.setStewardAndMeasureDevelopers();
 				}
 			showErrorMessage(metaDataPresenter.getMetaDataDisplay().getSaveErrorMsg());
 			metaDataPresenter.getMetaDataDisplay().getSaveErrorMsg().getButtons().get(0).setFocus(true);
 			handleClickEventsOnUnsavedErrorMsg(selectedIndex, metaDataPresenter.getMetaDataDisplay()
 					.getSaveErrorMsg().getButtons(), metaDataPresenter.getMetaDataDisplay().getSaveErrorMsg(), null);
-		} else {
+		} else {		
 			isUnsavedData = false;
 		}
 	}
@@ -533,7 +536,7 @@ public class MatTabLayoutPanel extends MATTabPanel implements BeforeSelectionHan
 		metaDataPresenter.updateModelDetailsFromView(pageData, metaDataPresenter.getMetaDataDisplay());
 		ManageMeasureDetailModel dbData = metaDataPresenter.getCurrentMeasureDetail();
 		if (dbData.isDeleted() || !dbData.isEditable()) {
-			//dont show dirty check message when measure is deleted.
+			//dont show dirty check message when measure is deleted.			
 			return true;
 		} else {
 			pageData.setToCompareAuthor(pageData.getAuthorSelectedList());
@@ -543,7 +546,7 @@ public class MatTabLayoutPanel extends MATTabPanel implements BeforeSelectionHan
 			dbData.setToCompareAuthor(metaDataPresenter.getDbAuthorList());
 			dbData.setToCompareMeasure(metaDataPresenter.getDbMeasureTypeList());
 			dbData.setToCompareItemCount(metaDataPresenter.getDbQDMSelectedList());
-			dbData.setToCompareComponentMeasures(metaDataPresenter.getDbComponentMeasuresSelectedList());
+			dbData.setToCompareComponentMeasures(metaDataPresenter.getDbComponentMeasuresSelectedList());		
 			return pageData.equals(dbData);
 		}
 	}
@@ -559,11 +562,14 @@ public class MatTabLayoutPanel extends MATTabPanel implements BeforeSelectionHan
 		MeasurePackageDetail pageData = new MeasurePackageDetail();
 		measurePackagePresenter.updateDetailsFromView(pageData);
 		measurePackagePresenter.updateSuppDataDetailsFromView(pageData);
+		measurePackagePresenter.updateRiskAdjFromView(pageData);
 		MeasurePackageDetail dbData = measurePackagePresenter.getCurrentDetail();
 		pageData.setToComparePackageClauses(pageData.getPackageClauses());
 		dbData.setToComparePackageClauses(measurePackagePresenter.getDbPackageClauses());
 		pageData.setToCompareSuppDataElements(pageData.getSuppDataElements());
 		dbData.setToCompareSuppDataElements(measurePackagePresenter.getDbSuppDataElements());
+		pageData.setToCompareRiskAdjVars(pageData.getRiskAdjVars());
+		dbData.setToCompareRiskAdjVars(measurePackagePresenter.getDbRiskAdjVars());
 		return pageData.equals(dbData);
 	}
 	

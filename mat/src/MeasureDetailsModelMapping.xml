@@ -72,20 +72,20 @@
       <bind-xml name="period"/>
     </field>
     
-    <field name="measSteward" get-method="getSteward" set-method="setMeasSteward"
+    <field name="stewardValue" get-method="getStewardValue" set-method="setStewardValue"
            type="java.lang.String">
       <bind-xml name="steward" node="element"/>
     </field>
     
-    <field name="stewardUuid" 
+    <field name="stewardId" 
            type="java.lang.String">
       <bind-xml name="id" node="attribute" location="steward"/>
     </field>
     
-    <field name="measStewardOther"
+    <!-- <field name="measStewardOther"
            type="java.lang.String">
      <bind-xml name="steward" node="element"/>
-    </field>
+    </field> -->
     
      <field name="authorSelectedList"
            type="mat.model.Author"
@@ -93,7 +93,7 @@
       <bind-xml name="developer" location="developers">
       	<class name="mat.model.Author">
       	
-		    <field name="orgId"
+		    <field name="id"
 		           type="java.lang.String" >
 		      <bind-xml name="id" node="attribute"/>
 		    </field>
@@ -323,10 +323,14 @@
 
 	<class name="mat.client.measure.PeriodModel">
 	    <field name="uuid"
-	           type="java.lang.String">
+	           type="java.lang.String">   
 	      <bind-xml name="uuid" node="attribute"/>
 	    </field>
-
+	    
+	    <field name="calenderYear"
+	           type="java.lang.Boolean">   
+	      <bind-xml name="calenderYear" node="attribute"/>
+	    </field>
 	    <field name="startDate"
 	           type="java.lang.String">
 	      <bind-xml name="startDate" node="element"/>

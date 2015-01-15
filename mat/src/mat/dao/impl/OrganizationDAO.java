@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import mat.dao.search.GenericDAO;
 import mat.model.Organization;
-
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
@@ -54,6 +53,17 @@ mat.dao.OrganizationDAO {
 			return null;
 		}
 	}
+	@Override
+	public Organization findById(String id) {
+		Organization org = null;
+		try {
+			org = find(Long.valueOf(id));
+		} catch (Exception e) {
+			return null;
+		}
+		return org;
+	}
+	
 	/* (non-Javadoc)
 	 * @see mat.dao.OrganizationDAO#getAllOrganizations()
 	 */
@@ -62,6 +72,7 @@ mat.dao.OrganizationDAO {
 		List<Organization> organizations = new ArrayList<Organization>();
 		Session session = getSessionFactory().getCurrentSession();
 		Criteria criteria = session.createCriteria(Organization.class);
+		criteria.add(Restrictions.ne("organizationName",""));
 		criteria.addOrder(Order.asc("organizationName"));
 		if (!criteria.list().isEmpty()) {
 			organizations = criteria.list();
@@ -99,12 +110,19 @@ mat.dao.OrganizationDAO {
 	public List<Organization> searchOrganization(String name) {
 		Criteria criteria = createSearchCriteria(name);
 		criteria.addOrder(Order.asc("organizationName"));
-		criteria.add(Restrictions.ne("organizationName", StringUtils.EMPTY))			
-			.add(Restrictions.ne("organizationOID", StringUtils.EMPTY));
+		criteria.add(Restrictions.ne("organizationName", StringUtils.EMPTY))
+		.add(Restrictions.ne("organizationOID", StringUtils.EMPTY));
 		/*criteria.setFirstResult(startIndex);
 		if (numResults > 0) {
 			criteria.setMaxResults(numResults);
 		}*/
 		return criteria.list();
 	}
+	@Override
+	public void deleteOrganization(Organization entity) {
+		Organization org = find(entity.getId());
+		delete(org);
+		
+	}
+	
 }

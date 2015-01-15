@@ -5,9 +5,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+
 import mat.DTO.MeasureNoteDTO;
-import mat.client.clause.clauseworkspace.model.SortedClauseMapResult;
 import mat.client.clause.clauseworkspace.model.MeasureXmlModel;
+import mat.client.clause.clauseworkspace.model.SortedClauseMapResult;
+import mat.client.clause.clauseworkspace.model.MeasureDetailResult;
 import mat.client.measure.ManageMeasureDetailModel;
 import mat.client.measure.ManageMeasureSearchModel;
 import mat.client.measure.ManageMeasureShareModel;
@@ -16,9 +18,9 @@ import mat.client.measure.TransferMeasureOwnerShipModel;
 import mat.client.measure.service.SaveMeasureResult;
 import mat.client.measure.service.ValidateMeasureResult;
 import mat.client.shared.MatException;
-import mat.model.Author;
 import mat.model.MatValueSet;
 import mat.model.MeasureType;
+import mat.model.Organization;
 import mat.model.QualityDataSetDTO;
 import mat.model.RecentMSRActivityLog;
 import mat.server.util.XmlProcessor;
@@ -465,7 +467,7 @@ public interface MeasureLibraryService {
 	 *
 	 * @param measureId the measure id
 	 */
-	void updateComponentMeasuresOnDeletion(String measureId);
+	void updateMeasureXmlForDeletedComponentMeasureAndOrg(String measureId);
 	
 	/**
 	 * Validate for group.
@@ -497,7 +499,7 @@ public interface MeasureLibraryService {
 	 *
 	 * @return the all authors
 	 */
-	List<Author> getAllAuthors();
+	List<Organization> getAllOrganizations();
 	
 	/**
 	 * Save sub tree occurrence.
@@ -534,4 +536,13 @@ public interface MeasureLibraryService {
 	 */
 	SortedClauseMapResult getMeasureXmlForMeasureAndSortedSubTreeMap(
 			String measureId);
+
+	MeasureDetailResult getUsedStewardAndDevelopersList(String measureId);
+
+	/**
+	 * Update steward and measure developers on deletion.
+	 *
+	 * @param measureId the measure id
+	 */
+	
 }

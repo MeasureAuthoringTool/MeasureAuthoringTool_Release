@@ -129,7 +129,7 @@
 		<include file="classpath:/liquibase/deploy_Sprint_18_US2080.xml"/>
 		<include file="classpath:/liquibase/deploy_Sprint_20_US2136.xml"/>
 		<include file="classpath:/liquibase/deploy_Sprint_20_US_MAT_1337.xml"/>
-		<include file="classpath:/liquibase/deploy_Sprint_20_US_MAT_2270.xml"/>
+		<include file="classpath:/liquibase/deploy_Sprint_20_US_MAT_2270_Modified.xml"/>
 		<include file="classpath:/liquibase/deploy_Sprint-24_US2551.xml"/>
 		<include file="classpath:/liquibase/deploy_Sprint-27_US321.xml"/>
 		<include file="classpath:/liquibase/deploy_Sprint-29_US2895.xml"/>
@@ -163,4 +163,8 @@
 		<include file="classpath:/liquibase/deploy_sprint-44_US4558_New.xml"/>
 		<include file="classpath:/liquibase/deploy_sprint-44_US4573.xml"/>
 		<include file="classpath:/liquibase/deploy_sprint-46_US4697_US4752_US4757.xml"/>
+		<include file="classpath:/liquibase/deploy_Sprint-50_delete_anatomical_approach_site_attr_Physical_Exams_dataType.xml"/>
+		<include file="classpath:/liquibase/deploy_Sprint-50_delete_method_attr_Prodecure_Intolerance_dataType.xml"/>
+		<include file="classpath:/liquibase/deploy_Sprint-54_US5194_20141124.xml"/>
+		<include file="classpath:/liquibase/deploy_Sprint_55_Change_Timing_ShortNames.xml"/>
 	</databaseChangeLog>

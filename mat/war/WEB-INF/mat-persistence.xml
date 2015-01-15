@@ -36,6 +36,7 @@
 	    <property name="url" value="jdbc:mysql://devdb:3306/MATDB"/>
         <property name="username" value="user"/>
         <property name="password" value="password"/>  
+    
     </bean>
     
    
