@@ -1,10 +1,12 @@
 package mat.client.clause.clauseworkspace.view;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
 import mat.client.clause.QDSAttributesService;
 import mat.client.clause.QDSAttributesServiceAsync;
 import mat.client.clause.clauseworkspace.model.CellTreeNode;
@@ -23,7 +25,9 @@ import mat.client.shared.SuccessMessageDisplay;
 import mat.client.shared.WarningMessageDisplay;
 import mat.shared.ConstantMessages;
 import mat.shared.UUIDUtilClient;
+
 import org.apache.commons.lang.StringUtils;
+
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.cell.client.Cell.Context;
 import com.google.gwt.cell.client.ValueUpdater;
@@ -1601,11 +1605,71 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 							case CellTreeNode.SET_OP_NODE:
 								if(selectedNode.getName().contains("SATISFIES")){
 									if((selectedNode.getChilds()!=null) && (selectedNode.getChilds().size()>=1)){
+										if(copiedNode.getNodeType() == CellTreeNode.FUNCTIONS_NODE){
+											String funcName = copiedNode.getLabel();
+											List<String> allowedFunctionsList = ComparisonDialogBox.getAllowedFunctionsList(MatContext.get().functions, selectedNode.getLabel());
+											if(!allowedFunctionsList.contains(funcName)){
+												canPaste = false;
+											}else{
+												canPaste = true;
+											}
+										}else{
+											canPaste = true;
+										}
+									}
+								}else if(selectedNode.getNodeType() == CellTreeNode.FUNCTIONS_NODE){
+									
+										String selectedFunctionName = selectedNode.getName();
+										
+										@SuppressWarnings("unchecked")
+										HashMap<String, String> map =  (HashMap<String, String>) selectedNode.getExtraInformation(PopulationWorkSpaceConstants.EXTRA_ATTRIBUTES);
+										if(map != null){
+											selectedFunctionName = map.get(PopulationWorkSpaceConstants.TYPE);
+										}
+																				
+										if(ComparisonDialogBox.getAggregateFunctionsList().contains(selectedFunctionName) 
+												|| ComparisonDialogBox.getSubSetFunctionsList().contains(selectedFunctionName)){
+											if(selectedNode.hasChildren()){
+												canPaste = false;
+											}else{
+												canPaste = true;
+											}																						
+										}else{
+											canPaste = true;
+										}
+										if(canPaste && (copiedNode.getNodeType() == CellTreeNode.FUNCTIONS_NODE)){
+											@SuppressWarnings("unchecked")
+											HashMap<String, String> copiedNodeMap =  (HashMap<String, String>) copiedNode.getExtraInformation(
+													PopulationWorkSpaceConstants.EXTRA_ATTRIBUTES);
+											String copiedFuncName = getCopiedNode().getName();
+											if(copiedNodeMap != null) {
+												copiedFuncName = copiedNodeMap.get(PopulationWorkSpaceConstants.TYPE);
+											}
+										
+											List<String> allowedFunctionsList = ComparisonDialogBox.getAllowedFunctionsList(MatContext.get().functions, selectedFunctionName);
+											if(!allowedFunctionsList.contains(copiedFuncName)){
+												canPaste = false;
+											}else{
+												canPaste = true;
+											}
+										}
+									
+								}else{
+									
+									if (copiedNode.getNodeType() != CellTreeNode.CLAUSE_NODE) {
 										canPaste = true;
 									}
-								}
-								else if (copiedNode.getNodeType() != CellTreeNode.CLAUSE_NODE) {
-									canPaste = true;
+									if(copiedNode.getNodeType() == CellTreeNode.FUNCTIONS_NODE){
+										@SuppressWarnings("unchecked")
+										HashMap<String, String> copiedNodeMap =  (HashMap<String, String>) copiedNode.getExtraInformation(
+												PopulationWorkSpaceConstants.EXTRA_ATTRIBUTES);
+										String copiedFuncName = copiedNodeMap.get(PopulationWorkSpaceConstants.TYPE);
+										
+										List<String> allowedFunctionsList = ComparisonDialogBox.filterFunctions(selectedNode, MatContext.get().functions);
+										if(!allowedFunctionsList.contains(copiedFuncName)){
+											canPaste = false;
+										}
+									}
 								}
 								break;
 							case CellTreeNode.TIMING_NODE:
@@ -1613,6 +1677,22 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 										&& ((selectedNode.getChilds() == null)
 												|| (selectedNode.getChilds().size() < 2))) {
 									canPaste = true;
+								}
+								if(copiedNode.getNodeType() == CellTreeNode.FUNCTIONS_NODE){
+									@SuppressWarnings("unchecked")
+									HashMap<String, String> copiedNodeMap =  (HashMap<String, String>) copiedNode.getExtraInformation(
+											PopulationWorkSpaceConstants.EXTRA_ATTRIBUTES);
+									String copiedFuncName = copiedNodeMap.get(PopulationWorkSpaceConstants.TYPE);
+									
+									@SuppressWarnings("unchecked")
+									HashMap<String, String> selectedNodeMap =  (HashMap<String, String>) selectedNode.getExtraInformation(
+											PopulationWorkSpaceConstants.EXTRA_ATTRIBUTES);
+									String selectedFuncName = selectedNodeMap.get(PopulationWorkSpaceConstants.TYPE);
+									
+									List<String> allowedFunctionsList = ComparisonDialogBox.getAllowedFunctionsList(MatContext.get().functions, selectedFuncName);
+									if(!allowedFunctionsList.contains(copiedFuncName)){
+										canPaste = false;
+									}
 								}
 								break;
 							case CellTreeNode.CLAUSE_NODE:

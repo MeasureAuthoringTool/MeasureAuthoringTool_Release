@@ -1,16 +1,15 @@
 package mat.client.measure.metadata;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import mat.client.Mat;
 import mat.client.MatPresenter;
 import mat.client.MeasureComposerPresenter;
 import mat.client.clause.QDSAppliedListModel;
-import mat.client.clause.clauseworkspace.model.MeasureXmlModel;
 import mat.client.clause.clauseworkspace.model.MeasureDetailResult;
+import mat.client.clause.clauseworkspace.model.MeasureXmlModel;
 import mat.client.codelist.ListBoxCodeProvider;
 import mat.client.event.BackToMeasureLibraryPage;
 import mat.client.event.MeasureDeleteEvent;
@@ -35,7 +34,6 @@ import mat.client.shared.SuccessMessageDisplayInterface;
 import mat.model.Author;
 import mat.model.MeasureSteward;
 import mat.model.MeasureType;
-import mat.model.Organization;
 import mat.model.QualityDataSetDTO;
 import mat.shared.ConstantMessages;
 
@@ -45,6 +43,8 @@ import com.google.gwt.event.dom.client.HasClickHandlers;
 import com.google.gwt.event.dom.client.HasKeyDownHandlers;
 import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.event.dom.client.KeyDownHandler;
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
+import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.HandlerManager;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -68,12 +68,6 @@ public class MetaDataPresenter  implements MatPresenter {
 	 */
 	public static interface MetaDataDetailDisplay {
 		
-		/**
-		 * Gets the measure name.
-		 * 
-		 * @return the measure name
-		 */
-		public Label getMeasureName();
 		
 		/**
 		 * Gets the short name.
@@ -1084,6 +1078,22 @@ public class MetaDataPresenter  implements MatPresenter {
 			}
 		});*/
 		
+		metaDataDisplay.getMeasurementFromPeriodInputBox().addValueChangeHandler(new ValueChangeHandler<String>() {
+			
+			@Override
+			public void onValueChange(ValueChangeEvent<String> event) {
+				metaDataDisplay.getErrorMessageDisplay().clear();
+			}
+		});
+		
+		metaDataDisplay.getMeasurementToPeriodInputBox().addValueChangeHandler(new ValueChangeHandler<String>() {
+			
+			@Override
+			public void onValueChange(ValueChangeEvent<String> event) {
+				metaDataDisplay.getErrorMessageDisplay().clear();
+			}
+		});
+		
 		metaDataDisplay.getSearchButton().addClickHandler(new ClickHandler() {
 			
 			@Override
@@ -1405,13 +1415,15 @@ public class MetaDataPresenter  implements MatPresenter {
 	 * Prepopulate fields.
 	 */
 	private void prepopulateFields() {
-		removeMeasurementPeriodStyle();
 		metaDataDisplay.getNqfId().setValue(currentMeasureDetail.getNqfId());
 		metaDataDisplay.geteMeasureIdentifier().setText(currentMeasureDetail.getMeasureSetId());
+		metaDataDisplay.geteMeasureIdentifier().setTitle(currentMeasureDetail.getMeasureSetId());
 		metaDataDisplay.getSetName().setValue(currentMeasureDetail.getGroupName());
-		metaDataDisplay.getMeasureName().setText(currentMeasureDetail.getName());
+		// short name is the Abbreviated Title
 		metaDataDisplay.getShortName().setText(currentMeasureDetail.getShortName());
-		metaDataDisplay.getMeasureScoring().setText(currentMeasureDetail.getMeasScoring());
+		metaDataDisplay.getShortName().setTitle(currentMeasureDetail.getShortName());
+		metaDataDisplay.getMeasureScoring().setText(currentMeasureDetail.getMeasScoring());	
+		metaDataDisplay.getMeasureScoring().setTitle(currentMeasureDetail.getMeasScoring());
 		metaDataDisplay.getClinicalRecommendation().setValue(currentMeasureDetail.getClinicalRecomms());
 		metaDataDisplay.getDefinitions().setValue(currentMeasureDetail.getDefinitions());
 		metaDataDisplay.getDescription().setValue(currentMeasureDetail.getDescription());		
@@ -1441,16 +1453,18 @@ public class MetaDataPresenter  implements MatPresenter {
 		metaDataDisplay.getImprovementNotation().setValue(currentMeasureDetail.getImprovNotations());
 		metaDataDisplay.getSupplementalData().setValue(currentMeasureDetail.getSupplementalData());
 		metaDataDisplay.getFinalizedDate().setText(currentMeasureDetail.getFinalizedDate());
+		metaDataDisplay.getFinalizedDate().setTitle(currentMeasureDetail.getFinalizedDate());
 		//currentMeasureDetail.setCalenderYear(metaDataDisplay.getCalenderYear().getValue());
 		metaDataDisplay.getCalenderYear().setValue(currentMeasureDetail.isCalenderYear());
 		if (metaDataDisplay.getCalenderYear().getValue().equals(Boolean.FALSE)) {
-		metaDataDisplay.getMeasurementFromPeriodInputBox().setValue(currentMeasureDetail.getMeasFromPeriod());
-		metaDataDisplay.getMeasurementToPeriodInputBox().setValue(currentMeasureDetail.getMeasToPeriod());
+			metaDataDisplay.getMeasurementFromPeriodInputBox().setValue(currentMeasureDetail.getMeasFromPeriod());
+			metaDataDisplay.getMeasurementToPeriodInputBox().setValue(currentMeasureDetail.getMeasToPeriod());
 		} else {
 			metaDataDisplay.getMeasurementFromPeriodInputBox().setValue(null);
 			metaDataDisplay.getMeasurementToPeriodInputBox().setValue(null);
 		}
 		metaDataDisplay.getVersionNumber().setText(currentMeasureDetail.getVersionNumber());
+		metaDataDisplay.getVersionNumber().setTitle(currentMeasureDetail.getVersionNumber());
 		metaDataDisplay.getRationale().setValue(currentMeasureDetail.getRationale());
 		metaDataDisplay.getStratification().setValue(currentMeasureDetail.getStratification());
 		metaDataDisplay.getRiskAdjustment().setValue(currentMeasureDetail.getRiskAdjustment());	
@@ -1568,8 +1582,8 @@ public class MetaDataPresenter  implements MatPresenter {
 		metaDataDisplay.getErrorMessageDisplay().clear();
 		metaDataDisplay.getSuccessMessageDisplay().clear();
 		metaDataDisplay.getSaveBtn().setFocus(true);
-		updateModelDetailsFromView();
 		if (MatContext.get().getMeasureLockService().checkForEditPermission() && checkIfCalenderYear()) {
+			updateModelDetailsFromView();
 			Mat.showLoadingMessage();
 			MatContext.get().getSynchronizationDelegate().setSavingMeasureDetails(true);
 			MatContext.get().getMeasureService().saveMeasureDetails(currentMeasureDetail,
@@ -1627,34 +1641,66 @@ public class MetaDataPresenter  implements MatPresenter {
 	 */
 	private boolean checkIfCalenderYear(){
 		boolean isCalender = false;
+		boolean isFromDateValid = true;
+		boolean isToDateValid = true;
 		if(metaDataDisplay.getCalenderYear().getValue().equals(Boolean.FALSE)){
 			if(!metaDataDisplay.getMeasurementFromPeriod().isEmpty() && 
 					!metaDataDisplay.getMeasurementToPeriod().isEmpty()){
-				metaDataDisplay.getMeasurementFromPeriodInputBox().removeStyleName("gwt-TextBoxRed");
-				metaDataDisplay.getMeasurementToPeriodInputBox().removeStyleName("gwt-TextBoxRed");
-				isCalender = true;
-			}
-			else {
-				metaDataDisplay.getCalenderYear().setFocus(true);
-				metaDataDisplay.getMeasurementFromPeriodInputBox().setStyleName("gwt-TextBoxRed");
-				metaDataDisplay.getMeasurementToPeriodInputBox().setStyleName("gwt-TextBoxRed");
+				// MAT5069 - user can enter date in text box now, so validate "from" box
+				if (!metaDataDisplay.getMeasurementFromPeriodInputBox().isDateValid()) {
+					isFromDateValid = false;
+					isCalender = false;
+				}
+				if (!metaDataDisplay.getMeasurementToPeriodInputBox().isDateValid()) {
+					isToDateValid = false;
+					isCalender = false;
+				}
+				// MAT5069 - Make sure that the Start Period >= From Period
+				if (isFromDateValid && isToDateValid) {
+					if (periodDatesValid(metaDataDisplay.getMeasurementFromPeriodInputBox(), metaDataDisplay.getMeasurementToPeriodInputBox())) {
+						isCalender = true;
+					} else {
+						isCalender = false;
+					}	
+				}
+			} else {
 				isCalender = false;
 			}
 		} else {
 			isCalender = true;
 		}
-		
+		// if error, put up error message
+		if (!isCalender) {
+			Mat.hideLoadingMessage();
+			MatContext.get().getSynchronizationDelegate().setSavingMeasureDetails(false);
+			metaDataDisplay.getErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getMEASURE_PERIOD_DATES_ERROR());
+		}
 		return isCalender;
 	}
 	
 	/**
-	 * Removes the measurement period style.
+	 * checks that the to date >= from date in Measurement Period
 	 */
-	private void removeMeasurementPeriodStyle(){
-		metaDataDisplay.getMeasurementFromPeriodInputBox().removeStyleName("gwt-TextBoxRed");
-		metaDataDisplay.getMeasurementToPeriodInputBox().removeStyleName("gwt-TextBoxRed");
+	private boolean periodDatesValid(DateBoxWithCalendar fromDateBox, DateBoxWithCalendar toDateBox){
+		boolean valid = true;
+		
+		Date fromDate = fromDateBox.getDate();
+		Date toDate = toDateBox.getDate();
+
+		if (fromDate == null || toDate == null) {
+			return false;
+		}
+		
+		// check to see if the dates are the same day or not, assume both are in the same time zone
+		if (fromDate.compareTo(toDate) > 0) {
+			return false;
+		}
+		
+		return valid;
 	}
-	
+
+
+		
 	/**
 	 * Update model details from view.
 	 */
@@ -1671,8 +1717,6 @@ public class MetaDataPresenter  implements MatPresenter {
 	 *            the meta data display
 	 */
 	public void updateModelDetailsFromView(ManageMeasureDetailModel currentMeasureDetail, MetaDataDetailDisplay metaDataDisplay) {
-		removeMeasurementPeriodStyle();
-		currentMeasureDetail.setName(metaDataDisplay.getMeasureName().getText());
 		currentMeasureDetail.setShortName(metaDataDisplay.getShortName().getText());
 		currentMeasureDetail.setFinalizedDate(metaDataDisplay.getFinalizedDate().getText());
 		currentMeasureDetail.setClinicalRecomms(metaDataDisplay.getClinicalRecommendation().getValue());

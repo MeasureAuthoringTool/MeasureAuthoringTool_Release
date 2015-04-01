@@ -3,6 +3,7 @@ package mat.client.measure.metadata;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+
 import mat.client.ImageResources;
 import mat.client.clause.QDSAppliedListModel;
 import mat.client.measure.ManageMeasureSearchModel;
@@ -28,6 +29,7 @@ import mat.model.MeasureSteward;
 import mat.model.MeasureType;
 import mat.model.QualityDataSetDTO;
 import mat.shared.ConstantMessages;
+
 import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.cell.client.SafeHtmlCell;
 import com.google.gwt.dom.client.Element;
@@ -41,8 +43,6 @@ import com.google.gwt.event.dom.client.HasClickHandlers;
 import com.google.gwt.event.dom.client.HasKeyDownHandlers;
 import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.event.dom.client.KeyDownHandler;
-import com.google.gwt.event.dom.client.KeyUpEvent;
-import com.google.gwt.event.dom.client.KeyUpHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.safehtml.shared.SafeHtml;
@@ -94,13 +94,10 @@ public class MetaDataView implements MetaDataDetailDisplay{
 	
 	/** The success messages. */
 	private SuccessMessageDisplay successMessages = new SuccessMessageDisplay();
-	
-	/** The name input. */
-	protected Label nameInput = new Label();
-	
+		
 	/** The abbr input. */
 	protected Label abbrInput = new Label();
-	
+		
 	/** The meas scoring input. */
 	protected Label measScoringInput = new Label();
 	
@@ -252,8 +249,6 @@ public class MetaDataView implements MetaDataDetailDisplay{
 	/** The Yes. */
 	protected RadioButton Yes = new RadioButton("NQFgroup","Yes");
 	
-	
-	
 	/** The clinical stmt input. */
 	protected TextAreaWithMaxLength  clinicalStmtInput = new TextAreaWithMaxLength ();
 	
@@ -323,6 +318,12 @@ public class MetaDataView implements MetaDataDetailDisplay{
 	/** The component measures selected list v panel. */
 	VerticalPanel componentMeasuresSelectedListVPanel = new VerticalPanel();
 	
+	/** The component measures selected list v panel. */
+	HorizontalPanel topHPanel = new HorizontalPanel();
+
+	/** The component measures selected list v panel. */
+	HorizontalPanel bottomHPanel = new HorizontalPanel();
+	
 	/** The qdm selected list s panel. */
 	ScrollPanel qdmSelectedListSPanel=new ScrollPanel();
 	
@@ -362,7 +363,7 @@ public class MetaDataView implements MetaDataDetailDisplay{
 	/** The measures list selection model. */
 	private MultiSelectionModel<ManageMeasureSearchModel.Result> measuresListSelectionModel;
 	
-	/** The measure type selectio model. */
+	/** The measure type selection model. */
 	private MultiSelectionModel<MeasureType> measureTypeSelectioModel;
 	
 	/** The author selection model. */
@@ -402,12 +403,17 @@ public class MetaDataView implements MetaDataDetailDisplay{
 		addClickHandlers();
 		searchString.setHeight("20px");
 		//referenceArrayList = new ArrayList<TextAreaWithMaxLength>();
-		HorizontalPanel mainContent = new HorizontalPanel();
-		mainContent.getElement().setId("mainContent_HorizontalPanel");
+		VerticalPanel mainContent = new VerticalPanel();
+		mainContent.getElement().setId("mainContent_VerticalPanel");
 		mainPanel.setStylePrimaryName("searchResultsContainer");
 		mainPanel.addStyleName("leftAligned");
 		mainPanel.getElement().setId("mainPanel_FlowPanel01");
-		mainContent.add(buildLeftSideForm());
+		buildForm();
+		topHPanel.setHeight("25%");
+		bottomHPanel.setHeight("75%");
+		mainContent.add(topHPanel);
+		mainContent.add(bottomHPanel);
+		
 		mainPanel.add(saveErrorDisplay);
 		mainPanel.add(mainContent);
 		mainPanel.setStyleName("contentPanel");
@@ -422,7 +428,7 @@ public class MetaDataView implements MetaDataDetailDisplay{
 	 * 
 	 * @return the widget
 	 */
-	private Widget buildLeftSideForm() {
+	private void buildForm() {
 		ChangeHandler changeHandler = new ChangeHandler() {
 			@Override
 			public void onChange(ChangeEvent event) {
@@ -456,79 +462,138 @@ public class MetaDataView implements MetaDataDetailDisplay{
 		measureTypeListBox.addChangeHandler(changeHandler);
 		measureTypeListBox.getElement().setId("measureTypeListBox_ListBox");
 		
+		
+		/** The panel for the top left side of screen */
+		VerticalPanel topLeftSidePanel = new VerticalPanel();
+		
+		/** The panel for the top right side of screen */
+		VerticalPanel topRightSidePanel = new VerticalPanel();
+		
+
+		topHPanel.getElement().setId("mainPanel_HPanelTop");
+		bottomHPanel.getElement().setId("mainPanel_HPanelBottom");
+		topRightSidePanel.getElement().setId("mainPanel_VTopRight");
+		topLeftSidePanel.getElement().setId("mainPanel_VTopLeft");
 		FlowPanel fPanel = new FlowPanel();
+		topHPanel.add(topLeftSidePanel);
+		topHPanel.add(topRightSidePanel);
+		
+		bottomHPanel.add(fPanel);
 		
 		fPanel.setStyleName("leftSideForm");
 		fPanel.getElement().setId("fPanel_FlowPanelLeft");
-		//fPanel.add(new Label("All fields are required except where noted as optional."));
 		fPanel.add(new SpacerWidget());
 		fPanel.add(errorMessages);
-		
-		
-		Label nameInputLabel = (Label) LabelBuilder.buildLabel(nameInput, "eMeasure Title");
-		nameInputLabel.setStyleName("bold");
-		fPanel.add(nameInputLabel);
+				
 		HorizontalPanel hp = new HorizontalPanel();
 		hp.getElement().setAttribute("id", "emeasureTitlePanel");
-		hp.add(nameInput);
+		hp.add(new SpacerWidget());
+		hp.add(new SpacerWidget());
 		hp.add(deleteMeasure);
 		deleteMeasure.getElement().setId("deleteMeasure_Button");
-		fPanel.add(hp);
-		fPanel.add(new SpacerWidget());
+		hp.setStylePrimaryName("floatRightButtonPanel");
+		topRightSidePanel.add(new SpacerWidget());
+		topRightSidePanel.add(new SpacerWidget());
+		topRightSidePanel.add(hp);
+		topRightSidePanel.add(new SpacerWidget());
+		topRightSidePanel.add(new SpacerWidget());
+		topRightSidePanel.add(new SpacerWidget());
 		
+		// create a panel to display read-only data in disclosrePanel
+		topRightSidePanel.setSize("300px", "100px");
+		topRightSidePanel.setStyleName("rightSideForm");
+		
+		// create a panel to display the general info
+		VerticalPanel generalPanel = new VerticalPanel();
+		generalPanel.setSize("270px", "232px");
+		generalPanel.setStyleName("measureDetailRightPanel");
+		generalPanel.getElement().setId("generalPanel");
+		
+		// General Information Label
+		Label generalLabel = new Label("General Information");
+		generalLabel.setStyleName("measurementPeriodHeader");
+		generalLabel.getElement().setId("generalInfoHeader_Label");
+		generalLabel.getElement().setAttribute("tabIndex", "0");		
+		generalPanel.add(generalLabel);
+
 		//US 421. Measure Scoring choice is now part of Measure creation process. So just display here.
 		Label measScoringInputLabel = (Label) LabelBuilder.buildLabel(measScoringInput, "Measure Scoring");
-		measScoringInputLabel.setStyleName("bold");
-		fPanel.add(measScoringInputLabel);
-		fPanel.add(measScoringInput);
-		measScoringInput.getElement().setId("measScoringInput_Label");
-		fPanel.add(new SpacerWidget());
+		measScoringInputLabel.getElement().setId("MeasScoringLabel");
+		measScoringInputLabel.setStyleName("marginLeft20pxBold");
+		measScoringInputLabel.setTitle(measScoringInputLabel.getText());
+		generalPanel.add(measScoringInputLabel);
+		
+		measScoringInput.setStyleName("marginLeft20px");
+		measScoringInput.getElement().setId("MeasScoringValue");			
+		generalPanel.add(measScoringInput);
+		generalPanel.add(new SpacerWidget());
 		
 		Label abbrInputLabel = (Label) LabelBuilder.buildLabel(abbrInput, "eMeasure Abbreviated Title");
-		abbrInputLabel.setStyleName("bold");
-		fPanel.add(abbrInputLabel);
-		fPanel.add(abbrInput);
-		abbrInput.getElement().setId("abbrInput_Label");
+		abbrInputLabel.setStyleName("marginLeft20pxBold");
+		abbrInputLabel.setTitle(abbrInputLabel.getText());
+		generalPanel.add(abbrInputLabel);
+		
+		abbrInput.getElement().setId("abbrInput");
+		abbrInput.setStyleName("marginLeft20px");
+		generalPanel.add(abbrInput);
+		generalPanel.add(new SpacerWidget());
+		
+		Label finalizedDateLabel = (Label) LabelBuilder.buildLabel(finalizedDate, "Finalized Date");
+		finalizedDateLabel.setStyleName("marginLeft20pxBold");
+		finalizedDateLabel.setTitle(finalizedDateLabel.getText());
+		generalPanel.add(finalizedDateLabel);
+		
+		finalizedDate.getElement().setId("finalizedDate");
+		finalizedDate.setStyleName("marginLeft20px");
+		generalPanel.add(finalizedDate);
+		generalPanel.add(new SpacerWidget());
+		
+		Label eMeasureIdentifierLabel = (Label) LabelBuilder.buildLabel(eMeasureIdentifier, "GUID");
+		eMeasureIdentifierLabel.setStyleName("marginLeft20pxBold");
+		eMeasureIdentifierLabel.setTitle(eMeasureIdentifierLabel.getText());
+		generalPanel.add(eMeasureIdentifierLabel);
+		
+		eMeasureIdentifier.getElement().setId("eMeasureIdentifier");
+		eMeasureIdentifier.setStyleName("marginLeft20px");
+		generalPanel.add(eMeasureIdentifier);
+		generalPanel.add(new SpacerWidget());
+						
+		Label versionInputLabel = (Label) LabelBuilder.buildLabel(versionInput, "eMeasure Version Number");
+		versionInputLabel.setStyleName("marginLeft20pxBold");
+		versionInputLabel.setTitle(versionInputLabel.getText());
+		generalPanel.add(versionInputLabel);
+		
+		versionInput.getElement().setId("versionInput");
+		versionInput.setStyleName("marginLeft20px");
+		generalPanel.add(versionInput);
+
+		//measurementPeriod Header
+		topRightSidePanel.add(new SpacerWidget());
+		topRightSidePanel.add(new SpacerWidget());
+		topRightSidePanel.add(new SpacerWidget());
+		topRightSidePanel.add(generalPanel);
+			
 		fPanel.add(new SpacerWidget());
 		
 		HorizontalFlowPanel horizontalPanel = new HorizontalFlowPanel();
 		horizontalPanel.getElement().setId("horizontalPanel_HorizontalFlowPanelLeft");
 		Label eMeasureIdentifierInputLabel = (Label) LabelBuilder.buildLabel(eMeasureIdentifierInput, "eMeasure Identifier (Measure Authoring Tool)");
-		horizontalPanel.setStyleName("bold");
-		horizontalPanel.add(eMeasureIdentifierInputLabel);
+		eMeasureIdentifierInputLabel.setStyleName("bold");
+		topLeftSidePanel.add(new SpacerWidget());
+		topLeftSidePanel.add(eMeasureIdentifierInputLabel);
 		//Widget optionLabelWidget = LabelBuilder.buildLabel(eMeasureIdentifierInput, " - Optional");
 		//optionLabelWidget.setStyleName("generate-emeasureid-button");
 		eMeasureIdentifierInput.getElement().setId("eMeasureIdentifierInput_TextBox");
-		//horizontalPanel.add(optionLabelWidget);
-		fPanel.add(horizontalPanel);
+		//horizontalPanel.add(optionLabelWidget);		
 		
-		fPanel.add(eMeasureIdentifierInput);
-		fPanel.add(generateeMeasureIDButton);
+		horizontalPanel.add(eMeasureIdentifierInput);
+		horizontalPanel.add(generateeMeasureIDButton);
 		generateeMeasureIDButton.getElement().setId("generateeMeasureIDButton_Button");
 		generateeMeasureIDButton.addClickHandler(clickHandler);
 		generateeMeasureIDButton.getElement().setId("generateeMeasureIDButton_Button");
-		fPanel.add(new SpacerWidget());
+		topLeftSidePanel.add(horizontalPanel);
+		topLeftSidePanel.add(new SpacerWidget());
 		
-		Label finalizedDateLabel = (Label) LabelBuilder.buildLabel(finalizedDate, "Finalized Date");
-		finalizedDateLabel.setStyleName("bold");
-		fPanel.add(finalizedDateLabel);
-		fPanel.add(finalizedDate);
-		finalizedDate.getElement().setId("finalizedDate_Label");
-		fPanel.add(new SpacerWidget());
-		
-		Label eMeasureIdentifierLabel = (Label) LabelBuilder.buildLabel(eMeasureIdentifier, "GUID");
-		eMeasureIdentifierLabel.setStyleName("bold");
-		fPanel.add(eMeasureIdentifierLabel);
-		fPanel.add(eMeasureIdentifier);
-		eMeasureIdentifier.getElement().setId("eMeasureIdentifier_Label");
-		fPanel.add(new SpacerWidget());
-		
-		Label versionInputLabel = (Label) LabelBuilder.buildLabel(versionInput, "eMeasure Version Number");
-		versionInputLabel.setStyleName("bold");
-		fPanel.add(versionInputLabel);
-		fPanel.add(versionInput);
-		versionInput.getElement().setId("versionInput_Label");
-		fPanel.add(new SpacerWidget());
 		// MAT 2995 : Commented Measure Status Field from Measure Detail View.
 		/*fPanel.add(LabelBuilder.buildLabel(objectStatusInput, "Measure Status"));
 		fPanel.add(objectStatusInput);
@@ -537,12 +602,12 @@ public class MetaDataView implements MetaDataDetailDisplay{
 		
 		Label nQFIDInputLabel = (Label) LabelBuilder.buildLabel(NQFIDInput, "NQF Number");
 		nQFIDInputLabel.setStyleName("bold");
-		fPanel.add(nQFIDInputLabel);
-		fPanel.add(new SpacerWidget());
-		fPanel.add(NQFIDInput);
+		topLeftSidePanel.add(nQFIDInputLabel);
+		topLeftSidePanel.add(new SpacerWidget());
+		topLeftSidePanel.add(NQFIDInput);
 		NQFIDInput.getElement().setId("NQFIDInput_TextBox");
 		NQFIDInput.addKeyDownHandler(keyDownHandler);
-		fPanel.add(new SpacerWidget());
+		topLeftSidePanel.add(new SpacerWidget());
 		
 		//		HorizontalPanel measurePeriodPanel = new HorizontalPanel();
 		//		measurePeriodPanel.getElement().setId("measurePeriodPanel_HorizontalPanel");
@@ -568,6 +633,7 @@ public class MetaDataView implements MetaDataDetailDisplay{
 		VerticalPanel measurementPeriodPanel = new VerticalPanel();
 		measurementPeriodPanel.getElement().setId("measurementPeriod_VerticalPanel");
 		measurementPeriodPanel.setStyleName("valueSetSearchPanel");
+		measurementPeriodPanel.setSize("505px", "100px");
 		//measurementPeriod Header
 		Label measurePeriodFromInputLabel = new Label("Measurement Period");
 		measurePeriodFromInputLabel.setStyleName("measurementPeriodHeader");
@@ -602,23 +668,23 @@ public class MetaDataView implements MetaDataDetailDisplay{
 		measurePeriodToInput.getElement().setId("measurePeriodToInput_DateBoxWithCalendar");
 		//		measurePeriodFromInput.getDateBox().addKeyDownHandler(keyDownHandler);
 		//		measurePeriodToInput.getDateBox().addKeyDownHandler(keyDownHandler);
-		measurePeriodFromInput.getDateBox().addKeyUpHandler(new KeyUpHandler() {
-			
-			@Override
-			public void onKeyUp(KeyUpEvent event) {
-				formatDateValue(event,measurePeriodFromInput.getDateBox(), "");
-			}
-		});
-		
-		measurePeriodToInput.getDateBox().addKeyUpHandler(new KeyUpHandler() {
-			
-			@Override
-			public void onKeyUp(KeyUpEvent event) {
-				formatDateValue(event,measurePeriodToInput.getDateBox(), "");
-			}
-		});
-		measurePeriodFromInput.getCalendar().addClickHandler(clickHandler);
-		measurePeriodToInput.getCalendar().addClickHandler(clickHandler);
+//		measurePeriodFromInput.getDateBox().addKeyUpHandler(new KeyUpHandler() {
+//			
+//			@Override
+//			public void onKeyUp(KeyUpEvent event) {
+//				formatDateValue(event,measurePeriodFromInput.getDateBox(), "");
+//			}
+//		});
+//		
+//		measurePeriodToInput.getDateBox().addKeyUpHandler(new KeyUpHandler() {
+//			
+//			@Override
+//			public void onKeyUp(KeyUpEvent event) {
+//				formatDateValue(event,measurePeriodToInput.getDateBox(), "");
+//			}
+//		});
+//		measurePeriodFromInput.getCalendar().addClickHandler(clickHandler);
+//		measurePeriodToInput.getCalendar().addClickHandler(clickHandler);
 		Grid queryGrid = new Grid(3, 1);
 		queryGrid.setWidget(0, 0, calenderYearDatePanel);
 		queryGrid.setWidget(1, 0, new SpacerWidget());
@@ -626,15 +692,14 @@ public class MetaDataView implements MetaDataDetailDisplay{
 		queryGrid.setStyleName("secondLabel");
 		measurementPeriodPanel.add(queryGrid);
 		queryGrid.getElement().setId("queryGrid_Grid");
-		fPanel.add(measurementPeriodPanel);
-		fPanel.add(new SpacerWidget());
+		topLeftSidePanel.add(measurementPeriodPanel);
+		topLeftSidePanel.add(new SpacerWidget());
 		
 		Label stewardTableLabel = (Label) LabelBuilder.buildLabel(stewardCellTable, "Measure Steward List");
 		stewardTableLabel.setStyleName("measureDetailTableHeader");
-		fPanel.add(stewardTableLabel);
-		fPanel.add(stewardSPanel);
-		fPanel.add(new SpacerWidget());
-		
+		topLeftSidePanel.add(stewardTableLabel);
+		topLeftSidePanel.add(stewardSPanel);
+				
 		Label authorTableLabel = (Label) LabelBuilder.buildLabel(authorCellTable, "Measure Developer List");
 		authorTableLabel.setStyleName("measureDetailTableHeader");
 		fPanel.add(authorTableLabel);
@@ -961,7 +1026,7 @@ public class MetaDataView implements MetaDataDetailDisplay{
 		String emeasureIdMSG = "Once an eMeasure Identifier (Measure Authoring Tool) has been generated it may not be modified or removed for any draft or version of a measure.";
 		generateeMeasureIDButton.setTitle(emeasureIdMSG);
 		eMeasureIdentifierInput.setTitle(emeasureIdMSG);
-		return fPanel;
+		
 	}
 	
 	//TODO by Ravi
@@ -1872,14 +1937,6 @@ public class MetaDataView implements MetaDataDetailDisplay{
 	}
 	
 	/* (non-Javadoc)
-	 * @see mat.client.measure.metadata.MetaDataPresenter.MetaDataDetailDisplay#getMeasureName()
-	 */
-	@Override
-	public Label getMeasureName() {
-		return nameInput;
-	}
-	
-	/* (non-Javadoc)
 	 * @see mat.client.measure.metadata.MetaDataPresenter.MetaDataDetailDisplay#getShortName()
 	 */
 	@Override
@@ -2764,6 +2821,7 @@ public class MetaDataView implements MetaDataDetailDisplay{
 		public void onValueChange(ValueChangeEvent<Boolean> event) {
 			measurePeriodFromInput.setValue("");
 			measurePeriodToInput.setValue("");
+			errorMessages.clear();
 			if (calenderYear.getValue().equals(Boolean.FALSE)) {
 				measurePeriodFromInput.setEnabled(true);
 				measurePeriodToInput.setEnabled(true);
@@ -2782,17 +2840,17 @@ public class MetaDataView implements MetaDataDetailDisplay{
 		return calenderYear;
 	}
 	
-	/**
-	 * Format date value.
-	 *
-	 * @param event the event
-	 * @param dateBox the date box
-	 * @param availableDateId the available date id
-	 */
-	private void formatDateValue(KeyUpEvent event, TextBox dateBox, String availableDateId) {
-		if(!event.isAnyModifierKeyDown()) {
-			dateBox.setValue("");
-			dateBox.setCursorPos(0);
-		}
-	}
+//	/**
+//	 * Format date value.
+//	 *
+//	 * @param event the event
+//	 * @param dateBox the date box
+//	 * @param availableDateId the available date id
+//	 */
+//	private void formatDateValue(KeyUpEvent event, TextBox dateBox, String availableDateId) {
+//		if(!event.isAnyModifierKeyDown()) {
+//			dateBox.setValue("");
+//			dateBox.setCursorPos(0);
+//		}
+//	}
 }

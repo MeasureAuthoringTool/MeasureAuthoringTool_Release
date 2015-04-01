@@ -74,7 +74,7 @@ public class HumanReadableGenerator {
 	
 	/** The initial population hash. */
 	private static Map<String, String> initialPopulationHash = new HashMap<String, String>();
-
+	
 	
 	/**
 	 * Generate html for population or subtree.
@@ -386,8 +386,12 @@ public class HumanReadableGenerator {
 			subTreeNodeImportedClone.insertBefore(commentNode,
 					subTreeNodeImportedClone.getFirstChild());
 		}
-		subTreeRefNodeParent.replaceChild(subTreeNodeImportedClone,
-				subTreeRefNode);
+		
+		/*Node newNode = subTreeNodeImportedClone;
+		if(subTreeNodeImportedClone.hasChildNodes()){
+			newNode = subTreeNodeImportedClone.getFirstChild();
+		}*/
+		subTreeRefNodeParent.replaceChild(subTreeNodeImportedClone, subTreeRefNode);
 	}
 	
 	/**
@@ -887,7 +891,7 @@ public class HumanReadableGenerator {
 			XmlProcessor populationOrSubtreeXMLProcessor) {
 		Node lhs = item.getFirstChild();
 		if ("elementRef".equalsIgnoreCase(lhs.getNodeName())) {
-			// Element ulElement = parentListElement.appendElement(HTML_LI); 
+			// Element ulElement = parentListElement.appendElement(HTML_LI);
 			if( checkForSatisfiesParentNode(item.getParentNode())){
 				parseChild(lhs, liElement, item, populationOrSubtreeXMLProcessor,
 						true);
@@ -1551,7 +1555,7 @@ public class HumanReadableGenerator {
 				humanReadableHTMLDocument);
 	}
 	
-
+	
 	/**
 	 * Generate table of contents.
 	 *
@@ -1567,7 +1571,7 @@ public class HumanReadableGenerator {
 		
 		Element populationCriteriaLI = tocULElement.appendElement(HTML_LI);
 		populationCriteriaLI
-		.append("<a href=\"#d1e405\">Population criteria</a>");
+		.append("<a href=\"#d1e405\">Population Criteria</a>");
 		
 		// TODO:code to decide if we need to add 'Measure observations'
 		
@@ -1577,7 +1581,7 @@ public class HumanReadableGenerator {
 		
 		Element dataCriteriaLI = tocULElement.appendElement(HTML_LI);
 		dataCriteriaLI
-		.append("<a href=\"#d1e647\">Data criteria (QDM Data Elements)</a>");
+		.append("<a href=\"#d1e647\">Data Criteria (QDM Data Elements)</a>");
 		
 		// TODO:code to decide if we need to add 'Reporting Stratification'
 		
@@ -1607,7 +1611,7 @@ public class HumanReadableGenerator {
 		
 		Element bodyElement = humanReadableHTMLDocument.body();
 		bodyElement
-		.append("<h3><a name=\"d1e647\" href=\"#toc\">Data criteria (QDM Data Elements)</a></h3>");
+		.append("<h3><a name=\"d1e647\" href=\"#toc\">Data Criteria (QDM Data Elements)</a></h3>");
 		
 		Element mainDivElement = bodyElement.appendElement("div");
 		Element mainListElement = mainDivElement.appendElement(HTML_UL);
@@ -1724,28 +1728,28 @@ public class HumanReadableGenerator {
 				String name = "";
 				if (nodeList != null) {
 					for(int i=0;i<nodeList.getLength();i++){
-					name = nodeList.item(i).getAttributes().getNamedItem("name")
-							.getNodeValue();
-					name = StringUtils.capitalize(name);
-					String attrUUID_NAME = uuid + "~" +name;
-					if(!attrNameList.contains(attrUUID_NAME)){
-					Element listItem = mainListElement.appendElement(HTML_LI);
-					listItem.appendText(" Attribute: "
-							+ "\""
-							+ name
-							+ ": "
-							+ qdmAttribs.getNamedItem("name").getNodeValue()
-							+ "\" using \""
-							+ qdmAttribs.getNamedItem("name").getNodeValue()
-							+ " "
-							+ qdmAttribs.getNamedItem("taxonomy")
-							.getNodeValue() + " Value Set ("
-							+ qdmAttribs.getNamedItem("oid").getNodeValue()
-							+ ")\"");
-					attrNameList.add(uuid+"~"+name);
+						name = nodeList.item(i).getAttributes().getNamedItem("name")
+								.getNodeValue();
+						name = StringUtils.capitalize(name);
+						String attrUUID_NAME = uuid + "~" +name;
+						if(!attrNameList.contains(attrUUID_NAME)){
+							Element listItem = mainListElement.appendElement(HTML_LI);
+							listItem.appendText(" Attribute: "
+									+ "\""
+									+ name
+									+ ": "
+									+ qdmAttribs.getNamedItem("name").getNodeValue()
+									+ "\" using \""
+									+ qdmAttribs.getNamedItem("name").getNodeValue()
+									+ " "
+									+ qdmAttribs.getNamedItem("taxonomy")
+									.getNodeValue() + " Value Set ("
+									+ qdmAttribs.getNamedItem("oid").getNodeValue()
+									+ ")\"");
+							attrNameList.add(uuid+"~"+name);
+						}
 					}
-					}
-				}	
+				}
 			}
 		} else {
 			mainListElement.appendElement(HTML_LI).appendText("None");
@@ -1881,7 +1885,7 @@ public class HumanReadableGenerator {
 	 * @throws XPathExpressionException the x path expression exception
 	 */
 	private static void generateRiskAdjustmentVariables(
-			Document humanReadableHTMLDocument, XmlProcessor simpleXMLProcessor) 
+			Document humanReadableHTMLDocument, XmlProcessor simpleXMLProcessor)
 					throws XPathExpressionException {
 		Element bodyElement = humanReadableHTMLDocument.body();
 		bodyElement
@@ -1899,7 +1903,7 @@ public class HumanReadableGenerator {
 				Node childNode = elements.item(i);
 				String uuid = childNode.getAttributes().getNamedItem("id").getNodeValue();
 				String xpathforSubTree = "/measure/subTreeLookUp/subTree[@uuid='"+ uuid +"']";
-				Node subTreeNode = simpleXMLProcessor.findNode(simpleXMLProcessor.getOriginalDoc(), 
+				Node subTreeNode = simpleXMLProcessor.findNode(simpleXMLProcessor.getOriginalDoc(),
 						xpathforSubTree);
 				parseChild(subTreeNode.getFirstChild(), mainListElement, subTreeNode.getParentNode(), simpleXMLProcessor, false);
 			}
@@ -1968,7 +1972,7 @@ public class HumanReadableGenerator {
 		
 		Element bodyElement = humanReadableHTMLDocument.body();
 		bodyElement
-		.append("<h3><a name=\"d1e405\" href=\"#toc\">Population criteria</a></h3>");
+		.append("<h3><a name=\"d1e405\" href=\"#toc\">Population Criteria</a></h3>");
 		
 		Element mainDivElement = bodyElement.appendElement("div");
 		Element mainListElement = mainDivElement.appendElement(HTML_UL);
@@ -2295,8 +2299,8 @@ public class HumanReadableGenerator {
 	}
 	
 	/**
-	 * Because of "QDM Variable with Occurances", we might have some subTree's with subTreeRef's in subTreeLookUp.
-	 * This is because these subTree's aren't directly referred to in the clause logic, but their occurrance(s)
+	 * Because of "QDM Variable with Occurrences", we might have some subTree's with subTreeRef's in subTreeLookUp.
+	 * This is because these subTree's aren't directly referred to in the clause logic, but their occurrence(s)
 	 * are.
 	 * This method will look for subTreeRef's in subTree and resolve them to subTree, so that proper human readable
 	 * is generated.
@@ -2318,6 +2322,11 @@ public class HumanReadableGenerator {
 			if(subTreeNode != null){
 				Node clonedSubTreeNode = subTreeNode.cloneNode(true);
 				Node subTreeRefParentNode = subTreeRefNode.getParentNode();
+				
+				/*Node newNode = clonedSubTreeNode;
+				if(clonedSubTreeNode.hasChildNodes()){
+					newNode = clonedSubTreeNode.getFirstChild();
+				}*/
 				subTreeRefParentNode.replaceChild(clonedSubTreeNode, subTreeRefNode);
 			}
 		}
@@ -2353,26 +2362,29 @@ public class HumanReadableGenerator {
 	 * @return true, if successful
 	 */
 	private static boolean checkForSatisfiesParentNode(Node item){
+		if(item == null){
+			return false;
+		}
 		String nodeName = item.getNodeName();
 		switch(nodeName){
-		case "functionalOp":
-			if (item.getAttributes().getNamedItem("type") != null
-			&& item.getAttributes()
-					.getNamedItem("type").getNodeValue()
-					.contains("SATISFIES")) {
-				return true;
-			}
-			break;
-		case "relationalOp":
-			return checkForSatisfiesParentNode(item.getParentNode()); 
-		case "setOp":
-			return checkForSatisfiesParentNode(item.getParentNode());
-		case "subTree":
-			return false;
+			case "functionalOp":
+				if ((item.getAttributes().getNamedItem("type") != null)
+						&& item.getAttributes()
+						.getNamedItem("type").getNodeValue()
+						.contains("SATISFIES")) {
+					return true;
+				}
+				break;
+			case "relationalOp":
+				return checkForSatisfiesParentNode(item.getParentNode());
+			case "setOp":
+				return checkForSatisfiesParentNode(item.getParentNode());
+			case "subTree":
+				return false;
 			default://do nothing
-				break;		
+				break;
 		}
-	
+		
 		return checkForSatisfiesParentNode(item.getParentNode());
 	}
 	

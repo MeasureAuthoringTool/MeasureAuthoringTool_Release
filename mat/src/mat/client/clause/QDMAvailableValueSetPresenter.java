@@ -3,7 +3,6 @@ package mat.client.clause;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import mat.client.Mat;
 import mat.client.MatPresenter;
 import mat.client.codelist.HasListBox;
@@ -24,7 +23,6 @@ import mat.model.MatValueSet;
 import mat.model.MatValueSetTransferObject;
 import mat.model.QualityDataSetDTO;
 import mat.shared.ConstantMessages;
-
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.FocusEvent;
@@ -272,7 +270,7 @@ public class QDMAvailableValueSetPresenter  implements MatPresenter {
 			.getMeasureService();
 	
 	/** The modify value set dto. {@link QualityDataSetDTO} instance. */
-	private final QualityDataSetDTO modifyValueSetDTO;
+	private QualityDataSetDTO modifyValueSetDTO;
 	
 	/**
 	 * The qds applied list presenter display. {@link QDSAppliedListPresenter}
@@ -514,7 +512,7 @@ public class QDMAvailableValueSetPresenter  implements MatPresenter {
 		searchDisplay.getSuccessMessageUserDefinedPanel().clear();
 		searchDisplay.getErrorMessageUserDefinedPanel().clear();
 		String userDefinedInput = searchDisplay.getUserDefinedInput().getText().trim();
-		boolean isValidUserDefinedInput = validateUserDefinedInput(userDefinedInput);		
+		boolean isValidUserDefinedInput = validateUserDefinedInput(userDefinedInput);
 		if ((searchDisplay.getUserDefinedInput().getText().trim().length() > 0)
 				&& !searchDisplay.getDataTypeText(searchDisplay.getAllDataTypeInput()).
 				equalsIgnoreCase(MatContext.PLEASE_SELECT)) {
@@ -561,23 +559,23 @@ public class QDMAvailableValueSetPresenter  implements MatPresenter {
 	public static boolean validateUserDefinedInput(String userDefinedInput) {
 		boolean flag = true;
 		for(int i = 0; i< userDefinedInput.length(); i++){
-			if(userDefinedInput.charAt(i) == '+'
-				|| userDefinedInput.charAt(i) == '*'
-				|| userDefinedInput.charAt(i) == '?'
-				|| userDefinedInput.charAt(i) == ':'
-				|| userDefinedInput.charAt(i) == '-'
-				|| userDefinedInput.charAt(i) == '|'
-				|| userDefinedInput.charAt(i) == '!'
-				|| userDefinedInput.charAt(i) == '"'
-				|| userDefinedInput.charAt(i) == ';'
-				|| userDefinedInput.charAt(i) == '%'){
+			if((userDefinedInput.charAt(i) == '+')
+					|| (userDefinedInput.charAt(i) == '*')
+					|| (userDefinedInput.charAt(i) == '?')
+					|| (userDefinedInput.charAt(i) == ':')
+					|| (userDefinedInput.charAt(i) == '-')
+					|| (userDefinedInput.charAt(i) == '|')
+					|| (userDefinedInput.charAt(i) == '!')
+					|| (userDefinedInput.charAt(i) == '"')
+					|| (userDefinedInput.charAt(i) == ';')
+					|| (userDefinedInput.charAt(i) == '%')){
 				flag = false;
 				break;
 			}
 		}
 		return flag;
 	}
-
+	
 	/**
 	 * Server call to modify QDM with VSAC value set.
 	 */
@@ -598,7 +596,13 @@ public class QDMAvailableValueSetPresenter  implements MatPresenter {
 			if (modifyValueSetDTO.getDataType().equalsIgnoreCase(ConstantMessages.ATTRIBUTE)
 					|| dataTypeText.equalsIgnoreCase(ConstantMessages.ATTRIBUTE)) {
 				if (dataTypeText.equalsIgnoreCase(modifyValueSetDTO.getDataType())) {
-					updateAppliedQDMList(modifyWithDTO, null, modifyValueSetDTO, dataType, isSpecificOccurrence, false);
+					if (modifyWithDTO.getID().equalsIgnoreCase(modifyValueSetDTO.getOid())
+							&& (modifyValueSetDTO.isSpecificOccurrence() && isSpecificOccurrence)) {
+						searchDisplay.getApplyToMeasureSuccessMsg().setMessage(
+								MatContext.get().getMessageDelegate().getSuccessfulModifyQDMMsg());
+					} else {
+						updateAppliedQDMList(modifyWithDTO, null, modifyValueSetDTO, dataType, isSpecificOccurrence, false);
+					}
 				} else {
 					if (ConstantMessages.ATTRIBUTE.equalsIgnoreCase(dataTypeText)) {
 						searchDisplay.getErrorMessageDisplay().setMessage(MatContext.get().
@@ -610,7 +614,14 @@ public class QDMAvailableValueSetPresenter  implements MatPresenter {
 					}
 				}
 			} else {
-				updateAppliedQDMList(modifyWithDTO, null, modifyValueSetDTO, dataType, isSpecificOccurrence, false);
+				if (dataTypeText.equalsIgnoreCase(modifyValueSetDTO.getDataType())
+						&& modifyWithDTO.getID().equalsIgnoreCase(modifyValueSetDTO.getOid())
+						&& (modifyValueSetDTO.isSpecificOccurrence() && isSpecificOccurrence)){
+					searchDisplay.getApplyToMeasureSuccessMsg().setMessage(
+							MatContext.get().getMessageDelegate().getSuccessfulModifyQDMMsg());
+				} else {
+					updateAppliedQDMList(modifyWithDTO, null, modifyValueSetDTO, dataType, isSpecificOccurrence, false);
+				}
 			}
 		} else {
 			searchDisplay.getErrorMessageDisplay().setMessage(MatContext.get().
@@ -761,6 +772,7 @@ public class QDMAvailableValueSetPresenter  implements MatPresenter {
 	private void updateAppliedQDMList(final MatValueSet matValueSet , final CodeListSearchDTO codeListSearchDTO ,
 			final QualityDataSetDTO qualityDataSetDTO, final String dataType, final Boolean isSpecificOccurrence,
 			final boolean isUSerDefined) {
+		modifyQDMList(qualityDataSetDTO);
 		MatValueSetTransferObject matValueSetTransferObject = new MatValueSetTransferObject();
 		matValueSetTransferObject.setDatatype(dataType);
 		matValueSetTransferObject.setMatValueSet(matValueSet);
@@ -809,8 +821,32 @@ public class QDMAvailableValueSetPresenter  implements MatPresenter {
 				}
 			}
 		});
+		
 	}
-	
+	/**
+	 * Modify qdm list.
+	 *
+	 * @param qualityDataSetDTO the quality data set dto
+	 */
+	private void modifyQDMList(QualityDataSetDTO qualityDataSetDTO) {
+		for (int i = 0; i < appliedQDMList.size(); i++) {
+			if (qualityDataSetDTO.getOid().equals(appliedQDMList.get(i).getOid())
+					&& qualityDataSetDTO.getDataType().equals(appliedQDMList.get(i).getDataType())) {
+				if ((qualityDataSetDTO.getOccurrenceText() != null)
+						&& (appliedQDMList.get(i).getOccurrenceText() != null)) {
+					if (qualityDataSetDTO.getOccurrenceText().equals(
+							appliedQDMList.get(i).getOccurrenceText())) {
+						appliedQDMList.remove(i);
+						break;
+					}
+				} else if ((qualityDataSetDTO.getOccurrenceText() == null)
+						&& (appliedQDMList.get(i).getOccurrenceText() == null)) {
+					appliedQDMList.remove(i);
+					break;
+				}
+			}
+		}
+	}
 	/**
 	 * This method updates MeasureXML - ElementLookUpNode,ElementRef's under
 	 * Population Node and Stratification Node, SupplementDataElements. It also
@@ -838,6 +874,7 @@ public class QDMAvailableValueSetPresenter  implements MatPresenter {
 					searchDisplay.getErrorMessageUserDefinedPanel().setMessage(
 							MatContext.get().getMessageDelegate().getGenericErrorMessage());
 				}
+				//modifyValueSetDTO = modifyWithDTO;
 			}
 			
 			@Override
@@ -851,6 +888,7 @@ public class QDMAvailableValueSetPresenter  implements MatPresenter {
 					searchDisplay.getUserDefinedInput().setText("");
 					searchDisplay.getAllDataTypeInput().setSelectedIndex(0);
 				}
+				modifyValueSetDTO = modifyWithDTO;
 			}
 		});
 	}

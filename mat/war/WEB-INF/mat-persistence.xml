@@ -29,18 +29,14 @@
 		<property name="changeLog" value="classpath:/liquibase/changelog.xml"  />
 		<property name="contexts" value="prod" />
 	</bean>
-    
-   
+       
      <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
         <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
 	    <property name="url" value="jdbc:mysql://devdb:3306/MATDB"/>
         <property name="username" value="user"/>
         <property name="password" value="password"/>  
-    
     </bean>
     
-   
-
 	<context:annotation-config />
 	
 	<!-- Hibernate SessionFactory -->

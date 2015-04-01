@@ -200,7 +200,7 @@ implements ManageUsersPresenter.DetailDisplay {
 		rightPanel.add(roleRadioPanel);
 		rightPanel.add(new SpacerWidget());
 		
-		rightPanel.add(LabelBuilder.buildRequiredLabel(organizationListBox, organizationLabel));
+		rightPanel.add(LabelBuilder.buildLabel(organizationListBox, organizationLabel));
 		rightPanel.add(organizationListBox);
 		rightPanel.add(new SpacerWidget());
 		organizationListBox.addValueChangeHandler(new ValueChangeHandler<String>() {
@@ -228,7 +228,7 @@ implements ManageUsersPresenter.DetailDisplay {
 		Label invisibleLabel = (Label) LabelBuilder.buildInvisibleLabel(new Label("OrganizationOidUpdated"),
 				"OrganizationOidUpdated");
 		rightPanel.add(invisibleLabel);
-		rightPanel.add(LabelBuilder.buildRequiredLabel(oid, oidLabel));
+		rightPanel.add(LabelBuilder.buildLabel(oid, oidLabel));
 		rightPanel.add(oid);
 		rightPanel.add(new SpacerWidget());
 		
@@ -241,6 +241,29 @@ implements ManageUsersPresenter.DetailDisplay {
 		revokedStatus.addStyleName("block");
 		rightPanel.add(activeStatus);
 		rightPanel.add(revokedStatus);
+		activeStatus.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+			@Override
+			public void onValueChange(ValueChangeEvent<Boolean> event) {
+				if(event.getValue()) {
+					organizationListBox.setEnabled(true);
+					oid.setEnabled(true);
+				}
+			}
+		});
+		
+		revokedStatus.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+			
+			@Override
+			public void onValueChange(ValueChangeEvent<Boolean> event) {
+				// TODO Auto-generated method stub
+				if(event.getValue()) {
+					organizationListBox.setEnabled(false);
+					organizationListBox.setValue("");
+					oid.setValue("");
+					oid.setEnabled(false);
+				}
+			}
+		});
 		rightPanel.add(new SpacerWidget());
 		
 		rightPanel.add(resetPassword);

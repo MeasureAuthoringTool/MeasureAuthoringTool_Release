@@ -1,6 +1,7 @@
 package mat.client.clause.clauseworkspace.view;
 
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,34 @@ public class ComparisonDialogBox {
 	/** The dialog box. */
 	public static DialogBox dialogBox = new DialogBox(false,true);
 	
+	private static List<String> filterFunctionList = new ArrayList<String>();
+	private static List<String> subSetFunctionsList = new ArrayList<String>();
+	private static List<String> aggregateFunctionsList = new ArrayList<String>();
+		
+	static{
+		filterFunctionList.add("FIRST");
+		filterFunctionList.add("SECOND");
+		filterFunctionList.add("THIRD");
+		filterFunctionList.add("FOURTH");
+		filterFunctionList.add("FIFTH");
+		filterFunctionList.add("MOST RECENT");
+		filterFunctionList.add("SATISFIES ALL");
+		filterFunctionList.add("SATISFIES ANY");
+		
+		subSetFunctionsList.add("FIRST");
+		subSetFunctionsList.add("SECOND");
+		subSetFunctionsList.add("THIRD");
+		subSetFunctionsList.add("FOURTH");
+		subSetFunctionsList.add("FIFTH");
+		subSetFunctionsList.add("MOST RECENT");
+		
+		aggregateFunctionsList.add("MIN");
+		aggregateFunctionsList.add("MAX");
+		aggregateFunctionsList.add("MEDIAN");
+		aggregateFunctionsList.add("AVG");
+		aggregateFunctionsList.add("COUNT");
+		aggregateFunctionsList.add("SUM");
+	}
 	
 	/**
 	 * Show comparison dialog box.
@@ -106,6 +135,7 @@ public class ComparisonDialogBox {
 			labelForListBox = "Timing";
 		} else {
 			keys = MatContext.get().functions;
+			keys = filterFunctions(cellTreeNode.getParent(), keys);
 			labelForListBox = "Functions";
 		}
 		
@@ -116,8 +146,9 @@ public class ComparisonDialogBox {
 		for (int i = 0; i < keys.size(); i++) {
 			if(!(labelForListBox.equalsIgnoreCase("Functions")
 					&& ((keys.get(i).equals("SATISFIES ALL") 
-							|| keys.get(i).equals("SATISFIES ANY")))))
+							|| keys.get(i).equals("SATISFIES ANY"))))){
 				listAllTimeOrFunction.addItem(keys.get(i));
+			}
 			if (keys.get(i).equalsIgnoreCase(timingOrFuncMethod)) {
 				listAllTimeOrFunction.setSelectedIndex(i);
 			}
@@ -453,5 +484,70 @@ public class ComparisonDialogBox {
 		setFocus(hPanel);
 		return hPanel;
 	}
+
+	/**
+	 * Timings, Relationships (Fulfills), Union/Intersection, Satisfies All/Any should have a restricted list of functions to use as children. 
+	 * Only allow: First - Fifth, Most Recent, Satisfies All/Any.
+	 * @param allFunctionsList
+	 * @return
+	 */
+	public static List<String> filterFunctions(final CellTreeNode cellTreeNode, List<String> allFunctionsList) {
+		
+		System.out.println("filterFunctions....");
+		List<String> returnList = new ArrayList<String>(filterFunctionList);
+		
+		int nodeType = cellTreeNode.getNodeType();
+		System.out.println("nodeType:"+nodeType);
+				
+		if(nodeType == CellTreeNode.FUNCTIONS_NODE) {
+			@SuppressWarnings("unchecked")
+			String nodeText = cellTreeNode.getName();
+			HashMap<String, String> map =  (HashMap<String, String>) cellTreeNode.getExtraInformation(PopulationWorkSpaceConstants.EXTRA_ATTRIBUTES);
+			if(map != null){
+				nodeText = map.get(PopulationWorkSpaceConstants.TYPE);
+			}
+			System.out.println("nodeText:"+nodeText);
+			returnList = getAllowedFunctionsList(allFunctionsList, nodeText);
+				
+		}else if(nodeType != CellTreeNode.TIMING_NODE && nodeType != CellTreeNode.SET_OP_NODE && 
+				nodeType != CellTreeNode.RELATIONSHIP_NODE && nodeType != CellTreeNode.FUNCTIONS_NODE) {
+			returnList = allFunctionsList;
+		}
+		
+		System.out.println("returnList:"+returnList);
+		return returnList;
+	}
+
+	public static List<String> getAllowedFunctionsList(List<String> allFunctionsList, String nodeText) {
+		
+		List<String> returnList = new ArrayList<String>(filterFunctionList);
+		
+		if(subSetFunctionsList.contains(nodeText)){
+			returnList.clear();
+			returnList.add("SATISFIES ALL");
+			returnList.add("SATISFIES ANY");
+		}else if(aggregateFunctionsList.contains(nodeText)){
+			returnList.clear();
+			returnList.add("SATISFIES ALL");
+			returnList.add("SATISFIES ANY");
+			returnList.add("DATETIMEDIFF");
+		}else if( (!("SATISFIES ALL".equals(nodeText)) 
+				&& !("SATISFIES ANY".equals(nodeText)) 
+				&& !("AGE AT".equals(nodeText)) 
+				&& !("DATETIMEDIFF".equals(nodeText)) )){
+			
+			returnList = allFunctionsList;
+		}
+		return returnList;
+	}
+	
+	public static List<String> getSubSetFunctionsList() {
+		return subSetFunctionsList;
+	}
+	
+	public static List<String> getAggregateFunctionsList() {
+		return aggregateFunctionsList;
+	}
+
 	
 }

@@ -2,7 +2,6 @@ package mat.server.simplexml.hqmf;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.xml.xpath.XPathConstants;
@@ -25,7 +24,7 @@ public class HQMFMeasureObservationLogicGenerator extends HQMFClauseLogicGenerat
 	/** The clause logic map. */
 	private Map<String, Node> clauseLogicMap = new HashMap<String, Node>();
 	/** The measure grouping map. */
-	private Map<String, NodeList> measureGroupingMap = new LinkedHashMap<String, NodeList>();
+	private Map<String, NodeList> measureGroupingMap = new HashMap<String, NodeList>();
 	/** The elementRefList. */
 	//private List<Node> elementRefList;
 	/** The MeasureExport object. */
@@ -136,7 +135,7 @@ public class HQMFMeasureObservationLogicGenerator extends HQMFClauseLogicGenerat
 	 * @throws XPathExpressionException - Exception
 	 */
 	private void generateMeasureObDefinition(Node item, Node measureObservationSecElement
-			, MeasureExport me) throws XPathExpressionException {
+			, MeasureExport me ) throws XPathExpressionException {
 		Document doc = measureObservationSecElement.getOwnerDocument();
 		Comment comment = doc.createComment("Definition for "
 				+ item.getAttributes().getNamedItem("displayName").getNodeValue());
@@ -144,6 +143,11 @@ public class HQMFMeasureObservationLogicGenerator extends HQMFClauseLogicGenerat
 		Element measureObDefinitionElement = doc.createElement("measureObservationDefinition");
 		measureObDefinitionElement.setAttribute(CLASS_CODE, "OBS");
 		measureObDefinitionElement.setAttribute(MOOD_CODE, "DEF");
+		Element idElem = doc.createElement(ID);
+		idElem.setAttribute(ROOT, item.getAttributes().getNamedItem("uuid").getNodeValue());
+		idElem.setAttribute("extension", "MeasureObservation");
+		measureObDefinitionElement.appendChild(idElem);
+		
 		Element codeElem = doc.createElement(CODE);
 		codeElem.setAttribute(CODE, "AGGREGATE");
 		codeElem.setAttribute(CODE_SYSTEM, "2.16.840.1.113883.5.4");

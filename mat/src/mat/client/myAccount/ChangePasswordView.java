@@ -115,6 +115,15 @@ public class ChangePasswordView implements ChangePasswordPresenter.Display {
 	public HasValue<String> getCurrentPassword() {
 		return passwordEditInfoWidget.getPassword();
 	}
+
+	/* (non-Javadoc)
+	 * @see mat.client.myAccount.ChangePasswordPresenter.Display#getChangePasswordWidget
+	 */
+	@Override
+	public PasswordEditInfoWidget getPasswordEditInfoWidget() {
+		return passwordEditInfoWidget;
+	}
+
 	
 	/* (non-Javadoc)
 	 * @see mat.client.myAccount.ChangePasswordPresenter.Display#getSubmit()

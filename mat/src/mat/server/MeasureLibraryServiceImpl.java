@@ -8,7 +8,6 @@ import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -21,9 +20,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
+
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+
 import mat.DTO.MeasureNoteDTO;
 import mat.DTO.MeasureTypeDTO;
 import mat.DTO.OperatorDTO;
@@ -83,6 +84,7 @@ import mat.shared.ConstantMessages;
 import mat.shared.DateStringValidator;
 import mat.shared.DateUtility;
 import mat.shared.model.util.MeasureDetailsUtil;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang.StringUtils;
@@ -136,7 +138,7 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 	
 	/** The is measure created. */
 	private boolean isMeasureCreated;
-
+	
 	
 	/**
 	 * Comparator.
@@ -325,7 +327,11 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 	 * @see mat.server.service.MeasureLibraryService#saveSubTreeInMeasureXml(mat.client.clause.clauseworkspace.model.MeasureXmlModel, java.lang.String)
 	 */
 	@Override
-	public SortedClauseMapResult saveSubTreeInMeasureXml(MeasureXmlModel measureXmlModel, String nodeName, String nodeUUID) {
+	public SortedClauseMapResult saveSubTreeInMeasureXml(MeasureXmlModel measureXmlModel, String nodeNameWithSpaces, String nodeUUID) {
+		
+		// change multiple spaces into one space for the nodeName
+		String nodeName = nodeNameWithSpaces.replaceAll("( )+", " ");
+		
 		logger.info("Inside saveSubTreeInMeasureXml Method for measure Id " + measureXmlModel.getMeasureId() + " .");
 		SortedClauseMapResult clauseMapResult = new SortedClauseMapResult();
 		MeasureXmlModel xmlModel = getService().getMeasureXmlForMeasure(measureXmlModel.getMeasureId());
@@ -333,6 +339,10 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		if (((xmlModel != null) && StringUtils.isNotBlank(xmlModel.getXml()))) {
 			XmlProcessor xmlProcessor = new XmlProcessor(xmlModel.getXml());
 			try {
+				// take the spaces out of the xml for displayNme xml attribute
+				String normalizedXml = XmlProcessor.normalizeNodeForSpaces(measureXmlModel.getXml(), "//subTree/@displayName");
+				measureXmlModel.setXml(normalizedXml);
+				
 				Node subTreeLookUpNode = xmlProcessor.findNode(xmlProcessor.getOriginalDoc()
 						, measureXmlModel.getParentNode());
 				// Add subTreeLookUp node if not available in MeasureXml.
@@ -610,10 +620,10 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		manageMeasureDetailModel.setId(measure.getId());
 		manageMeasureDetailModel.setCalenderYear(manageMeasureDetailModel.getPeriodModel().isCalenderYear());
 		if(!manageMeasureDetailModel.getPeriodModel().isCalenderYear()){
-		manageMeasureDetailModel.setMeasFromPeriod(manageMeasureDetailModel.getPeriodModel() != null ? manageMeasureDetailModel
-				.getPeriodModel().getStartDate() : null);
-		manageMeasureDetailModel.setMeasToPeriod(manageMeasureDetailModel.getPeriodModel() != null ? manageMeasureDetailModel
-				.getPeriodModel().getStopDate() : null);
+			manageMeasureDetailModel.setMeasFromPeriod(manageMeasureDetailModel.getPeriodModel() != null ? manageMeasureDetailModel
+					.getPeriodModel().getStartDate() : null);
+			manageMeasureDetailModel.setMeasToPeriod(manageMeasureDetailModel.getPeriodModel() != null ? manageMeasureDetailModel
+					.getPeriodModel().getStopDate() : null);
 		}
 		manageMeasureDetailModel.setEndorseByNQF((StringUtils.isNotBlank(
 				manageMeasureDetailModel.getEndorsement()) ? true : false));
@@ -1219,6 +1229,11 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 			if ((details.getQualityDataDTO() != null) && (details.getQualityDataDTO().size() != 0)) {
 				logger.info(" details.getQualityDataDTO().size() :" + details.getQualityDataDTO().size());
 				for (QualityDataSetDTO dataSetDTO : details.getQualityDataDTO()) {
+					if ((dataSetDTO.getOccurrenceText() != null)
+							&& StringUtils.isNotBlank(dataSetDTO.getOccurrenceText())
+							&& StringUtils.isNotEmpty(dataSetDTO.getOccurrenceText())) {
+						dataSetDTO.setSpecificOccurrence(true);
+					}
 					if (dataSetDTO.getCodeListName() != null) {
 						if ((checkForSupplementData && dataSetDTO.isSuppDataElement())) {
 							continue;
@@ -2046,7 +2061,7 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 			measureXmlModel.setXml(result);
 			// Add Supplemental data to supplementalDataElements
 			result = callAppendNode(measureXmlModel, filteredStringSupp, "elementRef", "/measure/supplementalDataElements");
-			measureXmlModel.setXml(result);			
+			measureXmlModel.setXml(result);
 			XmlProcessor processor1 = new XmlProcessor(measureXmlModel.getXml());
 			measureXmlModel.setXml(processor1.checkForStratificationAndAdd());
 		}
@@ -2265,31 +2280,31 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		// unmarshalling.
 		/*if (StringUtils.isNotBlank(measureDetailModel.getMeasFromPeriod())
 				|| StringUtils.isNotBlank(measureDetailModel.getMeasToPeriod())) {*/
-			PeriodModel periodModel = new PeriodModel();
-			periodModel.setUuid(UUID.randomUUID().toString());
-			//for New measures checking Calender year to add Default Dates
-			if(!isMeasureCreated()){
-				measureDetailModel.setCalenderYear(true);
-			}
-			periodModel.setCalenderYear(measureDetailModel.isCalenderYear());
-			if(!measureDetailModel.isCalenderYear()){
-				periodModel.setStartDate(measureDetailModel.getMeasFromPeriod());
-				periodModel.setStopDate(measureDetailModel.getMeasToPeriod());
-			} else { // for Default Dates
-				periodModel.setStartDate("01/01/20XX");
-				periodModel.setStopDate("12/31/20XX");
-			}
-//			if (StringUtils.isNotBlank(measureDetailModel.getMeasFromPeriod())) {
-//				periodModel.setStartDate(measureDetailModel.getMeasFromPeriod());
-//				//commented UUID as part of MAT-4613
-//				//periodModel.setStartDateUuid(UUID.randomUUID().toString());
-//			}
-//			if (StringUtils.isNotBlank(measureDetailModel.getMeasToPeriod())) {
-//				periodModel.setStopDate(measureDetailModel.getMeasToPeriod());
-//				//commented UUID as part of MAT-4613
-//				//periodModel.setStopDateUuid(UUID.randomUUID().toString());
-//			}
-			measureDetailModel.setPeriodModel(periodModel);
+		PeriodModel periodModel = new PeriodModel();
+		periodModel.setUuid(UUID.randomUUID().toString());
+		//for New measures checking Calender year to add Default Dates
+		if(!isMeasureCreated()){
+			measureDetailModel.setCalenderYear(true);
+		}
+		periodModel.setCalenderYear(measureDetailModel.isCalenderYear());
+		if(!measureDetailModel.isCalenderYear()){
+			periodModel.setStartDate(measureDetailModel.getMeasFromPeriod());
+			periodModel.setStopDate(measureDetailModel.getMeasToPeriod());
+		} else { // for Default Dates
+			periodModel.setStartDate("01/01/20XX");
+			periodModel.setStopDate("12/31/20XX");
+		}
+		//			if (StringUtils.isNotBlank(measureDetailModel.getMeasFromPeriod())) {
+		//				periodModel.setStartDate(measureDetailModel.getMeasFromPeriod());
+		//				//commented UUID as part of MAT-4613
+		//				//periodModel.setStartDateUuid(UUID.randomUUID().toString());
+		//			}
+		//			if (StringUtils.isNotBlank(measureDetailModel.getMeasToPeriod())) {
+		//				periodModel.setStopDate(measureDetailModel.getMeasToPeriod());
+		//				//commented UUID as part of MAT-4613
+		//				//periodModel.setStopDateUuid(UUID.randomUUID().toString());
+		//			}
+		measureDetailModel.setPeriodModel(periodModel);
 		//}
 		
 		if (StringUtils.isNotBlank(measureDetailModel.getGroupName())) {
@@ -2316,8 +2331,8 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		}
 		logger.info("Exiting MeasureLibraryServiceImpl.setAdditionalAttrsForMeasureXml()..");
 	}
-
-
+	
+	
 	/**
 	 * Sets the context.
 	 * 
@@ -2846,7 +2861,13 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 				String oid = new String();
 				if (!StringUtils.isBlank(modifyWithDTO.getOccurrenceText())) {
 					instance = instance.concat(modifyWithDTO.getOccurrenceText() + " of ");
-					newNode.getAttributes().getNamedItem("instance").setNodeValue(instance);
+					if (newNode.getAttributes().getNamedItem("instance") != null) {
+						newNode.getAttributes().getNamedItem("instance").setNodeValue(instance);
+					} else {
+						Attr instanceAttr = newNode.getOwnerDocument().createAttribute("instance");
+						instanceAttr.setValue(instance);
+						((Element) newNode).setAttributeNode(instanceAttr);
+					}
 				}
 				name = modifyWithDTO.getCodeListName();
 				dataType = modifyWithDTO.getDataType();
@@ -3163,27 +3184,27 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 							
 						}
 						
-						for (int m = 0; (m <nodesSDE_qdmElementId.getLength()) && !flag; m++) {	
+						for (int m = 0; (m <nodesSDE_qdmElementId.getLength()) && !flag; m++) {
 							String id = nodesSDE_qdmElementId.item(m).getNodeValue();
 							String xpathForQdmWithAttributeList ="/measure//subTreeLookUp/subTree[@uuid='"+usedSubtreeRefId+"']//elementRef[@id='"+id+"']/attribute";
 							String xpathForQdmWithOutAttributeList ="/measure//subTreeLookUp/subTree[@uuid='"+usedSubtreeRefId+"']//elementRef[@id='"+id+"'][not(attribute)]";
 							String XPATH_QDMLOOKUP = "/measure/elementLookUp/qdm[@uuid='"+id+"']";
 							Node qdmNode = (Node)xPath.evaluate(XPATH_QDMLOOKUP, xmlProcessor.getOriginalDoc(),XPathConstants.NODE);
 							NodeList qdmWithAttributeNodeList = (NodeList)xPath.evaluate(xpathForQdmWithAttributeList, xmlProcessor.getOriginalDoc(),XPathConstants.NODESET);
-							NodeList qdmWithOutAttributeList = (NodeList)xPath.evaluate(xpathForQdmWithOutAttributeList, xmlProcessor.getOriginalDoc(),XPathConstants.NODESET);														
+							NodeList qdmWithOutAttributeList = (NodeList)xPath.evaluate(xpathForQdmWithOutAttributeList, xmlProcessor.getOriginalDoc(),XPathConstants.NODESET);
 							//validation for QDMwithAttributeList
 							//checking for all the Attribute That are used for The Id
-							for(int n=0; n<qdmWithAttributeNodeList.getLength(); n++){								
-									String attributeName = qdmWithAttributeNodeList.item(n).getAttributes().getNamedItem("name").getNodeValue();								
-								flag = !validateQdmNode(qdmNode, attributeName);							
+							for(int n=0; n<qdmWithAttributeNodeList.getLength(); n++){
+								String attributeName = qdmWithAttributeNodeList.item(n).getAttributes().getNamedItem("name").getNodeValue();
+								flag = !validateQdmNode(qdmNode, attributeName);
 								if(flag){
 									break;
 								}
 							}
-							//validation for QDMwithOutAttributeList for the Id							
-							if(!flag && qdmWithOutAttributeList.getLength() >0){	
+							//validation for QDMwithOutAttributeList for the Id
+							if(!flag && (qdmWithOutAttributeList.getLength() >0)){
 								String attributeName ="";
-								flag = !validateQdmNode(qdmNode, attributeName);							
+								flag = !validateQdmNode(qdmNode, attributeName);
 								if(flag){
 									break;
 								}
@@ -3898,6 +3919,7 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		return usedAuthorList;
 	}
 	
+	
 	/**
 	 * Gets the steward id.
 	 *
@@ -3944,7 +3966,7 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 	public boolean isMeasureCreated() {
 		return isMeasureCreated;
 	}
-
+	
 	/**
 	 * Sets the measure created.
 	 *
@@ -3953,7 +3975,7 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 	public void setMeasureCreated(boolean isMeasureCreated) {
 		this.isMeasureCreated = isMeasureCreated;
 	}
-
+	
 	/* (non-Javadoc)
 	 * @see mat.server.service.MeasureLibraryService#getReleaseDate()
 	 */
@@ -3970,6 +3992,6 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 	public void setReleaseDate(String releaseDate) {
 		this.releaseDate = releaseDate;
 	}
-		
+	
 }
 

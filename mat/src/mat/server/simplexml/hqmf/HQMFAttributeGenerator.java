@@ -127,7 +127,8 @@ public class HQMFAttributeGenerator extends HQMFDataCriteriaElementGenerator{
 					addVersionToValueTag = true;
 				}
 				if(addVersionToValueTag) {
-					translationNode.setAttribute("valueSetVersion", version);
+					//commented this line until we start getting value set version from VSAC.
+					//translationNode.setAttribute("valueSetVersion", version);
 				}
 				Element displayNameElem = dataCriteriaXMLProcessor.getOriginalDoc()
 						.createElement(DISPLAY_NAME);
@@ -140,7 +141,7 @@ public class HQMFAttributeGenerator extends HQMFDataCriteriaElementGenerator{
 			if(attrMode.equals(Generator.EQUAL_TO)){
 				targetQuantityTag.setAttribute("value", attributeQDMNode.getAttributes().getNamedItem("comparisonValue").getNodeValue());
 				if(unitAttrib!=null){
-					targetQuantityTag.setAttribute("unit", unitAttrib.getNodeValue());
+					targetQuantityTag.setAttribute("unit", getUnitString(unitAttrib.getNodeValue()));
 				}
 			} else if(attrMode.startsWith(Generator.LESS_THAN)){
 				Element uncertainRangeNode=  dataCriteriaElem.getOwnerDocument().createElement("uncertainRange");
@@ -156,7 +157,7 @@ public class HQMFAttributeGenerator extends HQMFDataCriteriaElementGenerator{
 				highNode.setAttribute("xsi:type", "PQ");
 				highNode.setAttribute("value", attributeQDMNode.getAttributes().getNamedItem("comparisonValue").getNodeValue());
 				if(unitAttrib!=null){
-					highNode.setAttribute("unit", unitAttrib.getNodeValue());
+					highNode.setAttribute("unit",  getUnitString(unitAttrib.getNodeValue()));
 				}
 				
 				uncertainRangeNode.appendChild(lowNode);
@@ -172,7 +173,7 @@ public class HQMFAttributeGenerator extends HQMFDataCriteriaElementGenerator{
 				lowNode.setAttribute("xsi:type", "PQ");
 				lowNode.setAttribute("value", attributeQDMNode.getAttributes().getNamedItem("comparisonValue").getNodeValue());
 				if(unitAttrib!=null){
-					lowNode.setAttribute("unit", unitAttrib.getNodeValue());
+					lowNode.setAttribute("unit", getUnitString(unitAttrib.getNodeValue()));
 				}
 				Element highNode = dataCriteriaElem.getOwnerDocument().createElement(HIGH);
 				if(attrName.equalsIgnoreCase(LENGTH_OF_STAY)){
@@ -419,13 +420,7 @@ public class HQMFAttributeGenerator extends HQMFDataCriteriaElementGenerator{
 					addTargetSiteOrPriorityCodeOrRouteCodeElement(dataCriteriaElem, dataCriteriaXMLProcessor, attributeQDMNode, templateNode);
 				} else if(LATERALITY.equalsIgnoreCase(attrName)){
 					appendSubTemplateNode(templateNode, dataCriteriaXMLProcessor, templateXMLProcessor, dataCriteriaElem,qdmNode,attributeQDMNode);
-				} /*else if(ORDINALITY.equalsIgnoreCase(attrName)){
-					addTargetSiteOrPriorityCodeOrRouteCodeElement(dataCriteriaElem, dataCriteriaXMLProcessor, attributeQDMNode, templateNode);
-				}else if (ROUTE.equalsIgnoreCase(attrName)){
-					addTargetSiteOrPriorityCodeOrRouteCodeElement(dataCriteriaElem, dataCriteriaXMLProcessor, attributeQDMNode, templateNode);
-				} else if("method".equalsIgnoreCase(attrName)){
-					addTargetSiteOrPriorityCodeOrRouteCodeElement(dataCriteriaElem, dataCriteriaXMLProcessor, attributeQDMNode, templateNode);
-				}*/
+				}
 				return;
 			}
 		}//flag to add statusCode for Radiation Dosage and Radiation Duration attributes
@@ -465,7 +460,9 @@ public class HQMFAttributeGenerator extends HQMFDataCriteriaElementGenerator{
 				Element itemChild = dataCriteriaXMLProcessor.getOriginalDoc()
 						.createElement(ITEM);
 				itemChild.setAttribute(ROOT, templateNode.getAttributes().getNamedItem(OID).getNodeValue());
-				itemChild.setAttribute("extension", VERSIONID);
+				if (templateNode.getAttributes().getNamedItem("addExtensionInTemplate") == null) {
+					itemChild.setAttribute("extension", VERSIONID);
+				}
 				templateId.appendChild(itemChild);
 			}
 			

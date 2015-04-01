@@ -441,7 +441,7 @@ public abstract class MainLayout {
 	 * @return the welcome user panel
 	 */
 	public HorizontalFlowPanel getWelcomeUserPanel(String userFirstName) {
-		welcomeUserLabel = new HTML("<h9><b>Welcome "+ userFirstName+"</b></h9>");
+		welcomeUserLabel = new HTML("<h9><b>Welcome, "+ userFirstName+"</b></h9>");
 		welcomeUserLabel.getElement().setId("welcomeUserLabel_HTML");
 		welcomeUserLabel.getElement().setAttribute("tabIndex", "0");
 		welcomeUserLabel.setStylePrimaryName("htmlDescription");

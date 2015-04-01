@@ -293,7 +293,8 @@ public class ManageCodeListServiceImpl implements CodeListService {
 			QualityDataSetDTO dto = qdsIterator.next();
 			if (matValueSet.getID().equalsIgnoreCase(dto.getOid())) {
 				if (dt.getDescription().equalsIgnoreCase(dto.getDataType())
-						&& (dto.getOccurrenceText() != null)) {
+						&& (dto.getOccurrenceText() != null) && StringUtils.isNotEmpty(dto.getOccurrenceText())
+						&& StringUtils.isNotBlank(dto.getOccurrenceText())) {
 					String nextOccString = dto.getOccurrenceText();
 					Character text = nextOccString.charAt(nextOccString
 							.length() - 1);
@@ -1794,6 +1795,7 @@ public class ManageCodeListServiceImpl implements CodeListService {
 			if (occurrenceCount < ASCII_END) { // Alphabet ASCII Integer Values.
 				char occTxt = (char) occurrenceCount;
 				qds.setOccurrenceText("Occurrence" + " " + occTxt);
+				qds.setSpecificOccurrence(true);
 				if (dataType != null) {
 					DataType dt = dataTypeDAO.find(dataType);
 					qds.setDataType(dt.getDescription());
@@ -1849,7 +1851,7 @@ public class ManageCodeListServiceImpl implements CodeListService {
 				} else {
 					qds.setEffectiveDate(null);
 				}
-				qds.setOccurrenceText("");
+				qds.setOccurrenceText(null);
 				QualityDataModelWrapper wrapper = modifyAppliedElementList(qds,
 						(ArrayList<QualityDataSetDTO>) matValueSetTransferObject.getAppliedQDMList());
 				result.setOccurrenceMessage(qds.getOccurrenceText());
