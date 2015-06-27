@@ -1,5 +1,8 @@
 package mat.server.simplexml.hqmf;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,6 +15,7 @@ import mat.server.util.XmlProcessor;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.tidy.Tidy;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -69,7 +73,9 @@ public class HQMFGenerator implements Generator {
 	 */
 	private void generateNarrative(MeasureExport me) {
 		String humanReadableHTML = HumanReadableGenerator.generateHTMLForMeasure(me.getMeasure().getId(), me.getSimpleXML());
+		humanReadableHTML = tidyfyHTML(humanReadableHTML);
 		humanReadableHTML = humanReadableHTML.substring(humanReadableHTML.indexOf(" <body>"),humanReadableHTML.indexOf("</body>")+"</body>".length());
+		
 		XmlProcessor humanReadableProcessor = new XmlProcessor(humanReadableHTML);
 		
 		try{
@@ -83,6 +89,30 @@ public class HQMFGenerator implements Generator {
 		}
 	}
 	
+	private String tidyfyHTML(String humanReadableHTML) {
+		
+		Tidy tidy = new Tidy();
+		tidy.setInputEncoding("UTF-8");		 
+		tidy.setOutputEncoding("UTF-8");		 
+		tidy.setWraplen(Integer.MAX_VALUE);		 
+		tidy.setPrintBodyOnly(false);		 
+		tidy.setXmlOut(true);		
+		 
+		ByteArrayInputStream inputStream;
+		try {
+			inputStream = new ByteArrayInputStream(humanReadableHTML.getBytes("UTF-8"));
+			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+			 
+			tidy.parseDOM(inputStream, outputStream);
+			 
+			humanReadableHTML = outputStream.toString();
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		return humanReadableHTML;	
+		
+	}
+
 	/**
 	 * Generate data crit narrative.
 	 *
@@ -103,6 +133,9 @@ public class HQMFGenerator implements Generator {
 		//Get narrative for Supplemental Data Elements section
 		Node dataCritSuppNode = generateNarrativeItem(me, humanReadableProcessor, "Supplemental Data Elements");
 		
+		//Get narrative for Risk Adjustment Data Elements section
+		//Node riskAdjustmentSuppNode = generateNarrativeItem(me, humanReadableProcessor, "Risk Adjustment Variables");
+		
 		XmlProcessor hqmfProcessor = me.getHQMFXmlProcessor();
 		String xPathForDataCriteriaSection = "//dataCriteriaSection/text";
 		Node dataCritTextNode = hqmfProcessor.findNode(hqmfProcessor.getOriginalDoc(), xPathForDataCriteriaSection);
@@ -114,7 +147,8 @@ public class HQMFGenerator implements Generator {
 		listNode.appendChild(dataCritQDMVarNode);
 		listNode.appendChild(dataCritQDMNode);
 		listNode.appendChild(dataCritSuppNode);
-		
+		//listNode.appendChild(riskAdjustmentSuppNode);
+
 		itemNode.appendChild(listNode);
 		xmlNode.appendChild(itemNode);
 		dataCritTextNode.appendChild(xmlNode);
@@ -137,7 +171,8 @@ public class HQMFGenerator implements Generator {
 		String xPathForPopCriteriaSection = "//populationCriteriaSection/text";
 		NodeList popCritTextNodeList = hqmfProcessor.findNodeList(hqmfProcessor.getOriginalDoc(), xPathForPopCriteriaSection);
 		Node msrObsXMLNode = hqmfProcessor.getOriginalDoc().createElement("xml");
-		for (int i=popCritTextNodeList.getLength()-1; i>=0; i--) {
+//		for (int i=popCritTextNodeList.getLength()-1; i>=0; i--) {
+		for(int i = 0; i<popCritTextNodeList.getLength(); i++){
 			Element xmlNode = hqmfProcessor.getOriginalDoc().createElement("xml");
 			Element itemNode = hqmfProcessor.getOriginalDoc().createElement("item");
 			Element listNode = hqmfProcessor.getOriginalDoc().createElement("list");

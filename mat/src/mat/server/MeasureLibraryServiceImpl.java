@@ -1828,7 +1828,9 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 	 */
 	@Override
 	public final SaveMeasureResult save(ManageMeasureDetailModel model) {
-		
+		if(model != null){
+			scrubForMarkUp(model);
+		}
 		Measure pkg = null;
 		MeasureSet measureSet = null;
 		if (model.getId() != null) {
@@ -3957,7 +3959,23 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		return measureSteward;
 		
 	}
-	
+	private void scrubForMarkUp(ManageMeasureDetailModel model) {
+		String markupRegExp = "<[^>]+>";
+		
+		String noMarkupText = model.getName().trim().replaceAll(markupRegExp, "");
+		System.out.println("measure name:"+noMarkupText);
+		if(model.getName().trim().length() > noMarkupText.length()){
+			model.setName(noMarkupText);
+		}
+		
+		noMarkupText = model.getShortName().trim().replaceAll(markupRegExp, "");
+		System.out.println("measure short-name:"+noMarkupText);
+		if(model.getShortName().trim().length() > noMarkupText.length()){
+			model.setShortName(noMarkupText);
+		}
+		
+	}
+
 	/**
 	 * Checks if is measure created.
 	 *
