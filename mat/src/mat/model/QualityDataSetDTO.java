@@ -77,6 +77,10 @@ public class QualityDataSetDTO implements IsSerializable {
 	/** The data type has removed. */
 	private boolean dataTypeHasRemoved;
 	
+	/** The expansion profile. */
+	private String expansionIdentifier;
+	
+	private String vsacExpIdentifier;
 	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#equals(java.lang.Object)
@@ -371,9 +375,9 @@ public class QualityDataSetDTO implements IsSerializable {
 	public void setUuid(String uuid) {
 		this.uuid = uuid;
 	}
-
-
-
+	
+	
+	
 	/**
 	 * Sets the version.
 	 * 
@@ -392,7 +396,7 @@ public class QualityDataSetDTO implements IsSerializable {
 	public boolean isDataTypeHasRemoved() {
 		return dataTypeHasRemoved;
 	}
-
+	
 	/**
 	 * Sets the data type has removed.
 	 *
@@ -401,8 +405,8 @@ public class QualityDataSetDTO implements IsSerializable {
 	public void setDataTypeHasRemoved(boolean dataTypeHasRemoved) {
 		this.dataTypeHasRemoved = dataTypeHasRemoved;
 	}
-
-
+	
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
@@ -430,6 +434,8 @@ public class QualityDataSetDTO implements IsSerializable {
 	
 	
 	/**
+	 * Checks if is specific occurrence.
+	 *
 	 * @return the specificOccurrence
 	 */
 	public boolean isSpecificOccurrence() {
@@ -439,10 +445,46 @@ public class QualityDataSetDTO implements IsSerializable {
 	
 	
 	/**
+	 * Sets the specific occurrence.
+	 *
 	 * @param specificOccurrence the specificOccurrence to set
 	 */
 	public void setSpecificOccurrence(boolean specificOccurrence) {
 		this.specificOccurrence = specificOccurrence;
+	}
+	
+	
+	
+	/**
+	 * Gets the expansion Identifier.
+	 *
+	 * @return the expansion Identifier
+	 */
+	public String getExpansionIdentifier() {
+		return expansionIdentifier;
+	}
+	
+	
+	
+	/**
+	 * Sets the expansion Identifier.
+	 *
+	 * @param expansionProfile the new expansion Identifier
+	 */
+	public void setExpansionIdentifier(String expansionIdentifier) {
+		this.expansionIdentifier = expansionIdentifier;
+	}
+	
+	
+	
+	public String getVsacExpIdentifier() {
+		return vsacExpIdentifier;
+	}
+	
+	
+	
+	public void setVsacExpIdentifier(String vsacExpIdentifier) {
+		this.vsacExpIdentifier = vsacExpIdentifier;
 	}
 	
 	

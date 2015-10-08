@@ -149,8 +149,38 @@ public class MessageDelegate {
 	public static final String RATIO_NUM_DENO_ASSOCIATION_REQUIRED = "For Ratio measures, in the case of more than one Initial Population, "
 			+ " Numerator and Denominator must contain one association.";
 	
+	/** The vsac expansion profile selection. */
+	public final String VSAC_EXPANSION_PROFILE_SELECTION = "Please Select VSAC Expansion Identifier to Apply to QDM Elements";
 	
+	/** The vsac expansion profile selection. */
+	public final String DEFAULT_EXPANSION_PROFILE_REMOVED = "Successfully removed the default VSAC Expansion Identifier from the Applied QDM Elements list.";
 	
+	/** The vsac profile applied to qdm elements. */
+	public final String VSAC_PROFILE_APPLIED_TO_QDM_ELEMENTS = "Successfully Applied VSAC Expansion Identifier to QDM Elements.";
+	
+	/** The successful oid retreival from vsac. */
+	public final String  SUCCESSFUL_OID_RETREIVAL_FROM_VSAC = "Successfully retrieved value set data from the VSAC.";
+	
+	/** The warning pasting in applied qdm elements. */
+	public final String WARNING_PASTING_IN_APPLIED_QDM_ELEMENTS = "You are trying to paste QDM elements in this measure." +
+			"If you want to continue say Yes or No to cancel.";
+	
+	/** The successfully pasted qdm elements in measure. */
+	public final String SUCCESSFULLY_PASTED_QDM_ELEMENTS_IN_MEASURE = "Selected QDM elements have been pasted successfully.";
+	
+	/** The copy qdm select atleast one. */
+	public final String COPY_QDM_SELECT_ATLEAST_ONE  = "Please select at least one applied QDM element to copy.";
+	
+	/** The successful qdm remove msg. */
+	public final String SUCCESSFUL_QDM_REMOVE_MSG  = "Selected QDM element has been removed successfully.";
+	
+	public final String WARNING_MEASURE_PACKAGE_CREATION_GENERIC = "Unable to create measure package. " +
+			"Please validate your measure logic in both Population Workspace and Clause Workspace.";
+	
+	public final String WARNING_MEASURE_PACKAGE_CREATION_STRATA = "Unable to create measure package. Stratum must contain at least one clause.";
+	
+	public final String SUCCESSFULLY_MODIFIED_ALL_OIDS = "All QDM elements and/or attributes using the same value set OID have been modified " +
+			"to the selected Version and/or Expansion Identifier.";
 	
 	/**
 	 * Gets the measure save server error message.
@@ -185,11 +215,11 @@ public class MessageDelegate {
 	private final String ABV_NAME_REQUIRED = "Abbreviated Name is required.";
 	
 	/** The account locked. */
-	private final String ACCOUNT_LOCKED = "Your account has been locked. Please contact Support.";
+	private final String ACCOUNT_LOCKED = "Please contact MAT Support. We are unable to complete your request at this time.";
 	
-	/** The ACCOUN t_ locke d2. */
+	/** The ACCOUN t_ locke d2.
 	private final String ACCOUNT_LOCKED2 = "Your account has been locked. Please contact Support.";
-	
+	 */
 	/** The account revoked. */
 	private final String ACCOUNT_REVOKED = "Your account has been revoked. Please contact Support.";
 	
@@ -209,7 +239,13 @@ public class MessageDelegate {
 	private final String LHS_RHS_REQUIRED = " LHS and RHS are required for Timings, Relationships and Satisfies functions.";
 	
 	/** The atleast one child required. */
-	private final String ATLEAST_ONE_CHILD_REQUIRED = " Union, Intersection, and Functions must contain at least one child node.";
+	private final String ATLEAST_ONE_CHILD_REQUIRED = " Functions must contain at least one child node.";
+	
+	/** The at least three children are required. */
+	private final String AT_LEAST_TWO_CHILDREN_REQUIRED = "Union, Intersection, and Datetimediff must contain at least two or more child nodes.";
+	
+	/** The at least three children are required. */
+	private final String AT_LEAST_THREE_CHILDREN_REQUIRED = "Satisfies All and Satisfies Any must contain at least three or more child nodes.";
 	
 	/** The clause work space validation success. */
 	private final String CLAUSE_WORK_SPACE_VALIDATION_SUCCESS = "Measure logic validation successful.";
@@ -239,6 +275,8 @@ public class MessageDelegate {
 	
 	/** The code required. */
 	private final String CODE_REQUIRED = "Code is required.";
+	
+	private final String CLAUSE_EMPTY = "Clause must contain logic.";
 	
 	/**
 	 * Gets the population work space validation error.
@@ -289,7 +327,7 @@ public class MessageDelegate {
 	private final String DOESNT_FOLLOW_RULES = "The new password you entered does not match the following rules:";
 	
 	/** The duplicate applied qdm. */
-	private final String DUPLICATE_APPLIED_QDM = "Value set with selected datatype already exists in applied elements.";
+	private final String DUPLICATE_APPLIED_QDM = "OID is already applied in combination with Datatype, Version, or Expansion Identifier.";
 	
 	/** The duplicate codes msg. */
 	private final String DUPLICATE_CODES_MSG = "All code(s) were identified as duplicates to code(s) already in the value set and were ignored upon import.";
@@ -334,7 +372,7 @@ public class MessageDelegate {
 	private final String LAST_MODIFIED_DATE_NOT_UNIQUE = "The Last Modified date and time entered is already is use for this value set.";
 	
 	/** The login failed. */
-	private final String LOGIN_FAILED = "Login failed. Please sign in again.";
+	private final String LOGIN_FAILED = "Invalid username and/or password. MAT accounts are locked after three invalid login attempts.";
 	
 	/** The login failed temp password expired. */
 	private final String LOGIN_FAILED_TEMP_PASSWORD_EXPIRED = "Unable to login. Your temporary password has expired. Please contact HelpDesk to renew your password.";
@@ -368,7 +406,7 @@ public class MessageDelegate {
 	private final String MEASURE_PACKAGE_FAILED_VSAC_TIMEOUT = "Measure Package Failed. VSAC request timed out.Please contact Help Desk.";
 	
 	/** The Measure Period has invalid "TO" and/or "FROM" period dates. */
-	public final String MEASURE_PERIOD_DATES_ERROR = "Please enter a valid Measurement Period date.";
+	public final String MEASURE_PERIOD_DATES_ERROR = "Please enter valid Measurement Period dates.";
 	
 	/** The measure selection error. */
 	private final String MEASURE_SELECTION_ERROR = "Please select at least one measure";
@@ -422,10 +460,10 @@ public class MessageDelegate {
 	private final String PASSWORD_MISMATCH = "Your new password and confirm password do not match.";
 	
 	/** The is not previous password. */
-	private final String IS_NOT_CURRENT_PASSWORD="New password cannot be same as current password.";
+	private final String IS_NOT_CURRENT_PASSWORD="New password cannot be the same as the previous 6 passwords.";
 	
 	/** The is previous password cannot be reused. */
-	private final String IS_NOT_PREVIOUS_PASSWORD="Previous password cannot be reused. Try again.";
+	private final String IS_NOT_PREVIOUS_PASSWORD="Previous 6 passwords cannot be reused. Try again.";
 	
 	/** The change old password. */
 	private final String CHANGE_OLD_PASSWORD="Password needs to be at least one day old before you can change it. Try again.";
@@ -516,7 +554,7 @@ public class MessageDelegate {
 	// This makes denial of service attacks on accounts too easy.
 	// Perhaps make them answer a security question?
 	/** The seccond attempt failed. */
-	private final String SECCOND_ATTEMPT_FAILED = "Failed 2nd attempt. Next attempt will lock the account.";
+	//private final String SECCOND_ATTEMPT_FAILED = "Failed 2nd attempt. Next attempt will lock the account.";
 	
 	/** The security not answered. */
 	private final String SECURITY_NOT_ANSWERED = "Your security questions have not been answered.  You cannot continue. Please contact the Helpdesk";
@@ -537,7 +575,7 @@ public class MessageDelegate {
 	private final String STEWARD_REQUIRED = "Steward is required.";
 	
 	/** The successful modify applied qdm. */
-	private final String SUCCESSFUL_MODIFY_APPLIED_QDM = "Selected QDM element has been modified successfully";
+	private final String SUCCESSFUL_MODIFY_APPLIED_QDM = "Selected QDM element has been modified successfully.";
 	
 	/** The system error. */
 	private final String SYSTEM_ERROR = "Import failed due to system error. Please try again.";
@@ -603,14 +641,27 @@ public class MessageDelegate {
 	/** The comparison diloag box error display. */
 	private final String COMPARISON_DILOAG_BOX_ERROR_DISPLAY="Please enter Quantity field.";
 	
+	/** The comparison diloag box error display. */
+	private final String COMPARISON_DILOAG_BOX_UNIT_ERROR_DISPLAY="Please select Unit.";
+	
 	/** The component measures added successfully. */
 	private final String COMPONENT_MEASURES_ADDED_SUCCESSFULLY="Component Measures updated successfully. Changes must be saved on the previous page.";
 	
 	/** The removed functions error message. */
-	private final String POPULATION_WORKSPACE_DATETIMEDIFF_ERROR_MESSAGE = "Highlighted clause contains DATETIMEDIFF function.";
+	private final String POPULATION_WORKSPACE_DATETIMEDIFF_ERROR_MESSAGE = "Highlighted clause contains Datetimediff function.";
 	
 	/** The clause work space invalid nested clause. */
 	private final String CLAUSE_WORK_SPACE_INVALID_NESTED_CLAUSE ="Invalid clause(s) used in logic.";
+	
+	/** The clause work space invalid nested clause. */
+	private final String CLAUSE_WORK_SPACE_INVALID_ATTRIBUTE_IN_SAT_ALL_ANY ="Satisfies All and Satisfies Any LHS QDM element may not contain attributes.";
+	
+	/** The clause work space invalid nested clause. */
+	private final String CLAUSE_WORK_SPACE_INVALID_NESTED_DEPTH_CLAUSE = "Clause Exceeds Maximum Number of Nested Logic Levels (10).";
+	
+	/** The clause work space invalid nested clause. */
+	private final String CLAUSE_WORK_SPACE_INVALID_LOGICAL_OPERATOR = "Any logical operator under a top-level logical operator must contain at least one logical operator or clause. " +
+			"                         Any terminal logical operator under a top-level logical operator must contain at least one clause.";
 	/**
 	 * Gets the component measures added successfully.
 	 *
@@ -627,15 +678,6 @@ public class MessageDelegate {
 	 */
 	public String getAbvNameRequiredMessage() {
 		return ABV_NAME_REQUIRED;
-	}
-	
-	/**
-	 * Gets the account locked2 message.
-	 * 
-	 * @return String
-	 */
-	public String getAccountLocked2Message() {
-		return ACCOUNT_LOCKED2;
 	}
 	
 	/**
@@ -1209,7 +1251,7 @@ public class MessageDelegate {
 	public String getMEASURE_PERIOD_DATES_ERROR() {
 		return MEASURE_PERIOD_DATES_ERROR;
 	}
-
+	
 	
 	/**
 	 * Gets the measure deletion invalid pwd.
@@ -1662,9 +1704,10 @@ public class MessageDelegate {
 	 * 
 	 * @return String
 	 */
-	public String getSecondAttemptFailedMessage() {
+	/*	public String getSecondAttemptFailedMessage() {
 		return SECCOND_ATTEMPT_FAILED;
 	}
+	 */
 	
 	/**
 	 * Gets the security answer too short message.
@@ -2100,6 +2143,26 @@ public class MessageDelegate {
 	}
 	
 	/**
+	 * Gets the at least two children required.
+	 *
+	 * @return the at LEAST_TWO_CHILDREN_REQUIRED
+	 */
+	public String getAT_LEAST_TWO_CHILDREN_REQUIRED() {
+		return AT_LEAST_TWO_CHILDREN_REQUIRED;
+	}
+	
+	
+	/**
+	 * Gets the at least three children required.
+	 *
+	 * @return the at LEAST_THREE_CHILDREN_REQUIRED
+	 */
+	public String getAT_LEAST_THREE_CHILDREN_REQUIRED() {
+		return AT_LEAST_THREE_CHILDREN_REQUIRED;
+	}
+	
+	
+	/**
 	 * Gets the population work space measure observation validation error.
 	 *
 	 * @return the pOPULATION_WORK_SPACE_MEASURE_OBSERVATION_VALIDATION_ERROR
@@ -2209,6 +2272,15 @@ public class MessageDelegate {
 	}
 	
 	/**
+	 * Gets the clause work space invalid nested depth clause.
+	 *
+	 * @return the cLAUSE_WORK_SPACE_INVALID_NESTED_DEPTH_CLAUSE
+	 */
+	public String getCLAUSE_WORK_SPACE_INVALID_NESTED_DEPTH_CLAUSE() {
+		return CLAUSE_WORK_SPACE_INVALID_NESTED_DEPTH_CLAUSE;
+	}
+	
+	/**
 	 * Gets the welcome message.
 	 *
 	 * @return the welcome message
@@ -2218,4 +2290,109 @@ public class MessageDelegate {
 	}
 	
 	
+	/**
+	 * Gets the vsac expansion profile selection.
+	 *
+	 * @return the vsac expansion profile selection
+	 */
+	public String getVsacExpansionIdentifierSelection() {
+		return VSAC_EXPANSION_PROFILE_SELECTION;
+	}
+	
+	/**
+	 * Gets the vsac profile applied to qdm elements.
+	 *
+	 *
+	 * @return the vsac profile applied to qdm elements
+	 */
+	public String getVsacProfileAppliedToQdmElements() {
+		return VSAC_PROFILE_APPLIED_TO_QDM_ELEMENTS;
+	}
+	
+	/**
+	 * Gets the vsac profile applied to qdm elements.
+	 *
+	 *
+	 * @return the default expansion message
+	 */
+	public String getDefaultExpansionIdRemovedMessage() {
+		return DEFAULT_EXPANSION_PROFILE_REMOVED;
+	}
+	
+	/**
+	 * Gets the vsac retrieval success.
+	 *
+	 * @return the vsac retrieval success
+	 */
+	public String getVSAC_RETRIEVAL_SUCCESS() {
+		return SUCCESSFUL_OID_RETREIVAL_FROM_VSAC;
+	}
+	
+	/**
+	 * Gets the warning pasting in applied qdm elements.
+	 *
+	 * @return the warning pasting in applied qdm elements
+	 */
+	public String getWARNING_PASTING_IN_APPLIED_QDM_ELEMENTS() {
+		return WARNING_PASTING_IN_APPLIED_QDM_ELEMENTS;
+	}
+	
+	/**
+	 * Gets the successfully pasted qdm elements in measure.
+	 *
+	 * @return the successfully pasted qdm elements in measure
+	 */
+	public String getSUCCESSFULLY_PASTED_QDM_ELEMENTS_IN_MEASURE() {
+		return SUCCESSFULLY_PASTED_QDM_ELEMENTS_IN_MEASURE;
+	}
+	
+	/**
+	 * Gets the copy qdm select atleast one.
+	 *
+	 * @return the copy qdm select atleast one
+	 */
+	public String getCOPY_QDM_SELECT_ATLEAST_ONE() {
+		return COPY_QDM_SELECT_ATLEAST_ONE;
+	}
+	
+	
+	/**
+	 * Gets the successful qdm remove msg.
+	 *
+	 * @return the successful qdm remove msg
+	 */
+	public String getSUCCESSFUL_QDM_REMOVE_MSG() {
+		return SUCCESSFUL_QDM_REMOVE_MSG;
+	}
+	
+	public String getWARNING_MEASURE_PACKAGE_CREATION_GENERIC() {
+		return WARNING_MEASURE_PACKAGE_CREATION_GENERIC;
+	}
+	
+	public String getWARNING_MEASURE_PACKAGE_CREATION_STRATA() {
+		return WARNING_MEASURE_PACKAGE_CREATION_STRATA;
+	}
+	
+	public String getCLAUSE_WORK_SPACE_INVALID_ATTRIBUTE_IN_SAT_ALL_ANY() {
+		return CLAUSE_WORK_SPACE_INVALID_ATTRIBUTE_IN_SAT_ALL_ANY;
+	}
+	
+	public String getCLAUSE_WORK_SPACE_INVALID_LOGICAL_OPERATOR() {
+		return CLAUSE_WORK_SPACE_INVALID_LOGICAL_OPERATOR;
+	}
+	
+	/**
+	 * @return the cLAUSE_EMPTY
+	 */
+	public String getCLAUSE_EMPTY() {
+		return CLAUSE_EMPTY;
+	}
+	
+	public String getSUCCESSFULLY_MODIFIED_ALL_OIDS() {
+		return SUCCESSFULLY_MODIFIED_ALL_OIDS;
+	}
+
+	public String getCOMPARISON_DILOAG_BOX_UNIT_ERROR_DISPLAY() {
+		return COMPARISON_DILOAG_BOX_UNIT_ERROR_DISPLAY;
+	}
 }

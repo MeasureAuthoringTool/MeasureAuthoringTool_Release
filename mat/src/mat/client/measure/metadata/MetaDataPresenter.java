@@ -3,7 +3,6 @@ package mat.client.measure.metadata;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import mat.client.Mat;
 import mat.client.MatPresenter;
 import mat.client.MeasureComposerPresenter;
@@ -24,6 +23,7 @@ import mat.client.shared.DateBoxWithCalendar;
 import mat.client.shared.ErrorMessageDisplay;
 import mat.client.shared.ErrorMessageDisplayInterface;
 import mat.client.shared.HasVisible;
+import mat.client.shared.ListBoxMVP;
 import mat.client.shared.MatContext;
 import mat.client.shared.MeasureSearchFilterWidget;
 import mat.client.shared.MessageDelegate;
@@ -31,12 +31,14 @@ import mat.client.shared.PrimaryButton;
 import mat.client.shared.ReadOnlyHelper;
 import mat.client.shared.SpacerWidget;
 import mat.client.shared.SuccessMessageDisplayInterface;
+import mat.client.shared.TextAreaWithMaxLength;
 import mat.model.Author;
 import mat.model.MeasureSteward;
 import mat.model.MeasureType;
 import mat.model.QualityDataSetDTO;
 import mat.shared.ConstantMessages;
-
+import com.google.gwt.event.dom.client.ChangeEvent;
+import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.HasClickHandlers;
@@ -50,8 +52,10 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DialogBox;
+import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HasValue;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
@@ -104,7 +108,7 @@ public class MetaDataPresenter  implements MatPresenter {
 		 * @return the version number
 		 */
 		public Label getVersionNumber();
-	
+		
 		/**
 		 * Gets the sets the name.
 		 * 
@@ -602,7 +606,7 @@ public class MetaDataPresenter  implements MatPresenter {
 		 * @return the success message display
 		 */
 		SuccessMessageDisplayInterface getSuccessMessageDisplay();
-	
+		
 		/**
 		 * Sets the measure steward options.
 		 *
@@ -610,17 +614,17 @@ public class MetaDataPresenter  implements MatPresenter {
 		 * @param editable the editable
 		 */
 		//void setMeasureStewardOptions(List<? extends HasListBox> itemList);
-
+		
 		public void buildStewardCellTable(List<MeasureSteward> result,
 				boolean editable);
-
+		
 		/**
 		 * Sets the steward id.
 		 *
 		 * @param stewardId the new steward id
 		 */
 		public void setStewardId(String stewardId);
-
+		
 		/**
 		 * Gets the steward id.
 		 *
@@ -641,20 +645,104 @@ public class MetaDataPresenter  implements MatPresenter {
 		 * @param stewardValue the new steward value
 		 */
 		public void setStewardValue(String stewardValue);
-
+		
 		/**
 		 * Gets the calender year.
 		 *
 		 * @return the calender year
 		 */
 		CustomCheckBox getCalenderYear();
-
+		
 		/**
 		 * Sets the measurement period buttons visible.
 		 *
 		 * @param b the new measurement period buttons visible
 		 */
 		void setMeasurementPeriodButtonsVisible(boolean b);
+		
+		void setMeasureScoringType(String measureScoringType);
+		
+		void buildForm();
+		
+		ListBox getAuthorListBox();
+		
+		ListBox getMeasureTypeListBox();
+		
+		Button getGenerateeMeasureIDButton();
+		
+		TextAreaWithMaxLength getTransmissionFormatInput();
+		
+		TextAreaWithMaxLength getDefinitionsInput();
+		
+		TextAreaWithMaxLength getReferenceInput();
+		
+		TextAreaWithMaxLength getImprovementNotationInput();
+		
+		TextAreaWithMaxLength getClinicalStmtInput();
+		
+		TextAreaWithMaxLength getSetNameInput();
+		
+		TextBox getNQFIDInput();
+		
+		TextBox getCodeSystemVersionInput();
+		
+		TextAreaWithMaxLength getSupplementalDataInput();
+		
+		DateBoxWithCalendar getMeasurePeriodToInput();
+		
+		DateBoxWithCalendar getMeasurePeriodFromInput();
+		
+		ListBoxMVP getMeasureTypeInput();
+		
+		TextAreaWithMaxLength getMeasureObservationsInput();
+		
+		TextAreaWithMaxLength getMeasurePopulationExclusionsInput();
+		
+		TextAreaWithMaxLength getMeasurePopulationInput();
+		
+		Label getAbbrInput();
+		
+		Label getMeasScoringInput();
+		
+		TextAreaWithMaxLength getRationaleInput();
+		
+		Label getVersionInput();
+		
+		ListBoxMVP getAuthorInput();
+		
+		TextBox getMeasureStewardOtherInput();
+		
+		TextAreaWithMaxLength getDescriptionInput();
+		
+		TextAreaWithMaxLength getCopyrightInput();
+		
+		TextAreaWithMaxLength getDisclaimerInput();
+		
+		TextAreaWithMaxLength getRiskAdjustmentInput();
+		
+		TextAreaWithMaxLength getRateAggregationInput();
+		
+		TextAreaWithMaxLength getInitialPopInput();
+		
+		TextAreaWithMaxLength getDenominatorInput();
+		
+		TextAreaWithMaxLength getDenominatorExclusionsInput();
+		
+		TextAreaWithMaxLength getNumeratorInput();
+		
+		TextAreaWithMaxLength getNumeratorExclusionsInput();
+		
+		TextAreaWithMaxLength getDenominatorExceptionsInput();
+		
+		TextAreaWithMaxLength getStratificationInput();
+		
+		TextAreaWithMaxLength getGuidanceInput();
+		
+		Button getAddRowButton();
+		
+		void addRow(FlexTable reference);
+		
+		FlexTable getReferenceTable();
 	}
 	
 	/**
@@ -749,7 +837,7 @@ public class MetaDataPresenter  implements MatPresenter {
 		 * @return the return button
 		 */
 		//HasClickHandlers getReturnButton();
-	
+		
 	}
 	
 	//TODO by Ravi
@@ -784,7 +872,7 @@ public class MetaDataPresenter  implements MatPresenter {
 		 *
 		 * @return the addto component measures button handler
 		 */
-		HasClickHandlers getAddtoComponentMeasuresButtonHandler();
+		HasClickHandlers getApplytoComponentMeasuresButtonHandler();
 		
 		/**
 		 * Gets the search button.
@@ -815,7 +903,7 @@ public class MetaDataPresenter  implements MatPresenter {
 		 *
 		 * @return the addto component measures btn
 		 */
-		public Button getAddtoComponentMeasuresBtn();
+		public Button getApplytoComponentMeasuresBtn();
 		
 		/**
 		 * Gets the component measures list.
@@ -957,21 +1045,17 @@ public class MetaDataPresenter  implements MatPresenter {
 	 */
 	public MetaDataPresenter(MetaDataDetailDisplay mDisplay, HasVisible pcButtons, ListBoxCodeProvider lp) {
 		previousContinueButtons = pcButtons;
-		this.metaDataDisplay = mDisplay;
-		//MAT-4898
-		//this.addEditAuthorsDisplay = aDisplay;
-		//this.addEditComponentMeasuresDisplay = cmDisplay;
-		//getAllOrganizations();
-		//getMeasureStewardList(lp);
-		HandlerManager eventBus = MatContext.get().getEventBus();
-		//metaDataDisplay.getEditAuthorsButton().addClickHandler(new ClickHandler() {
-			//@Override
-			//public void onClick(ClickEvent event) {
-				//getMetaDataDisplay().getSaveErrorMsg().clear();
-				//displayAddEditAuthors();
-			//}
-		//});
+		metaDataDisplay = mDisplay;
 		
+		addHandlersToMetaDataDisplay();
+		emptyWidget.add(new Label("No Measure Selected"));
+	}
+	
+	/**
+	 * Add All Event handlers to Metadata Display components.
+	 */
+	private void addHandlersToMetaDataDisplay() {
+		HandlerManager eventBus = MatContext.get().getEventBus();
 		metaDataDisplay.getAddEditComponentMeasures().addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
@@ -995,88 +1079,6 @@ public class MetaDataPresenter  implements MatPresenter {
 				});
 			}
 		});
-		//MAT-4898
-		/*addEditAuthorsDisplay.getAddEditCancelButton().addClickHandler(new ClickHandler() {
-			
-			@Override
-			public void onClick(ClickEvent event) {
-				addEditAuthorsDisplay.getMeasureDevInput().setText("");
-				
-			}
-		});*/
-		/*addEditAuthorsDisplay.getCancelButton().addClickHandler(new ClickHandler() {
-			@Override
-			public void onClick(final ClickEvent event) {
-				addEditAuthorsDisplay.getMeasureDevInput().setValue("");
-				//addEditAuthorsDisplay.hideTextBox();
-			}
-		});*/
-		//MAT-4898
-		/*addEditAuthorsDisplay.getReturnButton().addClickHandler(new ClickHandler() {
-			@Override
-			public void onClick(final ClickEvent event) {
-				isSubView = false;
-				metaDataDisplay.setSaveButtonEnabled(editable);
-				getMeasureDeveloperAuthors();
-				backToDetail();
-			}
-		});*/
-		
-		
-//		
-//		addEditAuthorsDisplay.getSaveButton().addClickHandler(new ClickHandler() {
-//			@Override
-//			public void onClick(final ClickEvent event) {
-//				if (addEditAuthorsDisplay.getAuthor().equals(MatContext.PLEASE_SELECT)) {
-//					//do nothing
-//				} else if (!addEditAuthorsDisplay.getAuthor().startsWith("Other")) {
-//					if (!addEditAuthorsDisplay.getAuthor().equals("")) {
-//						//addToAuthorsList(addEditAuthorsDisplay.getAuthor());
-//						addEditAuthorsDisplay.getAuthorInputBox().setValue("");
-//					}
-//				} else {
-//					if (!addEditAuthorsDisplay.getOtherAuthor().getValue().equals("")) {
-//						//addToAuthorsList(addEditAuthorsDisplay.getOtherAuthor().getValue());
-//						addEditAuthorsDisplay.getOtherAuthor().setValue("");
-//					}
-//				}
-//			}
-//		});
-//		addEditAuthorsDisplay.getRemoveButton().addClickHandler(new ClickHandler() {
-//			@Override
-//			public void onClick(final ClickEvent event) {
-//				//  removeSelectedAuthor();
-//			}
-//		});
-		
-//		addEditAuthorsDisplay.getAuthorInputBox().addValueChangeHandler(new ValueChangeHandler<String>() {
-//			
-//			@Override
-//			public void onValueChange(ValueChangeEvent<String> event) {
-//				String authorValue = event.getValue();
-//				String changedAuthorValue = addEditAuthorsDisplay.getAuthor();
-//				if (changedAuthorValue.startsWith("Other")) {
-//					addEditAuthorsDisplay.showTextBox();
-//				} else {
-//					addEditAuthorsDisplay.hideTextBox();
-//				}
-//				
-//			}
-//		});
-		//US 413. Added value change listener to show or clear out Steward Other text box based on the selection.
-		/*metaDataDisplay.getMeasureStewardListBox().addValueChangeHandler(new ValueChangeHandler<String>() {
-			
-			@Override
-			public void onValueChange(ValueChangeEvent<String> event) {
-				String value = metaDataDisplay.getMeasureStewardValue();
-				if (value.startsWith("Other")) {
-					metaDataDisplay.showOtherTextBox();
-				} else {
-					metaDataDisplay.hideOtherTextBox();
-				}
-				
-			}
-		});*/
 		
 		metaDataDisplay.getMeasurementFromPeriodInputBox().addValueChangeHandler(new ValueChangeHandler<String>() {
 			
@@ -1145,10 +1147,181 @@ public class MetaDataPresenter  implements MatPresenter {
 			}
 		});
 		
+		metaDataDisplay.getAuthorListBox().addChangeHandler(new ChangeHandler() {
+			@Override
+			public void onChange(ChangeEvent event) {
+				metaDataDisplay.getSaveErrorMsg().clear();
+			}
+		});
+		metaDataDisplay.getMeasureTypeListBox().addChangeHandler(new ChangeHandler() {
+			@Override
+			public void onChange(ChangeEvent event) {
+				metaDataDisplay.getSaveErrorMsg().clear();
+			}
+		});
+		//getGenerateeMeasureIDButton().addClickHandler(clickHandler);
+		metaDataDisplay.getNQFIDInput().addKeyDownHandler(new KeyDownHandler() {
+			@Override
+			public void onKeyDown(KeyDownEvent event) {
+				metaDataDisplay.getSaveErrorMsg().clear();
+			}
+		});
+		metaDataDisplay.getDescriptionInput().addKeyDownHandler(new KeyDownHandler() {
+			@Override
+			public void onKeyDown(KeyDownEvent event) {
+				metaDataDisplay.getSaveErrorMsg().clear();
+			}
+		});
+		metaDataDisplay.getCopyrightInput().addKeyDownHandler(new KeyDownHandler() {
+			@Override
+			public void onKeyDown(KeyDownEvent event) {
+				metaDataDisplay.getSaveErrorMsg().clear();
+			}
+		});
+		metaDataDisplay.getDisclaimerInput().addKeyDownHandler(new KeyDownHandler() {
+			@Override
+			public void onKeyDown(KeyDownEvent event) {
+				metaDataDisplay.getSaveErrorMsg().clear();
+			}
+		});
+		metaDataDisplay.getStratificationInput().addKeyDownHandler(new KeyDownHandler() {
+			@Override
+			public void onKeyDown(KeyDownEvent event) {
+				metaDataDisplay.getSaveErrorMsg().clear();
+			}
+		});
+		metaDataDisplay.getRiskAdjustmentInput().addKeyDownHandler(new KeyDownHandler() {
+			@Override
+			public void onKeyDown(KeyDownEvent event) {
+				metaDataDisplay.getSaveErrorMsg().clear();
+			}
+		});
+		metaDataDisplay.getRateAggregationInput().addKeyDownHandler(new KeyDownHandler() {
+			@Override
+			public void onKeyDown(KeyDownEvent event) {
+				metaDataDisplay.getSaveErrorMsg().clear();
+			}
+		});
+		metaDataDisplay.getRationaleInput().addKeyDownHandler(new KeyDownHandler() {
+			@Override
+			public void onKeyDown(KeyDownEvent event) {
+				metaDataDisplay.getSaveErrorMsg().clear();
+			}
+		});
+		metaDataDisplay.getClinicalStmtInput().addKeyDownHandler(new KeyDownHandler() {
+			@Override
+			public void onKeyDown(KeyDownEvent event) {
+				metaDataDisplay.getSaveErrorMsg().clear();
+			}
+		});
+		metaDataDisplay.getImprovementNotationInput().addKeyDownHandler(new KeyDownHandler() {
+			@Override
+			public void onKeyDown(KeyDownEvent event) {
+				metaDataDisplay.getSaveErrorMsg().clear();
+			}
+		});
+		metaDataDisplay.getReferenceInput().addKeyDownHandler(new KeyDownHandler() {
+			@Override
+			public void onKeyDown(KeyDownEvent event) {
+				metaDataDisplay.getSaveErrorMsg().clear();
+			}
+		});
+		metaDataDisplay.getDefinitionsInput().addKeyDownHandler(new KeyDownHandler() {
+			@Override
+			public void onKeyDown(KeyDownEvent event) {
+				metaDataDisplay.getSaveErrorMsg().clear();
+			}
+		});
+		metaDataDisplay.getGuidanceInput().addKeyDownHandler(new KeyDownHandler() {
+			@Override
+			public void onKeyDown(KeyDownEvent event) {
+				metaDataDisplay.getSaveErrorMsg().clear();
+			}
+		});
+		metaDataDisplay.getTransmissionFormatInput().addKeyDownHandler(new KeyDownHandler() {
+			@Override
+			public void onKeyDown(KeyDownEvent event) {
+				metaDataDisplay.getSaveErrorMsg().clear();
+			}
+		});
+		metaDataDisplay.getInitialPopInput().addKeyDownHandler(new KeyDownHandler() {
+			@Override
+			public void onKeyDown(KeyDownEvent event) {
+				metaDataDisplay.getSaveErrorMsg().clear();
+			}
+		});
+		metaDataDisplay.getDenominatorInput().addKeyDownHandler(new KeyDownHandler() {
+			@Override
+			public void onKeyDown(KeyDownEvent event) {
+				metaDataDisplay.getSaveErrorMsg().clear();
+			}
+		});
+		metaDataDisplay.getDenominatorExclusionsInput().addKeyDownHandler(new KeyDownHandler() {
+			@Override
+			public void onKeyDown(KeyDownEvent event) {
+				metaDataDisplay.getSaveErrorMsg().clear();
+			}
+		});
+		metaDataDisplay.getNumeratorInput().addKeyDownHandler(new KeyDownHandler() {
+			@Override
+			public void onKeyDown(KeyDownEvent event) {
+				metaDataDisplay.getSaveErrorMsg().clear();
+			}
+		});
+		metaDataDisplay.getNumeratorExclusionsInput().addKeyDownHandler(new KeyDownHandler() {
+			@Override
+			public void onKeyDown(KeyDownEvent event) {
+				metaDataDisplay.getSaveErrorMsg().clear();
+			}
+		});
+		metaDataDisplay.getDenominatorExceptionsInput().addKeyDownHandler(new KeyDownHandler() {
+			@Override
+			public void onKeyDown(KeyDownEvent event) {
+				metaDataDisplay.getSaveErrorMsg().clear();
+			}
+		});
+		metaDataDisplay.getMeasurePopulationInput().addKeyDownHandler(new KeyDownHandler() {
+			@Override
+			public void onKeyDown(KeyDownEvent event) {
+				metaDataDisplay.getSaveErrorMsg().clear();
+			}
+		});
+		metaDataDisplay.getMeasurePopulationExclusionsInput().addKeyDownHandler(new KeyDownHandler() {
+			@Override
+			public void onKeyDown(KeyDownEvent event) {
+				metaDataDisplay.getSaveErrorMsg().clear();
+			}
+		});
+		metaDataDisplay.getMeasureObservationsInput().addKeyDownHandler(new KeyDownHandler() {
+			@Override
+			public void onKeyDown(KeyDownEvent event) {
+				metaDataDisplay.getSaveErrorMsg().clear();
+			}
+		});
+		metaDataDisplay.getSupplementalDataInput().addKeyDownHandler(new KeyDownHandler() {
+			@Override
+			public void onKeyDown(KeyDownEvent event) {
+				metaDataDisplay.getSaveErrorMsg().clear();
+			}
+		});
+		metaDataDisplay.getSetNameInput().addKeyDownHandler(new KeyDownHandler() {
+			@Override
+			public void onKeyDown(KeyDownEvent event) {
+				metaDataDisplay.getSaveErrorMsg().clear();
+			}
+		});
 		
 		
-		emptyWidget.add(new Label("No Measure Selected"));
+		metaDataDisplay.getAddRowButton().addClickHandler(new ClickHandler() {
+			@Override
+			public void onClick(ClickEvent event) {
+				metaDataDisplay.addRow(metaDataDisplay.getReferenceTable());
+				metaDataDisplay.getSaveErrorMsg().clear();
+			}
+		});
+		
 	}
+	
 	
 	/**
 	 * Gets the component measures.
@@ -1251,7 +1424,7 @@ public class MetaDataPresenter  implements MatPresenter {
 		((Button) addEditComponentMeasuresDisplay.getSearchButton()).setEnabled(!busy);
 		((TextBox) (addEditComponentMeasuresDisplay.getSearchString())).setEnabled(!busy);
 		((Button) addEditComponentMeasuresDisplay.getReturnButton()).setEnabled(!busy);
-		((Button) addEditComponentMeasuresDisplay.getAddtoComponentMeasuresBtn()).setEnabled(!busy);
+		addEditComponentMeasuresDisplay.getApplytoComponentMeasuresBtn().setEnabled(!busy);
 	}
 	
 	
@@ -1382,8 +1555,11 @@ public class MetaDataPresenter  implements MatPresenter {
 	 */
 	public void displayDetail() {
 		previousContinueButtons.setVisible(true);
-		prepopulateFields();
 		panel.clear();
+		metaDataDisplay.setMeasureScoringType(currentMeasureDetail.getMeasScoring());
+		//panel.add(metaDataDisplay.asWidget());
+		metaDataDisplay.buildForm();
+		prepopulateFields();
 		if (editable) {
 			if ("0".equals(metaDataDisplay.getEmeasureId().getValue())) {
 				metaDataDisplay.setGenerateEmeasureIdButtonEnabled(true);
@@ -1422,11 +1598,11 @@ public class MetaDataPresenter  implements MatPresenter {
 		// short name is the Abbreviated Title
 		metaDataDisplay.getShortName().setText(currentMeasureDetail.getShortName());
 		metaDataDisplay.getShortName().setTitle(currentMeasureDetail.getShortName());
-		metaDataDisplay.getMeasureScoring().setText(currentMeasureDetail.getMeasScoring());	
+		metaDataDisplay.getMeasureScoring().setText(currentMeasureDetail.getMeasScoring());
 		metaDataDisplay.getMeasureScoring().setTitle(currentMeasureDetail.getMeasScoring());
 		metaDataDisplay.getClinicalRecommendation().setValue(currentMeasureDetail.getClinicalRecomms());
 		metaDataDisplay.getDefinitions().setValue(currentMeasureDetail.getDefinitions());
-		metaDataDisplay.getDescription().setValue(currentMeasureDetail.getDescription());		
+		metaDataDisplay.getDescription().setValue(currentMeasureDetail.getDescription());
 		metaDataDisplay.getDisclaimer().setValue(currentMeasureDetail.getDisclaimer());
 		metaDataDisplay.getRiskAdjustment().setValue(currentMeasureDetail.getRiskAdjustment());
 		metaDataDisplay.getRateAggregation().setValue(currentMeasureDetail.getRateAggregation());
@@ -1467,9 +1643,9 @@ public class MetaDataPresenter  implements MatPresenter {
 		metaDataDisplay.getVersionNumber().setTitle(currentMeasureDetail.getVersionNumber());
 		metaDataDisplay.getRationale().setValue(currentMeasureDetail.getRationale());
 		metaDataDisplay.getStratification().setValue(currentMeasureDetail.getStratification());
-		metaDataDisplay.getRiskAdjustment().setValue(currentMeasureDetail.getRiskAdjustment());	
+		metaDataDisplay.getRiskAdjustment().setValue(currentMeasureDetail.getRiskAdjustment());
 		setStewardAndMeasureDevelopers();
-				
+		
 		//measureTypeSelectList
 		if (currentMeasureDetail.getMeasureTypeSelectedList() != null) {
 			metaDataDisplay.setMeasureTypeSelectedList(currentMeasureDetail.getMeasureTypeSelectedList());
@@ -1511,7 +1687,7 @@ public class MetaDataPresenter  implements MatPresenter {
 			metaDataDisplay.setReferenceValues(new ArrayList<String>(), editable);
 		}
 		metaDataDisplay.setAddEditButtonsVisible(editable);
-		ReadOnlyHelper.setReadOnlyForCurrentMeasure(metaDataDisplay.asWidget(),editable);
+		ReadOnlyHelper.setReadOnlyForCurrentMeasure(metaDataDisplay.asWidget(), editable);
 		metaDataDisplay.enableEndorseByRadioButtons(editable);
 		metaDataDisplay.setSaveButtonEnabled(editable);
 		metaDataDisplay.getEmeasureId().setValue(currentMeasureDetail.geteMeasureId()+"");
@@ -1529,22 +1705,22 @@ public class MetaDataPresenter  implements MatPresenter {
 			metaDataDisplay.setMeasurementPeriodButtonsVisible(false);
 		}
 	}
-
+	
 	/**
 	 * steward and Author table.
 	 */
 	public void setStewardAndMeasureDevelopers() {
 		service.getUsedStewardAndDevelopersList(MatContext.get().getCurrentMeasureId(),
 				new AsyncCallback<MeasureDetailResult>(){
-
+			
 			@Override
 			public void onFailure(Throwable caught) {
 				Window.alert(MatContext.get().getMessageDelegate().getGenericErrorMessage());
 				
 			}
-
+			
 			@Override
-			public void onSuccess(MeasureDetailResult result) {				
+			public void onSuccess(MeasureDetailResult result) {
 				if(result.getUsedSteward() !=null){
 					metaDataDisplay.setStewardId(result.getUsedSteward().getId());
 					metaDataDisplay.setStewardValue(result.getUsedSteward().getOrgName());
@@ -1563,13 +1739,13 @@ public class MetaDataPresenter  implements MatPresenter {
 				}
 				dbAuthorList.clear();
 				
-				dbAuthorList.addAll(currentMeasureDetail.getAuthorSelectedList());				
+				dbAuthorList.addAll(currentMeasureDetail.getAuthorSelectedList());
 				metaDataDisplay.buildStewardCellTable(result.getAllStewardList(), editable);
-				metaDataDisplay.buildAuthorCellTable(result.getAllAuthorList(), editable);	
+				metaDataDisplay.buildAuthorCellTable(result.getAllAuthorList(), editable);
 			}
 			
 		});
-	}	
+	}
 	
 	/**
 	 * Save meta data information.
@@ -1586,6 +1762,7 @@ public class MetaDataPresenter  implements MatPresenter {
 			updateModelDetailsFromView();
 			Mat.showLoadingMessage();
 			MatContext.get().getSynchronizationDelegate().setSavingMeasureDetails(true);
+			currentMeasureDetail.scrubForMarkUp();
 			MatContext.get().getMeasureService().saveMeasureDetails(currentMeasureDetail,
 					new AsyncCallback<SaveMeasureResult>() {
 				
@@ -1644,7 +1821,7 @@ public class MetaDataPresenter  implements MatPresenter {
 		boolean isFromDateValid = true;
 		boolean isToDateValid = true;
 		if(metaDataDisplay.getCalenderYear().getValue().equals(Boolean.FALSE)){
-			if(!metaDataDisplay.getMeasurementFromPeriod().isEmpty() && 
+			if(!metaDataDisplay.getMeasurementFromPeriod().isEmpty() &&
 					!metaDataDisplay.getMeasurementToPeriod().isEmpty()){
 				// MAT5069 - user can enter date in text box now, so validate "from" box
 				if (!metaDataDisplay.getMeasurementFromPeriodInputBox().isDateValid()) {
@@ -1661,7 +1838,7 @@ public class MetaDataPresenter  implements MatPresenter {
 						isCalender = true;
 					} else {
 						isCalender = false;
-					}	
+					}
 				}
 			} else {
 				isCalender = false;
@@ -1686,8 +1863,8 @@ public class MetaDataPresenter  implements MatPresenter {
 		
 		Date fromDate = fromDateBox.getDate();
 		Date toDate = toDateBox.getDate();
-
-		if (fromDate == null || toDate == null) {
+		
+		if ((fromDate == null) || (toDate == null)) {
 			return false;
 		}
 		
@@ -1698,9 +1875,9 @@ public class MetaDataPresenter  implements MatPresenter {
 		
 		return valid;
 	}
-
-
-		
+	
+	
+	
 	/**
 	 * Update model details from view.
 	 */
@@ -1725,32 +1902,74 @@ public class MetaDataPresenter  implements MatPresenter {
 		currentMeasureDetail.setDisclaimer(metaDataDisplay.getDisclaimer().getValue());
 		currentMeasureDetail.setRiskAdjustment(metaDataDisplay.getRiskAdjustment().getValue());
 		currentMeasureDetail.setRateAggregation(metaDataDisplay.getRateAggregation().getValue());
-		currentMeasureDetail.setInitialPop(metaDataDisplay.getInitialPop().getValue());
-		currentMeasureDetail.setDenominator(metaDataDisplay.getDenominator().getValue());
-		currentMeasureDetail.setDenominatorExclusions(metaDataDisplay.getDenominatorExclusions().getValue());
-		currentMeasureDetail.setNumerator(metaDataDisplay.getNumerator().getValue());
-		currentMeasureDetail.setNumeratorExclusions(metaDataDisplay.getNumeratorExclusions().getValue());
-		currentMeasureDetail.setDenominatorExceptions(metaDataDisplay.getDenominatorExceptions().getValue());
-		currentMeasureDetail.setMeasurePopulation(metaDataDisplay.getMeasurePopulation().getValue());
-		currentMeasureDetail.setMeasureObservations(metaDataDisplay.getMeasureObservations().getValue());			
+		
+		currentMeasureDetail.setMeasScoring(metaDataDisplay.getMeasureScoring().getText());
+		
+		currentMeasureDetail.setInitialPop(metaDataDisplay.getInitialPop().getValue() != ""
+				? metaDataDisplay.getInitialPop().getValue() : null);
+		currentMeasureDetail.setStratification(metaDataDisplay.getStratification().getValue() != ""
+				? metaDataDisplay.getStratification().getValue() : null );
+		if ((currentMeasureDetail.getMeasScoring() != null) && (currentMeasureDetail.getMeasScoring().equalsIgnoreCase("Ratio")
+				|| currentMeasureDetail.getMeasScoring().equalsIgnoreCase("Proportion"))) {
+			currentMeasureDetail.setDenominator(metaDataDisplay.getDenominator().getValue() != ""
+					? metaDataDisplay.getDenominator().getValue() : null);
+			currentMeasureDetail.setDenominatorExclusions(metaDataDisplay.getDenominatorExclusions().getValue() != ""
+					? metaDataDisplay.getDenominatorExclusions().getValue() : null);
+			currentMeasureDetail.setNumerator(metaDataDisplay.getNumerator().getValue() != ""
+					? metaDataDisplay.getNumerator().getValue() : null);
+			currentMeasureDetail.setNumeratorExclusions(metaDataDisplay.getNumeratorExclusions().getValue() != ""
+					? metaDataDisplay.getNumeratorExclusions().getValue() : null);
+		} else {
+			currentMeasureDetail.setDenominator(null);
+			currentMeasureDetail.setDenominatorExclusions(null);
+			currentMeasureDetail.setNumerator(null);
+			currentMeasureDetail.setNumeratorExclusions(null);
+		}
+		if ((currentMeasureDetail.getMeasScoring() != null)
+				&& (currentMeasureDetail.getMeasScoring().equalsIgnoreCase("Proportion"))) {
+			currentMeasureDetail.setDenominatorExceptions(
+					metaDataDisplay.getDenominatorExceptions().getValue() != ""
+					? metaDataDisplay.getDenominatorExceptions().getValue() : null);
+		} else {
+			currentMeasureDetail.setDenominatorExceptions(null);
+		}
+		if ((currentMeasureDetail.getMeasScoring() != null)
+				&& (currentMeasureDetail.getMeasScoring().equalsIgnoreCase("Ratio")
+						|| currentMeasureDetail.getMeasScoring().equalsIgnoreCase("Continuous Variable"))) {
+			currentMeasureDetail.setMeasureObservations(metaDataDisplay.getMeasureObservations().getValue() != ""
+					? metaDataDisplay.getMeasureObservations().getValue() : null);
+		} else {
+			currentMeasureDetail.setMeasureObservations(null);
+		}
+		if ((currentMeasureDetail.getMeasScoring() != null)
+				&& (currentMeasureDetail.getMeasScoring().equalsIgnoreCase("Continuous Variable"))) {
+			currentMeasureDetail.setMeasurePopulation(metaDataDisplay.getMeasurePopulation().getValue() != ""
+					? metaDataDisplay.getMeasurePopulation().getValue() : null);
+			currentMeasureDetail.setMeasurePopulationExclusions(metaDataDisplay.getMeasurePopulationExclusions().getValue() != ""
+					? metaDataDisplay.getMeasurePopulationExclusions().getValue() : null);
+		} else {
+			currentMeasureDetail.setMeasurePopulation(null);
+			currentMeasureDetail.setMeasurePopulationExclusions(null);
+		}
+		
 		currentMeasureDetail.setCopyright(metaDataDisplay.getCopyright().getValue());
 		currentMeasureDetail.setEndorseByNQF(metaDataDisplay.getEndorsebyNQF().getValue());
 		currentMeasureDetail.setGuidance(metaDataDisplay.getGuidance().getValue());
 		currentMeasureDetail.setTransmissionFormat(metaDataDisplay.getTransmissionFormat().getValue());
 		currentMeasureDetail.setImprovNotations(metaDataDisplay.getImprovementNotation().getValue());
 		currentMeasureDetail.setCalenderYear(metaDataDisplay.getCalenderYear().getValue());
-		currentMeasureDetail.setMeasFromPeriod(metaDataDisplay.getMeasurementFromPeriod());	
+		currentMeasureDetail.setMeasFromPeriod(metaDataDisplay.getMeasurementFromPeriod());
 		
-		currentMeasureDetail.setStewardId(metaDataDisplay.getStewardId());	
+		currentMeasureDetail.setStewardId(metaDataDisplay.getStewardId());
 		currentMeasureDetail.setStewardValue(metaDataDisplay.getStewardValue());
 		
 		currentMeasureDetail.setMeasToPeriod(metaDataDisplay.getMeasurementToPeriod());
-		currentMeasureDetail.setSupplementalData(metaDataDisplay.getSupplementalData().getValue());		
+		currentMeasureDetail.setSupplementalData(metaDataDisplay.getSupplementalData().getValue());
 		currentMeasureDetail.setRationale(metaDataDisplay.getRationale().getValue());
 		currentMeasureDetail.setReferencesList(metaDataDisplay.getReferenceValues());
 		currentMeasureDetail.setMeasureSetId(metaDataDisplay.geteMeasureIdentifier().getText());
 		currentMeasureDetail.setGroupName(metaDataDisplay.getSetName().getValue());
-		currentMeasureDetail.setStratification(metaDataDisplay.getStratification().getValue());
+		
 		currentMeasureDetail.setRiskAdjustment(metaDataDisplay.getRiskAdjustment().getValue());
 		currentMeasureDetail.setVersionNumber(metaDataDisplay.getVersionNumber().getText());
 		currentMeasureDetail.setAuthorSelectedList(metaDataDisplay.getAuthorsSelectedList());
@@ -1762,18 +1981,18 @@ public class MetaDataPresenter  implements MatPresenter {
 		currentMeasureDetail.setToCompareItemCount(dbQDMSelectedList);
 		currentMeasureDetail.setToCompareComponentMeasures(dbComponentMeasuresSelectedList);
 		currentMeasureDetail.setNqfId(metaDataDisplay.getNqfId().getValue());
-		currentMeasureDetail.setMeasurePopulationExclusions(metaDataDisplay.getMeasurePopulationExclusions().getValue());
+		
 		if ((metaDataDisplay.getEmeasureId().getValue() != null) && !metaDataDisplay.getEmeasureId().getValue().equals("")) {
 			currentMeasureDetail.seteMeasureId(new Integer(metaDataDisplay.getEmeasureId().getValue()));
 		}
 	}
-		
+	
 	/**
 	 * Display add edit component measures.
 	 */
 	private void displayAddEditComponentMeasures() {
 		AddEditComponentMeasuresView cmDisplay = new AddEditComponentMeasuresView();
-		this.addEditComponentMeasuresDisplay = cmDisplay;
+		addEditComponentMeasuresDisplay = cmDisplay;
 		addEditComponenetMeasuresClickHandlers();
 		isSubView = true;
 		clearMessages();
@@ -1789,46 +2008,46 @@ public class MetaDataPresenter  implements MatPresenter {
 		previousContinueButtons.setVisible(false);
 		Mat.focusSkipLists("MeasureComposer");
 	}
-
+	
 	/**
 	 * Adds the edit componenet measures click handlers.
 	 */
 	private void addEditComponenetMeasuresClickHandlers() {
 		//AddToComponentMeasures Button clickHandler Handler
 		addEditComponentMeasuresDisplay
-				.getAddtoComponentMeasuresButtonHandler().addClickHandler(
-						new ClickHandler() {
-
-							@Override
-							public void onClick(ClickEvent event) {
-								addEditComponentMeasuresDisplay
-										.getSuccessMessageDisplay()
-										.setMessage(
-												MatContext
-														.get()
-														.getMessageDelegate()
-														.getCOMPONENT_MEASURES_ADDED_SUCCESSFULLY());
-								metaDataDisplay
-										.setComponentMeasureSelectedList(addEditComponentMeasuresDisplay
-												.getComponentMeasuresList());
-							}
-						});
+		.getApplytoComponentMeasuresButtonHandler().addClickHandler(
+				new ClickHandler() {
+					
+					@Override
+					public void onClick(ClickEvent event) {
+						addEditComponentMeasuresDisplay
+						.getSuccessMessageDisplay()
+						.setMessage(
+								MatContext
+								.get()
+								.getMessageDelegate()
+								.getCOMPONENT_MEASURES_ADDED_SUCCESSFULLY());
+						metaDataDisplay
+						.setComponentMeasureSelectedList(addEditComponentMeasuresDisplay
+								.getComponentMeasuresList());
+					}
+				});
 		//Component Measures Search clickHandler handler
 		addEditComponentMeasuresDisplay.getSearchButton().addClickHandler(
 				new ClickHandler() {
-
+					
 					@Override
 					public void onClick(ClickEvent event) {
-
+						
 						searchMeasuresList(addEditComponentMeasuresDisplay
 								.getSearchString().getValue(), 1, PAGE_SIZE, 1);
 					}
 				});
-
+		
 		//component Measures Return click handler
 		addEditComponentMeasuresDisplay.getReturnButton().addClickHandler(
 				new ClickHandler() {
-
+					
 					@Override
 					public void onClick(ClickEvent event) {
 						isSubView = false;
@@ -1839,7 +2058,7 @@ public class MetaDataPresenter  implements MatPresenter {
 				});
 		
 	}
-
+	
 	/* (non-Javadoc)
 	 * @see mat.client.MatPresenter#beforeDisplay()
 	 */
@@ -1849,6 +2068,12 @@ public class MetaDataPresenter  implements MatPresenter {
 				|| MatContext.get().getCurrentMeasureId().equals("")) {
 			displayEmpty();
 		} else {
+			panel.clear();
+			/*if(currentMeasureDetail != null) {
+				metaDataDisplay.setMeasureScoringType(currentMeasureDetail.getMeasScoring());
+			}
+			metaDataDisplay.buildForm();*/
+			panel.add(metaDataDisplay.asWidget());
 			if (!isMeasureDetailsLoaded) { // this check is made so that when measure is clicked from Measure library, its not called twice.
 				currentMeasureDetail = null;
 				lastRequestTime = System.currentTimeMillis();
@@ -1857,7 +2082,8 @@ public class MetaDataPresenter  implements MatPresenter {
 				isMeasureDetailsLoaded = false;
 			}
 		}
-		getAppliedQDMList(true);	
+		getMeasureDetail();
+		getAppliedQDMList(true);
 		getAllMeasureTypes();
 		MeasureComposerPresenter.setSubSkipEmbeddedLink("MetaDataView.containerPanel");
 		Mat.focusSkipLists("MeasureComposer");
@@ -1874,7 +2100,10 @@ public class MetaDataPresenter  implements MatPresenter {
 		}*/
 		//This is done to reset measure composure tab to show "No Measure Selected" as when measure is deleted,it should not show Any sub tabs under MeasureComposure.
 		//MatContext.get().getCurrentMeasureInfo().setMeasureId("");
+		panel.clear();
+		
 		clearMessages();
+		
 	}
 	
 	/** Gets the measure and logs in this measure as recently used measure in recent measure activity log.

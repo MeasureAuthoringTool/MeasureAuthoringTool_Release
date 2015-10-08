@@ -3,11 +3,14 @@ package mat.dao;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+
 import mat.model.Organization;
 import mat.model.User;
 import mat.server.model.MatUserDetails;
+
 import org.springframework.security.core.userdetails.UserDetails;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Interface UserDAO.
  */
@@ -22,6 +25,11 @@ public interface UserDAO extends IDAO<User, String> {
 	 */
 	public List<User> searchForUsersByName(String name);
 	
+	/**
+	 * Search for non terminated user.
+	 *
+	 * @return the list
+	 */
 	public List<User> searchForNonTerminatedUser();
 	
 	/**
@@ -156,6 +164,11 @@ public interface UserDAO extends IDAO<User, String> {
 	 */
 	public List<User> getAllNonAdminActiveUsers();
 	
+	/**
+	 * Search all used organizations.
+	 *
+	 * @return the hash map
+	 */
 	HashMap<String, Organization> searchAllUsedOrganizations();
-	
+
 }

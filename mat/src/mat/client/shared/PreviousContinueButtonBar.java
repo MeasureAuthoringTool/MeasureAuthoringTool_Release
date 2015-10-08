@@ -42,7 +42,13 @@ public class PreviousContinueButtonBar extends Composite implements HasVisible, 
 			buttonPanel.remove(continueButton);
 			buttonPanel.add(previousButton);
 			buttonPanel.add(continueButton);
-		} else if (state == 2) {
+		} /*else if (state == 2) {
+			setPageNames("Old QDM Elements", "Clause Workspace");
+			buttonPanel.remove(previousButton);
+			buttonPanel.remove(continueButton);
+			buttonPanel.add(previousButton);
+			buttonPanel.add(continueButton);
+		} */else if (state == 2) {
 			setPageNames("QDM Elements", "Population Workspace");
 			buttonPanel.remove(previousButton);
 			buttonPanel.remove(continueButton);

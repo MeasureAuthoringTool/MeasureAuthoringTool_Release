@@ -3,23 +3,24 @@ package mat.server;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-
 import mat.DTO.MeasureNoteDTO;
+import mat.client.clause.clauseworkspace.model.MeasureDetailResult;
 import mat.client.clause.clauseworkspace.model.MeasureXmlModel;
 import mat.client.clause.clauseworkspace.model.SortedClauseMapResult;
-import mat.client.clause.clauseworkspace.model.MeasureDetailResult;
 import mat.client.measure.ManageMeasureDetailModel;
 import mat.client.measure.ManageMeasureSearchModel;
 import mat.client.measure.ManageMeasureShareModel;
 import mat.client.measure.MeasureNotesModel;
 import mat.client.measure.TransferMeasureOwnerShipModel;
 import mat.client.measure.service.MeasureService;
+import mat.client.measure.service.SaveMeasureNotesResult;
 import mat.client.measure.service.SaveMeasureResult;
 import mat.client.measure.service.ValidateMeasureResult;
 import mat.client.shared.MatException;
 import mat.model.MatValueSet;
 import mat.model.MeasureType;
 import mat.model.Organization;
+import mat.model.QualityDataModelWrapper;
 import mat.model.QualityDataSetDTO;
 import mat.model.RecentMSRActivityLog;
 import mat.server.service.MeasureLibraryService;
@@ -59,8 +60,8 @@ MeasureService {
 	 */
 	@Override
 	public void createAndSaveElementLookUp(List<QualityDataSetDTO> list,
-			String measureID) {
-		this.getMeasureLibraryService().createAndSaveElementLookUp(list, measureID);
+			String measureID, String expProfileToAllQDM) {
+		this.getMeasureLibraryService().createAndSaveElementLookUp(list, measureID, expProfileToAllQDM);
 	}
 	
 	/* (non-Javadoc)
@@ -99,8 +100,14 @@ MeasureService {
 	/* (non-Javadoc)
 	 * @see mat.client.measure.service.MeasureService#getAppliedQDMFromMeasureXml(java.lang.String, boolean)
 	 */
+	//	@Override
+	//	public List<QualityDataSetDTO> getAppliedQDMFromMeasureXml(
+	//			String measureId, boolean checkForSupplementData) {
+	//		return this.getMeasureLibraryService().getAppliedQDMFromMeasureXml(measureId, checkForSupplementData);
+	//	}
+	
 	@Override
-	public List<QualityDataSetDTO> getAppliedQDMFromMeasureXml(
+	public QualityDataModelWrapper getAppliedQDMFromMeasureXml(
 			String measureId, boolean checkForSupplementData) {
 		return this.getMeasureLibraryService().getAppliedQDMFromMeasureXml(measureId, checkForSupplementData);
 	}
@@ -138,7 +145,7 @@ MeasureService {
 	 * 
 	 * @return the measure library service
 	 */
-	private MeasureLibraryService getMeasureLibraryService(){
+	public MeasureLibraryService getMeasureLibraryService(){
 		return (MeasureLibraryService) context.getBean("measureLibraryService");
 	}
 	
@@ -220,9 +227,9 @@ MeasureService {
 	 * @see mat.client.measure.service.MeasureService#saveMeasureNote(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
 	 */
 	@Override
-	public void saveMeasureNote(String noteTitle, String noteDescription,
-			String string, String string2) {
-		this.getMeasureLibraryService().saveMeasureNote(noteTitle, noteDescription, string, string2);
+	public SaveMeasureNotesResult saveMeasureNote(MeasureNoteDTO model,
+			String measureId, String userId) {
+		return this.getMeasureLibraryService().saveMeasureNote(model, measureId, userId);
 		
 	}
 	
@@ -305,6 +312,7 @@ MeasureService {
 		
 	}
 	
+	
 	/* (non-Javadoc)
 	 * @see mat.client.measure.service.MeasureService#updatePrivateColumnInMeasure(java.lang.String, boolean)
 	 */
@@ -382,7 +390,7 @@ MeasureService {
 	 * @see mat.client.measure.service.MeasureService#validatePackageGrouping(mat.client.measure.ManageMeasureDetailModel)
 	 */
 	@Override
-	public boolean validatePackageGrouping(
+	public ValidateMeasureResult validatePackageGrouping(
 			ManageMeasureDetailModel model) {
 		return this.getMeasureLibraryService().validatePackageGrouping(
 				model);
@@ -392,7 +400,7 @@ MeasureService {
 	 * @see mat.client.measure.service.MeasureService#validateMeasureXmlinpopulationWorkspace(mat.client.clause.clauseworkspace.model.MeasureXmlModel)
 	 */
 	@Override
-	public boolean validateMeasureXmlinpopulationWorkspace(
+	public ValidateMeasureResult validateMeasureXmlinpopulationWorkspace(
 			MeasureXmlModel measureXmlModel) {
 		return this.getMeasureLibraryService().validateMeasureXmlAtCreateMeasurePackager(measureXmlModel);
 	}
@@ -405,7 +413,7 @@ MeasureService {
 		
 		this.getMeasureLibraryService().updateMeasureXmlForDeletedComponentMeasureAndOrg(measureId);
 	}
-			
+	
 	/* (non-Javadoc)
 	 * @see mat.client.measure.service.MeasureService#validateForGroup(mat.client.measure.ManageMeasureDetailModel)
 	 */
@@ -457,27 +465,39 @@ MeasureService {
 	public boolean isQDMVariableEnabled(String measureId, String subTreeUUID) {
 		return this.getMeasureLibraryService().isQDMVariableEnabled(measureId, subTreeUUID);
 	}
-
+	
 	/* (non-Javadoc)
 	 * @see mat.client.measure.service.MeasureService#getSortedClauseMap(java.lang.String)
 	 */
 	@Override
-	public LinkedHashMap<String, String> getSortedClauseMap(String measureId) {		
+	public LinkedHashMap<String, String> getSortedClauseMap(String measureId) {
 		return this.getMeasureLibraryService().getSortedClauseMap(measureId);
 	}
-
+	
 	/* (non-Javadoc)
 	 * @see mat.client.measure.service.MeasureService#getMeasureXmlForMeasureAndSortedSubTreeMap(java.lang.String)
 	 */
 	@Override
 	public SortedClauseMapResult getMeasureXmlForMeasureAndSortedSubTreeMap(
-			String currentMeasureId) {		
+			String currentMeasureId) {
 		return this.getMeasureLibraryService().getMeasureXmlForMeasureAndSortedSubTreeMap(currentMeasureId);
 	}
-
+	
 	@Override
-	public MeasureDetailResult getUsedStewardAndDevelopersList(String measureId) {		
+	public MeasureDetailResult getUsedStewardAndDevelopersList(String measureId) {
 		return this.getMeasureLibraryService().getUsedStewardAndDevelopersList(measureId);
+	}
+	
+	@Override
+	public void updateMeasureXMLForExpansionIdentifier(List<QualityDataSetDTO> modifyWithDTOList,
+			String measureId, String expansionProfile) {
+		this.getMeasureLibraryService().updateMeasureXMLForExpansionIdentifier(modifyWithDTOList, measureId, expansionProfile);
+	}
+	
+	@Override
+	public QualityDataModelWrapper getDefaultSDEFromMeasureXml(String measureId) {
+		// TODO Auto-generated method stub
+		return this.getMeasureLibraryService().getDefaultSDEFromMeasureXml(measureId);
 	}
 	
 }

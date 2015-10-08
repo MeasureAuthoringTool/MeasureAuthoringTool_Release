@@ -683,7 +683,7 @@ public class XmlTreePresenter {
 	 * @param xml - String.
 	 * @param sortedClauseMap the sorted clause map
 	 */
-	protected void updateSubTreeElementsMap(String xml, LinkedHashMap<String, String> sortedClauseMap) {		
+	protected void updateSubTreeElementsMap(String xml, LinkedHashMap<String, String> sortedClauseMap) {
 		
 		if(PopulationWorkSpaceConstants.subTreeLookUpName == null){
 			PopulationWorkSpaceConstants.subTreeLookUpName = new LinkedHashMap<String, String>();
@@ -710,7 +710,7 @@ public class XmlTreePresenter {
 					if (uuid.equalsIgnoreCase(entry1.getKey())) {
 						PopulationWorkSpaceConstants.subTreeLookUpNode.put(
 								entry1.getValue() + "~" + entry1.getKey(),
-								nodeList.item(i));						
+								nodeList.item(i));
 						break;
 					}
 					
@@ -740,6 +740,9 @@ public class XmlTreePresenter {
 					} else {
 						List<String> messageList = new ArrayList<String>();
 						for(String inValidNode: result){
+							if(inValidNode.equalsIgnoreCase("inValidAtLogicalOperatorNode")){
+								messageList.add(MatContext.get().getMessageDelegate().getCLAUSE_WORK_SPACE_INVALID_LOGICAL_OPERATOR());
+							}
 							if(inValidNode.equalsIgnoreCase("inValidAtMeasureObservationLogicalNode")){
 								messageList.add(MatContext.get().getMessageDelegate().getPOPULATION_WORK_SPACE_MEASURE_OBSERVATION_VALIDATION_ERROR());
 							}
@@ -750,7 +753,10 @@ public class XmlTreePresenter {
 								messageList.add(MatContext.get().getMessageDelegate().getPOPULATION_WORKSPACE_DATETIMEDIFF_ERROR_MESSAGE());
 							}
 							if(inValidNode.equalsIgnoreCase("invalidClauseLogic")){
-								messageList.add("Invalid Clause Logic. Please validate clause logic on Clause Workspace.");
+								messageList.add("Invalid clause logic. Please validate clause logic on Clause Workspace.");
+							}
+							if(inValidNode.equalsIgnoreCase("nestedClauseLogic")){
+								messageList.add(MatContext.get().getMessageDelegate().getCLAUSE_WORK_SPACE_INVALID_NESTED_DEPTH_CLAUSE());
 							}
 						}
 						if(messageList.size()>=1){

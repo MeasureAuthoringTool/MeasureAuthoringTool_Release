@@ -1,20 +1,17 @@
 package mat.client;
 
-import mat.client.clause.QDMPresenter;
+import mat.client.clause.QDMAppliedSelectionPresenter;
+import mat.client.clause.QDMAppliedSelectionView;
 import mat.client.clause.clauseworkspace.presenter.ClauseWorkSpacePresenter;
 import mat.client.clause.clauseworkspace.presenter.PopulationWorkspacePresenter;
 import mat.client.event.MATClickHandler;
 import mat.client.event.MeasureSelectedEvent;
 import mat.client.measure.MeasureNotesPresenter;
 import mat.client.measure.MeasureNotesView;
-//MAT-4898
-//import mat.client.measure.metadata.AddEditAuthorsView;
-import mat.client.measure.metadata.AddEditComponentMeasuresView;
 import mat.client.measure.metadata.MetaDataPresenter;
 import mat.client.measure.metadata.MetaDataView;
 import mat.client.measure.metadata.events.ContinueToMeasurePackageEvent;
 import mat.client.measurepackage.MeasurePackagePresenter;
-import mat.client.measurepackage.MeasurePackagePresenter_Old;
 import mat.client.measurepackage.MeasurePackagerView;
 import mat.client.shared.ContentWithHeadingWidget;
 import mat.client.shared.FocusableWidget;
@@ -23,7 +20,6 @@ import mat.client.shared.MatTabLayoutPanel;
 import mat.client.shared.PreviousContinueButtonBar;
 import mat.client.shared.SkipListBuilder;
 import mat.shared.ConstantMessages;
-
 import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.event.dom.client.KeyDownHandler;
@@ -36,6 +32,8 @@ import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.Widget;
+//MAT-4898
+//import mat.client.measure.metadata.AddEditAuthorsView;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -115,9 +113,6 @@ public class MeasureComposerPresenter implements MatPresenter, Enableable {
 	/** The measure notes presenter. */
 	private MeasureNotesPresenter measureNotesPresenter = new MeasureNotesPresenter(new MeasureNotesView());
 	
-	/** The measure package old presenter. */
-	private MeasurePackagePresenter_Old measurePackagePresenter_old;
-	
 	/** The measure package presenter. */
 	private MeasurePackagePresenter measurePackagePresenter;
 	
@@ -125,8 +120,7 @@ public class MeasureComposerPresenter implements MatPresenter, Enableable {
 	private MetaDataPresenter metaDataPresenter;
 	
 	//private MatClausePresenter clauseWorkspace = new MatClausePresenter();
-	/** The qdm presenter. */
-	private QDMPresenter qdmPresenter;
+	
 	
 	/**
 	 * Instantiates a new measure composer presenter.
@@ -137,19 +131,19 @@ public class MeasureComposerPresenter implements MatPresenter, Enableable {
 		emptyWidget.getElement().setId("emptyWidget_SimplePanel");
 		
 		metaDataPresenter = (MetaDataPresenter) buildMeasureMetaDataPresenter();
-//		measurePackagePresenter_old = (MeasurePackagePresenter_Old) buildOldMeasurePackageWidget(); // Commented to hide the Old measure Packager Tab menu
+		//		measurePackagePresenter_old = (MeasurePackagePresenter_Old) buildOldMeasurePackageWidget(); // Commented to hide the Old measure Packager Tab menu
 		measurePackagePresenter = (MeasurePackagePresenter) buildMeasurePackageWidget();
-		qdmPresenter = buildQDMPresenter();
+		
 		measureComposerTabLayout = new MatTabLayoutPanel(true);
 		measureComposerTabLayout.setId("measureComposerTabLayout");
 		measureComposerTabLayout.addPresenter(metaDataPresenter, "Measure Details");
-		measureComposerTabLayout.addPresenter(qdmPresenter, "QDM Elements");
+		//measureComposerTabLayout.addPresenter(qdmPresenter, "Old QDM Elements");
+		measureComposerTabLayout.addPresenter(buildAppliedQDMPresenter(), "QDM Elements");
 		measureComposerTabLayout.addPresenter(clauseWorkSpacePresenter, "Clause Workspace");
 		measureComposerTabLayout.addPresenter(populationWorkspacePresenter, "Population Workspace");
-//		measureComposerTabLayout.addPresenter(buildOldMeasurePackageWidget(), "Old Measure Packager"); // Commented to hide the Old measure Packager Tab menu
+		//		measureComposerTabLayout.addPresenter(buildOldMeasurePackageWidget(), "Old Measure Packager"); // Commented to hide the Old measure Packager Tab menu
 		measureComposerTabLayout.addPresenter(buildMeasurePackageWidget(), "Measure Packager");
 		measureComposerTabLayout.addPresenter(measureNotesPresenter, "Measure Notes");
-		
 		measureComposerTabLayout.setHeight("98%");
 		
 		measureComposerTab = ConstantMessages.MEASURE_COMPOSER_TAB;
@@ -226,7 +220,6 @@ public class MeasureComposerPresenter implements MatPresenter, Enableable {
 		MatContext.get().getEventBus().addHandler(ContinueToMeasurePackageEvent.TYPE, new ContinueToMeasurePackageEvent.Handler() {
 			@Override
 			public void onContinueToMeasurePackage(ContinueToMeasurePackageEvent event) {
-				measureComposerTabLayout.selectTab(measurePackagePresenter_old);
 				buttonBar.state = measureComposerTabLayout.getSelectedIndex();
 				buttonBar.setPageNamesOnState();
 			}
@@ -328,7 +321,7 @@ public class MeasureComposerPresenter implements MatPresenter, Enableable {
 		//MAT-4898
 		//AddEditAuthorsView aeaV = new AddEditAuthorsView();
 		//AddEditMeasureTypeView aemtV = new AddEditMeasureTypeView();
-//		AddEditComponentMeasuresView aecmV = new AddEditComponentMeasuresView();
+		//		AddEditComponentMeasuresView aecmV = new AddEditComponentMeasuresView();
 		MetaDataPresenter mdP = new MetaDataPresenter(mdV,buttonBar, MatContext.get().getListBoxCodeProvider());
 		return mdP;
 	}
@@ -372,10 +365,14 @@ public class MeasureComposerPresenter implements MatPresenter, Enableable {
 	 *
 	 * @return the qDM presenter
 	 */
-	private QDMPresenter buildQDMPresenter() {
-		QDMPresenter qdmP = new QDMPresenter();
-		return qdmP;
-		
+	
+	
+	private MatPresenter buildAppliedQDMPresenter(){
+		QDMAppliedSelectionView vascProfileSelectionView = new QDMAppliedSelectionView();
+		QDMAppliedSelectionPresenter vsacProfileSelectionPresenter =
+				new QDMAppliedSelectionPresenter(vascProfileSelectionView);
+		vsacProfileSelectionPresenter.getWidget();
+		return vsacProfileSelectionPresenter;
 	}
 	
 	/**

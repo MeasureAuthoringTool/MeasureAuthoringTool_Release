@@ -5,6 +5,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
+
 import mat.client.login.LoginModel;
 import mat.client.shared.MatContext;
 import mat.dao.UserDAO;
@@ -17,6 +18,7 @@ import mat.server.model.MatUserDetails;
 import mat.server.service.LoginCredentialService;
 import mat.server.service.SecurityQuestionsService;
 import mat.server.service.UserService;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +50,7 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
 	/** The user service. */
 	@Autowired
 	private UserService userService;
+	
 	/*
 	 * (non-Javadoc)
 	 * @see mat.server.service.LoginCredentialService#changePasswordSecurityAnswers(mat.client.login.LoginModel)
@@ -58,6 +61,9 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
 		logger.info("Changing password");
 		boolean result = false;
 		User user = userService.getById(model.getUserId());
+		
+		//before setting new Password we need to store the old password in password History
+		userService.addByUpdateUserPasswordHistory(user,false);
 		userService.setUserPassword(user, model.getPassword(), false);
 		user.getPassword().setInitial(false);
 		logger.info("Saving security questions");
@@ -98,6 +104,7 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
 		}
 		return result;
 	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see mat.server.service.LoginCredentialService#changeTempPassword(java.lang.String, java.lang.String)
@@ -170,7 +177,7 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
 		if (validateUserMatUserDetails.getLockedOutDate() != null) {
 			logger.debug("User locked out");
 			validateUserLoginModel.setErrorMessage(MatContext.get()
-					.getMessageDelegate().getAccountLocked2Message());
+					.getMessageDelegate().getLoginFailedMessage());
 		}
 		switch (currentPasswordlockCounter) {
 			case 0:
@@ -479,7 +486,7 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
 		} else {
 			validateUserLoginModel.setErrorMessage(MatContext.get()
 					.getMessageDelegate()
-					.getSecondAttemptFailedMessage());
+					.getLoginFailedMessage());
 			validateUserMatUserDetails.getUserPassword().setPasswordlockCounter(
 					currentPasswordlockCounter + 1);
 		}
@@ -586,13 +593,12 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
 		} else {
 			validateUserLoginModel.setErrorMessage(MatContext.get()
 					.getMessageDelegate()
-					.getAccountLocked2Message());
+					.getLoginFailedMessage());
 			validateUserMatUserDetails.setLockedOutDate(currentTimeStamp);
 			validateUserMatUserDetails.getUserPassword().setPasswordlockCounter(3);
 			logger.debug("Locking user out");
 		}
 		return validateUserLoginModel;
 	}
-	
 	
 }

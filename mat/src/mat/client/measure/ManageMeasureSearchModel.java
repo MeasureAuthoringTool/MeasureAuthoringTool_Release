@@ -91,27 +91,8 @@ public class ManageMeasureSearchModel implements IsSerializable, SearchResults<M
 		/** The is measure family. */
 		private boolean isMeasureFamily;
 		
-		private boolean HQMFR1;
+		private String hqmfReleaseVersion;
 		
-		private boolean HQMFR2;
-		
-		
-		public boolean isHQMFR1() {
-			return HQMFR1;
-		}
-
-		public void setHQMFR1(boolean hQMFR1) {
-			HQMFR1 = hQMFR1;
-		}
-
-		public boolean isHQMFR2() {
-			return HQMFR2;
-		}
-
-		public void setHQMFR2(boolean hQMFR2) {
-			HQMFR2 = hQMFR2;
-		}
-
 		/**
 		 * Checks if is measure family.
 		 *
@@ -581,6 +562,14 @@ public class ManageMeasureSearchModel implements IsSerializable, SearchResults<M
 		public int compare(ManageMeasureSearchModel.Result o1, ManageMeasureSearchModel.Result o2) {
 			int num = o1.getId().compareTo(o2.getId());
 			return num;
+		}
+
+		public String getHqmfReleaseVersion() {
+			return hqmfReleaseVersion;
+		}
+
+		public void setHqmfReleaseVersion(String hqmfReleaseVersion) {
+			this.hqmfReleaseVersion = hqmfReleaseVersion;
 		}
 		
 		

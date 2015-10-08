@@ -6,17 +6,19 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import java.util.TreeMap;
 import mat.DTO.OperatorDTO;
 import mat.client.Enableable;
 import mat.client.admin.service.AdminService;
 import mat.client.admin.service.AdminServiceAsync;
 import mat.client.audit.service.AuditService;
 import mat.client.audit.service.AuditServiceAsync;
+import mat.client.clause.QDMAppliedSelectionView;
 import mat.client.clause.QDMAvailableValueSetWidget;
 import mat.client.clause.QDSAppliedListView;
 import mat.client.clause.QDSCodeListSearchView;
 import mat.client.codelist.AdminManageCodeListSearchModel;
+import mat.client.codelist.HasListBox;
 import mat.client.codelist.ListBoxCodeProvider;
 import mat.client.codelist.service.CodeListService;
 import mat.client.codelist.service.CodeListServiceAsync;
@@ -28,7 +30,6 @@ import mat.client.login.service.LoginService;
 import mat.client.login.service.LoginServiceAsync;
 import mat.client.login.service.SessionManagementService;
 import mat.client.login.service.SessionManagementServiceAsync;
-//import mat.client.measure.AdminManageMeasureSearchView;
 import mat.client.measure.ManageMeasureSearchModel;
 import mat.client.measure.ManageMeasureSearchView;
 import mat.client.measure.service.MeasureService;
@@ -39,9 +40,11 @@ import mat.client.myAccount.service.MyAccountService;
 import mat.client.myAccount.service.MyAccountServiceAsync;
 import mat.client.umls.service.VSACAPIService;
 import mat.client.umls.service.VSACAPIServiceAsync;
+import mat.client.umls.service.VsacApiResult;
 import mat.client.util.ClientConstants;
+import mat.model.GlobalCopyPasteObject;
+import mat.model.VSACExpansionIdentifier;
 import mat.shared.ConstantMessages;
-
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.HandlerManager;
 import com.google.gwt.http.client.UrlBuilder;
@@ -52,6 +55,8 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.IsSerializable;
 import com.google.gwt.user.client.ui.TabPanel;
 import com.google.gwt.user.client.ui.Widget;
+// TODO: Auto-generated Javadoc
+//import mat.client.measure.AdminManageMeasureSearchView;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -145,6 +150,9 @@ public class MatContext implements IsSerializable {
 	/** The qds view. */
 	private QDSCodeListSearchView qdsView;
 	
+	/** The vsac profile view. */
+	private QDMAppliedSelectionView qdmAppliedSelectionView;
+	
 	/** The modify qdm pop up widget. */
 	private QDMAvailableValueSetWidget modifyQDMPopUpWidget;
 	
@@ -192,13 +200,27 @@ public class MatContext implements IsSerializable {
 	public List<String> setOps = new ArrayList<String>();
 	
 	/** The operator map key short. */
-	public Map<String, String> operatorMapKeyShort = new HashMap<String, String>();
+	public Map<String, String> operatorMapKeyShort = new TreeMap<String,String>(String.CASE_INSENSITIVE_ORDER);
 	
 	/** The operator map key long. */
-	public Map<String, String> operatorMapKeyLong = new HashMap<String, String>();
+	public Map<String, String> operatorMapKeyLong = new TreeMap<String,String>(String.CASE_INSENSITIVE_ORDER);
 	
 	/** The removed relationship types. */
-	public Map<String, String> removedRelationshipTypes = new HashMap<String, String>();
+	public Map<String, String> removedRelationshipTypes = new TreeMap<String,String>(String.CASE_INSENSITIVE_ORDER);
+	
+	/** The data type list. */
+	private List<String> dataTypeList = new ArrayList<String>();
+	
+	/** The profile list. */
+	private List<String> expIdentifierList = new ArrayList<String>();
+	
+	/** The vsac exp identifier list. */
+	private List<VSACExpansionIdentifier> vsacExpIdentifierList = new ArrayList<VSACExpansionIdentifier>();
+	
+	/** The global copy paste. */
+	private GlobalCopyPasteObject globalCopyPaste;
+	
+	//private GlobalCopyPaste copyPaste;
 	
 	/*
 	 * POC Global Copy Paste.
@@ -254,6 +276,15 @@ public class MatContext implements IsSerializable {
 	 */
 	public void setQDSView(QDSCodeListSearchView view){
 		qdsView=view;
+	}
+	
+	/**
+	 * Sets the VSAC profile view.
+	 *
+	 * @param view the new VSAC profile view
+	 */
+	public void setQDMAppliedSelectionView(QDMAppliedSelectionView view){
+		qdmAppliedSelectionView = view;
 	}
 	
 	/**
@@ -1298,19 +1329,19 @@ public class MatContext implements IsSerializable {
 	 *
 	 * @param manageCodeListSearchModel the new manage code list searc model
 	 */
-//	public void setManageCodeListSearchView(ManageCodeListSearchView manageCodeListSearchView) {
-//		this.manageCodeListSearchView = manageCodeListSearchView;
-//	}
-//	
-//	
-//	/**
-//	 * Gets the manage code list search view.
-//	 * 
-//	 * @return the manageCodeListSearchView
-//	 */
-//	public ManageCodeListSearchView getManageCodeListSearchView() {
-//		return manageCodeListSearchView;
-//	}
+	//	public void setManageCodeListSearchView(ManageCodeListSearchView manageCodeListSearchView) {
+	//		this.manageCodeListSearchView = manageCodeListSearchView;
+	//	}
+	//
+	//
+	//	/**
+	//	 * Gets the manage code list search view.
+	//	 *
+	//	 * @return the manageCodeListSearchView
+	//	 */
+	//	public ManageCodeListSearchView getManageCodeListSearchView() {
+	//		return manageCodeListSearchView;
+	//	}
 	
 	
 	/**
@@ -1403,7 +1434,7 @@ public class MatContext implements IsSerializable {
 				//for adding Removed Relationship Types
 				addRemovedRelationShipTypes();
 			}
-
+			
 			private void addRemovedRelationShipTypes() {
 				
 				removedRelationshipTypes.put("Is Authorized By", "AUTH");
@@ -1413,6 +1444,123 @@ public class MatContext implements IsSerializable {
 				removedRelationshipTypes.put("Has Outcome Of", "OUTC");
 			}
 		});
+	}
+	
+	
+	/**
+	 * Gets the all data type.
+	 *
+	 * @return the all data type
+	 */
+	public void getAllDataType() {
+		
+		listBoxCodeProvider.getAllDataType(
+				new AsyncCallback<List<? extends HasListBox>>() {
+					
+					@Override
+					public void onFailure(final Throwable caught) {
+					}
+					
+					@Override
+					public void onSuccess(
+							final List<? extends HasListBox> result) {
+						Collections.sort(result,
+								new HasListBox.Comparator());
+						setAllDataTypeOptions(result);
+					}
+				});
+	}
+	
+	/**
+	 * Sets the all data type options.
+	 *
+	 * @param texts the new all data type options
+	 */
+	public void setAllDataTypeOptions(List<? extends HasListBox> texts) {
+		setListBoxItems(texts, MatContext.PLEASE_SELECT);
+	}
+	
+	/**
+	 * Sets the list box items.
+	 *
+	 * @param itemList the item list
+	 * @param defaultOption the default option
+	 */
+	private void setListBoxItems(List<? extends HasListBox> itemList, String defaultOption) {
+		dataTypeList.clear();
+		dataTypeList.add(defaultOption);
+		if (itemList != null) {
+			for (HasListBox listBoxContent : itemList) {
+				//MAT-4366
+				if(! listBoxContent.getItem().equalsIgnoreCase("Patient Characteristic Birthdate") &&
+						! listBoxContent.getItem().equalsIgnoreCase("Patient Characteristic Expired")){
+					dataTypeList.add(listBoxContent.getItem());
+				}
+				
+			}
+			
+		}
+	}
+	
+	
+	/**
+	 * Gets the all versions by oid.
+	 *
+	 * @param oid the oid
+	 * @param index the index
+	 * @return the all versions by oid
+	 */
+	public void getAllVersionsByOID(String oid, int index){
+		vsacapiServiceAsync.getAllVersionListByOID(oid, new AsyncCallback<VsacApiResult>() {
+			
+			@Override
+			public void onSuccess(VsacApiResult result) {
+				if (result.getVsacExpIdentifierResp() != null) {
+					
+				}
+				
+			}
+			
+			@Override
+			public void onFailure(Throwable caught) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+	}
+	
+	/**
+	 * Gets the all profile list.
+	 *
+	 * @return the all profile list
+	 */
+	public void getAllExpIdentifierList(){
+		vsacapiServiceAsync
+		.getAllExpIdentifierList(new AsyncCallback<VsacApiResult>() {
+			
+			@Override
+			public void onSuccess(
+					VsacApiResult result) {
+				if (result.getVsacExpIdentifierResp() != null) {
+					vsacExpIdentifierList = result.getVsacExpIdentifierResp();
+					expIdentifierList = getExpIdentifierList(result.getVsacExpIdentifierResp());
+				}
+			}
+			
+			@Override
+			public void onFailure(Throwable caught) {
+				// TODO Auto-generated method stub
+			}
+		});
+	}
+	
+	/**
+	 * Gets the vsac exp identifier list.
+	 *
+	 * @return the vsac exp identifier list
+	 */
+	public List<VSACExpansionIdentifier> getVsacExpIdentifierList() {
+		return vsacExpIdentifierList;
 	}
 	
 	
@@ -1460,6 +1608,16 @@ public class MatContext implements IsSerializable {
 	
 	
 	/**
+	 * Gets the data type list.
+	 *
+	 * @return the data type list
+	 */
+	public List<String> getDataTypeList() {
+		return dataTypeList;
+	}
+	
+	
+	/**
 	 * Sets the uMLS logged in.
 	 * 
 	 * @param isUMLSLoggedIn
@@ -1490,7 +1648,11 @@ public class MatContext implements IsSerializable {
 		allowedPopulationsInPackage.add("numeratorExclusions");
 		return allowedPopulationsInPackage;
 	}
+	
 	/**
+	 * Gets the profile list.
+	 *
+	 * @param list the list
 	 * @return the copiedNode
 	 */
 	/*
@@ -1509,6 +1671,61 @@ public class MatContext implements IsSerializable {
 	 * POC GLobal Copy Paste.
 	 * public void setCopiedNode(CellTreeNode copiedNode) {
 		this.copiedNode = copiedNode;
+	}*/
+	private List<String> getExpIdentifierList(List<VSACExpansionIdentifier> list) {
+		List<String> expIdentifier = new ArrayList<String>();
+		for (int i = 0; i < list.size(); i++) {
+			expIdentifier.add(list.get(i).getName());
+		}
+		return expIdentifier;
+	}
+	
+	
+	/**
+	 * Gets the profile list.
+	 *
+	 * @return the profile list
+	 */
+	public List<String> getExpIdentifierList() {
+		return expIdentifierList;
+	}
+	
+	
+	/**
+	 * Sets the profile list.
+	 *
+	 * @param profileList the new profile list
+	 */
+	public void setExpIdentifierList(List<String> profileList) {
+		this.expIdentifierList = profileList;
+	}
+	
+	/**
+	 * Gets the global copy paste.
+	 *
+	 * @return the global copy paste
+	 */
+	public GlobalCopyPasteObject getGlobalCopyPaste() {
+		return globalCopyPaste;
+	}
+	
+	/**
+	 * Sets the global copy paste.
+	 *
+	 * @param globalCopyPaste the new global copy paste
+	 */
+	public void setGlobalCopyPaste(GlobalCopyPasteObject globalCopyPaste) {
+		this.globalCopyPaste = globalCopyPaste;
+	}
+	
+	
+	/*public GlobalCopyPaste getCopyPaste() {
+		return copyPaste;
+	}
+	
+	
+	public void setCopyPaste(GlobalCopyPaste copyPaste) {
+		this.copyPaste = copyPaste;
 	}*/
 	
 	

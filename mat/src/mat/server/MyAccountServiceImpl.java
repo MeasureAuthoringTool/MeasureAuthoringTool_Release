@@ -26,7 +26,7 @@ import org.apache.commons.logging.LogFactory;
  */
 @SuppressWarnings("serial")
 public class MyAccountServiceImpl extends SpringRemoteServiceServlet implements
-		MyAccountService {
+MyAccountService {
 	
 	/** The Constant logger. */
 	private static final Log logger = LogFactory.getLog(MyAccountServiceImpl.class);
@@ -99,19 +99,22 @@ public class MyAccountServiceImpl extends SpringRemoteServiceServlet implements
 	/* (non-Javadoc)
 	 * @see mat.client.myAccount.service.MyAccountService#getMyAccount()
 	 */
+	@Override
 	public MyAccountModel getMyAccount() throws IllegalArgumentException {
 		UserService userService = getUserService();
 		User user = userService.getById(LoggedInUserUtil.getLoggedInUser());
-		logger.info("Fetched User ....."+ user.getLoginId());
+		logger.info("Fetched User ....." + user.getLoginId());
 		return extractModel(user);
 	}
 	
 	/* (non-Javadoc)
 	 * @see mat.client.myAccount.service.MyAccountService#saveMyAccount(mat.client.myAccount.MyAccountModel)
 	 */
-	public SaveMyAccountResult saveMyAccount(MyAccountModel model) {		
+	@Override
+	public SaveMyAccountResult saveMyAccount(MyAccountModel model) {
 		SaveMyAccountResult result = new SaveMyAccountResult();
 		MyAccountModelValidator validator = new MyAccountModelValidator();
+		model.scrubForMarkUp();
 		List<String> messages = validator.validate(model);
 		if(messages.size()!=0){
 			logger.info("Server-Side Validation for saveMyAccount Failed for User :: "+ LoggedInUserUtil.getLoggedInUser());
@@ -133,6 +136,7 @@ public class MyAccountServiceImpl extends SpringRemoteServiceServlet implements
 	/* (non-Javadoc)
 	 * @see mat.client.myAccount.service.MyAccountService#getSecurityQuestions()
 	 */
+	@Override
 	public SecurityQuestionsModel getSecurityQuestions() {
 		UserService userService = getUserService();
 		User user = userService.getById(LoggedInUserUtil.getLoggedInUser());
@@ -152,23 +156,22 @@ public class MyAccountServiceImpl extends SpringRemoteServiceServlet implements
 			model.setQuestion3(secQuestions.get(2).getSecurityQuestions().getQuestion());
 			model.setQuestion3Answer(secQuestions.get(2).getSecurityAnswer());
 		}
-
+		model.scrubForMarkUp();
 		return model;
 	}
 	
 	/* (non-Javadoc)
 	 * @see mat.client.myAccount.service.MyAccountService#saveSecurityQuestions(mat.client.myAccount.SecurityQuestionsModel)
 	 */
+	@Override
 	public SaveMyAccountResult saveSecurityQuestions(SecurityQuestionsModel model) {
 		logger.info("Saving security questions");
 		SaveMyAccountResult result = new SaveMyAccountResult();
-		SecurityQuestionVerifier sverifier = 
-			new SecurityQuestionVerifier(model.getQuestion1(),
-					model.getQuestion1Answer(),
-					model.getQuestion2(),
-					model.getQuestion2Answer(),
-					model.getQuestion3(),
-					model.getQuestion3Answer());
+		model.scrubForMarkUp();
+		SecurityQuestionVerifier sverifier =
+				new SecurityQuestionVerifier(model.getQuestion1(), model.getQuestion1Answer(),
+						model.getQuestion2(),model.getQuestion2Answer(),
+						model.getQuestion3(), model.getQuestion3Answer());
 		if(!sverifier.isValid()) {
 			logger.info("Server Side Validation Failed in saveSecurityQuestions for User:"+LoggedInUserUtil.getLoggedInUser() );
 			result.setSuccess(false);
@@ -183,19 +186,19 @@ public class MyAccountServiceImpl extends SpringRemoteServiceServlet implements
 				UserSecurityQuestion newQuestion = new UserSecurityQuestion();
 				secQuestions.add(newQuestion);
 			}
-					
+			
 			String newQuestion1 = model.getQuestion1();
 			SecurityQuestions secQue1 = getSecurityQuestionsService().getSecurityQuestionObj(newQuestion1);
 			secQuestions.get(0).setSecurityQuestionId(secQue1.getQuestionId());
 			secQuestions.get(0).setSecurityQuestions(secQue1);
 			secQuestions.get(0).setSecurityAnswer(model.getQuestion1Answer());
-
+			
 			String newQuestion2 = model.getQuestion2();
 			SecurityQuestions secQue2 = getSecurityQuestionsService().getSecurityQuestionObj(newQuestion2);
 			secQuestions.get(1).setSecurityQuestionId(secQue2.getQuestionId());
 			secQuestions.get(1).setSecurityQuestions(secQue2);
 			secQuestions.get(1).setSecurityAnswer(model.getQuestion2Answer());
-
+			
 			
 			String newQuestion3 = model.getQuestion3();
 			SecurityQuestions secQue3 = getSecurityQuestionsService().getSecurityQuestionObj(newQuestion3);
@@ -203,7 +206,7 @@ public class MyAccountServiceImpl extends SpringRemoteServiceServlet implements
 			secQuestions.get(2).setSecurityQuestions(secQue3);
 			secQuestions.get(2).setSecurityAnswer(model.getQuestion3Answer());
 			user.setSecurityQuestions(secQuestions);
-					
+			
 			userService.saveExisting(user);
 			result.setSuccess(true);
 		}
@@ -213,9 +216,12 @@ public class MyAccountServiceImpl extends SpringRemoteServiceServlet implements
 	/* (non-Javadoc)
 	 * @see mat.client.myAccount.service.MyAccountService#changePassword(java.lang.String)
 	 */
+	@Override
 	public SaveMyAccountResult changePassword(String password) {
-		logger.info("Changing password to " + password);
 		SaveMyAccountResult result = new SaveMyAccountResult();
+		String markupRegExp = "<[^>]+>";
+		String noMarkupTextPwd = password.trim().replaceAll(markupRegExp, "");
+		password = noMarkupTextPwd;
 		PasswordVerifier verifier = new PasswordVerifier(
 				LoggedInUserUtil.getLoggedInLoginId(),password,password);
 		
@@ -230,7 +236,8 @@ public class MyAccountServiceImpl extends SpringRemoteServiceServlet implements
 			if(resultMessage.equalsIgnoreCase("SUCCESS")){
 				UserService userService = getUserService();
 				User user = userService.getById(LoggedInUserUtil.getLoggedInUser());
-
+				//to maintain user password History
+				userService.addByUpdateUserPasswordHistory(user,false);
 				userService.setUserPassword(user, password, false);
 				userService.saveExisting(user);
 				result.setSuccess(true);
@@ -257,9 +264,10 @@ public class MyAccountServiceImpl extends SpringRemoteServiceServlet implements
 		String returnMessage = "FAILURE";
 		try {
 			boolean result = CheckDictionaryWordInPassword.containsDictionaryWords(changedpassword);
-			if(result)
+			if(result) {
 				returnMessage = "SUCCESS";
-				
+			}
+			
 		} catch (FileNotFoundException e) {
 			returnMessage="EXCEPTION";
 			//loginModel.setLoginFailedEvent(true);

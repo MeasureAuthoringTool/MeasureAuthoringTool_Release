@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import mat.model.MatValueSet;
 import mat.model.QualityDataSetDTO;
+import mat.model.VSACExpansionIdentifier;
+import mat.model.VSACVersion;
+
 import com.google.gwt.user.client.rpc.IsSerializable;
 
 
@@ -33,6 +36,10 @@ public class VsacApiResult implements IsSerializable {
 	private List<QualityDataSetDTO> updatedQualityDataDTOLIst;
 	/** The vsac response. */
 	private List<MatValueSet> vsacResponse;
+	
+	private List<VSACExpansionIdentifier> vsacExpIdentifierResp;
+	
+	private List<VSACVersion> vsacVersionResp;
 	
 	/**
 	 * Gets the failure reason.
@@ -111,6 +118,28 @@ public class VsacApiResult implements IsSerializable {
 	 */
 	public void setUpdatedQualityDataDTOLIst(List<QualityDataSetDTO> updatedQualityDataDTOLIst) {
 		this.updatedQualityDataDTOLIst = updatedQualityDataDTOLIst;
+	}
+
+	/**
+	 * @return the vsacProfileResp
+	 */
+	public List<VSACExpansionIdentifier> getVsacExpIdentifierResp() {
+		return vsacExpIdentifierResp;
+	}
+
+	/**
+	 * @param vsacProfileResp the vsacProfileResp to set
+	 */
+	public void setVsacExpIdentifierResp(List<VSACExpansionIdentifier> vsacExpIdentifierResp) {
+		this.vsacExpIdentifierResp = vsacExpIdentifierResp;
+	}
+
+	public List<VSACVersion> getVsacVersionResp() {
+		return vsacVersionResp;
+	}
+
+	public void setVsacVersionResp(List<VSACVersion> vsacVersionResp) {
+		this.vsacVersionResp = vsacVersionResp;
 	}
 	
 }

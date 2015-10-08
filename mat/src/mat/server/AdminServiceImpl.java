@@ -1,6 +1,11 @@
 package mat.server;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import mat.client.admin.ManageOrganizationDetailModel;
@@ -11,9 +16,11 @@ import mat.client.admin.service.AdminService;
 import mat.client.admin.service.SaveUpdateOrganizationResult;
 import mat.client.admin.service.SaveUpdateUserResult;
 import mat.dao.OrganizationDAO;
+import mat.dao.UserDAO;
 import mat.model.Organization;
 import mat.model.Status;
 import mat.model.User;
+import mat.server.model.MatUserDetails;
 import mat.server.service.UserService;
 import mat.shared.AdminManageOrganizationModelValidator;
 import mat.shared.AdminManageUserModelValidator;
@@ -22,6 +29,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class AdminServiceImpl.
  */
@@ -32,13 +40,9 @@ public class AdminServiceImpl extends SpringRemoteServiceServlet implements Admi
 	private static final Log logger = LogFactory.getLog(AdminServiceImpl.class);
 	
 	/**
-	 * 
-	 * @throws InCorrectUserRoleException the in correct user role exception
-		
 	 * Check admin user.
-	 * 
-	 * @throws InCorrectUserRoleException
-	 *             the in correct user role exception
+	 *
+	 * @throws InCorrectUserRoleException             the in correct user role exception
 	 */
 	private void checkAdminUser() throws InCorrectUserRoleException{
 		String userRole = LoggedInUserUtil.getLoggedInUserRole();
@@ -57,6 +61,9 @@ public class AdminServiceImpl extends SpringRemoteServiceServlet implements Admi
 		getUserService().deleteUser(userId);
 	}
 	
+	/* (non-Javadoc)
+	 * @see mat.client.admin.service.AdminService#deleteOrganization(mat.client.admin.ManageOrganizationSearchModel.Result)
+	 */
 	@Override
 	public void deleteOrganization(ManageOrganizationSearchModel.Result organization) {
 		Organization org = getOrganizationDAO().findByOid(organization.getOid());
@@ -104,8 +111,65 @@ public class AdminServiceImpl extends SpringRemoteServiceServlet implements Admi
 		boolean v = isCurrentUserAdminForUser(user);
 		model.setCurrentUserCanChangeAccountStatus(v);
 		model.setCurrentUserCanUnlock(v);
+		model.setPasswordExpirationMsg(getUserPwdCreationMsg(user.getLoginId()));
 		return model;
 	}
+	
+	/**
+	 * Gets the user pwd creation msg.
+	 *
+	 * @param userID the user id
+	 * @return the user pwd creation msg
+	 */
+	private String getUserPwdCreationMsg(String userID){
+		UserDAO userDAO = (UserDAO) context.getBean("userDAO");
+		MatUserDetails userDetails = (MatUserDetails) userDAO.getUser(userID);
+		Date creationDate = userDetails.getUserPassword().getCreatedDate();
+		boolean tempPwd = userDetails.getUserPassword().isTemporaryPassword();
+		boolean initialPwd = userDetails.getUserPassword().isInitial();
+		Date currentDate = new Date();
+		String passwordExpiryMsg = "";
+		
+		Calendar calendar = GregorianCalendar.getInstance();
+		calendar.setTime(creationDate);
+		if(tempPwd || initialPwd){
+			calendar.add(Calendar.DATE, 4);
+		} else {
+			calendar.add(Calendar.DATE, 59);
+		}
+		SimpleDateFormat currentDateFormat = new SimpleDateFormat("MM/dd/yyyy");
+		currentDate = getFormattedDate(currentDateFormat, currentDate);
+		Date pwdExpiryDate = getFormattedDate(currentDateFormat, calendar.getTime());
+		if(currentDate.before(pwdExpiryDate) ||
+				currentDate.equals(pwdExpiryDate)) {
+			passwordExpiryMsg = "Password Expiration Date: " +
+					currentDateFormat.format(calendar.getTime())+" 23:59  ";
+		} else {
+			passwordExpiryMsg = "Password Expired on "+currentDateFormat.format(calendar.getTime());
+		}
+		
+		return  passwordExpiryMsg;
+	}
+	
+	
+	/**
+	 * Gets the formatted date.
+	 *
+	 * @param currentDate the current date
+	 * @return the formatted date
+	 */
+	private Date getFormattedDate(SimpleDateFormat currentDateFormat,
+			Date currentDate){
+		
+		try {
+			currentDate = currentDateFormat.parse(currentDateFormat.format(currentDate));
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return currentDate;
+	}
+	
 	
 	/* (non-Javadoc)
 	 * @see mat.client.admin.service.AdminService#getAllOrganizations()
@@ -212,6 +276,8 @@ public class AdminServiceImpl extends SpringRemoteServiceServlet implements Admi
 			ManageOrganizationDetailModel updatedModel) {
 		SaveUpdateOrganizationResult saveUpdateOrganizationResult = new SaveUpdateOrganizationResult();
 		Organization organization = null;
+		// Remove Mark Ups if any
+		updatedModel.scrubForMarkUp();
 		AdminManageOrganizationModelValidator test = new AdminManageOrganizationModelValidator();
 		List<String> messages = test.isValidOrganizationDetail(updatedModel);
 		SaveUpdateUserResult result = new SaveUpdateUserResult();
@@ -224,6 +290,7 @@ public class AdminServiceImpl extends SpringRemoteServiceServlet implements Admi
 			result.setMessages(messages);
 			result.setFailureReason(SaveUpdateOrganizationResult.SERVER_SIDE_VALIDATION);
 		} else {
+			
 			if (currentModel.isExistingOrg()) {
 				organization = getOrganizationDAO().findByOid(currentModel.getOid());
 				organization.setOrganizationName(updatedModel.getOrganization());
@@ -255,6 +322,7 @@ public class AdminServiceImpl extends SpringRemoteServiceServlet implements Admi
 	@Override
 	public SaveUpdateUserResult saveUpdateUser(ManageUsersDetailModel model) throws InCorrectUserRoleException {
 		checkAdminUser();
+		model.scrubForMarkUp();
 		AdminManageUserModelValidator test = new AdminManageUserModelValidator();
 		List<String>  messages = test.isValidUsersDetail(model);
 		SaveUpdateUserResult result = new SaveUpdateUserResult();
@@ -315,6 +383,7 @@ public class AdminServiceImpl extends SpringRemoteServiceServlet implements Admi
 			r.setFirstName(user.getFirstName());
 			r.setLastName(user.getLastName());
 			r.setOrgName(user.getOrganizationName());
+			r.setUserRole(user.getSecurityRole().getDescription());
 			r.setKey(user.getId());
 			r.setLoginId(user.getLoginId());
 			if (user.getStatus() != null) {

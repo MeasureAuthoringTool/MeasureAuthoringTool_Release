@@ -1,26 +1,30 @@
 package mat.server.service;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import javax.xml.xpath.XPathExpressionException;
+
 import mat.DTO.MeasureNoteDTO;
+import mat.client.clause.clauseworkspace.model.MeasureDetailResult;
 import mat.client.clause.clauseworkspace.model.MeasureXmlModel;
 import mat.client.clause.clauseworkspace.model.SortedClauseMapResult;
-import mat.client.clause.clauseworkspace.model.MeasureDetailResult;
 import mat.client.measure.ManageMeasureDetailModel;
 import mat.client.measure.ManageMeasureSearchModel;
 import mat.client.measure.ManageMeasureShareModel;
 import mat.client.measure.MeasureNotesModel;
 import mat.client.measure.TransferMeasureOwnerShipModel;
+import mat.client.measure.service.SaveMeasureNotesResult;
 import mat.client.measure.service.SaveMeasureResult;
 import mat.client.measure.service.ValidateMeasureResult;
 import mat.client.shared.MatException;
 import mat.model.MatValueSet;
+import mat.model.MeasureOwnerReportDTO;
 import mat.model.MeasureType;
 import mat.model.Organization;
+import mat.model.QualityDataModelWrapper;
 import mat.model.QualityDataSetDTO;
 import mat.model.RecentMSRActivityLog;
 import mat.server.util.XmlProcessor;
@@ -71,7 +75,7 @@ public interface MeasureLibraryService {
 	 *            the measure id
 	 */
 	void createAndSaveElementLookUp(List<QualityDataSetDTO> list,
-			String measureID);
+			String measureID, String expProfileToAllQDM);
 	
 	/**
 	 * Delete measure notes.
@@ -114,7 +118,10 @@ public interface MeasureLibraryService {
 	 *            the check for supplement data
 	 * @return the applied qdm from measure xml
 	 */
-	ArrayList<QualityDataSetDTO> getAppliedQDMFromMeasureXml(String measureId,
+	//	ArrayList<QualityDataSetDTO> getAppliedQDMFromMeasureXml(String measureId,
+	//			boolean checkForSupplementData);
+	
+	QualityDataModelWrapper getAppliedQDMFromMeasureXml(String measureId,
 			boolean checkForSupplementData);
 	
 	/**
@@ -245,8 +252,8 @@ public interface MeasureLibraryService {
 	 * @param string2
 	 *            the string2
 	 */
-	void saveMeasureNote(String noteTitle, String noteDescription,
-			String string, String string2);
+	SaveMeasureNotesResult saveMeasureNote(MeasureNoteDTO model,
+			String measureId, String userId);
 	
 	/**
 	 * Save measure xml.
@@ -410,12 +417,6 @@ public interface MeasureLibraryService {
 	 */
 	Date getFormattedReleaseDate(String releaseDate);
 	
-	/**
-	 * Gets the release date.
-	 *
-	 * @return the release date
-	 */
-	String getReleaseDate();
 	
 	/**
 	 * Checks if is sub tree referred in logic.
@@ -451,7 +452,7 @@ public interface MeasureLibraryService {
 	 * @param model the model
 	 * @return the string
 	 */
-	boolean validatePackageGrouping(ManageMeasureDetailModel model);
+	ValidateMeasureResult validatePackageGrouping(ManageMeasureDetailModel model);
 	
 	/**
 	 * Validate measure xmlinpopulation workspace.
@@ -459,7 +460,7 @@ public interface MeasureLibraryService {
 	 * @param measureXmlModel the measure xml model
 	 * @return the object
 	 */
-	boolean validateMeasureXmlAtCreateMeasurePackager(
+	ValidateMeasureResult validateMeasureXmlAtCreateMeasurePackager(
 			MeasureXmlModel measureXmlModel);
 	
 	/**
@@ -519,7 +520,7 @@ public interface MeasureLibraryService {
 	 * @return true, if is QDM variable enabled
 	 */
 	boolean isQDMVariableEnabled(String measureId, String subTreeUUID);
-
+	
 	/**
 	 * Gets the sorted clause map.
 	 *
@@ -527,7 +528,7 @@ public interface MeasureLibraryService {
 	 * @return the sorted clause map
 	 */
 	LinkedHashMap<String, String> getSortedClauseMap(String measureId);
-
+	
 	/**
 	 * Gets the measure xml for measure and sorted sub tree map.
 	 *
@@ -536,13 +537,36 @@ public interface MeasureLibraryService {
 	 */
 	SortedClauseMapResult getMeasureXmlForMeasureAndSortedSubTreeMap(
 			String measureId);
-
-	MeasureDetailResult getUsedStewardAndDevelopersList(String measureId);
-
-	/**
-	 * Update steward and measure developers on deletion.
-	 *
-	 * @param measureId the measure id
-	 */
 	
+	/**
+	 * Method to get User Steward and Developers List for measure.
+	 * @param measureId
+	 * @return
+	 */
+	MeasureDetailResult getUsedStewardAndDevelopersList(String measureId);
+	
+	/**
+	 * Service to Update Expansion Profile in Measure Xml.
+	 * @param modifyWithDTO
+	 * @param measureId
+	 * @param expansionProfile
+	 */
+	void updateMeasureXMLForExpansionIdentifier(
+			List<QualityDataSetDTO> modifyWithDTO, String measureId,
+			String expansionProfile);
+	
+	
+	/**
+	 * Method to Get Default 4 Supplemental Data Elements for give Measure.
+	 * @param measureId
+	 * @return QualityDataModelWrapper
+	 */
+	QualityDataModelWrapper getDefaultSDEFromMeasureXml(String measureId);
+	
+	List<MeasureOwnerReportDTO> getMeasuresForMeasureOwner() throws XPathExpressionException;
+	
+	String getDefaultExpansionIdentifier(String measureId);
+	
+	String getCurrentReleaseVersion();
+	void setCurrentReleaseVersion(String releaseVersion);
 }

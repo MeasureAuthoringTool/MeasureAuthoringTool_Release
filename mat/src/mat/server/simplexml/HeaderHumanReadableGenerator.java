@@ -1,7 +1,11 @@
 package mat.server.simplexml;
 
+import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
+
+import mat.client.clause.clauseworkspace.model.MeasureXmlModel;
 import mat.server.util.XmlProcessor;
+
 import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.DocumentType;
 import org.jsoup.nodes.Element;
@@ -184,6 +188,16 @@ public class HeaderHumanReadableGenerator {
 	 */
 	private static void createSubjectOf(XmlProcessor processor, Element table)
 			throws XPathExpressionException {
+		
+		String expansionId = getExpansionIdentifier(processor);
+		// add expansionId if set
+		if (expansionId != null && !expansionId.isEmpty() && !expansionId.equals("")){
+			// Expansion Profile
+			createRowAndColumns(table, "VSAC Value Set Expansion Identifier");
+			column.appendText(expansionId);
+			createDiv(getInfo(processor, "vsacExpIdentifier"), column);  
+		} 
+		
 		// Copyright
 		createRowAndColumns(table, "Copyright");
 		createDiv(getInfo(processor, "copyright"), column);
@@ -194,7 +208,8 @@ public class HeaderHumanReadableGenerator {
 		
 		// Measure Scoring
 		createRowAndColumns(table, "Measure Scoring");
-		column.appendText(getInfo(processor, "scoring"));
+		String measureScoring = getInfo(processor, "scoring");
+		column.appendText(measureScoring);
 		
 		// Measure Type
 		getInfoNodes(table, processor, "types/type", "Measure Type", false);
@@ -247,42 +262,50 @@ public class HeaderHumanReadableGenerator {
 		// INitial Population
 		createRowAndColumns(table, "Initial Population");
 		createDiv(getInfo(processor, "initialPopDescription"), column);
+		//MAT 5014 Start - Dynamically show/hide populations based on scoring type.
+		if (measureScoring.equalsIgnoreCase("Proportion")
+				|| measureScoring.equalsIgnoreCase("Ratio")) {
+			// Denominator
+			createRowAndColumns(table, "Denominator");
+			createDiv(getInfo(processor, "denominatorDescription"), column);
+			
+			// Denominator Exclusions
+			createRowAndColumns(table, "Denominator Exclusions");
+			createDiv(getInfo(processor, "denominatorExclusionsDescription"),
+					column);
+			
+			// Numerator
+			createRowAndColumns(table, "Numerator");
+			createDiv(getInfo(processor, "numeratorDescription"), column);
+			
+			// Numerator Exclusions
+			createRowAndColumns(table, "Numerator Exclusions");
+			createDiv(getInfo(processor, "numeratorExclusionsDescription"), column);
+		}
+		if (measureScoring.equalsIgnoreCase("Proportion")) {
+			// Denominator Exceptions
+			createRowAndColumns(table, "Denominator Exceptions");
+			createDiv(getInfo(processor, "denominatorExceptionsDescription"),
+					column);
+		}
 		
-		// Denominator
-		createRowAndColumns(table, "Denominator");
-		createDiv(getInfo(processor, "denominatorDescription"), column);
-		
-		// Denominator Exclusions
-		createRowAndColumns(table, "Denominator Exclusions");
-		createDiv(getInfo(processor, "denominatorExclusionsDescription"),
-				column);
-		
-		// Numerator
-		createRowAndColumns(table, "Numerator");
-		createDiv(getInfo(processor, "numeratorDescription"), column);
-		
-		// Numerator Exclusions
-		createRowAndColumns(table, "Numerator Exclusions");
-		createDiv(getInfo(processor, "numeratorExclusionsDescription"), column);
-		
-		// Denominator Exceptions
-		createRowAndColumns(table, "Denominator Exceptions");
-		createDiv(getInfo(processor, "denominatorExceptionsDescription"),
-				column);
-		
-		// Measure Population
-		createRowAndColumns(table, "Measure Population");
-		createDiv(getInfo(processor, "measurePopulationDescription"), column);
-		
-		// Measure Population Exclusions
-		createRowAndColumns(table, "Measure Population Exclusions");
-		createDiv(getInfo(processor, "measurePopulationExclusionsDescription"),
-				column);
-		
-		// Measure Observations
-		createRowAndColumns(table, "Measure Observations");
-		createDiv(getInfo(processor, "measureObservationsDescription"), column);
-		
+		if (measureScoring.equalsIgnoreCase("Continuous Variable")) {
+			// Measure Population
+			createRowAndColumns(table, "Measure Population");
+			createDiv(getInfo(processor, "measurePopulationDescription"), column);
+			
+			// Measure Population Exclusions
+			createRowAndColumns(table, "Measure Population Exclusions");
+			createDiv(getInfo(processor, "measurePopulationExclusionsDescription"),
+					column);
+		}
+		if (measureScoring.equalsIgnoreCase("Continuous Variable")
+				|| measureScoring.equalsIgnoreCase("Ratio")) {
+			// Measure Observations
+			createRowAndColumns(table, "Measure Observations");
+			createDiv(getInfo(processor, "measureObservationsDescription"), column);
+		}
+		//MAT 5014 End - Dynamically show/hide populations based on scoring type.
 		// Supplemental Data Elements
 		createRowAndColumns(table, "Supplemental Data Elements");
 		createDiv(getInfo(processor, "supplementalData"), column);
@@ -336,12 +359,12 @@ public class HeaderHumanReadableGenerator {
 		String through = " through ";
 		// if start or end are not null format the date
 		if(!calenderYear){
-		if (!" ".equals(start)) {
-			newStart = formatDate(start);
-		}
-		if (!" ".equals(end)) {
-			newEnd = formatDate(end);
-		}
+			if (!" ".equals(start)) {
+				newStart = formatDate(start);
+			}
+			if (!" ".equals(end)) {
+				newEnd = formatDate(end);
+			}
 		} else {
 			if (!" ".equals(start)) {
 				newStart = formatDate("20XX0101");
@@ -494,9 +517,9 @@ public class HeaderHumanReadableGenerator {
 		Node node = processor.findNode(processor.getOriginalDoc(), DETAILS_PATH
 				+ lookUp);
 		// If the node exists return the text value
-		if (node != null && node.getTextContent()!=null) {
+		if ((node != null) && (node.getTextContent()!=null)) {
 			returnVar = node.getTextContent();
-		} 
+		}
 		// else the node does not exist
 		// if were looking for "endorsement return None
 		else if (lookUp.equalsIgnoreCase("endorsement")
@@ -513,6 +536,19 @@ public class HeaderHumanReadableGenerator {
 		}
 		return returnVar;
 	}
+	
+	private static String getExpansionIdentifier(XmlProcessor processor) throws XPathExpressionException{
+		String vsacExpIdentifier = "";
+		// Finds the node
+		Node node = processor.findNode(processor.getOriginalDoc(), "/measure/elementLookUp/@vsacExpIdentifier");
+		
+		// If the node exists return the text value
+		if ((node != null) && (node.getTextContent()!=null)) {
+			vsacExpIdentifier = node.getTextContent();
+		}
+		return vsacExpIdentifier;
+	}
+
 	
 	/**
 	 * Creates the Item Count section of the header

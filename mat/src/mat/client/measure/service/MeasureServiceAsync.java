@@ -3,11 +3,10 @@ package mat.client.measure.service;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-
 import mat.DTO.MeasureNoteDTO;
+import mat.client.clause.clauseworkspace.model.MeasureDetailResult;
 import mat.client.clause.clauseworkspace.model.MeasureXmlModel;
 import mat.client.clause.clauseworkspace.model.SortedClauseMapResult;
-import mat.client.clause.clauseworkspace.model.MeasureDetailResult;
 import mat.client.measure.ManageMeasureDetailModel;
 import mat.client.measure.ManageMeasureSearchModel;
 import mat.client.measure.ManageMeasureShareModel;
@@ -16,9 +15,9 @@ import mat.client.measure.TransferMeasureOwnerShipModel;
 import mat.model.MatValueSet;
 import mat.model.MeasureType;
 import mat.model.Organization;
+import mat.model.QualityDataModelWrapper;
 import mat.model.QualityDataSetDTO;
 import mat.model.RecentMSRActivityLog;
-
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
 // TODO: Auto-generated Javadoc
@@ -66,7 +65,7 @@ public interface MeasureServiceAsync {
 	 *            the callback
 	 */
 	void createAndSaveElementLookUp(List<QualityDataSetDTO> list,
-			String measureID, AsyncCallback<Void> callback);
+			String measureID, String expProfileToAllQDM, AsyncCallback<Void> callback);
 	
 	/**
 	 * Delete measure notes.
@@ -115,9 +114,13 @@ public interface MeasureServiceAsync {
 	 * @param asyncCallback the async callback
 	 * @return the applied qdm from measure xml
 	 */
+	//	void getAppliedQDMFromMeasureXml(String measureId,
+	//			boolean checkForSupplementData,
+	//			AsyncCallback<List<QualityDataSetDTO>> asyncCallback);
+	
 	void getAppliedQDMFromMeasureXml(String measureId,
 			boolean checkForSupplementData,
-			AsyncCallback<List<QualityDataSetDTO>> asyncCallback);
+			AsyncCallback<QualityDataModelWrapper> asyncCallback);
 	
 	/**
 	 * Gets the max e measure id.
@@ -258,15 +261,15 @@ public interface MeasureServiceAsync {
 	 *            the note title
 	 * @param noteDescription
 	 *            the note description
-	 * @param string
-	 *            the string
-	 * @param string2
-	 *            the string2
+	 * @param measureId
+	 *            the measureId
+	 * @param userId
+	 *            the userId
 	 * @param callback
 	 *            the callback
 	 */
-	void saveMeasureNote(String noteTitle, String noteDescription,
-			String string, String string2, AsyncCallback<Void> callback);
+	void saveMeasureNote(MeasureNoteDTO model,
+			String measureId, String userId, AsyncCallback<SaveMeasureNotesResult> callback);
 	
 	/**
 	 * Save measure xml.
@@ -474,18 +477,11 @@ public interface MeasureServiceAsync {
 	 * @param asyncCallback the async callback
 	 */
 	void validatePackageGrouping(ManageMeasureDetailModel model,
-			AsyncCallback<Boolean> asyncCallback);
+			AsyncCallback<ValidateMeasureResult> asyncCallback);
 	
-	/**
-	 * Validate measure xmlinpopulation workspace.
-	 *
-	 * @param measureXmlModel the measure xml model
-	 * @param asyncCallback the async callback
-	 */
-	void validateMeasureXmlinpopulationWorkspace(
-			MeasureXmlModel measureXmlModel, AsyncCallback<Boolean> asyncCallback);
+	void validateMeasureXmlinpopulationWorkspace(MeasureXmlModel measureXmlModel, AsyncCallback<ValidateMeasureResult> asyncCallback);
 	
-		
+	
 	/**
 	 * Validate for group.
 	 *
@@ -540,7 +536,7 @@ public interface MeasureServiceAsync {
 	 * @param subTreeUUID the sub tree uuid
 	 * @param callback the callback
 	 */
-	void isQDMVariableEnabled(String measureId, String subTreeUUID, AsyncCallback<Boolean> callback);	
+	void isQDMVariableEnabled(String measureId, String subTreeUUID, AsyncCallback<Boolean> callback);
 	
 	/**
 	 * Gets the sorted clause map.
@@ -551,7 +547,7 @@ public interface MeasureServiceAsync {
 	 */
 	void getSortedClauseMap(String measureId,
 			AsyncCallback<LinkedHashMap<String, String>> callback);
-
+	
 	/**
 	 * Gets the measure xml for measure and sorted sub tree map.
 	 *
@@ -562,11 +558,16 @@ public interface MeasureServiceAsync {
 	void getMeasureXmlForMeasureAndSortedSubTreeMap(
 			String currentMeasureId,
 			AsyncCallback<SortedClauseMapResult> Callback);
-
+	
 	void getUsedStewardAndDevelopersList(String measureId,
 			AsyncCallback<MeasureDetailResult> asyncCallback);
-
+	
 	void updateMeasureXmlForDeletedComponentMeasureAndOrg(String id,
 			AsyncCallback<Void> asyncCallback);
-		
+	
+	void updateMeasureXMLForExpansionIdentifier(List<QualityDataSetDTO> list, String measureId, String expansionProfile,
+			AsyncCallback<Void> callback);
+	
+	void getDefaultSDEFromMeasureXml(String measureId, AsyncCallback<QualityDataModelWrapper> callback);
+	
 }

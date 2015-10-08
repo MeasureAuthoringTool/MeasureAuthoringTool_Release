@@ -43,6 +43,11 @@
 			<property name="securityAnswer" column="ANSWER"/>
 		</composite-element>
 	</list>
+	<set name="passwordHistory" table="USER_PASSWORD_HISTORY" cascade="all-delete-orphan" 
+	                  inverse="true" lazy="false"> 
+        <key column="USER_ID" not-null="true" update="false"/>
+        <one-to-many class="mat.model.UserPasswordHistory" />
+    </set>
 	<set name="measureShares" table="MEASURE_SHARE" cascade="all-delete-orphan" inverse="true" >
         <key column="SHARE_USER_ID" not-null="true" update="false"/>
         <one-to-many class="mat.model.clause.MeasureShare" />

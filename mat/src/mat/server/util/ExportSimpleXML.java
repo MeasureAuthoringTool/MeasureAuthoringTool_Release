@@ -9,6 +9,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.UUID;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -19,6 +20,7 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+
 import mat.dao.OrganizationDAO;
 import mat.dao.clause.MeasureDAO;
 import mat.model.Organization;
@@ -26,6 +28,7 @@ import mat.model.clause.Measure;
 import mat.model.clause.MeasureXML;
 import mat.shared.UUIDUtilClient;
 import net.sf.saxon.TransformerFactoryImpl;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -167,21 +170,15 @@ public class ExportSimpleXML {
 		removeUnwantedClauses(usedClauseIds, originalDoc);
 		//to get SubTreeRefIds from Population WorkSpace
 		List<String> usedSubtreeRefIds = getUsedSubtreeRefIds(usedClauseIds, originalDoc);
-		
 		//to get SubTreeIds From Clause WorksPace in a Whole
 		List<String> usedSubTreeIds = checkUnUsedSubTreeRef(usedSubtreeRefIds, originalDoc);
-		
 		/*	usedSubTreeIds = getUsedSubRefFromRiskAdjustmentVariables(usedSubTreeIds, originalDoc);
-		
 		usedSubTreeIds = checkUnUsedSubTreeRef(usedSubTreeIds, originalDoc);*/
-		
 		formatAttributeDateInQDMAttribute(usedSubTreeIds, originalDoc);
 		//this will remove unUsed SubTrees From SubTreeLookUp
 		removeUnwantedSubTrees(usedSubTreeIds, originalDoc);
-		
 		//to add UUID attribute for QDM Attribute
 		addUUIDtoQDMAttribute(usedSubTreeIds, originalDoc);
-		
 		List<String> usedQDMIds = getUsedQDMIds(originalDoc);
 		//using the above list we need to traverse the originalDoc and remove the unused QDM's
 		removeUnWantedQDMs(usedQDMIds, originalDoc);
@@ -193,8 +190,27 @@ public class ExportSimpleXML {
 		modifySubTreeLookUpForOccurances(originalDoc);
 		// re-order measure Grouping sequence.
 		modifyMeasureGroupingSequence(originalDoc);
+		//Remove Empty Comments nodes from population Logic.
+		removeEmptyCommentsFromPopulationLogic(originalDoc);
 		//addLocalVariableNameToQDMs(originalDoc);
 		return transform(originalDoc);
+	}
+	/**
+	 * This method will remove empty comments nodes from clauses which are part of Measure Grouping.
+	 * @param originalDoc - Document
+	 * @throws XPathExpressionException -Exception.
+	 */
+	private static void removeEmptyCommentsFromPopulationLogic(Document originalDoc) throws XPathExpressionException {
+		NodeList commentsNodeList = (NodeList) xPath.evaluate("/measure/measureGrouping//comment",
+				originalDoc.getDocumentElement(), XPathConstants.NODESET);
+		for (int i = 0; i < commentsNodeList.getLength(); i++) {
+			Node commentNode = commentsNodeList.item(i);
+			if ((commentNode.getTextContent() == null)
+					|| (commentNode.getTextContent().trim().length() == 0)) {
+				Node parentNode = commentNode.getParentNode();
+				parentNode.removeChild(commentNode);
+			}
+		}
 	}
 	/**
 	 * Gets the used sub ref from risk adjustment variables.
@@ -256,7 +272,7 @@ public class ExportSimpleXML {
 	private static void addUUIDtoQDMAttribute(List<String> usedSubTreeIds,
 			Document originalDoc) throws XPathExpressionException {
 		
-		if(usedSubTreeIds.size() == 0){
+		if (usedSubTreeIds.size() == 0) {
 			return;
 		}
 		
@@ -481,11 +497,38 @@ public class ExportSimpleXML {
 			Node referencedSubTreeNode = (Node)xPath.evaluate("/measure/subTreeLookUp/subTree[not(@instanceOf)][@uuid='"+referencedUUID+"']", originalDoc.getDocumentElement(),XPathConstants.NODE);
 			Node mainChild = referencedSubTreeNode.getChildNodes().item(0);
 			Node mainChildClone = mainChild.cloneNode(true);
-			
 			qdmVariableNode.appendChild(mainChildClone);
+			findAllElementRefNodes(qdmVariableNode);
 		}
 	}
 	
+	/**
+	 * Logic copied to Occ Clause Logic Nodes in Simple xml from actual Clause
+	 * requires attrUUID to be updated to new in case there are elementRef's at
+	 * any level with Attributes. This method is doing the same.
+	 * @param qdmVariableNode - Node.
+	 */
+	private static void findAllElementRefNodes(Node qdmVariableNode) {
+		if ((qdmVariableNode != null) && qdmVariableNode.hasChildNodes()) {
+			for (int i = 0; i < qdmVariableNode.getChildNodes().getLength(); i++) {
+				Node childNode = qdmVariableNode.getChildNodes().item(i);
+				if (childNode.getNodeName().equalsIgnoreCase("elementRef")) {
+					if (childNode.hasChildNodes()) {
+						System.out.println(childNode.getFirstChild().getNodeName());
+						Node attrNode = childNode.getFirstChild();
+						if (attrNode.getAttributes().getNamedItem("attrUUID") != null) {
+							attrNode.getAttributes().getNamedItem("attrUUID")
+							.setNodeValue(UUIDUtilClient.uuid());
+						}
+					}
+				} else {
+					if (childNode.hasChildNodes()) {
+						findAllElementRefNodes(childNode);
+					}
+				}
+			}
+		}
+	}
 	/**
 	 * Method to re order Measure Grouping Sequence.
 	 * @param originalDoc - Document.
@@ -494,14 +537,14 @@ public class ExportSimpleXML {
 	private static void modifyMeasureGroupingSequence(Document originalDoc) throws XPathExpressionException {
 		NodeList groupingNodeList = (NodeList) xPath.evaluate("/measure/measureGrouping/group",
 				originalDoc.getDocumentElement(), XPathConstants.NODESET);
-		TreeMap<String, Node> groupMap = new TreeMap<String, Node>();
+		TreeMap<Integer, Node> groupMap = new TreeMap<Integer, Node>();
 		for (int i = 0; i < groupingNodeList.getLength(); i++) {
 			Node measureGroupingNode = groupingNodeList.item(i);
 			String key = measureGroupingNode.getAttributes().getNamedItem("sequence").getNodeValue();
-			groupMap.put(key, measureGroupingNode);
+			groupMap.put(Integer.parseInt(key), measureGroupingNode);
 		}
 		int measureGroupingSequenceCounter = 0;
-		for (String key : groupMap.keySet()) {
+		for (Integer key : groupMap.keySet()) {
 			String xPathMeasureGroupingForSeq = "/measure/measureGrouping/group[@sequence='" + key + "']";
 			Node measureGroupingNode = (Node) xPath.evaluate(xPathMeasureGroupingForSeq,
 					originalDoc.getDocumentElement(), XPathConstants.NODE);

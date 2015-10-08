@@ -292,17 +292,16 @@ public class MeasureSearchView  implements HasSelectionHandlers<ManageMeasureSea
 				table.addColumn(editColumn, SafeHtmlUtils.fromSafeConstant("<span title='Edit'>" + "Edit" + "</span>"));
 				
 				//Share
-				Cell<String> shareButton = new MatButtonCell("Click to view sharable", "customShareButton");
-				Column<ManageMeasureSearchModel.Result, String> shareColumn = new Column<ManageMeasureSearchModel.Result, 
-						String>(shareButton) {
+				Column<ManageMeasureSearchModel.Result, SafeHtml> shareColumn = new Column<ManageMeasureSearchModel.Result, 
+						SafeHtml>(new ClickableSafeHtmlCell()) {
 					@Override
-					public String getValue(Result object) {						
-						return "Share";
+					public SafeHtml getValue(Result object) {						
+						return getShareColumnToolTip(object);
 					}
 				};
-				shareColumn.setFieldUpdater(new FieldUpdater<ManageMeasureSearchModel.Result, String>() {
+				shareColumn.setFieldUpdater(new FieldUpdater<ManageMeasureSearchModel.Result, SafeHtml>() {
 					@Override
-					public void update(int index, ManageMeasureSearchModel.Result object, String value) {
+					public void update(int index, ManageMeasureSearchModel.Result object, SafeHtml value) {
 						if(object.isSharable())
 							observer.onShareClicked(object);
 					}
@@ -310,17 +309,16 @@ public class MeasureSearchView  implements HasSelectionHandlers<ManageMeasureSea
 				table.addColumn(shareColumn, SafeHtmlUtils.fromSafeConstant("<span title='Share'>" + "Share" + "</span>"));
 				
 				//Clone
-				Cell<String> cloneButton = new MatButtonCell("Click to view cloneable", "customCloneButton");
-				Column<ManageMeasureSearchModel.Result, String> cloneColumn = new Column<ManageMeasureSearchModel.Result, 
-						String>(cloneButton) {
+				Column<ManageMeasureSearchModel.Result, SafeHtml> cloneColumn = new Column<ManageMeasureSearchModel.Result, 
+						SafeHtml>(new ClickableSafeHtmlCell()) {
 							@Override
-							public String getValue(Result object) {
-								return "Clone";
+							public SafeHtml getValue(Result object) {
+								return getCloneColumnToolTip(object);
 							}
 				};
-				cloneColumn.setFieldUpdater(new FieldUpdater<ManageMeasureSearchModel.Result, String>() {
+				cloneColumn.setFieldUpdater(new FieldUpdater<ManageMeasureSearchModel.Result, SafeHtml>() {
 					@Override
-					public void update(int index, ManageMeasureSearchModel.Result object, String value) {
+					public void update(int index, ManageMeasureSearchModel.Result object, SafeHtml value) {
 						if(object.isClonable())
 							observer.onCloneClicked(object);
 					}
@@ -393,11 +391,63 @@ public class MeasureSearchView  implements HasSelectionHandlers<ManageMeasureSea
 				cssClass = "customEditButton";
 			}
 			sb.appendHtmlConstant("<button type=\"button\" title='"
-					+ title + "' tabindex=\"0\" class=\" " + cssClass + "\"></button>");
+					+ title + "' tabindex=\"0\" class=\" " + cssClass + "\">Edit</button>");
 		} else {
-			title = "ReadOnly";
+			title = "Read-Only";
 			cssClass = "customReadOnlyButton";
-			sb.appendHtmlConstant("<div title='" + title + "' class='" + cssClass + "'></div>");
+			sb.appendHtmlConstant("<button type=\"button\" title='"
+					+ title + "' tabindex=\"0\" class=\" " + cssClass + "\" disabled>Read-Only</button>");
+		}
+		
+		return sb.toSafeHtml();
+	}
+	
+	/**
+	 * Gets the history column tool tip.
+	 *
+	 * @param object the object
+	 * @return the history column tool tip
+	 */
+	private SafeHtml getShareColumnToolTip(Result object){
+		SafeHtmlBuilder sb = new SafeHtmlBuilder();
+		String title;
+		String cssClass;
+		if (object.isSharable()) {
+			title = "Shareable";
+			cssClass = "customShareButton";
+			sb.appendHtmlConstant("<button type=\"button\" title='"
+				+ title + "' tabindex=\"0\" class=\" " + cssClass + "\">Shareable</button>");
+		} else {
+			title = "Shareable";
+			cssClass = "customGrayedShareButton";
+			sb.appendHtmlConstant("<button type=\"button\" title='"
+					+ title + "' tabindex=\"0\" class=\" " + cssClass + "\" disabled>Shareable</button>");
+		}
+		
+		return sb.toSafeHtml();
+	}
+
+	/**
+	 * Gets the history column tool tip.
+	 *
+	 * @param object the object
+	 * @return the history column tool tip
+	 */
+	private SafeHtml getCloneColumnToolTip(Result object){
+		SafeHtmlBuilder sb = new SafeHtmlBuilder();
+		String title;
+		String cssClass;
+		
+		if (object.isClonable()) {
+			title = "Clonable";
+			cssClass = "customCloneButton"; 
+			sb.appendHtmlConstant("<button type=\"button\" title='"
+				+ title + "' tabindex=\"0\" class=\" " + cssClass + "\">Clonable</button>");
+		} else {
+			title = "Clonable";
+			cssClass = "customGrayedCloneButton";
+			sb.appendHtmlConstant("<button type=\"button\" title='"
+					+ title + "' tabindex=\"0\" class=\" " + cssClass + "\" disabled>Clonable</button>");
 		}
 		
 		return sb.toSafeHtml();
@@ -496,18 +546,23 @@ public class MeasureSearchView  implements HasSelectionHandlers<ManageMeasureSea
 				SafeHtmlBuilder sb = new SafeHtmlBuilder();
 				String title = "";
 				String cssClass = "";
-				
-				if(object.isHQMFR1()){
-					
-					cssClass = "customExportButton";
-					title = "Click to Export MAT v3";
-					sb.appendHtmlConstant("<button type=\"button\" title='" + title 
-							+ "' tabindex=\"0\" class=\" " + cssClass + "\"/>");		
-				} else {
-					cssClass = "customExportButtonRed";
-					title = "Click to Export MAT v4";
-					sb.appendHtmlConstant("<button  type=\"button\" title='" + title 
-							+ "' tabindex=\"0\" class=\" " + cssClass + "\"></button>");	
+				if((object != null) && (object.getHqmfReleaseVersion() != null)) {
+					if(object.getHqmfReleaseVersion().equalsIgnoreCase("v3")){
+						cssClass = "customExportButton";
+						title = "Click to Export MAT v3";
+						sb.appendHtmlConstant("<button type=\"button\" title='" + title 
+								+ "' tabindex=\"0\" class=\" " + cssClass + "\"/>");		
+					} else if(object.getHqmfReleaseVersion().equalsIgnoreCase("v4")){
+						cssClass = "customExportButtonRed";
+						title = "Click to Export MAT v4";
+						sb.appendHtmlConstant("<button  type=\"button\" title='" + title 
+								+ "' tabindex=\"0\" class=\" " + cssClass + "\"></button>");	
+					} else if(object.getHqmfReleaseVersion().equalsIgnoreCase("v4.3")) {
+							cssClass = "customExportButtonRed";
+							title = "Click to Export MAT v4.3";
+							sb.appendHtmlConstant("<button  type=\"button\" title='" + title 
+									+ "' tabindex=\"0\" class=\" " + cssClass + "\"></button>");	
+					}
 				}
 				return sb.toSafeHtml();
 			}

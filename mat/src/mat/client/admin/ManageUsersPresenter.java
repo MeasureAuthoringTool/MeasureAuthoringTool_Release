@@ -10,6 +10,7 @@ import mat.client.MatPresenter;
 import mat.client.admin.ManageOrganizationSearchModel.Result;
 import mat.client.admin.service.SaveUpdateUserResult;
 import mat.client.shared.ErrorMessageDisplayInterface;
+import mat.client.shared.InformationMessageDisplayInterface;
 import mat.client.shared.ListBoxMVP;
 import mat.client.shared.MatContext;
 import mat.client.shared.SuccessMessageDisplayInterface;
@@ -18,7 +19,6 @@ import mat.client.shared.search.SearchResults;
 import mat.client.util.ClientConstants;
 import mat.shared.AdminManageUserModelValidator;
 import mat.shared.InCorrectUserRoleException;
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.HasClickHandlers;
@@ -29,7 +29,6 @@ import com.google.gwt.event.logical.shared.HasSelectionHandlers;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.user.client.Timer;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlowPanel;
@@ -61,7 +60,7 @@ public class ManageUsersPresenter implements MatPresenter {
 		 * 
 		 * @return the generate csv file button
 		 */
-		Button getGenerateCSVFileButton();
+		/*Button getGenerateCSVFileButton();*/
 		
 		/**
 		 * Gets the select id for edit tool.
@@ -300,6 +299,10 @@ public class ManageUsersPresenter implements MatPresenter {
 		 *            the new title
 		 */
 		void setTitle(String title);
+		
+		//Label getExpLabel();
+		
+		InformationMessageDisplayInterface getInformationMessageDisplay();
 	}
 	
 	/** The panel. */
@@ -333,6 +336,7 @@ public class ManageUsersPresenter implements MatPresenter {
 		detailDisplay = dDisplayArg;
 		displaySearch();
 		
+		
 		searchDisplay.getSelectIdForEditTool().addSelectionHandler(new SelectionHandler<ManageUsersSearchModel.Result>() {
 			@Override
 			public void onSelection(SelectionEvent<ManageUsersSearchModel.Result> event) {
@@ -346,30 +350,6 @@ public class ManageUsersPresenter implements MatPresenter {
 				createNew();
 			}
 		});
-		
-		searchDisplay.getGenerateCSVFileButton().addClickHandler(new ClickHandler() {
-			@Override
-			public void onClick(ClickEvent event) {
-				generateCSVOfActiveUserEmails();
-			}
-		});
-		
-		/*searchDisplay.getPageSelectionTool().addPageSelectionHandler(new PageSelectionEventHandler() {
-			@Override
-			public void onPageSelection(PageSelectionEvent event) {
-				startIndex = searchDisplay.getPageSize() * (event.getPageNumber() - 1) + 1;
-				search(lastSearchKey, startIndex, searchDisplay.getPageSize());
-			}
-		});
-
-		searchDisplay.getPageSizeSelectionTool().addPageSizeSelectionHandler(new PageSizeSelectionEventHandler() {
-			@Override
-			public void onPageSizeSelection(PageSizeSelectionEvent event) {
-				searchDisplay.getSearchString().setValue("");
-				search("", startIndex, searchDisplay.getPageSize());
-			}
-		});*/
-		
 		TextBox searchWidget = (TextBox) (searchDisplay.getSearchString());
 		searchWidget.addKeyUpHandler(new KeyUpHandler() {
 			@Override
@@ -416,28 +396,6 @@ public class ManageUsersPresenter implements MatPresenter {
 				});
 			}
 		});
-		/*
-		detailDisplay.getDeleteUserButton().addClickHandler(new ClickHandler() {
-			@Override
-			public void onClick(ClickEvent event) {
-				MatContext.get().getAdminService().deleteUser(currentDetails.getUserID(),
-						new AsyncCallback<Void>() {
-
-							@Override
-							public void onFailure(Throwable caught) {
-								detailDisplay.getErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getGenericErrorMessage());
-								MatContext.get().recordTransactionEvent(null, null, null, "Unhandled Exception: "+caught.getLocalizedMessage(), 0);
-							}
-
-							@Override
-							public void onSuccess(Void result) {
-								displaySearch();
-							}
-				});
-			}
-		});
-		 */
-		
 		searchDisplay.getSearchButton().addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
@@ -508,6 +466,13 @@ public class ManageUsersPresenter implements MatPresenter {
 						//displaySearch();
 						detailDisplay.getSuccessMessageDisplay().setMessage(MatContext.get()
 								.getMessageDelegate().getUSER_SUCCESS_MESSAGE());
+						detailDisplay.getFirstName().setValue(currentDetails.getFirstName());
+						detailDisplay.getLastName().setValue(currentDetails.getLastName());
+						detailDisplay.getTitle().setValue(currentDetails.getTitle());
+						detailDisplay.getMiddleInitial().setValue(currentDetails.getMiddleInitial());
+						detailDisplay.getEmailAddress().setValue(currentDetails.getEmailAddress());
+						detailDisplay.getPhoneNumber().setValue(currentDetails.getPhoneNumber());
+						detailDisplay.getOid().setValue(currentDetails.getOid());
 					} else {
 						List<String> messages = new ArrayList<String>();
 						switch(result.getFailureReason()) {
@@ -547,6 +512,7 @@ public class ManageUsersPresenter implements MatPresenter {
 	 */
 	private void createNew() {
 		detailDisplay.setTitle("Add a User");
+		detailDisplay.getInformationMessageDisplay().clear();
 		currentDetails = new ManageUsersDetailModel();
 		displayDetail();
 	}
@@ -554,10 +520,10 @@ public class ManageUsersPresenter implements MatPresenter {
 	/**
 	 * Generate csv of active user emails.
 	 */
-	private void generateCSVOfActiveUserEmails() {
+	/*private void generateCSVOfActiveUserEmails() {
 		String url = GWT.getModuleBaseURL() + "export?format=exportActiveNonAdminUsersCSV";
 		Window.open(url + "&type=save", "_self", "");
-	}
+	}*/
 	
 	/**
 	 * Edits the.
@@ -698,11 +664,17 @@ public class ManageUsersPresenter implements MatPresenter {
 		detailDisplay.getFirstName().setValue(currentDetails.getFirstName());
 		detailDisplay.getLastName().setValue(currentDetails.getLastName());
 		detailDisplay.getMiddleInitial().setValue(currentDetails.getMiddleInitial());
-		detailDisplay.getLoginId().setText(currentDetails.getLoginId());
+		//detailDisplay.getLoginId().setText(currentDetails.getLoginId());
 		detailDisplay.getTitle().setValue(currentDetails.getTitle());
 		detailDisplay.getEmailAddress().setValue(currentDetails.getEmailAddress());
 		detailDisplay.getPhoneNumber().setValue(currentDetails.getPhoneNumber());
+		List<String> messages = new ArrayList<String>();
+		messages.add("User ID : "+currentDetails.getLoginId());
+		messages.add(currentDetails.getPasswordExpirationMsg());
 		
+		if(currentDetails.getLoginId() != null){
+			detailDisplay.getInformationMessageDisplay().setMessages(messages);
+		}
 		detailDisplay.getIsActive().setValue(currentDetails.isActive());
 		if (!currentDetails.isActive()) {
 			detailDisplay.getIsRevoked().setValue(true);
@@ -736,6 +708,7 @@ public class ManageUsersPresenter implements MatPresenter {
 		//detailDisplay.getRootOid().setValue(currentDetails.getRootOid());
 	}
 	
+	
 	/**
 	 * Update user details from view.
 	 */
@@ -759,6 +732,7 @@ public class ManageUsersPresenter implements MatPresenter {
 		} else {
 			currentDetails.setOrganization("");
 		}
+		currentDetails.scrubForMarkUp();
 	}
 	
 	/**

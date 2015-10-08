@@ -4,22 +4,26 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+
 import mat.dao.search.GenericDAO;
 import mat.model.Organization;
 import mat.model.SecurityQuestions;
 import mat.model.User;
 import mat.server.model.MatUserDetails;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.security.core.userdetails.UserDetails;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class UserDAO.
  */
@@ -107,9 +111,11 @@ mat.dao.UserDAO {
 	private Criteria createSearchCriteria(String text) {
 		Session session = getSessionFactory().getCurrentSession();
 		Criteria criteria = session.createCriteria(User.class);
-		criteria.add(Restrictions.or(
-				Restrictions.ilike("firstName", "%" + text + "%"),
-				Restrictions.ilike("lastName", "%" + text + "%")));
+		Criterion nameRestriction = Restrictions.or(Restrictions.ilike("firstName", "%" + text + "%"),
+				Restrictions.ilike("lastName", "%" + text + "%"));
+		Criterion idResticition = Restrictions.or(Restrictions.ilike("emailAddress", "%" + text + "%"),
+				Restrictions.ilike("loginId", "%" + text + "%"));
+		criteria.add(Restrictions.or(nameRestriction, idResticition));
 		criteria.add(Restrictions.ne("id", "Admin"));
 		return criteria;
 	}
@@ -125,9 +131,11 @@ mat.dao.UserDAO {
 		
 		Session session = getSessionFactory().getCurrentSession();
 		Criteria criteria = session.createCriteria(User.class);
-		criteria.add(Restrictions.or(
-				Restrictions.ilike("firstName", "%" + text + "%"),
-				Restrictions.ilike("lastName", "%" + text + "%")));
+		Criterion nameRestriction = Restrictions.or(Restrictions.ilike("firstName", "%" + text + "%"),
+				Restrictions.ilike("lastName", "%" + text + "%"));
+		Criterion idResticition = Restrictions.or(Restrictions.ilike("emailAddress", "%" + text + "%"),
+				Restrictions.ilike("loginId", "%" + text + "%"));
+		criteria.add(Restrictions.or(nameRestriction, idResticition));
 		criteria.add(Restrictions.ne("securityRole.id", "1"));
 		criteria.add(Restrictions.ne("status.id", "2"));
 		return criteria;
@@ -147,6 +155,10 @@ mat.dao.UserDAO {
 		}*/
 		return criteria.list();
 	}
+	
+	/* (non-Javadoc)
+	 * @see mat.dao.UserDAO#searchAllUsedOrganizations()
+	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	public
@@ -397,6 +409,9 @@ mat.dao.UserDAO {
 		return list.get(0);
 	}
 	
+	/* (non-Javadoc)
+	 * @see mat.dao.UserDAO#searchForNonTerminatedUser()
+	 */
 	@Override
 	public List<User> searchForNonTerminatedUser() {
 		Session session = getSessionFactory().getCurrentSession();
@@ -405,5 +420,6 @@ mat.dao.UserDAO {
 		criteria.addOrder(Order.asc("lastName"));
 		return criteria.list();
 	}
-	
+
+
 }

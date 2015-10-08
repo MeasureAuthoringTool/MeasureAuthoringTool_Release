@@ -3,11 +3,10 @@ package mat.client.measure.service;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-
 import mat.DTO.MeasureNoteDTO;
+import mat.client.clause.clauseworkspace.model.MeasureDetailResult;
 import mat.client.clause.clauseworkspace.model.MeasureXmlModel;
 import mat.client.clause.clauseworkspace.model.SortedClauseMapResult;
-import mat.client.clause.clauseworkspace.model.MeasureDetailResult;
 import mat.client.measure.ManageMeasureDetailModel;
 import mat.client.measure.ManageMeasureSearchModel;
 import mat.client.measure.ManageMeasureShareModel;
@@ -17,9 +16,9 @@ import mat.client.shared.MatException;
 import mat.model.MatValueSet;
 import mat.model.MeasureType;
 import mat.model.Organization;
+import mat.model.QualityDataModelWrapper;
 import mat.model.QualityDataSetDTO;
 import mat.model.RecentMSRActivityLog;
-
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
@@ -59,7 +58,7 @@ public interface MeasureService extends RemoteService {
 	 *            the measure id
 	 */
 	void createAndSaveElementLookUp(List<QualityDataSetDTO> list,
-			String measureID);
+			String measureID, String expProfileToAllQDM);
 	
 	/**
 	 * Delete measure notes.
@@ -102,7 +101,10 @@ public interface MeasureService extends RemoteService {
 	 *            the check for supplement data
 	 * @return the applied qdm from measure xml
 	 */
-	List<QualityDataSetDTO> getAppliedQDMFromMeasureXml(String measureId,
+	//	List<QualityDataSetDTO> getAppliedQDMFromMeasureXml(String measureId,
+	//			boolean checkForSupplementData);
+	
+	QualityDataModelWrapper getAppliedQDMFromMeasureXml(String measureId,
 			boolean checkForSupplementData);
 	
 	/**
@@ -238,8 +240,8 @@ public interface MeasureService extends RemoteService {
 	 * @param string2
 	 *            the string2
 	 */
-	void saveMeasureNote(String noteTitle, String noteDescription,
-			String string, String string2);
+	SaveMeasureNotesResult saveMeasureNote(MeasureNoteDTO model,
+			String measureId, String userId);
 	
 	/**
 	 * Save measure xml.
@@ -419,7 +421,7 @@ public interface MeasureService extends RemoteService {
 	 * @param model the model
 	 * @return true, if successful
 	 */
-	boolean validatePackageGrouping(ManageMeasureDetailModel model);
+	ValidateMeasureResult validatePackageGrouping(ManageMeasureDetailModel model);
 	
 	/**
 	 * Validate measure xmlinpopulation workspace.
@@ -427,7 +429,7 @@ public interface MeasureService extends RemoteService {
 	 * @param measureXmlModel the measure xml model
 	 * @return true, if successful
 	 */
-	boolean validateMeasureXmlinpopulationWorkspace(
+	ValidateMeasureResult validateMeasureXmlinpopulationWorkspace(
 			MeasureXmlModel measureXmlModel);
 	
 	/**
@@ -488,7 +490,7 @@ public interface MeasureService extends RemoteService {
 	 * @return the sorted clause map
 	 */
 	LinkedHashMap<String, String> getSortedClauseMap(String measureId);
-
+	
 	/**
 	 * Gets the measure xml for measure and sorted sub tree map.
 	 *
@@ -497,9 +499,17 @@ public interface MeasureService extends RemoteService {
 	 */
 	SortedClauseMapResult getMeasureXmlForMeasureAndSortedSubTreeMap(
 			String currentMeasureId);
-
+	
 	MeasureDetailResult getUsedStewardAndDevelopersList(String measureId);
-
+	
 	void updateMeasureXmlForDeletedComponentMeasureAndOrg(String id);
+	
+	void updateMeasureXMLForExpansionIdentifier(List<QualityDataSetDTO> modifyWithDTO, String measureId, String expansionProfile);
+	/**
+	 * Method to Get Default 4 Supplemental Data Elements for give Measure.
+	 * @param measureId
+	 * @return QualityDataModelWrapper
+	 */
+	QualityDataModelWrapper getDefaultSDEFromMeasureXml(String measureId);
 	
 }

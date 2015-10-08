@@ -553,6 +553,7 @@ public class MeasurePackagePresenter implements MatPresenter {
 					validatePackageGrouping();
 				}else {
 					Mat.hideLoadingMessage();
+					view.getInProgressMessageDisplay().clear();
 					view.getMeasureErrorMessageDisplay()
 					.setMessages(result.getValidationMessages());
 					((Button) view.getPackageMeasureButton()).setEnabled(true);
@@ -1054,7 +1055,7 @@ public class MeasurePackagePresenter implements MatPresenter {
 	 */
 	private void validatePackageGrouping(){
 		
-		MatContext.get().getMeasureService().validatePackageGrouping(model, new AsyncCallback<Boolean>(){
+		MatContext.get().getMeasureService().validatePackageGrouping(model, new AsyncCallback<ValidateMeasureResult>(){
 			
 			@Override
 			public void onFailure(Throwable caught) {
@@ -1065,14 +1066,15 @@ public class MeasurePackagePresenter implements MatPresenter {
 			}
 			
 			@Override
-			public void onSuccess(Boolean result) {
-				if (!result) {
+			public void onSuccess(ValidateMeasureResult result) {
+				if (result.isValid()) {
 					saveMeasureAtPackage();
 					
 				} else {
 					Mat.hideLoadingMessage();
-					view.getMeasurePackageWarningMsg().
-					setMessage("Unable to create measure package. Please validate your measure logic in both Population Workspace and Clause Workspace.");
+					if (result.getValidationMessages() != null) {
+						view.getMeasurePackageWarningMsg().setMessages(result.getValidationMessages());
+					}
 					view.getInProgressMessageDisplay().clear();
 					((Button) view.getPackageMeasureButton()).setEnabled(true);
 					((Button) view.getPackageMeasureAndExportButton()).setEnabled(true);
@@ -1214,7 +1216,7 @@ public class MeasurePackagePresenter implements MatPresenter {
 				Mat.hideLoadingMessage();
 				if (updateVsacResult != null) {
 					if (result.isValid() && updateVsacResult.isSuccess()) {
-						if(updateVsacResult.getRetrievalFailedOIDs().size() > 0){
+						if (updateVsacResult.getRetrievalFailedOIDs().size() > 0) {
 							if (isMeasurePackageExportSuccess) {
 								((Button) view.getPackageMeasureButton()).setEnabled(true);
 								saveExport();

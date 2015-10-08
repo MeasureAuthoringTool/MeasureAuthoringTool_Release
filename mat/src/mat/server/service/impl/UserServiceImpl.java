@@ -14,6 +14,7 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import mat.client.admin.ManageUsersDetailModel;
 import mat.client.admin.service.SaveUpdateUserResult;
 import mat.client.login.service.SecurityQuestionOptions;
@@ -24,12 +25,14 @@ import mat.dao.SecurityRoleDAO;
 import mat.dao.StatusDAO;
 import mat.dao.TransactionAuditLogDAO;
 import mat.dao.UserDAO;
+import mat.dao.UserPasswordHistoryDAO;
 import mat.model.Organization;
 import mat.model.SecurityRole;
 import mat.model.Status;
 import mat.model.TransactionAuditLog;
 import mat.model.User;
 import mat.model.UserPassword;
+import mat.model.UserPasswordHistory;
 import mat.model.UserSecurityQuestion;
 import mat.server.service.CodeListService;
 import mat.server.service.UserIDNotUnique;
@@ -40,6 +43,7 @@ import mat.shared.ConstantMessages;
 import mat.shared.ForgottenLoginIDResult;
 import mat.shared.ForgottenPasswordResult;
 import mat.shared.PasswordVerifier;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.ObjectNotFoundException;
@@ -48,6 +52,7 @@ import org.springframework.mail.MailException;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class UserServiceImpl.
  */
@@ -118,6 +123,14 @@ public class UserServiceImpl implements UserService {
 	/** The user guide url. */
 	private String userGuideUrl;
 	
+	/** The pawd history size. */
+	private final int PASSWORD_HISTORY_SIZE = 5;
+	
+	/** The user password history dao. */
+	@Autowired
+	private UserPasswordHistoryDAO userPasswordHistoryDAO; 
+	
+	
 	/* (non-Javadoc)
 	 * @see mat.server.service.UserService#generateRandomPassword()
 	 */
@@ -159,6 +172,11 @@ public class UserServiceImpl implements UserService {
 		if(user.getPassword() == null) {
 			UserPassword pwd = new UserPassword();
 			user.setPassword(pwd);
+		}
+		
+		//to maintain user password History
+		if(user.getPassword()!=null) {
+			addByUpdateUserPasswordHistory(user,false);
 		}
 		setUserPassword(user, newPassword, true);
 		userDAO.save(user);
@@ -232,8 +250,7 @@ public class UserServiceImpl implements UserService {
 		user.setLockedOutDate(null);
 		user.getPassword().setForgotPwdlockCounter(0);
 		user.getPassword().setPasswordlockCounter(0);
-	}
-	
+	}	
 	
 	
 	/* (non-Javadoc)
@@ -256,38 +273,22 @@ public class UserServiceImpl implements UserService {
 		}
 		
 		if(user == null) {
-			invalidUserCounter += 1;
-			if(invalidUserCounter == 1){
-				result.setFailureReason(ForgottenPasswordResult.SECURITY_QUESTION_MISMATCH);
-			}else if(invalidUserCounter == 2){
-				result.setFailureReason(ForgottenPasswordResult.SECURITY_QUESTIONS_LOCKED_SECOND_ATTEMPT);
-			}else if(invalidUserCounter == 3){
-				result.setFailureReason(ForgottenPasswordResult.SECURITY_QUESTIONS_LOCKED);
-			}
-			result.setCounter(invalidUserCounter);
-			//			result.setFailureReason(ForgottenPasswordResult.USER_NOT_FOUND);
+			result.setFailureReason(ForgottenPasswordResult.SECURITY_QUESTION_MISMATCH);
 		}
 		else if(user.getSecurityQuestions().size() != 3) {
 			result.setFailureReason(ForgottenPasswordResult.SECURITY_QUESTIONS_NOT_SET);
-			result.setCounter(user.getPassword().getForgotPwdlockCounter());
 		}
 		else if(user.getLockedOutDate() != null) {
-			result.setFailureReason(ForgottenPasswordResult.SECURITY_QUESTIONS_LOCKED);
-			result.setCounter(user.getPassword().getForgotPwdlockCounter());
+			result.setFailureReason(ForgottenPasswordResult.SECURITY_QUESTION_MISMATCH);
 		}
 		else if(!securityQuestionMatch(user, securityQuestion, securityAnswer)) {
 			result.setFailureReason(ForgottenPasswordResult.SECURITY_QUESTION_MISMATCH);
 			int lockCounter = user.getPassword().getForgotPwdlockCounter() + 1;
-			if(lockCounter == 2) {
-				result.setFailureReason(ForgottenPasswordResult.SECURITY_QUESTIONS_LOCKED_SECOND_ATTEMPT);
-			}
 			if(lockCounter == 3) {
-				result.setFailureReason(ForgottenPasswordResult.SECURITY_QUESTIONS_LOCKED);
 				user.setLockedOutDate(new Date());
 				notifyUserOfAccountLocked(user);
 			}
 			user.getPassword().setForgotPwdlockCounter(lockCounter);
-			result.setCounter(user.getPassword().getForgotPwdlockCounter());
 			userDAO.save(user);
 		}
 		else {
@@ -301,44 +302,21 @@ public class UserServiceImpl implements UserService {
 			if(isAlreadySignedIn){
 				result.setFailureReason(ForgottenPasswordResult.USER_ALREADY_LOGGED_IN);
 			}else{
+				
+				//to maitain passwordHistory
+				addByUpdateUserPasswordHistory(user,false);
 				String newPassword = generateRandomPassword();
 				setUserPassword(user, newPassword, true);
 				result.setEmailSent(true);
 				sendResetPassword(user.getEmailAddress(), newPassword);
 				user.setLockedOutDate(null);
 				user.getPassword().setForgotPwdlockCounter(0);
-				result.setCounter(0);
 				userDAO.save(user);
 			}
 		}
 		return result;
 	}
 	
-	/**
-	 * Send account locked mail.
-	 * 
-	 * @param email
-	 *            the email
-	 */
-	private void sendAccountLockedMail(String email) {
-		logger.info("In sendAccountLockedMail(String email).......");
-		SimpleMailMessage msg = new SimpleMailMessage(templateMessage);
-		msg.setSubject(ServerConstants.TEMP_PWD_SUBJECT);
-		msg.setTo(email);
-		//US 440. Re-factored to use template based framework
-		//		HashMap<String, Object> paramsMap = new HashMap<String, Object>();
-		//		paramsMap.put(ConstantMessages.PASSWORD, newPassword);
-		//		String text = templateUtil.mergeTemplate(ConstantMessages.TEMPLATE_RESET_PASSWORD, paramsMap);
-		msg.setText("hello");
-		//		System.out.println("newPassword ==============="+newPassword);
-		logger.info("Sending email to " + email);
-		try {
-			mailSender.send(msg);
-		}
-		catch(MailException exc) {
-			logger.error(exc);
-		}
-	}
 	
 	/* (non-Javadoc)
 	 * @see mat.server.service.UserService#requestForgottenLoginID(java.lang.String)
@@ -464,6 +442,9 @@ public class UserServiceImpl implements UserService {
 		return userDAO.searchForUsersByName(orgId);
 	}
 	
+	/* (non-Javadoc)
+	 * @see mat.server.service.UserService#searchForUsedOrganizations()
+	 */
 	@Override
 	public HashMap<String, Organization> searchForUsedOrganizations() {
 		return userDAO.searchAllUsedOrganizations();
@@ -1035,9 +1016,41 @@ public class UserServiceImpl implements UserService {
 		return false;
 	}
 	
+	/* (non-Javadoc)
+	 * @see mat.server.service.UserService#searchForNonTerminatedUsers()
+	 */
 	@Override
 	public List<User> searchForNonTerminatedUsers() {
 		return userDAO.searchForNonTerminatedUser();
+	}
+	
+	
+	/**
+	 *  temporary and initial sign in password should not be stored in password History
+	 *  isValidPwd boolean is set for special case where current valid password becomes temporary 
+	 *  password when it exceeds 60 days limit and it Should be added to password history.
+	 * *
+	 *
+	 * @param user the user
+	 * @param isValidPwd the is valid pwd
+	 */
+	@Override
+	public void addByUpdateUserPasswordHistory(User user, boolean isValidPwd){
+		List<UserPasswordHistory> pwdHistoryList = userPasswordHistoryDAO.getPasswordHistory(user.getId());
+		if(isValidPwd || !(user.getPassword().isInitial() 
+				|| user.getPassword().isTemporaryPassword())) {
+			UserPasswordHistory passwordHistory = new UserPasswordHistory();
+			passwordHistory.setUser(user);
+			passwordHistory.setPassword(user.getPassword().getPassword());
+			passwordHistory.setSalt(user.getPassword().getSalt());
+			passwordHistory.setCreatedDate(user.getPassword().getCreatedDate());
+			if(pwdHistoryList.size()<PASSWORD_HISTORY_SIZE){
+				user.getPasswordHistory().add(passwordHistory);
+			} else {
+			   userPasswordHistoryDAO.addByUpdateUserPasswordHistory(user);
+			}
+		}
+		
 	}
 	
 }

@@ -1,7 +1,9 @@
 package mat.client.measure;
 
+import java.util.ArrayList;
 import java.util.List;
 import mat.model.Author;
+import mat.model.BaseModel;
 import mat.model.MeasureSteward;
 import mat.model.MeasureType;
 import mat.model.QualityDataSetDTO;
@@ -12,7 +14,7 @@ import com.google.gwt.user.client.rpc.IsSerializable;
 /**
  * The Class ManageMeasureDetailModel.
  */
-public class ManageMeasureDetailModel implements IsSerializable {
+public class ManageMeasureDetailModel implements IsSerializable , BaseModel{
 	
 	/** The id. */
 	private String id;
@@ -223,7 +225,7 @@ public class ManageMeasureDetailModel implements IsSerializable {
 	public boolean isCalenderYear() {
 		return isCalenderYear;
 	}
-
+	
 	/**
 	 * Sets the calender year.
 	 *
@@ -232,7 +234,7 @@ public class ManageMeasureDetailModel implements IsSerializable {
 	public void setCalenderYear(boolean isCalenderYear) {
 		this.isCalenderYear = isCalenderYear;
 	}
-
+	
 	/**
 	 * Checks if is deleted.
 	 * 
@@ -504,7 +506,7 @@ public class ManageMeasureDetailModel implements IsSerializable {
 	/*public String getMeasSteward() {
 		return measSteward;
 	}
-	*/
+	 */
 	/**
 	 * Sets the meas steward.
 	 * 
@@ -1151,7 +1153,7 @@ public class ManageMeasureDetailModel implements IsSerializable {
 		result = (prime * result)
 				+ ((stewardValue == null) ? 0 : stewardValue.hashCode());
 		/*result = (prime
-				* result)
+		 * result)
 				+ ((measStewardOther == null) ? 0 : measStewardOther.hashCode());*/
 		result = (prime * result)
 				+ ((measToPeriod == null) ? 0 : measToPeriod.hashCode());
@@ -1438,13 +1440,13 @@ public class ManageMeasureDetailModel implements IsSerializable {
 			return false;
 		}
 		
-//		if (trimToNull(name) == null) {
-//			if (trimToNull(other.name) != null) {
-//				return false;
-//			}
-//		} else if (!trimToNull(name).equals(trimToNull(other.name))) {
-//			return false;
-//		}
+		//		if (trimToNull(name) == null) {
+		//			if (trimToNull(other.name) != null) {
+		//				return false;
+		//			}
+		//		} else if (!trimToNull(name).equals(trimToNull(other.name))) {
+		//			return false;
+		//		}
 		if (trimToNull(nqfId) == null) {
 			if (trimToNull(other.nqfId) != null) {
 				return false;
@@ -1560,7 +1562,7 @@ public class ManageMeasureDetailModel implements IsSerializable {
 					}
 				}
 				return checkIfEqual;
-
+				
 			} else if (listA.get(i) instanceof MeasureType) {
 				for (int j = 0; j < listA.size(); j++) {
 					MeasureType measureType = (MeasureType) listA.get(j);
@@ -1859,7 +1861,7 @@ public class ManageMeasureDetailModel implements IsSerializable {
 				+ ", measureId=" + measureId + ", groupName=" + groupName
 				+ ", groupId=" + groupId + ", finalizedDate=" + finalizedDate
 				+ ", measFromPeriod=" + measFromPeriod + ", measToPeriod="
-				+ measToPeriod +", isCalenderYear= "+ isCalenderYear  
+				+ measToPeriod +", isCalenderYear= "+ isCalenderYear
 				+ ", measScoring=" + measScoring
 				+ ", stewardValue=" + stewardValue + ", endorseByNQF="
 				+ endorseByNQF + ", nqfId=" + nqfId + ", description="
@@ -2049,7 +2051,7 @@ public class ManageMeasureDetailModel implements IsSerializable {
 	public void setStewardSelectedList(List<MeasureSteward> steSelectedList) {
 		stewardSelectedList =steSelectedList;
 	}
-
+	
 	/**
 	 * Gets the steward value.
 	 *
@@ -2058,7 +2060,7 @@ public class ManageMeasureDetailModel implements IsSerializable {
 	public String getStewardValue() {
 		return stewardValue;
 	}
-
+	
 	/**
 	 * Sets the steward value.
 	 *
@@ -2066,6 +2068,208 @@ public class ManageMeasureDetailModel implements IsSerializable {
 	 */
 	public void setStewardValue(String stewardValue) {
 		this.stewardValue = stewardValue;
+	}
+	
+	@Override
+	public void scrubForMarkUp() {
+		String markupRegExp = "<[^>]+>";
+		if(this.getName() != null) {
+			String noMarkupText = this.getName().trim().replaceAll(markupRegExp, "");
+			System.out.println("measure name:"+noMarkupText);
+			if(this.getName().trim().length() > noMarkupText.length()){
+				this.setName(noMarkupText);
+			}
+		}
+		if(this.getShortName() != null) {
+			String noMarkupText = this.getShortName().trim().replaceAll(markupRegExp, "");
+			System.out.println("measure short-name:"+noMarkupText);
+			if(this.getShortName().trim().length() > noMarkupText.length()){
+				this.setShortName(noMarkupText);
+			}
+		}
+		if(this.getNqfId() != null) {
+			String noMarkupText = this.getNqfId().trim().replaceAll(markupRegExp, "");
+			System.out.println("measure nqfid:"+noMarkupText);
+			if(this.getNqfId().trim().length() > noMarkupText.length()){
+				this.setNqfId(noMarkupText);
+			}
+		}
+		if(this.getDescription() != null) {
+			String noMarkupText = this.getDescription().trim().replaceAll(markupRegExp, "");
+			System.out.println("measure Description:"+noMarkupText);
+			if(this.getDescription().trim().length() > noMarkupText.length()){
+				this.setDescription(noMarkupText);
+			}
+		}
+		if(this.getCopyright() != null) {
+			String noMarkupText = this.getCopyright().trim().replaceAll(markupRegExp, "");
+			System.out.println("measure CopyRight:"+noMarkupText);
+			if(this.getCopyright().trim().length() > noMarkupText.length()){
+				this.setCopyright(noMarkupText);
+			}
+		}
+		if(this.getDisclaimer() != null) {
+			String noMarkupText = this.getDisclaimer().trim().replaceAll(markupRegExp, "");
+			System.out.println("measure Disclaimer:"+noMarkupText);
+			if(this.getDisclaimer().trim().length() > noMarkupText.length()){
+				this.setDisclaimer(noMarkupText);
+			}
+		}
+		if(this.getRiskAdjustment() != null) {
+			String noMarkupText = this.getRiskAdjustment().trim().replaceAll(markupRegExp, "");
+			System.out.println("measure RiskAdjustment:"+noMarkupText);
+			if(this.getRiskAdjustment().trim().length() > noMarkupText.length()){
+				this.setRiskAdjustment(noMarkupText);
+			}
+		}
+		if(this.getRateAggregation() != null) {
+			String noMarkupText = this.getRateAggregation().trim().replaceAll(markupRegExp, "");
+			System.out.println("measure Rate Aggregation:"+noMarkupText);
+			if(this.getRateAggregation().trim().length() > noMarkupText.length()){
+				this.setRateAggregation(noMarkupText);
+			}
+		}
+		if(this.getRationale() != null) {
+			String noMarkupText = this.getRationale().trim().replaceAll(markupRegExp, "");
+			System.out.println("measure Rationale:"+noMarkupText);
+			if(this.getRationale().trim().length() > noMarkupText.length()){
+				this.setRationale(noMarkupText);
+			}
+		}
+		if(this.getClinicalRecomms() != null) {
+			String noMarkupText = this.getClinicalRecomms().trim().replaceAll(markupRegExp, "");
+			System.out.println("measure ClinicalRecomms:"+noMarkupText);
+			if(this.getClinicalRecomms().trim().length() > noMarkupText.length()){
+				this.setClinicalRecomms(noMarkupText);
+			}
+		}
+		if(this.getImprovNotations() != null) {
+			String noMarkupText = this.getImprovNotations().trim().replaceAll(markupRegExp, "");
+			System.out.println("measure ImprovNotations:"+noMarkupText);
+			if(this.getImprovNotations().trim().length() > noMarkupText.length()){
+				this.setImprovNotations(noMarkupText);
+			}
+		}
+		if(this.getDefinitions() != null) {
+			String noMarkupText = this.getDefinitions().trim().replaceAll(markupRegExp, "");
+			System.out.println("measure Definitions:"+noMarkupText);
+			if(this.getDefinitions().trim().length() > noMarkupText.length()){
+				this.setDefinitions(noMarkupText);
+			}
+		}
+		if(this.getGuidance() != null) {
+			String noMarkupText = this.getGuidance().trim().replaceAll(markupRegExp, "");
+			System.out.println("measure Guidance:"+noMarkupText);
+			if(this.getGuidance().trim().length() > noMarkupText.length()){
+				this.setGuidance(noMarkupText);
+			}
+		}
+		if(this.getTransmissionFormat() != null) {
+			String noMarkupText = this.getTransmissionFormat().trim().replaceAll(markupRegExp, "");
+			System.out.println("measure TransmissionFormat:"+noMarkupText);
+			if(this.getTransmissionFormat().trim().length() > noMarkupText.length()){
+				this.setTransmissionFormat(noMarkupText);
+			}
+		}
+		if(this.getSupplementalData() != null) {
+			String noMarkupText = this.getSupplementalData().trim().replaceAll(markupRegExp, "");
+			System.out.println("measure SupplementalData:"+noMarkupText);
+			if(this.getSupplementalData().trim().length() > noMarkupText.length()){
+				this.setSupplementalData(noMarkupText);
+			}
+		}
+		if(this.getGroupName() != null) {
+			String noMarkupText = this.getGroupName().trim().replaceAll(markupRegExp, "");
+			System.out.println("measure Measure Set:"+noMarkupText);
+			if(this.getGroupName().trim().length() > noMarkupText.length()){
+				this.setGroupName(noMarkupText);
+			}
+		}
+		if(this.getStratification() != null) {
+			String noMarkupText = this.getStratification().trim().replaceAll(markupRegExp, "");
+			System.out.println("measure Stratification:"+noMarkupText);
+			if(this.getStratification().trim().length() > noMarkupText.length()){
+				this.setStratification(noMarkupText);
+			}
+		}
+		if(this.getInitialPop() != null) {
+			String noMarkupText = this.getInitialPop().trim().replaceAll(markupRegExp, "");
+			System.out.println("measure InitialPop:"+noMarkupText);
+			if(this.getInitialPop().trim().length() > noMarkupText.length()){
+				this.setInitialPop(noMarkupText);
+			}
+		}
+		if(this.getMeasurePopulation() != null) {
+			String noMarkupText = this.getMeasurePopulation().trim().replaceAll(markupRegExp, "");
+			System.out.println("measure Measure Population:"+noMarkupText);
+			if(this.getMeasurePopulation().trim().length() > noMarkupText.length()){
+				this.setMeasurePopulation(noMarkupText);
+			}
+		}
+		if(this.getMeasurePopulationExclusions() != null) {
+			String noMarkupText = this.getMeasurePopulationExclusions().trim().replaceAll(markupRegExp, "");
+			System.out.println("measure MeasurePopulationExclusions:"+noMarkupText);
+			if(this.getMeasurePopulationExclusions().trim().length() > noMarkupText.length()){
+				this.setMeasurePopulationExclusions(noMarkupText);
+			}
+		}
+		if(this.getMeasureObservations() != null) {
+			String noMarkupText = this.getMeasureObservations().trim().replaceAll(markupRegExp, "");
+			System.out.println("measure MeasureObservations:"+noMarkupText);
+			if(this.getMeasureObservations().trim().length() > noMarkupText.length()){
+				this.setMeasureObservations(noMarkupText);
+			}
+		}
+		if(this.getDenominator() != null) {
+			String noMarkupText = this.getDenominator().trim().replaceAll(markupRegExp, "");
+			System.out.println("measure Denominator:"+noMarkupText);
+			if(this.getDenominator().trim().length() > noMarkupText.length()){
+				this.setDenominator(noMarkupText);
+			}
+		}
+		if(this.getDenominatorExceptions() != null) {
+			String noMarkupText = this.getDenominatorExceptions().trim().replaceAll(markupRegExp, "");
+			System.out.println("measure Denominator Excep:"+noMarkupText);
+			if(this.getDenominatorExceptions().trim().length() > noMarkupText.length()){
+				this.setDenominatorExceptions(noMarkupText);
+			}
+		}
+		if(this.getDenominatorExclusions() != null) {
+			String noMarkupText = this.getDenominatorExclusions().trim().replaceAll(markupRegExp, "");
+			System.out.println("measure Denominator Exclu:"+noMarkupText);
+			if(this.getDenominatorExclusions().trim().length() > noMarkupText.length()){
+				this.setDenominatorExclusions(noMarkupText);
+			}
+		}
+		if(this.getNumerator() != null) {
+			String noMarkupText = this.getNumerator().trim().replaceAll(markupRegExp, "");
+			System.out.println("measure Numerator :"+noMarkupText);
+			if(this.getNumerator().trim().length() > noMarkupText.length()){
+				this.setNumerator(noMarkupText);
+			}
+		}
+		if(this.getNumeratorExclusions() != null) {
+			String noMarkupText = this.getNumeratorExclusions().trim().replaceAll(markupRegExp, "");
+			System.out.println("measure Numerator Exclu :"+noMarkupText);
+			if(this.getNumeratorExclusions().trim().length() > noMarkupText.length()){
+				this.setNumeratorExclusions(noMarkupText);
+			}
+		}
+		if(this.getReferencesList() != null) {
+			List<String> referenceList = new ArrayList<String>();
+			for(int i=0; i< this.getReferencesList().size(); i++ ){
+				String noMarkupText = this.getReferencesList().get(i).trim().replaceAll(markupRegExp, "");
+				System.out.println("measure Reference:"+i+ " index is :"+ noMarkupText);
+				if(this.getReferencesList().get(i).trim().length() > noMarkupText.length()){
+					referenceList.add(noMarkupText);
+				} else {
+					referenceList.add(this.getReferencesList().get(i));
+				}
+			}
+			this.getReferencesList().clear();
+			this.setReferencesList(referenceList);
+		}
+		
 	}
 	
 	/**

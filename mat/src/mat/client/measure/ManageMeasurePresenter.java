@@ -2,7 +2,6 @@ package mat.client.measure;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import mat.DTO.AuditLogDTO;
 import mat.DTO.SearchHistoryDTO;
 import mat.client.Mat;
@@ -28,6 +27,7 @@ import mat.client.shared.ErrorMessageDisplay;
 import mat.client.shared.ErrorMessageDisplayInterface;
 import mat.client.shared.FocusableWidget;
 import mat.client.shared.ListBoxMVP;
+import mat.client.shared.ManageMeasureModelValidator;
 import mat.client.shared.MatContext;
 import mat.client.shared.MeasureSearchFilterWidget;
 import mat.client.shared.MessageDelegate;
@@ -42,7 +42,6 @@ import mat.client.shared.search.SearchResultUpdate;
 import mat.client.shared.search.SearchResults;
 import mat.client.util.ClientConstants;
 import mat.shared.ConstantMessages;
-
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -77,7 +76,7 @@ import com.google.gwt.user.client.ui.Widget;
  */
 @SuppressWarnings("deprecation")
 public class ManageMeasurePresenter implements MatPresenter {
-		/**
+	/**
 	 * The Interface BaseDisplay.
 	 */
 	public static interface BaseDisplay {
@@ -311,7 +310,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 	 */
 	public static interface HistoryDisplay extends BaseDisplay {
 		
-	   /**
+		/**
 		 * Clear error message.
 		 */
 		public void clearErrorMessage();
@@ -329,7 +328,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 		 * @return the measure name
 		 */
 		public String getMeasureName();
-	
+		
 		/**
 		 * Gets the return to link.
 		 * 
@@ -366,7 +365,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 		 *
 		 * @param s the new return to link text
 		 */
-//		public void setPageSize(int pageNumber);
+		//		public void setPageSize(int pageNumber);
 		
 		/**
 		 * Sets the return to link text.
@@ -393,6 +392,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 		 * 
 		 * @return the widget
 		 */
+		@Override
 		public Widget asWidget();
 		
 		/**
@@ -421,6 +421,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 		 * 
 		 * @return the error message display
 		 */
+		@Override
 		public ErrorMessageDisplayInterface getErrorMessageDisplay();
 		
 		/**
@@ -450,7 +451,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 		 * @return the transfer button
 		 */
 		public HasClickHandlers getTransferButton();
-
+		
 		/**
 		 * Sets the admin observer.
 		 *
@@ -645,7 +646,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 		/** Gets the zoom button.
 		 * 
 		 * @return the zoom button */
-		CustomButton getZoomButton();		
+		CustomButton getZoomButton();
 	}
 	
 	/**
@@ -1152,6 +1153,8 @@ public class ManageMeasurePresenter implements MatPresenter {
 	private String buildExportURL() {
 		String url = GWT.getModuleBaseURL() + "export?id=" + currentExportId
 				+ "&format=";
+		System.out.println("URL: " + url);
+		
 		url += (exportDisplay.isEMeasure() ? "emeasure" : exportDisplay
 				.isSimpleXML() ? "simplexml"
 						: exportDisplay.isCodeList() ? "codelist" : "zip");
@@ -1542,7 +1545,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 				@Override
 				public void onSuccess(
 						TransferMeasureOwnerShipModel result) {
-				
+					
 					transferDisplay
 					.buildHTMLForMeasures(transferMeasureResults);
 					transferDisplay.buildCellTable(result);
@@ -1925,9 +1928,10 @@ public class ManageMeasurePresenter implements MatPresenter {
 	 *            the model
 	 * @return true, if is valid
 	 */
-	@SuppressWarnings("static-access")
 	public boolean isValid(ManageMeasureDetailModel model) {
-		List<String> message = new ArrayList<String>();
+		ManageMeasureModelValidator manageMeasureModelValidator = new ManageMeasureModelValidator();
+		List<String> message = manageMeasureModelValidator.isValidMeasure(model);
+		/*new ArrayList<String>();
 		if ((model.getName() == null) || "".equals(model.getName().trim())) {
 			message.add(MatContext.get().getMessageDelegate()
 					.getMeasureNameRequiredMessage());
@@ -1944,7 +1948,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 		if ((scoring == null) || !isValidValue(model.getMeasScoring())
 				|| enteredScoringValue.equals("--Select--")) {
 			message.add(MatContext.get().getMessageDelegate().s_ERR_MEASURE_SCORE_REQUIRED);
-		}
+		}*/
 		
 		boolean valid = message.size() == 0;
 		if (!valid) {
@@ -1954,26 +1958,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 			detailDisplay.getErrorMessageDisplay().clear();
 			searchDisplay.getErrorMessageDisplayForBulkExport().clear();
 		}
-		if(valid) {
-			scrubForMarkUp(model);
-		}
 		return valid;
-	}
-	private void scrubForMarkUp(ManageMeasureDetailModel model) {
-		String markupRegExp = "<[^>]+>";
-		
-		String noMarkupText = model.getName().trim().replaceAll(markupRegExp, "");
-		System.out.println("measure name:"+noMarkupText);
-		if(model.getName().trim().length() > noMarkupText.length()){
-			model.setName(noMarkupText);
-		}
-		
-		noMarkupText = model.getShortName().trim().replaceAll(markupRegExp, "");
-		System.out.println("measure short-name:"+noMarkupText);
-		if(model.getShortName().trim().length() > noMarkupText.length()){
-			model.setShortName(noMarkupText);
-		}
-		
 	}
 	/**
 	 * Verifies the valid value required for the list box.
@@ -2139,10 +2124,10 @@ public class ManageMeasurePresenter implements MatPresenter {
 								@Override
 								public void onTransferSelectedClicked(Result result) {
 									searchDisplay
-								.getErrorMessageDisplay()
+									.getErrorMessageDisplay()
 									.clear();
 									searchDisplay
-								.getErrorMessagesForTransferOS()
+									.getErrorMessagesForTransferOS()
 									.clear();
 									updateTransferIDs(result,
 											manageMeasureSearchModel);
@@ -2153,13 +2138,13 @@ public class ManageMeasurePresenter implements MatPresenter {
 								public void onHistoryClicked(Result result) {
 									historyDisplay
 									.setReturnToLinkText("<< Return to MeasureLibrary Owner Ship");
-//									if (!result.isEditable()) {
-//										historyDisplay
-//										.setUserCommentsReadOnly(true);
-//									} else {
-//										historyDisplay
-//										.setUserCommentsReadOnly(false);
-//									}
+									//									if (!result.isEditable()) {
+									//										historyDisplay
+									//										.setUserCommentsReadOnly(true);
+									//									} else {
+									//										historyDisplay
+									//										.setUserCommentsReadOnly(false);
+									//									}
 									
 									displayHistory(
 											result.getId(),
@@ -2191,9 +2176,9 @@ public class ManageMeasurePresenter implements MatPresenter {
 									lastSearchText);
 							searchDisplay
 							.buildDataTable(manageMeasureSearchModel, filter,searchText);
-					panel.setContent(searchDisplay
+							panel.setContent(searchDisplay
 									.asWidget());
-					showAdminSearchingBusy(false);
+							showAdminSearchingBusy(false);
 							
 						}
 					});
@@ -2322,11 +2307,11 @@ public class ManageMeasurePresenter implements MatPresenter {
 									searchDisplay.getErrorMeasureDeletion().clear();
 									historyDisplay
 									.setReturnToLinkText("<< Return to Measure Library");
-//									if (!result.isEditable()) {
-//										historyDisplay.setUserCommentsReadOnly(true);
-//									} else {
-//										historyDisplay.setUserCommentsReadOnly(false);
-//									}
+									//									if (!result.isEditable()) {
+									//										historyDisplay.setUserCommentsReadOnly(true);
+									//									} else {
+									//										historyDisplay.setUserCommentsReadOnly(false);
+									//									}
 									
 									displayHistory(result.getId(), result.getName());
 								}
@@ -3076,7 +3061,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 							MatContext.get().getMessageDelegate()
 							.getUserRequiredErrorMessage());
 				}
-
+				
 			}
 			
 		});
@@ -3162,6 +3147,9 @@ public class ManageMeasurePresenter implements MatPresenter {
 					} else {
 						String message = null;
 						switch (result.getFailureReason()) {
+							case SaveMeasureResult.INVALID_DATA:
+								message = "Data Validation Failed.Please verify data.";
+								break;
 							default:
 								message = "Unknown Code "
 										+ result.getFailureReason();
@@ -3185,17 +3173,18 @@ public class ManageMeasurePresenter implements MatPresenter {
 		String measureScoring = detailDisplay.getMeasScoringValue();
 		
 		// US 421. Update the Measure scoring choice from the UI.
-		if (isValidValue(measureScoring)) {
-			currentDetails.setMeasScoring(measureScoring);
-		}
-		
+		//if (isValidValue(measureScoring)) {
+		currentDetails.setMeasScoring(measureScoring);
+		//}
+		currentDetails.scrubForMarkUp();
+		detailDisplay.getName().setValue(currentDetails.getName());
+		detailDisplay.getShortName().setValue(currentDetails.getShortName());
 		MatContext.get().setCurrentMeasureName(
-				detailDisplay.getName().getValue().trim());
+				currentDetails.getName());
 		MatContext.get().setCurrentShortName(
-				detailDisplay.getShortName().getValue().trim());
+				currentDetails.getShortName());
 		MatContext.get().setCurrentMeasureScoringType(
-				detailDisplay.getMeasScoringValue());
-		// MatContext.get().setCurrentMeasureVersion(detailDisplay.getMeasureVersion().getValue().trim());
+				currentDetails.getMeasScoring());
 	}
 	
 	/**

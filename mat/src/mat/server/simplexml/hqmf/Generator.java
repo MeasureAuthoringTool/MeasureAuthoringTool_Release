@@ -1,6 +1,7 @@
 package mat.server.simplexml.hqmf;
 
 import mat.model.clause.MeasureExport;
+import mat.shared.MatConstants;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -8,7 +9,7 @@ import org.apache.commons.logging.LogFactory;
 /**
  * The Interface Generator.
  */
-public interface Generator {
+public interface Generator extends MatConstants {
 	
 	/** The Constant HIGH. */
 	public static final String HIGH = "high";
@@ -88,6 +89,9 @@ public interface Generator {
 	/** The Constant TYPE_CODE. */
 	public static final String TYPE_CODE = "typeCode";
 	
+	/** The Constant RAV. */
+	public static final String RAV = "riskAdjVar";
+	
 	/** The Constant OBSERVATION_CRITERIA. */
 	public static final String OBSERVATION_CRITERIA = "observationCriteria";
 	
@@ -110,7 +114,10 @@ public interface Generator {
 	public static final String CODE = "code";
 	
 	/** The Constant VERSIONID. */
-	public static final String VERSIONID = "2014-11-24";
+	public static final String VERSION_4_1_2_ID = "2014-11-24";
+	
+	/** The Constant VERSION_4_3_ID. */
+	public static final String VERSION_4_3_ID = "2015-09-30";
 	
 	/** The Constant VALUE_SET. */
 	public static final String VALUE_SET = "Value Set";
@@ -140,6 +147,13 @@ public interface Generator {
 	
 	/** The Constant REFILLS. */
 	public static final String REFILLS = "refills";
+	
+	/** The Constant CUMULATIVE_MEDICATION_DURATION. */
+	public static final String CUMULATIVE_MEDICATION_DURATION = "cumulative medication duration";
+	
+	/** The Constant FREQUENCY. */
+	public static final String FREQUENCY = "frequency";
+	
 	/** The Constant ADMISSION_DATETIME. */
 	public static final String ADMISSION_DATETIME = "admission datetime";
 	/**
@@ -161,8 +175,10 @@ public interface Generator {
 	/** The Constant ACTIVE_DATETIME. */
 	public static final String ACTIVE_DATETIME = "active datetime";
 	
+	/** The Constant TIME. */
 	public static final String TIME = "time";
 	
+	/** The Constant DATE. */
 	public static final String DATE = "date";
 	
 	/** The Constant ATTRIBUTE_MODE. */
@@ -203,12 +219,34 @@ public interface Generator {
 	/** The Constant NULL_FLAVOR. */
 	public static final String NULL_FLAVOR ="nullFlavor";
 	
+	/** The Constant RADIATION_DURATION. */
 	public static final String RADIATION_DURATION = "radiation duration";
 	
+	/** The Constant RADIATION_DOSAGE. */
 	public static final String RADIATION_DOSAGE = "radiation dosage";
 	
+	/** The Constant STATUS_CODE. */
 	public static final String STATUS_CODE = "statusCode";
 	
+	/** The Constant ONSET_DATETIME. */
+	public static final String ONSET_DATETIME = "onset datetime";
+	
+	/** The Constant ABATEMENT_DATETIME. */
+	public static final String ABATEMENT_DATETIME = "abatement datetime";
+	
+	/** The Constant RECORDED_DATETIME. */
+	public static final String RECORDED_DATETIME = "recorded datetime";
+	
+	public static final String REPEAT_NUMBER = "repeatNumber";
+	
+	public static final String ONSET_AGE = "Onset Age";
+	
+	public static final String REFERENCE = "reference";
+	
+	public static final String RELATIONSHIP = "relationship";
+	public static final String DIAGNOSIS = "Diagnosis";
+	
+	public static final String PRINCIPAL_DIAGNOSIS = "Principal Diagnosis";
 	/**
 	 * Generate.
 	 *

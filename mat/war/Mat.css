@@ -230,6 +230,18 @@ left:50px;
   	cursor: hand;
 }
 
+.customReport {
+    background: url("images/report_small.jpg");
+    background-position:center;
+    background-repeat:no-repeat;
+    height: 25px;
+    width: 30px;
+    border: 0px;
+    font-size: 0;
+    cursor: pointer;
+    cursor: hand;
+}
+
 .customCascadeButton {
     background: url("images/application_cascade.png");
     background-position:center;
@@ -266,9 +278,6 @@ left:50px;
     cursor: pointer;
     cursor: hand;
 }
-
-
-
 .customEditButton {
     background: url("images/g_package_edit.png");
     background-position:center;
@@ -280,6 +289,7 @@ left:50px;
     cursor: pointer;
     cursor: hand;
 }
+
 .customLockedButton {
     background: url("images/g_lock.gif");
     background-position:center;
@@ -291,6 +301,7 @@ left:50px;
     cursor: pointer;
     cursor: hand;
 }
+
 .customReadOnlyButton {
     background: url("images/application_view_detail_1.png");
     background-position:center;
@@ -362,6 +373,17 @@ left:50px;
     border: 0px;
     font-size: 0;
     cursor: cursor;
+}
+
+.customFloppyDiskButton {
+    background: url("images/floppy_Disk.gif");
+    background-position:center;
+    background-repeat:no-repeat;
+    height: 25px;
+    width: 30px;
+    border: 0px;
+    font-size: 0;
+    cursor: cursor;
 }  
 .customCompositeEmptyCell{
 	cursor: text;
@@ -379,6 +401,18 @@ left:50px;
     cursor: hand;
 }
 
+.customGrayedShareButton {
+    background: url("images/g_package_share_grayed.png");
+    background-position:center;
+    background-repeat:no-repeat;
+    height: 25px;
+    width: 30px;
+    font-size: 0;
+    border: 0px;
+    cursor: pointer;
+    cursor: text;
+}
+
 .customCloneButton {
     background: url("images/g_page_copy.gif");
     background-position:center;
@@ -391,6 +425,17 @@ left:50px;
     cursor: hand;
 }
 
+.customGrayedCloneButton {
+    background: url("images/g_page_copy_grayed.gif");
+    background-position:center;
+    background-repeat:no-repeat;
+    height: 25px;
+    width: 30px;
+    border: 0px;
+    font-size: 0;
+    cursor: pointer;
+    cursor: text;
+}
 
 .primaryGreyButton {
     background: url("images/bg_btnGrey-secondary.png");
@@ -796,6 +841,18 @@ left:50px;
     padding: 6px 6px 6px 30px;
     text-align: left;
 }
+
+.informationMessage {
+    background: no-repeat scroll 6px 50% #D3DDF5;
+    border: 1px solid #4278F5;
+    color: #000000;
+    display: block;
+    font-weight: bold;
+    margin: 2px auto 14px;
+    padding: 6px 6px 6px 30px;
+    text-align: left;
+}
+
 
 .loginInfoMessageContainer {
 	-moz-box-sizing:border-box;
@@ -1763,6 +1820,21 @@ padding: 2px;
     margin-right:auto;
     margin-top:8px;
 }
+
+.textSearchWidget{
+    border:1px solid lightgray;
+    -moz-box-sizing: border-box;
+    background-image: url("images/bg_box-blue.png");
+    background-repeat:repeat-x;
+    vertical-align: middle;
+    text-align: left;
+    padding-right: 10px;
+    padding-top: 8px;
+    font-size:.8em;
+    margin-right:auto;
+    margin-top:8px;
+    margin-left: 15px;
+}
 .searchWidgetLabel{
 	font-size: 11px;
     display: block;
@@ -1800,6 +1872,16 @@ padding: 2px;
     margin-left: 4px;
    margin-top: 8px;
     width: 99%;
+}
+
+.cellTablePanel_Report {
+    background-color: #FFFFFF;
+    border-color: #E8EEF7 #E8EEF7 #E8EFF7;
+    border-style: solid;
+    border-width: 3px;
+    margin-left: 4px;
+   margin-top: 8px;
+    width: 50%;
 }
 
 .recentSearchHeader{
@@ -2186,4 +2268,8 @@ padding: 2px;
 .invisibleTableCaption{
     color:transparent;
     font-size:0;
+}
+
+.inline{
+	display: inline;
 }

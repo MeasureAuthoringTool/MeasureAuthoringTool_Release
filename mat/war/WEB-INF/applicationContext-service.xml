@@ -32,6 +32,7 @@
 	</bean>
 	
     <bean id="measurePackageService" class="mat.server.service.impl.MeasurePackageServiceImpl">
+    	<property name="currentReleaseVersion" value="${mat.measure.current.release.version}"/>
     </bean>
     
    <!--  <bean id="clauseService" class="mat.server.clause.ClauseServiceImpl">
@@ -67,9 +68,12 @@
     	<property name="measureNotesDAO" ref="measureNotesDAO"/>
     </bean>  
     <bean id="measureLibraryService" class="mat.server.MeasureLibraryServiceImpl">
-    <property name="releaseDate" value="${mat.measure.release.date}"/>
+    <!--  <property name="releaseDate" value="${mat.measure.release.date}"/>-->
+    	<property name="currentReleaseVersion" value="${mat.measure.current.release.version}"/>
+    
     </bean>
     
-     <!--<bean id="vsacapiService" class="mat.server.VSACAPIServiceImpl">
-    </bean>-->    
+    <bean id="vsacapi" class="mat.server.VSACApiServImpl">
+    	<property name="defaultExpId" value="${mat.qdm.default.expansion.id}"/>
+    </bean>    
 </beans>

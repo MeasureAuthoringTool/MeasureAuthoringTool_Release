@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import mat.client.ImageResources;
 import mat.client.admin.ManageOrganizationSearchModel.Result;
+import mat.client.shared.InformationMessageDisplayInterface;
+import mat.client.shared.InformationMessageDisplay;
 import mat.client.shared.ContentWithHeadingWidget;
 import mat.client.shared.EmailAddressTextBox;
 import mat.client.shared.ErrorMessageDisplay;
@@ -127,6 +129,11 @@ implements ManageUsersPresenter.DetailDisplay {
 	/** The title label. */
 	private String titleLabel = "Title";
 	
+	//Label expLabel = new Label("Expires");
+	
+	InformationMessageDisplay informationMessage = new InformationMessageDisplay();
+
+
 	/**
 	 * Instantiates a new manage users detail view.
 	 */
@@ -142,11 +149,11 @@ implements ManageUsersPresenter.DetailDisplay {
 		fPanel.add(new SpacerWidget());
 		HorizontalPanel hPanel = new HorizontalPanel();
 		HTML userId = new HTML("&nbsp; User ID :&nbsp; ");
-		hPanel.add(userId);
-		hPanel.add(loginId);
+//		hPanel.add(userId);
+//		hPanel.add(loginId);
+		hPanel.add(informationMessage);
 		fPanel.add(hPanel);
 		fPanel.add(new SpacerWidget());
-		
 		fPanel.add(successMessages);
 		fPanel.add(errorMessages);
 		
@@ -235,11 +242,19 @@ implements ManageUsersPresenter.DetailDisplay {
 		/*rightPanel.add(LabelBuilder.buildRequiredLabel(rootOid, rootOidLabel));
 		rightPanel.add(rootOid);
 		rightPanel.add(new SpacerWidget());*/
-		
+		HorizontalPanel hzPanel = new HorizontalPanel();
+		hzPanel.getElement().setId("HorizontalPanel_UserExpiryDate");
+		//expLabel.getElement().setId("UserPasswordExpiry_Label");
 		rightPanel.add(LabelBuilder.buildLabel(activeStatus, statusLabel));
 		activeStatus.addStyleName("block");
 		revokedStatus.addStyleName("block");
-		rightPanel.add(activeStatus);
+		SimplePanel sPanel = new SimplePanel();
+		sPanel.setWidth("10px");
+		hzPanel.add(activeStatus);
+		hzPanel.add(sPanel);
+		//hzPanel.add(expLabel);
+		hzPanel.addStyleName("inline");
+		rightPanel.add(hzPanel);
 		rightPanel.add(revokedStatus);
 		activeStatus.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
 			@Override
@@ -487,6 +502,12 @@ implements ManageUsersPresenter.DetailDisplay {
 		return successMessages;
 	}
 	
+	
+	@Override
+	public InformationMessageDisplayInterface getInformationMessageDisplay(){
+		return informationMessage;
+	}
+	
 	/* (non-Javadoc)
 	 * @see mat.client.admin.ManageUsersPresenter.DetailDisplay#getTitle()
 	 */
@@ -585,4 +606,9 @@ implements ManageUsersPresenter.DetailDisplay {
 	public void setUserLocked(boolean b) {
 		MatContext.get().setVisible(lockedLabel, b);
 	}
+	
+//	@Override
+//	public Label getExpLabel() {
+//		return expLabel;
+//	}
 }
