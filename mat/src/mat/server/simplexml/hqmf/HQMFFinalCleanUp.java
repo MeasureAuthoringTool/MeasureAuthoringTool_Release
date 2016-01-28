@@ -167,6 +167,9 @@ public class HQMFFinalCleanUp {
 		if(extValue.contains(",")) {
 			extValue = StringUtils.remove(extValue, ',');
 		}
+		if(extValue.contains("'")) {
+			extValue = StringUtils.remove(extValue, "'");
+		}
 		return extValue;
 	}
 	

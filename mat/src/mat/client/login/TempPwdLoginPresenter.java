@@ -439,6 +439,7 @@ public class TempPwdLoginPresenter {
 						display.addSecurityQuestionTexts(retList);
 					}
 				}
+				beforeDisplay();
 			}
 			
 		});
@@ -489,7 +490,6 @@ public class TempPwdLoginPresenter {
 	 */
 	public void go(HasWidgets container) {
 		reset();
-		beforeDisplay();
 		loadSecurityQuestions();
 		container.add(display.asWidget());
 	}

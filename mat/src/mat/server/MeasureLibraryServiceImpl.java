@@ -2972,7 +2972,7 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 				String dataType = new String();
 				String oid = new String();
 				if (!StringUtils.isBlank(modifyWithDTO.getOccurrenceText())) {
-					instance = instance.concat(modifyWithDTO.getOccurrenceText() + " of ");
+					instance = instance.concat(modifyWithDTO.getOccurrenceText());
 					newNode.getAttributes().getNamedItem("instance").setNodeValue(instance);
 				}
 				name = modifyWithDTO.getCodeListName();
@@ -3078,7 +3078,7 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 				String dataType = new String();
 				String oid = new String();
 				if (!StringUtils.isBlank(modifyWithDTO.getOccurrenceText())) {
-					instance = instance.concat(modifyWithDTO.getOccurrenceText() + " of ");
+					instance = instance.concat(modifyWithDTO.getOccurrenceText());
 					if (newNode.getAttributes().getNamedItem("instance") != null) {
 						newNode.getAttributes().getNamedItem("instance").setNodeValue(instance);
 					} else {
