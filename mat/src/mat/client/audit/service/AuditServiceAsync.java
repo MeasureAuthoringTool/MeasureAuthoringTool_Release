@@ -4,7 +4,9 @@ package mat.client.audit.service;
 import java.util.List;
 
 import mat.DTO.SearchHistoryDTO;
+import mat.DTO.UserAuditLogDTO;
 import mat.client.login.service.AsynchronousService;
+import mat.model.UserAuditLog;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
@@ -115,4 +117,11 @@ public interface AuditServiceAsync extends AsynchronousService {
 	 */
 	void recordTransactionEvent(String primaryId, String secondaryId, String activityType, String userId,
 			String additionalInfo, int logLevel, AsyncCallback<Boolean> callback);
+	
+	
+	void recordUserEvent(String userId, List<String> event, String additionalInfo, boolean isChildLogRequired,
+			AsyncCallback<Boolean> callback);
+	
+	
+	void executeUserLogSearch(String userId, AsyncCallback<List<UserAuditLogDTO>> callback);
 }

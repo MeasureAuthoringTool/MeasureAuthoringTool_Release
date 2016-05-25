@@ -12,6 +12,7 @@ import java.util.Map;
 import mat.dao.UserDAO;
 import mat.model.User;
 import mat.model.UserPasswordHistory;
+import mat.server.service.UserIDNotUnique;
 import mat.server.service.UserService;
 import mat.server.util.ServerConstants;
 
@@ -427,6 +428,7 @@ public class CheckUserChangePasswordLimit {
 					user.getPassword().setTemporaryPassword(true);
 					user.getPassword().setCreatedDate(DateUtils.truncate(new Date(),Calendar.DATE));
 					getUserService().saveExisting(user);
+
 					/*returnUserList.add(user);
 					 * MatContext.get().getEventBus().fireEvent(new TemporaryPasswordLoginEvent());*/
 					}else{

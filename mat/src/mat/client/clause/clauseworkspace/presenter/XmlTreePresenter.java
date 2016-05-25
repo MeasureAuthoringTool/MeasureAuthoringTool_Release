@@ -480,89 +480,95 @@ public class XmlTreePresenter {
 		xmlTreeDisplay.getSaveButton().addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(final ClickEvent event) {
-				xmlTreeDisplay.clearMessages();
-				xmlTreeDisplay.setDirty(false);
-				MatContext.get().recordTransactionEvent(
-						MatContext.get().getCurrentMeasureId(), null,
-						rootNode.toUpperCase() + "_TAB_SAVE_EVENT",
-						rootNode.toUpperCase().concat(" Saved."),
-						ConstantMessages.DB_LOG);
-				xmlTreeDisplay.addCommentNodeToSelectedNode();
-				CellTreeNode cellTreeNode = (CellTreeNode) xmlTreeDisplay
-						.getXmlTree().getRootTreeNode().getChildValue(0);
-				final MeasureXmlModel measureXmlModel = createMeasureExportModel(XmlConversionlHelper
-						.createXmlFromTree(cellTreeNode));
-				service.saveMeasureXml(measureXmlModel,
-						new AsyncCallback<Void>() {
-					@Override
-					public void onFailure(final Throwable caught) {
-					}
-					@Override
-					public void onSuccess(final Void result) {
-						xmlTreeDisplay.getSuccessMessageAddCommentDisplay()
-						.removeStyleName("successMessageCommentPanel");
-						xmlTreeDisplay.getSuccessMessageAddCommentDisplay().clear();
-						xmlTreeDisplay.getWarningMessageDisplay().clear();
-						xmlTreeDisplay
-						.getSuccessMessageDisplay()
-						.setMessage(
-								"Changes are successfully saved.");
-						setOriginalXML(measureXmlModel.getXml());
-						System.out.println("originalXML is:"
-								+ getOriginalXML());
-					}
-				});
+				if (MatContext.get().getMeasureLockService()
+						.checkForEditPermission()) {
+					xmlTreeDisplay.clearMessages();
+					xmlTreeDisplay.setDirty(false);
+					MatContext.get().recordTransactionEvent(
+							MatContext.get().getCurrentMeasureId(), null,
+							rootNode.toUpperCase() + "_TAB_SAVE_EVENT",
+							rootNode.toUpperCase().concat(" Saved."),
+							ConstantMessages.DB_LOG);
+					xmlTreeDisplay.addCommentNodeToSelectedNode();
+					CellTreeNode cellTreeNode = (CellTreeNode) xmlTreeDisplay
+							.getXmlTree().getRootTreeNode().getChildValue(0);
+					final MeasureXmlModel measureXmlModel = createMeasureExportModel(XmlConversionlHelper
+							.createXmlFromTree(cellTreeNode));
+					service.saveMeasureXml(measureXmlModel,
+							new AsyncCallback<Void>() {
+						@Override
+						public void onFailure(final Throwable caught) {
+						}
+						@Override
+						public void onSuccess(final Void result) {
+							xmlTreeDisplay.getSuccessMessageAddCommentDisplay()
+							.removeStyleName("successMessageCommentPanel");
+							xmlTreeDisplay.getSuccessMessageAddCommentDisplay().clear();
+							xmlTreeDisplay.getWarningMessageDisplay().clear();
+							xmlTreeDisplay
+							.getSuccessMessageDisplay()
+							.setMessage(
+									"Changes are successfully saved.");
+							setOriginalXML(measureXmlModel.getXml());
+							System.out.println("originalXML is:"
+									+ getOriginalXML());
+						}
+					});
+				}
 			}
 		});
 		xmlTreeDisplay.getSaveBtnClauseWorkSpace().addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(final ClickEvent event) {
-				if (xmlTreeDisplay.getXmlTree() != null) {
-					xmlTreeDisplay.clearMessages();
-					final CellTreeNode cellTreeNode = (CellTreeNode) (xmlTreeDisplay
-							.getXmlTree().getRootTreeNode().getChildValue(0));
-					if (cellTreeNode.hasChildren()) {
-						xmlTreeDisplay.setDirty(false);
-						xmlTreeDisplay.setQdmVariableDirty(false);
-						MatContext.get().recordTransactionEvent(
-								MatContext.get().getCurrentMeasureId(), null,
-								"CLAUSEWORKSPACE_TAB_SAVE_EVENT",
-								rootNode.toUpperCase().concat(" Saved."),
-								ConstantMessages.DB_LOG);
-						final String nodeUUID = cellTreeNode.getChilds().get(0).getUUID();
-						final String nodeName = cellTreeNode.getChilds().get(0).getName();
-						//for adding qdmVariable as an attribute
-						String isQdmVariable = xmlTreeDisplay.getIncludeQdmVaribale().getValue().toString();
-						CellTreeNode subTreeNode = cellTreeNode.getChilds().get(0);
-						HashMap<String, String> map = new HashMap<String, String>();
-						map.put("qdmVariable", isQdmVariable);
-						subTreeNode.setExtraInformation(PopulationWorkSpaceConstants.EXTRA_ATTRIBUTES, map);
-						String xml = XmlConversionlHelper.createXmlFromTree(cellTreeNode.getChilds().get(0));
-						
-						final MeasureXmlModel measureXmlModel = createMeasureXmlModel(xml);
-						service.saveSubTreeInMeasureXml(measureXmlModel, nodeName, nodeUUID,
-								new AsyncCallback<SortedClauseMapResult>() {
-							@Override
-							public void onFailure(final Throwable caught) {
-							}
-							@Override
-							public void onSuccess(SortedClauseMapResult result) {
-								xmlTreeDisplay.getWarningMessageDisplay().clear();
-								xmlTreeDisplay
-								.getSuccessMessageDisplay()
-								.setMessage(
-										"Changes are successfully saved.");
-								setOriginalXML(result.getMeasureXmlModel().getXml());
-								updateSubTreeElementsMap(getOriginalXML(), result.getClauseMap());
-								xmlTreeDisplay.clearAndAddClauseNamesToListBox();
-								xmlTreeDisplay.updateSuggestOracle();
-								System.out.println("originalXML is:"
-										+ getOriginalXML());
-							}
-						});
-					} else {
-						xmlTreeDisplay.getErrorMessageDisplay().setMessage(
-								"Unable to save clause as no subTree found under it.");
+				if (MatContext.get().getMeasureLockService()
+						.checkForEditPermission()) {
+					if (xmlTreeDisplay.getXmlTree() != null) {
+						xmlTreeDisplay.clearMessages();
+						final CellTreeNode cellTreeNode = (CellTreeNode) (xmlTreeDisplay
+								.getXmlTree().getRootTreeNode().getChildValue(0));
+						if (cellTreeNode.hasChildren()) {
+							xmlTreeDisplay.setDirty(false);
+							xmlTreeDisplay.setQdmVariableDirty(false);
+							MatContext.get().recordTransactionEvent(
+									MatContext.get().getCurrentMeasureId(), null,
+									"CLAUSEWORKSPACE_TAB_SAVE_EVENT",
+									rootNode.toUpperCase().concat(" Saved."),
+									ConstantMessages.DB_LOG);
+							final String nodeUUID = cellTreeNode.getChilds().get(0).getUUID();
+							final String nodeName = cellTreeNode.getChilds().get(0).getName();
+							//for adding qdmVariable as an attribute
+							String isQdmVariable = xmlTreeDisplay.getIncludeQdmVaribale().getValue().toString();
+							CellTreeNode subTreeNode = cellTreeNode.getChilds().get(0);
+							HashMap<String, String> map = new HashMap<String, String>();
+							map.put("qdmVariable", isQdmVariable);
+							subTreeNode.setExtraInformation(PopulationWorkSpaceConstants.EXTRA_ATTRIBUTES, map);
+							String xml = XmlConversionlHelper.createXmlFromTree(cellTreeNode.getChilds().get(0));
+
+							final MeasureXmlModel measureXmlModel = createMeasureXmlModel(xml);
+							service.saveSubTreeInMeasureXml(measureXmlModel, nodeName, nodeUUID,
+									new AsyncCallback<SortedClauseMapResult>() {
+								@Override
+								public void onFailure(final Throwable caught) {
+								}
+								@Override
+								public void onSuccess(SortedClauseMapResult result) {
+									xmlTreeDisplay.getWarningMessageDisplay().clear();
+									xmlTreeDisplay
+									.getSuccessMessageDisplay()
+									.setMessage(
+											"Changes are successfully saved.");
+									setOriginalXML(result.getMeasureXmlModel().getXml());
+									updateSubTreeElementsMap(getOriginalXML(), result.getClauseMap());
+									xmlTreeDisplay.clearAndAddClauseNamesToListBox();
+									xmlTreeDisplay.updateSuggestOracle();
+									System.out.println("originalXML is:"
+											+ getOriginalXML());
+								}
+							});
+						} else {
+							xmlTreeDisplay.getErrorMessageDisplay().setMessage(
+									"Unable to save clause as no subTree found under it.");
+						}
 					}
 				}
 			}
@@ -571,6 +577,8 @@ public class XmlTreePresenter {
 			
 			@Override
 			public void onClick(ClickEvent event) {
+				if (MatContext.get().getMeasureLockService()
+						.checkForEditPermission()) {
 				xmlTreeDisplay.clearMessages();
 				String measureId = MatContext.get().getCurrentMeasureId();
 				final int selectedClauseindex = xmlTreeDisplay.getClauseNamesListBox().getSelectedIndex();
@@ -620,6 +628,7 @@ public class XmlTreePresenter {
 				});
 				enableDisableQDMVariableCheckBox(currentSelectedClause);
 			}
+		}
 		});
 		xmlTreeDisplay.getCommentButtons().addClickHandler(new ClickHandler() {
 			@Override
@@ -757,6 +766,9 @@ public class XmlTreePresenter {
 							}
 							if(inValidNode.equalsIgnoreCase("nestedClauseLogic")){
 								messageList.add(MatContext.get().getMessageDelegate().getCLAUSE_WORK_SPACE_INVALID_NESTED_DEPTH_CLAUSE());
+							}
+							if(inValidNode.equalsIgnoreCase("isFunctionInvalidInMO")){
+								messageList.add(MatContext.get().getMessageDelegate().getMEASURE_OBSERVATION_VALIDATION_FOR_FUNCTIONS());
 							}
 						}
 						if(messageList.size()>=1){

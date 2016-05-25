@@ -3,14 +3,19 @@ package mat.server;
 import java.util.List;
 
 import mat.DTO.SearchHistoryDTO;
+import mat.DTO.UserAuditLogDTO;
 import mat.client.audit.service.AuditService;
+import mat.model.UserAuditLog;
 import mat.server.service.CodeListAuditService;
 import mat.server.service.MeasureAuditService;
 import mat.server.service.TransactionAuditService;
+import mat.server.service.UserAuditService;
+
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+// TODO: Auto-generated Javadoc
 /**
  * Client implementation of Audit Service Implementation.
  */
@@ -111,6 +116,25 @@ public class AuditServiceImpl extends SpringRemoteServiceServlet implements Audi
 		for(String measureId : measureIds) {
 			recordMeasureEvent(measureId, event, additionalInfo, isChildLogRequired);
 		}
+	}
+	
+	/**
+	 * Gets the user audit service.
+	 *
+	 * @return the user audit service
+	 */
+	public UserAuditService getUserAuditService(){
+		return (UserAuditService)context.getBean("userAuditService");
+	}
+	
+	@Override
+	public boolean recordUserEvent(String userId, List<String> event, String additionalInfo, boolean isChildLogRequired) {
+		return getUserAuditService().recordUserEvent(userId, event, additionalInfo, isChildLogRequired);
+	}
+	
+	@Override
+	public List<UserAuditLogDTO> executeUserLogSearch(String userId){
+		return getUserAuditService().searchHistory(userId);
 	}
 
 }

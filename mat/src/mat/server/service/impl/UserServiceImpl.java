@@ -14,7 +14,14 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+import javax.mail.BodyPart;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Multipart;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 import mat.client.admin.ManageUsersDetailModel;
 import mat.client.admin.service.SaveUpdateUserResult;
 import mat.client.login.service.SecurityQuestionOptions;
@@ -35,7 +42,6 @@ import mat.model.UserPassword;
 import mat.model.UserPasswordHistory;
 import mat.model.UserSecurityQuestion;
 import mat.server.service.CodeListService;
-import mat.server.service.UserIDNotUnique;
 import mat.server.service.UserService;
 import mat.server.util.ServerConstants;
 import mat.server.util.TemplateUtil;
@@ -43,14 +49,13 @@ import mat.shared.ConstantMessages;
 import mat.shared.ForgottenLoginIDResult;
 import mat.shared.ForgottenPasswordResult;
 import mat.shared.PasswordVerifier;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.MailException;
-import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -81,7 +86,7 @@ public class UserServiceImpl implements UserService {
 	
 	/** The mail sender. */
 	@Autowired
-	private MailSender mailSender;
+	private JavaMailSender mailSender;
 	
 	/** The template message. */
 	@Autowired
@@ -128,7 +133,7 @@ public class UserServiceImpl implements UserService {
 	
 	/** The user password history dao. */
 	@Autowired
-	private UserPasswordHistoryDAO userPasswordHistoryDAO; 
+	private UserPasswordHistoryDAO userPasswordHistoryDAO;
 	
 	
 	/* (non-Javadoc)
@@ -250,7 +255,7 @@ public class UserServiceImpl implements UserService {
 		user.setLockedOutDate(null);
 		user.getPassword().setForgotPwdlockCounter(0);
 		user.getPassword().setPasswordlockCounter(0);
-	}	
+	}
 	
 	
 	/* (non-Javadoc)
@@ -498,11 +503,8 @@ public class UserServiceImpl implements UserService {
 	 * @see mat.server.service.UserService#saveNew(mat.model.User)
 	 */
 	@Override
-	public void saveNew(User user) throws UserIDNotUnique {
+	public void saveNew(User user) {
 		logger.info("In saveNew(User user)..........");
-		if(userDAO.userExists(user.getEmailAddress())) {
-			throw new UserIDNotUnique();
-		}
 		if(user.getPassword() == null) {
 			UserPassword pwd = new UserPassword();
 			user.setPassword(pwd);
@@ -538,13 +540,12 @@ public class UserServiceImpl implements UserService {
 	 *            the user
 	 */
 	public void notifyUserOfNewAccount(User user) {
-		logger.info("In notifyUserOfNewAccount(User user)..........");
+		/*logger.info("In notifyUserOfNewAccount(User user)..........");
 		SimpleMailMessage msg = new SimpleMailMessage(templateMessage);
 		msg.setSubject(ServerConstants.NEW_ACCESS_SUBJECT + ServerConstants.getEnvName());
 		HashMap<String, Object> paramsMap = new HashMap<String, Object>();
 		paramsMap.put(ConstantMessages.LOGINID, user.getLoginId());
 		String text = templateUtil.mergeTemplate(ConstantMessages.TEMPLATE_WELCOME, paramsMap);
-		
 		msg.setTo(user.getEmailAddress());
 		msg.setText(text);
 		
@@ -553,7 +554,28 @@ public class UserServiceImpl implements UserService {
 		}
 		catch(MailException exc) {
 			logger.error(exc);
+		}*/
+		logger.info("In notifyUserOfNewAccount(User user)..........");
+		MimeMessage message = mailSender.createMimeMessage();
+		try {
+			message.setSubject(ServerConstants.NEW_ACCESS_SUBJECT + ServerConstants.getEnvName());
+			BodyPart body = new MimeBodyPart();
+			HashMap<String, Object> paramsMap = new HashMap<String, Object>();
+			paramsMap.put(ConstantMessages.LOGINID, user.getLoginId());
+			String text = templateUtil.mergeTemplate(ConstantMessages.TEMPLATE_WELCOME, paramsMap);
+			body.setContent(text, "text/html");
+			Multipart multipart = new MimeMultipart();
+			multipart.addBodyPart(body);
+			message.setFrom(new InternetAddress("NO-REPLY-Support@emeasuretool.org"));
+			message.addRecipient(Message.RecipientType.TO, new InternetAddress(user.getEmailAddress()));
+			message.setContent(multipart);
+			
+			mailSender.send(message);
+		} catch (MessagingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		
 	}
 	
 	/**
@@ -699,15 +721,22 @@ public class UserServiceImpl implements UserService {
 		if(model.isActive() && (user.getStatus()!= null) && !user.getStatus().getId().equals("1")) {
 			reactivatingUser = true;
 		}
-		
-		setModelFieldsOnUser(model, user);
-		
-		try {
+		User exsitingUser = userDAO.findByEmail(model.getEmailAddress());
+		if((exsitingUser != null) && (!(exsitingUser.getId().equals(user.getId()) ) )) {
+			result.setSuccess(false);
+			result.setFailureReason(SaveUpdateUserResult.ID_NOT_UNIQUE);
+		}
+		else{
+			setModelFieldsOnUser(model, user);
+			
+			
 			if(model.isExistingUser()) {
 				if(reactivatingUser) {
 					requestResetLockedPassword(user.getId());
 				}
+				
 				saveExisting(user);
+				
 			}
 			else {
 				saveNew(user);
@@ -716,13 +745,6 @@ public class UserServiceImpl implements UserService {
 			}
 			result.setSuccess(true);
 		}
-		catch(UserIDNotUnique exc) {
-			result.setSuccess(false);
-			result.setFailureReason(SaveUpdateUserResult.ID_NOT_UNIQUE);
-		}/*catch(CodeListNotUniqueException exp){
-			result.setSuccess(false);
-			result.setFailureReason(SaveUpdateCodeListResult.NOT_UNIQUE);
-		}*/
 		
 		return result;
 	}
@@ -769,13 +791,16 @@ public class UserServiceImpl implements UserService {
 			user.setOrganization(organizationRevoked);
 		}
 		
-		if(model.isActive() && (user.getActivationDate() == null)) {
+		// if the user was activated, set term date to null and set the activation date
+		if(model.isBeingActivated()) {
 			user.setTerminationDate(null);
+			user.setSignInDate(null);
+			user.setSignOutDate(null);
 			user.setActivationDate(new Date());
 		}
-		else if(!model.isActive() &&
-				((user.getTerminationDate() == null) ||
-						user.getTerminationDate().before(user.getActivationDate()))) {
+		
+		// if the user is being revoked/terminated, update the termination date
+		else if(model.isBeingRevoked()) {
 			user.setTerminationDate(new Date());
 		}
 	}
@@ -984,6 +1009,11 @@ public class UserServiceImpl implements UserService {
 		return userDAO.getAllNonAdminActiveUsers();
 	}
 	
+	@Override
+	public List<User> getAllUsers(){
+		return userDAO.getAllUsers();
+	}
+	
 	/**
 	 * Notify user of account locked.
 	 * 
@@ -1027,7 +1057,7 @@ public class UserServiceImpl implements UserService {
 	
 	/**
 	 *  temporary and initial sign in password should not be stored in password History
-	 *  isValidPwd boolean is set for special case where current valid password becomes temporary 
+	 *  isValidPwd boolean is set for special case where current valid password becomes temporary
 	 *  password when it exceeds 60 days limit and it Should be added to password history.
 	 * *
 	 *
@@ -1037,7 +1067,7 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public void addByUpdateUserPasswordHistory(User user, boolean isValidPwd){
 		List<UserPasswordHistory> pwdHistoryList = userPasswordHistoryDAO.getPasswordHistory(user.getId());
-		if(isValidPwd || !(user.getPassword().isInitial() 
+		if(isValidPwd || !(user.getPassword().isInitial()
 				|| user.getPassword().isTemporaryPassword())) {
 			UserPasswordHistory passwordHistory = new UserPasswordHistory();
 			passwordHistory.setUser(user);
@@ -1047,7 +1077,7 @@ public class UserServiceImpl implements UserService {
 			if(pwdHistoryList.size()<PASSWORD_HISTORY_SIZE){
 				user.getPasswordHistory().add(passwordHistory);
 			} else {
-			   userPasswordHistoryDAO.addByUpdateUserPasswordHistory(user);
+				userPasswordHistoryDAO.addByUpdateUserPasswordHistory(user);
 			}
 		}
 		

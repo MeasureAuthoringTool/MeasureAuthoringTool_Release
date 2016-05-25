@@ -8,7 +8,6 @@ import mat.client.event.SuccessfulLoginEvent;
 import mat.client.event.TemporaryPasswordLoginEvent;
 import mat.client.shared.ErrorMessageDisplayInterface;
 import mat.client.shared.MatContext;
-
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.HasClickHandlers;
@@ -17,6 +16,7 @@ import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.event.dom.client.KeyDownHandler;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HasHTML;
 import com.google.gwt.user.client.ui.HasValue;
 import com.google.gwt.user.client.ui.HasWidgets;
@@ -28,7 +28,7 @@ import com.google.gwt.user.client.ui.Widget;
  * The Class LoginPresenter.
  */
 public class LoginPresenter {
-
+	
 	/**
 	 * The Interface Display.
 	 */
@@ -105,7 +105,7 @@ public class LoginPresenter {
 		 * @return the widget
 		 */
 		public Widget asWidget();
-
+		
 		/**
 		 * Gets the userid field.
 		 * 
@@ -124,6 +124,10 @@ public class LoginPresenter {
 		 * Sets the initial focus.
 		 */
 		public void setInitialFocus();
+		
+		HasValue<String> getOneTimePassword();
+		
+		Button getSubmitButton();
 	}
 	
 	/** The display. */
@@ -131,7 +135,7 @@ public class LoginPresenter {
 	
 	/** The login model. */
 	private LoginModel loginModel;
-
+	
 	/** The submit on enter handler. */
 	private KeyDownHandler submitOnEnterHandler = new KeyDownHandler() {
 		@Override
@@ -141,17 +145,18 @@ public class LoginPresenter {
 			}
 		}
 	};
-
+	
 	/** The contextcallback. */
 	private  final AsyncCallback<LoginModel> contextcallback = new AsyncCallback<LoginModel>(){
-
+		
 		@Override
 		public void onFailure(Throwable cause) {
 			cause.printStackTrace();
-//			display.getErrorMessageDisplay().setMessage(cause.getMessage());
+			//			display.getErrorMessageDisplay().setMessage(cause.getMessage());
 			display.getErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getGenericErrorMessage());
+			display.getSubmitButton().setEnabled(true);
 		}
-
+		
 		@Override
 		public void onSuccess(LoginModel result) {
 			loginModel = result;
@@ -174,12 +179,13 @@ public class LoginPresenter {
 			else {
 				display.getErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getServerCallNullMessage());
 			}
-
+			display.getSubmitButton().setEnabled(true);
+			
 		}
-
-
+		
+		
 	};
-
+	
 	/**
 	 * Instantiates a new login presenter.
 	 * 
@@ -187,18 +193,21 @@ public class LoginPresenter {
 	 *            the display arg
 	 */
 	public LoginPresenter(Display displayArg) {
-		this.display = displayArg;
-		this.loginModel = new LoginModel();
+		display = displayArg;
+		loginModel = new LoginModel();
 		display.getSubmit().addClickHandler(new ClickHandler() {
-
+			
+			@Override
 			public void onClick(ClickEvent event) {
+				
 				submit();
 			}
-
-
+			
+			
 		});
 		display.getForgotPassword().addClickHandler(new ClickHandler() {
-
+			
+			@Override
 			public void onClick(ClickEvent event) {
 				reset();
 				MatContext.get().getEventBus().fireEvent(new ForgottenPasswordEvent());
@@ -206,7 +215,8 @@ public class LoginPresenter {
 		});
 		
 		display.getForgotLoginId().addClickHandler(new ClickHandler() {
-
+			
+			@Override
 			public void onClick(ClickEvent event) {
 				reset();
 				MatContext.get().getEventBus().fireEvent(new ForgotLoginIDEvent());
@@ -215,22 +225,29 @@ public class LoginPresenter {
 		display.getUseridField().addKeyDownHandler(submitOnEnterHandler);
 		display.getPasswordField().addKeyDownHandler(submitOnEnterHandler);
 	}
-
+	
 	/**
 	 * Submit.
 	 */
 	private void submit() {
 		display.getErrorMessageDisplay().clear();
 		display.setInfoMessageVisible(false);
+		
+		display.getSubmitButton().setEnabled(false);
 		if(display.getUserid().getValue().isEmpty()) {
 			display.getErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getLoginIDRequiredMessage());
+			display.getSubmitButton().setEnabled(true);
 		}else if(display.getPassword().getValue().isEmpty()) {
 			display.getErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getPasswordRequiredMessage());
+			display.getSubmitButton().setEnabled(true);
+		}else if(display.getOneTimePassword().getValue().isEmpty()) {
+			display.getErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getSecurityCodeRequiredMessage());
+			display.getSubmitButton().setEnabled(true);
 		}else{
-			MatContext.get().isValidUser(display.getUserid().getValue(),display.getPassword().getValue(), contextcallback);
+			MatContext.get().isValidUser(display.getUserid().getValue(),display.getPassword().getValue(), display.getOneTimePassword().getValue(), contextcallback);
 		}
 	}
-
+	
 	/**
 	 * Go.
 	 * 
@@ -243,7 +260,7 @@ public class LoginPresenter {
 		displayWelcomeMessage();
 		display.setInitialFocus();
 		Login.hideLoadingMessage();
-
+		
 	}
 	
 	/**
@@ -253,7 +270,7 @@ public class LoginPresenter {
 		display.setWelcomeVisible(true);
 		display.setInfoMessageVisible(false);
 	}
-
+	
 	/**
 	 * Display forgotten password message.
 	 */
@@ -271,7 +288,7 @@ public class LoginPresenter {
 		display.setInfoMessageVisible(true);
 		display.getInfoMessage().setHTML("Measure Authoring Tool just sent your User ID to the e-mail address you provided. Please<br> check your e-mail and continue to sign in. ");
 	}
-
+	
 	/**
 	 * Reset.
 	 */
@@ -280,5 +297,6 @@ public class LoginPresenter {
 		display.setInfoMessageVisible(false);
 		display.getPassword().setValue("");
 		display.getUserid().setValue("");
+		display.getOneTimePassword().setValue("");
 	}
 }

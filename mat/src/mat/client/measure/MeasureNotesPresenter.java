@@ -149,7 +149,9 @@ public class MeasureNotesPresenter implements MatPresenter{
 		notesDisplay.getSaveButton().addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
-				saveMeasureNote();
+				if(MatContext.get().getMeasureLockService().checkForEditPermission()){
+					saveMeasureNote();
+				}
 			}
 		});
 		
@@ -186,37 +188,43 @@ public class MeasureNotesPresenter implements MatPresenter{
 				notesDisplay.setObserver(new Observer() {
 					@Override
 					public void onDeleteClicked(MeasureNoteDTO result) {
-						service.deleteMeasureNotes(result, new AsyncCallback<Void>() {
-							@Override
-							public void onSuccess(Void result) {
-								clearMessages();
-								notesDisplay.getSuccessMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getMEASURE_NOTES_DELETE_SUCCESS_MESSAGE());
-								search();
-							}
-							@Override
-							public void onFailure(Throwable caught) {
-								showSearchingBusy(false);
-								clearMessages();
-								notesDisplay.getErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getGenericErrorMessage());
-							}
-						});
+						if(MatContext.get().getMeasureLockService().checkForEditPermission()){
+							service.deleteMeasureNotes(result, new AsyncCallback<Void>() {
+								@Override
+								public void onSuccess(Void result) {
+									clearMessages();
+									notesDisplay.getSuccessMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getMEASURE_NOTES_DELETE_SUCCESS_MESSAGE());
+									search();
+								}
+								@Override
+								public void onFailure(Throwable caught) {
+									showSearchingBusy(false);
+									clearMessages();
+									notesDisplay.getErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getGenericErrorMessage());
+								}
+							});
+						}
+						
 					}
 					
 					@Override
 					public void onSaveClicked(MeasureNoteDTO measureNoteDTO) {
-						service.updateMeasureNotes(measureNoteDTO, MatContext.get().getLoggedinUserId(), new AsyncCallback<Void>() {
-							@Override
-							public void onSuccess(Void result) {
-								clearMessages();
-								notesDisplay.getSuccessMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getMEASURE_NOTES_SAVE_SUCCESS_MESSAGE());
-								search();
-							}
-							@Override
-							public void onFailure(Throwable caught) {
-								clearMessages();
-								notesDisplay.getErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getGenericErrorMessage());
-							}
-						});
+						if(MatContext.get().getMeasureLockService().checkForEditPermission()){
+							service.updateMeasureNotes(measureNoteDTO, MatContext.get().getLoggedinUserId(), new AsyncCallback<Void>() {
+								@Override
+								public void onSuccess(Void result) {
+									clearMessages();
+									notesDisplay.getSuccessMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getMEASURE_NOTES_SAVE_SUCCESS_MESSAGE());
+									search();
+								}
+								@Override
+								public void onFailure(Throwable caught) {
+									clearMessages();
+									notesDisplay.getErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getGenericErrorMessage());
+								}
+							});
+						}
+						
 					}
 				});
 			}

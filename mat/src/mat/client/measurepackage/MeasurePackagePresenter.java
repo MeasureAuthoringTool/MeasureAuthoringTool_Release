@@ -382,11 +382,13 @@ public class MeasurePackagePresenter implements MatPresenter {
 		view.getCreateNewButton().addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(final ClickEvent event) {
-				clearMessages();
-				view.getPackageGroupingWidget().getDisclosurePanelAssociations().setVisible(false);
-				view.getPackageGroupingWidget().getDisclosurePanelItemCountTable().setVisible(false);
-				System.out.println("Overview Object"+ packageOverview.getClauses().size());
-				setNewMeasurePackage();
+				if(MatContext.get().getMeasureLockService().checkForEditPermission()){
+					clearMessages();
+					view.getPackageGroupingWidget().getDisclosurePanelAssociations().setVisible(false);
+					view.getPackageGroupingWidget().getDisclosurePanelItemCountTable().setVisible(false);
+					System.out.println("Overview Object"+ packageOverview.getClauses().size());
+					setNewMeasurePackage();
+				}
 			}
 		});
 		
@@ -394,12 +396,14 @@ public class MeasurePackagePresenter implements MatPresenter {
 			
 			@Override
 			public void onClick(ClickEvent event) {
-				clearMessages();
-				((Button) view.getPackageMeasureButton()).setEnabled(false);
-				((Button) view.getPackageMeasureAndExportButton()).setEnabled(false);
-				isMeasurePackageExportSuccess = false;
-				view.getInProgressMessageDisplay().setMessage(" Loading Please Wait...");
-				validateGroup();
+				if(MatContext.get().getMeasureLockService().checkForEditPermission()){
+					clearMessages();
+					((Button) view.getPackageMeasureButton()).setEnabled(false);
+					((Button) view.getPackageMeasureAndExportButton()).setEnabled(false);
+					isMeasurePackageExportSuccess = false;
+					view.getInProgressMessageDisplay().setMessage(" Loading Please Wait...");
+					validateGroup();
+				}
 			}
 		});
 		
@@ -407,14 +411,17 @@ public class MeasurePackagePresenter implements MatPresenter {
 			
 			@Override
 			public void onClick(ClickEvent event) {
-				clearMessages();
-				view.getInProgressMessageDisplay().clear();
-				((Button) view.getPackageMeasureButton()).setEnabled(false);
-				((Button) view.getPackageMeasureAndExportButton()).setEnabled(false);
-				isMeasurePackageExportSuccess = true;
-				validateGroup();
+				if(MatContext.get().getMeasureLockService().checkForEditPermission()){
+					clearMessages();
+					view.getInProgressMessageDisplay().clear();
+					((Button) view.getPackageMeasureButton()).setEnabled(false);
+					((Button) view.getPackageMeasureAndExportButton()).setEnabled(false);
+					isMeasurePackageExportSuccess = true;
+					validateGroup();
+				}
 			}
 		});
+		
 		view.getaddRiskAdjVariablesToMeasure().addClickHandler(
 				new ClickHandler() {
 					

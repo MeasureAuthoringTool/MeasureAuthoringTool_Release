@@ -4,14 +4,17 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 
+import mat.client.admin.service.SaveUpdateUserResult;
 import mat.client.myAccount.MyAccountModel;
 import mat.client.myAccount.SecurityQuestionsModel;
 import mat.client.myAccount.service.MyAccountService;
 import mat.client.myAccount.service.SaveMyAccountResult;
+import mat.dao.UserDAO;
 import mat.model.SecurityQuestions;
 import mat.model.User;
 import mat.model.UserSecurityQuestion;
 import mat.server.service.SecurityQuestionsService;
+import mat.server.service.UserIDNotUnique;
 import mat.server.service.UserService;
 import mat.server.util.dictionary.CheckDictionaryWordInPassword;
 import mat.shared.MyAccountModelValidator;
@@ -20,6 +23,7 @@ import mat.shared.SecurityQuestionVerifier;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * The server side implementation of the RPC service.
@@ -116,6 +120,7 @@ MyAccountService {
 		MyAccountModelValidator validator = new MyAccountModelValidator();
 		model.scrubForMarkUp();
 		List<String> messages = validator.validate(model);
+		UserDAO userDAO = (UserDAO)context.getBean("userDAO");
 		if(messages.size()!=0){
 			logger.info("Server-Side Validation for saveMyAccount Failed for User :: "+ LoggedInUserUtil.getLoggedInUser());
 			result.setSuccess(false);
@@ -126,9 +131,19 @@ MyAccountService {
 			//TODO Add database constraint for OID to be non-nullable
 			UserService userService = getUserService();
 			User user = userService.getById(LoggedInUserUtil.getLoggedInUser());
-			setModelFieldsOnUser(user, model);
-			userService.saveExisting(user);
-			result.setSuccess(true);
+			User exsitingUser = userDAO.findByEmail(model.getEmailAddress());
+			if(exsitingUser != null && (!(exsitingUser.getId().equals(user.getId()) ) )) {
+				result.setSuccess(false);
+				result.setFailureReason(SaveMyAccountResult.ID_NOT_UNIQUE);
+			}
+			else{
+				setModelFieldsOnUser(user, model);
+		
+				userService.saveExisting(user);
+				result.setSuccess(true);
+			}
+			
+			
 		}
 		return result;
 	}
@@ -207,7 +222,9 @@ MyAccountService {
 			secQuestions.get(2).setSecurityAnswer(model.getQuestion3Answer());
 			user.setSecurityQuestions(secQuestions);
 			
+
 			userService.saveExisting(user);
+
 			result.setSuccess(true);
 		}
 		return result;
@@ -239,7 +256,9 @@ MyAccountService {
 				//to maintain user password History
 				userService.addByUpdateUserPasswordHistory(user,false);
 				userService.setUserPassword(user, password, false);
+
 				userService.saveExisting(user);
+
 				result.setSuccess(true);
 			}
 			else if(resultMessage.equalsIgnoreCase("FAILURE")){

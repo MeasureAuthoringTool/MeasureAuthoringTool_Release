@@ -356,7 +356,8 @@ mat.dao.clause.MeasureDAO {
 	 *            the measure
 	 * @return the measure share dto
 	 */
-	private MeasureShareDTO extractDTOFromMeasure(Measure measure) {
+	@Override
+	public MeasureShareDTO extractDTOFromMeasure(Measure measure) {
 		MeasureShareDTO dto = new MeasureShareDTO();
 		
 		dto.setMeasureId(measure.getId());
@@ -1326,5 +1327,43 @@ mat.dao.clause.MeasureDAO {
 		return isMeasureDeleted;
 	}
 	
+	
+	/* (non-Javadoc)
+	 * @see mat.dao.clause.MeasureDAO#findShareLevelForUser(java.lang.String, java.lang.String)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	 public ShareLevel findShareLevelForUser(String measureId, String userID, 
+			 String measureSetId){
+	  
+	  ShareLevel shareLevel = null;
+	  List<String> measureIds = getMeasureSetForSharedMeasure(measureId, measureSetId);
+	  Criteria shareCriteria = getSessionFactory().getCurrentSession()
+	    .createCriteria(MeasureShare.class);
+	  shareCriteria.add(Restrictions.eq("shareUser.id",userID));
+	  shareCriteria.add(Restrictions.in("measure.id", measureIds));
+	  List<MeasureShare> shareList = shareCriteria.list();
+	  if(!shareList.isEmpty()){
+	   shareLevel = shareList.get(0).getShareLevel();
+	  }
+	  
+	  return shareLevel;
+	 }
+	
+	@SuppressWarnings("unchecked")
+	private List<String> getMeasureSetForSharedMeasure(String measureId, 
+			String measureSetId){
+		
+		Criteria mCriteria = getSessionFactory().getCurrentSession()
+				.createCriteria(Measure.class);
+		mCriteria.add(Restrictions.eq("measureSet.id", measureSetId));
+		List<String> measureIds = new ArrayList<String>();
+		List<Measure> measureList = mCriteria.list();
+ 		for(Measure measure : measureList){
+ 			measureIds.add(measure.getId());
+		}
+		
+		return measureIds;
+	}
 	
 }

@@ -3,9 +3,7 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
           version="3.0">
-  
-  <!-- Default page to serve -->
- 
+   
     <context-param>
         <param-name>contextConfigLocation</param-name>
         <param-value>
@@ -90,14 +88,6 @@
     <servlet-name>codelistServiceImpl</servlet-name>
     <servlet-class>mat.server.CodeListServiceImpl</servlet-class>
   </servlet>
-  <!-- <servlet>
-    <servlet-name>clauseServiceImpl</servlet-name>
-    <servlet-class>mat.server.clause.ClauseServiceImpl</servlet-class>
-  </servlet>
-  <servlet>
-    <servlet-name>clauseCloningServiceImpl</servlet-name>
-    <servlet-class>mat.server.clause.ClauseCloningServiceImpl</servlet-class>
-  </servlet> -->
   <servlet>
     <servlet-name>packageServiceImpl</servlet-name>
     <servlet-class>mat.server.PackageServiceImpl</servlet-class>
@@ -172,14 +162,6 @@
     <servlet-name>codelistServiceImpl</servlet-name>
     <url-pattern>/mat/codelist</url-pattern>
   </servlet-mapping>
- <!--  <servlet-mapping>
-    <servlet-name>clauseServiceImpl</servlet-name>
-    <url-pattern>/mat/clause</url-pattern>
-  </servlet-mapping> -->
- <!--  <servlet-mapping>
-    <servlet-name>clauseCloningServiceImpl</servlet-name>
-    <url-pattern>/mat/clauseCloning</url-pattern>
-  </servlet-mapping> -->
   <servlet-mapping>
     <servlet-name>packageServiceImpl</servlet-name>
     <url-pattern>/mat/package</url-pattern>
@@ -203,10 +185,10 @@
    <session-config>
         <session-timeout>70</session-timeout>
         <!-- To be Commented for Eclipse gwt dev mode on local developer's machine. Never commit the commented cookie-config tag. -->
-        <!-- <cookie-config>
+        <cookie-config>
            <http-only>true</http-only>
             <secure>true</secure>
-        </cookie-config> -->
+        </cookie-config>
    </session-config>
  
 </web-app>

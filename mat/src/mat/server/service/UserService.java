@@ -2,7 +2,6 @@ package mat.server.service;
 
 import java.util.HashMap;
 import java.util.List;
-
 import mat.client.admin.ManageUsersDetailModel;
 import mat.client.admin.service.SaveUpdateUserResult;
 import mat.client.login.service.SecurityQuestionOptions;
@@ -52,13 +51,14 @@ public interface UserService {
 	 * @throws UserIDNotUnique
 	 *             the user id not unique
 	 */
-	public void saveNew(User user) throws UserIDNotUnique;
+	public void saveNew(User user);
 	
 	/**
 	 * Save existing.
 	 * 
 	 * @param user
 	 *            the user
+	 * @throws UserIDNotUnique
 	 */
 	public void saveExisting(User user);
 	
@@ -276,7 +276,7 @@ public interface UserService {
 	 * @return the hash map
 	 */
 	HashMap<String, Organization> searchForUsedOrganizations();
-
+	
 	/**
 	 * Adds the by update user password history.
 	 *
@@ -284,4 +284,6 @@ public interface UserService {
 	 * @param isValidPwd the is valid pwd
 	 */
 	void addByUpdateUserPasswordHistory(User user, boolean isValidPwd);
+	
+	List<User> getAllUsers();
 }

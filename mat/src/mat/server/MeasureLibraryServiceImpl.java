@@ -75,11 +75,13 @@ import mat.model.clause.MeasureShareDTO;
 import mat.model.clause.MeasureXML;
 import mat.model.clause.QDSAttributes;
 import mat.model.clause.ShareLevel;
+import mat.server.model.MatUserDetails;
 import mat.server.service.InvalidValueSetDateException;
 import mat.server.service.MeasureLibraryService;
 import mat.server.service.MeasureNotesService;
 import mat.server.service.MeasurePackageService;
 import mat.server.service.UserService;
+import mat.server.service.impl.MatContextServiceUtil;
 import mat.server.util.MeasureUtility;
 import mat.server.util.ResourceLoader;
 import mat.server.util.UuidUtility;
@@ -102,6 +104,8 @@ import org.exolab.castor.xml.Unmarshaller;
 import org.exolab.castor.xml.ValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -142,7 +146,8 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 	 * Constant XPATH Expression for Developers.
 	 */
 	private static final String XPATH_EXPRESSION_DEVELOPERS = "/measure//measureDetails//developers";
-		
+	
+	/** The current release version. */
 	private String currentReleaseVersion;
 	
 	/** The is measure created. */
@@ -167,6 +172,10 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 	/** The measure package service. */
 	@Autowired
 	private MeasurePackageService measurePackageService;
+	
+	/** The measure dao. */		
+	@Autowired		
+	private MeasureDAO measureDAO;
 	
 	/** The qds attributes dao. */
 	@Autowired
@@ -222,48 +231,50 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		logger.info("Inside checkAndDeleteSubTree Method for measure Id " + measureId);
 		MeasureXmlModel xmlModel = getService().getMeasureXmlForMeasure(measureId);
 		HashMap<String,String> removeUUIDMap= new HashMap<String,String> ();
-		if (((xmlModel != null) && StringUtils.isNotBlank(xmlModel.getXml()))) {
-			XmlProcessor xmlProcessor = new XmlProcessor(xmlModel.getXml());
-			try {
-				NodeList subTreeRefNodeList = xmlProcessor.findNodeList(xmlProcessor.getOriginalDoc(), "//subTreeRef[@id='"+subTreeUUID+"']");
-				if(subTreeRefNodeList.getLength() > 0){
-					xmlModel.setXml(null);
-					return removeUUIDMap;
-				}
-				
-				Node subTreeNode = xmlProcessor.findNode(xmlProcessor.getOriginalDoc()
-						, "/measure/subTreeLookUp/subTree[@uuid='"+subTreeUUID+"']");
-				NodeList subTreeOccNode = xmlProcessor.findNodeList(xmlProcessor.getOriginalDoc()
-						, "/measure/subTreeLookUp/subTree[@instanceOf='"+subTreeUUID+"']");
-				if (subTreeNode != null) {
-					Node parentNode = subTreeNode.getParentNode();
-					String name = subTreeNode.getAttributes().getNamedItem("displayName").getNodeValue();
-					String uuid = subTreeNode.getAttributes().getNamedItem("uuid").getNodeValue();
-					String mapValue = name + "~" + uuid;
-					removeUUIDMap.put(uuid,mapValue);
-					parentNode.removeChild(subTreeNode);
-				}
-				if (subTreeOccNode.getLength() > 0) {
-					Set<Node> targetOccurenceElements = new HashSet<Node>();
-					for (int i = 0; i < subTreeOccNode.getLength(); i++) {
-						Node node = subTreeOccNode.item(i);
-						targetOccurenceElements.add(node);
+		if(MatContextServiceUtil.get().isCurrentMeasureEditable(getMeasureDAO(),measureId)){
+			if (((xmlModel != null) && StringUtils.isNotBlank(xmlModel.getXml()))) {
+				XmlProcessor xmlProcessor = new XmlProcessor(xmlModel.getXml());
+				try {
+					NodeList subTreeRefNodeList = xmlProcessor.findNodeList(xmlProcessor.getOriginalDoc(), "//subTreeRef[@id='"+subTreeUUID+"']");
+					if(subTreeRefNodeList.getLength() > 0){
+						xmlModel.setXml(null);
+						return removeUUIDMap;
 					}
-					
-					for (Node occNode : targetOccurenceElements) {
-						String name = "Occurrence " + occNode.getAttributes().getNamedItem("instance").getNodeValue() + " of ";
-						name = name + occNode.getAttributes().getNamedItem("displayName").getNodeValue();
-						String uuid = occNode.getAttributes().getNamedItem("uuid").getNodeValue();
+
+					Node subTreeNode = xmlProcessor.findNode(xmlProcessor.getOriginalDoc()
+							, "/measure/subTreeLookUp/subTree[@uuid='"+subTreeUUID+"']");
+					NodeList subTreeOccNode = xmlProcessor.findNodeList(xmlProcessor.getOriginalDoc()
+							, "/measure/subTreeLookUp/subTree[@instanceOf='"+subTreeUUID+"']");
+					if (subTreeNode != null) {
+						Node parentNode = subTreeNode.getParentNode();
+						String name = subTreeNode.getAttributes().getNamedItem("displayName").getNodeValue();
+						String uuid = subTreeNode.getAttributes().getNamedItem("uuid").getNodeValue();
 						String mapValue = name + "~" + uuid;
 						removeUUIDMap.put(uuid,mapValue);
-						occNode.getParentNode().removeChild(occNode);
+						parentNode.removeChild(subTreeNode);
 					}
+					if (subTreeOccNode.getLength() > 0) {
+						Set<Node> targetOccurenceElements = new HashSet<Node>();
+						for (int i = 0; i < subTreeOccNode.getLength(); i++) {
+							Node node = subTreeOccNode.item(i);
+							targetOccurenceElements.add(node);
+						}
+
+						for (Node occNode : targetOccurenceElements) {
+							String name = "Occurrence " + occNode.getAttributes().getNamedItem("instance").getNodeValue() + " of ";
+							name = name + occNode.getAttributes().getNamedItem("displayName").getNodeValue();
+							String uuid = occNode.getAttributes().getNamedItem("uuid").getNodeValue();
+							String mapValue = name + "~" + uuid;
+							removeUUIDMap.put(uuid,mapValue);
+							occNode.getParentNode().removeChild(occNode);
+						}
+					}
+					xmlModel.setXml(xmlProcessor.transform(xmlProcessor.getOriginalDoc()));
+					getService().saveMeasureXml(xmlModel);
+				} catch (XPathExpressionException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
-				xmlModel.setXml(xmlProcessor.transform(xmlProcessor.getOriginalDoc()));
-				getService().saveMeasureXml(xmlModel);
-			} catch (XPathExpressionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
 		}
 		
@@ -914,7 +925,10 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		MeasureNotesDAO measureNotesDAO = getMeasureNotesDAO();
 		MeasureNotes measureNotes = measureNotesDAO.find(measureNoteDTO.getId());
 		try {
-			getMeasureNotesService().deleteMeasureNote(measureNotes);
+			if(MatContextServiceUtil.get().isCurrentMeasureEditable(getMeasureDAO(),measureNoteDTO.getMeasureId())){
+				getMeasureNotesService().deleteMeasureNote(measureNotes);
+			}
+			
 			logger.info("MeasureNotes Deleted Successfully :: " + measureNotes.getId());
 		} catch (Exception e) {
 			logger.info("MeasureNotes not deleted. Exception occured. Measure notes Id :: " + measureNotes.getId());
@@ -1031,12 +1045,15 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 	 */
 	@Override
 	public final int generateAndSaveMaxEmeasureId(final ManageMeasureDetailModel measureModel) {
-		MeasurePackageService service = getService();
-		Measure meas = service.getById(measureModel.getId());
-		int eMeasureId = service.saveAndReturnMaxEMeasureId(meas);
-		measureModel.seteMeasureId(eMeasureId);
-		saveMaxEmeasureIdinMeasureXML(measureModel);
-		return eMeasureId;
+		if(measureModel.isEditable() && measureModel.geteMeasureId()==0){
+			MeasurePackageService service = getService();
+			Measure meas = service.getById(measureModel.getId());
+			int eMeasureId = service.saveAndReturnMaxEMeasureId(meas);
+			measureModel.seteMeasureId(eMeasureId);
+			saveMaxEmeasureIdinMeasureXML(measureModel);
+			return eMeasureId;	
+		}
+		return -1;
 	}
 	
 	/**
@@ -1964,19 +1981,22 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 	 * @see mat.server.service.MeasureLibraryService#saveAndDeleteMeasure(java.lang.String)
 	 */
 	@Override
-	public final void saveAndDeleteMeasure(final String measureID) {
+	public final void saveAndDeleteMeasure(final String measureID,  String loginUserId) {
 		logger.info("MeasureLibraryServiceImpl: saveAndDeleteMeasure start : measureId:: " + measureID);
 		MeasureDAO measureDAO = getMeasureDAO();
 		Measure m = measureDAO.find(measureID);
-		
-		logger.info("Measure Deletion Started for measure Id :: " + measureID);
-		try {
-			measureDAO.delete(m);
-			logger.info("Measure Deleted Successfully :: " + measureID);
-		} catch (Exception e) {
-			logger.info("Measure not deleted.Something went wrong for measure Id :: " + measureID);
+		SecurityContext sc = SecurityContextHolder.getContext();				
+		MatUserDetails details = (MatUserDetails)sc.getAuthentication().getDetails();		
+		if(m.getOwner().getId().equalsIgnoreCase(details.getId())){
+			logger.info("Measure Deletion Started for measure Id :: " + measureID);
+			try {
+				measureDAO.delete(m);
+				logger.info("Measure Deleted Successfully :: " + measureID);
+			} catch (Exception e) {
+				logger.info("Measure not deleted.Something went wrong for measure Id :: " + measureID);
+			}
 		}
-		
+
 		logger.info("MeasureLibraryServiceImpl: saveAndDeleteMeasure End : measureId:: " + measureID);
 	}
 	
@@ -2078,30 +2098,36 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		ManageMeasureNotesModelValidator validator = new ManageMeasureNotesModelValidator();
 		List<String> message = validator.validation(model);
 		SaveMeasureNotesResult result = new SaveMeasureNotesResult();
-		if (message.size() == 0) {
-			try {
-				MeasureNotes measureNote = new MeasureNotes();
-				measureNote.setNoteTitle(model.getNoteTitle());
-				measureNote.setNoteDesc(model.getNoteDesc());
-				Measure measure = getMeasureDAO().find(measureId);
-				if (measure != null) {
-					measureNote.setMeasure_id(measureId);
+		if(MatContextServiceUtil.get().isCurrentMeasureEditable(getMeasureDAO(),measureId)){
+			if (message.size() == 0) {
+				try {
+					MeasureNotes measureNote = new MeasureNotes();
+					measureNote.setNoteTitle(model.getNoteTitle());
+					measureNote.setNoteDesc(model.getNoteDesc());
+					Measure measure = getMeasureDAO().find(measureId);
+					if (measure != null) {
+						measureNote.setMeasure_id(measureId);
+					}
+					User user = getUserService().getById(userId);
+					if (user != null) {
+						measureNote.setCreateUser(user);
+					}
+					measureNote.setLastModifiedDate(new Date());
+					getMeasureNotesService().saveMeasureNote(measureNote);
+					logger.info("MeasureNotes Saved Successfully.");
+					result.setSuccess(true);
+				} catch (Exception e) {
+					result.setSuccess(false);
+					logger.info("Failed to save MeasureNotes. Exception occured.");
 				}
-				User user = getUserService().getById(userId);
-				if (user != null) {
-					measureNote.setCreateUser(user);
-				}
-				measureNote.setLastModifiedDate(new Date());
-				getMeasureNotesService().saveMeasureNote(measureNote);
-				logger.info("MeasureNotes Saved Successfully.");
-				result.setSuccess(true);
-			} catch (Exception e) {
+			} else {
 				result.setSuccess(false);
-				logger.info("Failed to save MeasureNotes. Exception occured.");
+				result.setFailureReason(SaveMeasureNotesResult.INVALID_DATA);
 			}
-		} else {
+		}
+		else{
 			result.setSuccess(false);
-			result.setFailureReason(SaveMeasureNotesResult.INVALID_DATA);
+			
 		}
 		return result;
 	}
@@ -2113,25 +2139,28 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 	public final void saveMeasureXml(final MeasureXmlModel measureXmlModel) {
 		MeasureXmlModel xmlModel = getService().getMeasureXmlForMeasure(measureXmlModel.getMeasureId());
 		if ((xmlModel != null) && StringUtils.isNotBlank(xmlModel.getXml())) {
-			XmlProcessor xmlProcessor = new XmlProcessor(xmlModel.getXml());
-			try{
-				String scoringTypeBeforeNewXml = (String) xPath.evaluate(
-						"/measure/measureDetails/scoring/@id",
-						xmlProcessor.getOriginalDoc().getDocumentElement(), XPathConstants.STRING);
-				String newXml = xmlProcessor.replaceNode(measureXmlModel.getXml(), measureXmlModel.getToReplaceNode(),
-						measureXmlModel.getParentNode());
-				String scoringTypeAfterNewXml = (String) xPath.evaluate(
-						"/measure/measureDetails/scoring/@id",
-						xmlProcessor.getOriginalDoc().getDocumentElement(), XPathConstants.STRING);
-				xmlProcessor.checkForScoringType();
-				checkForTimingElementsAndAppend(xmlProcessor);
-				if(! scoringTypeBeforeNewXml.equalsIgnoreCase(scoringTypeAfterNewXml)) {
-					deleteExistingGroupings(xmlProcessor);
+			if(MatContextServiceUtil.get().isCurrentMeasureEditable(getMeasureDAO(),measureXmlModel.getMeasureId())){
+				XmlProcessor xmlProcessor = new XmlProcessor(xmlModel.getXml());
+				try{
+					String scoringTypeBeforeNewXml = (String) xPath.evaluate(
+							"/measure/measureDetails/scoring/@id",
+							xmlProcessor.getOriginalDoc().getDocumentElement(), XPathConstants.STRING);
+					String newXml = xmlProcessor.replaceNode(measureXmlModel.getXml(), measureXmlModel.getToReplaceNode(),
+							measureXmlModel.getParentNode());
+					String scoringTypeAfterNewXml = (String) xPath.evaluate(
+							"/measure/measureDetails/scoring/@id",
+							xmlProcessor.getOriginalDoc().getDocumentElement(), XPathConstants.STRING);
+					xmlProcessor.checkForScoringType();
+					checkForTimingElementsAndAppend(xmlProcessor);
+					if(! scoringTypeBeforeNewXml.equalsIgnoreCase(scoringTypeAfterNewXml)) {
+						deleteExistingGroupings(xmlProcessor);
+					}
+					newXml = xmlProcessor.transform(xmlProcessor.getOriginalDoc());
+					measureXmlModel.setXml(newXml);
+				} catch (XPathExpressionException e) {
+					e.printStackTrace();
 				}
-				newXml = xmlProcessor.transform(xmlProcessor.getOriginalDoc());
-				measureXmlModel.setXml(newXml);
-			} catch (XPathExpressionException e) {
-				e.printStackTrace();
+				getService().saveMeasureXml(measureXmlModel);
 			}
 		} else {
 			XmlProcessor processor = new XmlProcessor(measureXmlModel.getXml());
@@ -2165,8 +2194,8 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 			measureXmlModel.setXml(result);
 			XmlProcessor processor1 = new XmlProcessor(measureXmlModel.getXml());
 			measureXmlModel.setXml(processor1.checkForStratificationAndAdd());
+			getService().saveMeasureXml(measureXmlModel);
 		}
-		getService().saveMeasureXml(measureXmlModel);
 	}
 	
 	
@@ -2756,19 +2785,23 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 	@Override
 	public final void updateMeasureNotes(final MeasureNoteDTO measureNoteDTO, final String userId) {
 		try {
-			MeasureNotesDAO measureNotesDAO = getMeasureNotesDAO();
-			MeasureNotes measureNotes = measureNotesDAO.find(measureNoteDTO.getId());
-			measureNotes.setNoteTitle(measureNoteDTO.getNoteTitle());
-			measureNotes.setNoteDesc(measureNoteDTO.getNoteDesc());
-			User user = getUserService().getById(userId);
-			if (user != null) {
-				measureNotes.setModifyUser(user);
-			}
-			measureNotes.setLastModifiedDate(new Date());
-			getMeasureNotesService().saveMeasureNote(measureNotes);
-			logger.info("Edited MeasureNotes Saved Successfully. Measure notes Id :: " + measureNoteDTO.getId());
-		} catch (Exception e) {
-			logger.info("Edited MeasureNotes not saved. Exception occured. Measure notes Id :: " + measureNoteDTO.getId());
+			if(MatContextServiceUtil.get()
+					.isCurrentMeasureEditable(getMeasureDAO(),measureNoteDTO.getMeasureId())){
+			
+				MeasureNotesDAO measureNotesDAO = getMeasureNotesDAO();
+				MeasureNotes measureNotes = measureNotesDAO.find(measureNoteDTO.getId());
+				measureNotes.setNoteTitle(measureNoteDTO.getNoteTitle());
+				measureNotes.setNoteDesc(measureNoteDTO.getNoteDesc());
+				User user = getUserService().getById(userId);
+				if (user != null) {
+					measureNotes.setModifyUser(user);
+					}
+				measureNotes.setLastModifiedDate(new Date());
+				getMeasureNotesService().saveMeasureNote(measureNotes);
+				logger.info("Edited MeasureNotes Saved Successfully. Measure notes Id :: " + measureNoteDTO.getId());
+				}
+			} catch (Exception e) {
+				logger.info("Edited MeasureNotes not saved. Exception occured. Measure notes Id :: " + measureNoteDTO.getId());
 		}
 	}
 	
@@ -3385,13 +3418,13 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 			List<String> operatorTypeList = getAllOperatorsTypeList();
 			
 			if(usedSubTreeIds.size()>0){
-				
 				for(int k=0; (k < usedSubTreeIds.size()); k++){
 					String usedSubtreeRefId = usedSubTreeIds.get(k);
 					
 					String satisfyFunction = "@type='SATISFIES ALL' or @type='SATISFIES ANY'";
 					String otherThanSatisfyfunction = "@type!='SATISFIES ALL' or @type!='SATISFIES ANY'";
 					String dateTimeDiffFunction = "@type='DATETIMEDIFF'";
+					String qdmVariable = "@qdmVariable='true'";
 					//geting list of IDs
 					String XPATH_QDMELEMENT = "/measure//subTreeLookUp/subTree[@uuid='"+usedSubtreeRefId+"']//elementRef/@id";
 					//geting Unique Ids only
@@ -3404,6 +3437,7 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 					String XPATH_DATE_TIME_DIFF_ELEMENT = "/measure//subTreeLookUp/subTree[@uuid='"+usedSubtreeRefId+"']//functionalOp["+dateTimeDiffFunction+"]";
 					
 					String XPATH_SUBTREE ="//subTreeLookUp/subTree[@uuid='"+usedSubtreeRefId+"']";
+					String XPATH_QDMVARAIBLES = "/measure//subTreeLookUp/subTree[@uuid='"+usedSubtreeRefId+"'and "+qdmVariable+"]";
 					/*System.out.println("MEASURE_XML: "+xmlModel.getXml());*/
 					try {
 						
@@ -3419,6 +3453,8 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 						NodeList nodeSDE_setoperator =(NodeList) xPath.evaluate(XPATH_SETOPERATOR, xmlProcessor.getOriginalDoc(),
 								XPathConstants.NODESET);
 						NodeList nodeSDE_dateTimeDiffElement =(NodeList) xPath.evaluate(XPATH_DATE_TIME_DIFF_ELEMENT, xmlProcessor.getOriginalDoc(),
+								XPathConstants.NODESET);
+						NodeList nodesSDE_qdmVariables =(NodeList) xPath.evaluate(XPATH_QDMVARAIBLES, xmlProcessor.getOriginalDoc(),
 								XPathConstants.NODESET);
 						Node nodeSubTree =(Node) xPath.evaluate(XPATH_SUBTREE, xmlProcessor.getOriginalDoc(),
 								XPathConstants.NODE);
@@ -3502,13 +3538,14 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 							
 							Node functionsChildNode =nodesSDE_functions.item(n);
 							isInvalid = validateFunctionNode(functionsChildNode, operatorTypeList, isInvalid);
-							if(isInvalid) {
+							
+							if(isInvalid || (usedSubtreeRefIdsMap.get("subTreeIDAtMO").contains(usedSubtreeRefId) &&
+									validateFunctionNodeInMO(functionsChildNode))) {
 								result.setValid(false);
 								message.add(MatContext.get().getMessageDelegate().getWARNING_MEASURE_PACKAGE_CREATION_GENERIC());
 								result.setValidationMessages(message);
 								return result;
 							}
-							
 						}
 						
 						for (int n = 0; (n < nodeSDE_setoperator.getLength()); n++) {
@@ -3542,8 +3579,32 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 								return result;
 							}
 							
+							//Verifying no datetime dif funcitons are not in riskAdjustmentVariables
+							String RISK_ADJUSTMENT_DATETIMEDIF_RETRIVAL = "/measure/riskAdjustmentVariables/subTreeRef[@id='"+ usedSubtreeRefId +"']";
+							NodeList riskAdjustmentNodes = (NodeList) xPath.evaluate(RISK_ADJUSTMENT_DATETIMEDIF_RETRIVAL, xmlProcessor.getOriginalDoc(),
+									XPathConstants.NODESET);
+							if(riskAdjustmentNodes.getLength() > 0){
+								result.setValid(false);
+								message.add(MatContext.get().getMessageDelegate().getWARNING_MEASURE_PACKAGE_CREATION_RISK_ADJUSTMENT());
+								result.setValidationMessages(message);
+								return result;
+							}
 							
 						}
+						//verifying no qdm variables are in riskAjustmentVariables
+						for(int p = 0; p<nodesSDE_qdmVariables.getLength(); p++){
+							String nodeUUID = nodesSDE_qdmVariables.item(p).getAttributes().getNamedItem("uuid").getNodeValue();
+							String RISK_ADJUSTMENT_QDM_RETRIVAL = "/measure/riskAdjustmentVariables/subTreeRef[@id='"+ nodeUUID +"']";
+							NodeList riskAdjustmentNodes = (NodeList) xPath.evaluate(RISK_ADJUSTMENT_QDM_RETRIVAL, xmlProcessor.getOriginalDoc(),
+									XPathConstants.NODESET);
+							if(riskAdjustmentNodes.getLength()>0){
+								result.setValid(false);
+								message.add(MatContext.get().getMessageDelegate().getWARNING_MEASURE_PACKAGE_CREATION_RISK_ADJUSTMENT());
+								result.setValidationMessages(message);
+								return result;
+							}
+						}
+						
 						
 					} catch (XPathExpressionException e) {
 						
@@ -3554,6 +3615,22 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 			
 		}
 		return result;
+	}
+	
+	/**
+	 * Validate function node in measure observation.
+	 *
+	 * @param functionsChildNode the functions child node
+	 * @return true, if successful
+	 */
+	private boolean validateFunctionNodeInMO(Node functionsChildNode) {
+		
+		String displayName = functionsChildNode.getAttributes().getNamedItem("displayName").getNodeValue();
+		String type = functionsChildNode.getAttributes().getNamedItem("type").getNodeValue();
+		if(!type.equalsIgnoreCase(displayName)) {
+			return true;
+		}
+		return false;
 	}
 	
 	/**
@@ -3582,14 +3659,14 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 					}
 				} else {
 					// Populations other than Stratification : dont check for default top level Logical Op.
-					if (operatorNode.hasChildNodes() && 
-							operatorNode.getChildNodes().getLength()>1) {
-							isInvalid = findInvalidLogicalOperators(operatorNode.getChildNodes(), true);
-							
-							if (isInvalid) {
-								message = MatContext.get().getMessageDelegate()
-										.getCLAUSE_WORK_SPACE_INVALID_LOGICAL_OPERATOR();
-								break;
+					if (operatorNode.hasChildNodes() &&
+							(operatorNode.getChildNodes().getLength()>1)) {
+						isInvalid = findInvalidLogicalOperators(operatorNode.getChildNodes(), true);
+						
+						if (isInvalid) {
+							message = MatContext.get().getMessageDelegate()
+									.getCLAUSE_WORK_SPACE_INVALID_LOGICAL_OPERATOR();
+							break;
 						}
 					}
 				}
@@ -3603,6 +3680,7 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 	 * Find invalid logical operators.
 	 *
 	 * @param populationTopLevelLogicalOp the population top level logical op
+	 * @param isTopLevelLogicalOp the is top level logical op
 	 * @return true, if successful
 	 */
 	private boolean findInvalidLogicalOperators(NodeList populationTopLevelLogicalOp, boolean isTopLevelLogicalOp) {
@@ -3610,16 +3688,16 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		if((populationTopLevelLogicalOp != null)){
 			for (int i=0; i < populationTopLevelLogicalOp.getLength();i++) {
 				Node operatorNode = populationTopLevelLogicalOp.item(i);
-			    if (operatorNode.getNodeName().equalsIgnoreCase("comment")) {
-			    	//ignore the comment for the top Level Logical Operator
-			    	if(!isTopLevelLogicalOp) {
-			    		isInvalid = true;
-			    	} else {
-			    		isTopLevelLogicalOp = false;
-			    	}
-			    	continue; 
+				if (operatorNode.getNodeName().equalsIgnoreCase("comment")) {
+					//ignore the comment for the top Level Logical Operator
+					if(!isTopLevelLogicalOp) {
+						isInvalid = true;
+					} else {
+						isTopLevelLogicalOp = false;
+					}
+					continue;
 				}
-			    
+				
 				if (operatorNode.getNodeName().equalsIgnoreCase("subTreeRef")) {
 					isInvalid = false;
 				} else {
@@ -3629,8 +3707,8 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 						if(!isTopLevelLogicalOp){
 							isInvalid = true;
 						} else {
-				    		isTopLevelLogicalOp = false;
-				    	}
+							isTopLevelLogicalOp = false;
+						}
 					}
 				}
 				if(isInvalid){
@@ -3674,8 +3752,12 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 				String XPATH_SUBTREE = "//subTreeLookUp/subTree[@uuid='"+uuid+"']";
 				node = (Node) xPath.evaluate(XPATH_SUBTREE, xmlProcessor.getOriginalDoc(),
 						XPathConstants.NODE);
+				if(node.hasChildNodes()){
+					node = node.getChildNodes().item(0);
+				}
 			}
-			if (node.hasChildNodes()) {
+			if (node.getChildNodes() != null && node.getChildNodes().getLength() > 0 
+					&& !node.getNodeName().equalsIgnoreCase("subTree")) {
 				currentCounter = currentCounter + 1;
 			}
 			if (currentCounter > NESTED_CLAUSE_DEPTH) {
@@ -3746,6 +3828,10 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		subTreeIdsAtStrat.removeAll(subTreeIdsAtRAV);
 		subTreeIdsAtRAV.addAll(subTreeIdsAtStrat);
 		
+		for(int i=0; i<subTreeIdsAtRAV.size();i++){
+			System.out.println("SUBTREE NODES " + subTreeIdsAtRAV.get(i));
+		}
+		
 		return subTreeIdsAtRAV;
 	}
 	
@@ -3775,7 +3861,7 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		}
 		
 		
-		return subTreeRefRAVList;
+		return checkUnUsedSubTreeRef(xmlProcessor, subTreeRefRAVList);
 	}
 	
 	
@@ -4131,40 +4217,41 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		
 		List<String> message = new ArrayList<String>();
 		ValidateMeasureResult result = new ValidateMeasureResult();
-		MeasureXmlModel xmlModel = getService().getMeasureXmlForMeasure(model.getId());
-		
-		if (((xmlModel != null) && StringUtils.isNotBlank(xmlModel.getXml()))) {
-			XmlProcessor xmlProcessor = new XmlProcessor(xmlModel.getXml());
-			/*System.out.println("MEASURE_XML: "+xmlModel.getXml());*/
-			
-			//validate for at least one grouping
-			String XPATH_GROUP = "/measure/measureGrouping/group";
-			
-			NodeList groupSDE;
-			try {
-				groupSDE = (NodeList) xPath.evaluate(XPATH_GROUP, xmlProcessor.getOriginalDoc(),
-						XPathConstants.NODESET);
-				
-				if(groupSDE.getLength()==0){
-					message.add(MatContext.get().getMessageDelegate().getGroupingRequiredMessage());
-					
-				}else{
-					for(int i=1; i<=groupSDE.getLength(); i++){
-						NodeList numberOfStratificationPerGroup = (NodeList) xPath.evaluate("/measure/measureGrouping/group[@sequence='"+i+"']/packageClause[@type='stratification']", xmlProcessor.getOriginalDoc(),
-								XPathConstants.NODESET);
-						if(numberOfStratificationPerGroup.getLength()>1){
-							message.add(MatContext.get().getMessageDelegate().getSTRATIFICATION_VALIDATION_FOR_GROUPING());
-							break;
+		if(MatContextServiceUtil.get().isCurrentMeasureEditable(getMeasureDAO(),model.getId())){
+			MeasureXmlModel xmlModel = getService().getMeasureXmlForMeasure(model.getId());
+
+			if (((xmlModel != null) && StringUtils.isNotBlank(xmlModel.getXml()))) {
+				XmlProcessor xmlProcessor = new XmlProcessor(xmlModel.getXml());
+				/*System.out.println("MEASURE_XML: "+xmlModel.getXml());*/
+
+				//validate for at least one grouping
+				String XPATH_GROUP = "/measure/measureGrouping/group";
+
+				NodeList groupSDE;
+				try {
+					groupSDE = (NodeList) xPath.evaluate(XPATH_GROUP, xmlProcessor.getOriginalDoc(),
+							XPathConstants.NODESET);
+
+					if(groupSDE.getLength()==0){
+						message.add(MatContext.get().getMessageDelegate().getGroupingRequiredMessage());
+
+					}else{
+						for(int i=1; i<=groupSDE.getLength(); i++){
+							NodeList numberOfStratificationPerGroup = (NodeList) xPath.evaluate("/measure/measureGrouping/group[@sequence='"+i+"']/packageClause[@type='stratification']", xmlProcessor.getOriginalDoc(),
+									XPathConstants.NODESET);
+							if(numberOfStratificationPerGroup.getLength()>1){
+								message.add(MatContext.get().getMessageDelegate().getSTRATIFICATION_VALIDATION_FOR_GROUPING());
+								break;
+							}
 						}
+
 					}
-					
+				} catch (XPathExpressionException e2) {
+
+					e2.printStackTrace();
 				}
-			} catch (XPathExpressionException e2) {
-				
-				e2.printStackTrace();
 			}
 		}
-		
 		result.setValid(message.size() == 0);
 		result.setValidationMessages(message);
 		return result;
@@ -4643,14 +4730,37 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		}
 		return message;
 	}
-
+	
+	/* (non-Javadoc)
+	 * @see mat.server.service.MeasureLibraryService#getCurrentReleaseVersion()
+	 */
+	@Override
 	public String getCurrentReleaseVersion() {
 		return currentReleaseVersion;
 	}
-
+	
+	/* (non-Javadoc)
+	 * @see mat.server.service.MeasureLibraryService#setCurrentReleaseVersion(java.lang.String)
+	 */
+	@Override
 	public void setCurrentReleaseVersion(String releaseVersion) {
-		this.currentReleaseVersion = releaseVersion;
+		currentReleaseVersion = releaseVersion;
 	}
-
+	
+	/**
+	 * Checks if is measure owner.
+	 *
+	 * @param userId the user id
+	 * @return true, if is measure owner
+	 */
+	private boolean isMeasureOwner(String userId){
+		SecurityContext sc = SecurityContextHolder.getContext();
+		MatUserDetails details = (MatUserDetails)sc.getAuthentication().getDetails();
+		if(details.getId().equalsIgnoreCase(userId)){
+			return true;
+		}
+		return false;
+	}
+	
 }
 

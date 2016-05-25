@@ -18,6 +18,7 @@ import mat.server.model.MatUserDetails;
 import mat.server.service.LoginCredentialService;
 import mat.server.service.SecurityQuestionsService;
 import mat.server.service.UserService;
+import mat.server.twofactorauth.TwoFactorValidationService;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -50,7 +51,8 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
 	/** The user service. */
 	@Autowired
 	private UserService userService;
-	
+	@Autowired
+	private TwoFactorValidationService matOtpValidatorService;
 	/*
 	 * (non-Javadoc)
 	 * @see mat.server.service.LoginCredentialService#changePasswordSecurityAnswers(mat.client.login.LoginModel)
@@ -68,6 +70,9 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
 		user.getPassword().setInitial(false);
 		logger.info("Saving security questions");
 		List<UserSecurityQuestion> secQuestions = user.getSecurityQuestions();
+//		for (UserSecurityQuestion question: secQuestions) {
+//			logger.info("Question ID: " +  question.getSecurityQuestionId()  + "Question Answer: " + question.getSecurityAnswer());
+//		}
 		while (secQuestions.size() < 3) {
 			UserSecurityQuestion newQuestion = new UserSecurityQuestion();
 			secQuestions.add(newQuestion);
@@ -91,6 +96,7 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
 		secQuestions.get(2).setSecurityQuestions(secQue3);
 		secQuestions.get(2).setSecurityAnswer(model.getQuestion3Answer());
 		user.setSecurityQuestions(secQuestions);
+
 		userService.saveExisting(user);
 		MatUserDetails userDetails = (MatUserDetails) hibernateUserService
 				.loadUserByUsername(user.getLoginId());
@@ -335,7 +341,7 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
 	 * @see mat.server.service.LoginCredentialService#isValidUser(java.lang.String, java.lang.String)
 	 */
 	@Override
-	public LoginModel isValidUser(String userId, String password) {
+	public LoginModel isValidUser(String userId, String password, String oneTimePassword) {
 		LoginModel validateUserLoginModel = new LoginModel();
 		MatUserDetails validateUserMatUserDetails = (MatUserDetails) hibernateUserService
 				.loadUserByUsername(userId);
@@ -343,12 +349,38 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
 		currentTimeStamp = new Timestamp(currentDate.getTime());
 		validateUserLoginModel = isValidUserIdPassword(userId, password, validateUserLoginModel,
 				validateUserMatUserDetails);
-		logger.info("loginModel.isLoginFailedEvent():" + validateUserLoginModel.isLoginFailedEvent());
+		logger.info("loginModel.isLoginFailedEvent() for userId/password matching:" + validateUserLoginModel.isLoginFailedEvent());
+		if (!validateUserLoginModel.isLoginFailedEvent()) {
+			validateUserLoginModel = isValid2FactorOTP(userId,oneTimePassword,validateUserLoginModel, validateUserMatUserDetails);
+		}
 		if (!validateUserLoginModel.isLoginFailedEvent()) {
 			onSuccessLogin(userId, validateUserMatUserDetails);
 		}
 		return validateUserLoginModel;
 	}
+	
+	private LoginModel isValid2FactorOTP(String userId, String oneTimePassword,
+			LoginModel validateUserLoginModel,
+			MatUserDetails validateUserMatUserDetails) {
+		
+		LoginModel loginModel = validateUserLoginModel;
+		
+		if(this.matOtpValidatorService != null){
+			boolean isValidOTP = this.matOtpValidatorService.validateOTPForUser(userId, oneTimePassword); 
+				if(!isValidOTP){
+					loginModel.setLoginFailedEvent(true);
+					loginModel.setErrorMessage(MatContext.get().getMessageDelegate()
+							.getLoginFailedMessage());
+				}
+		}else{
+			loginModel.setLoginFailedEvent(true);
+			loginModel.setErrorMessage(MatContext.get().getMessageDelegate()
+					.getLoginFailedMessage());
+		}
+		
+		return loginModel;
+	}
+
 	//to check for the user password validity
 	/**
 	 * Checks if is valid user id password.
@@ -599,6 +631,14 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
 			logger.debug("Locking user out");
 		}
 		return validateUserLoginModel;
+	}
+
+	public TwoFactorValidationService getTwoFactorValidationService() {
+		return matOtpValidatorService;
+	}
+
+	public void setTwoFactorValidationService(TwoFactorValidationService twoFactorValidationService) {
+		this.matOtpValidatorService = twoFactorValidationService;
 	}
 	
 }

@@ -15,6 +15,7 @@ import mat.client.shared.FocusableImageButton;
 import mat.client.shared.LabelBuilder;
 import mat.client.shared.ListBoxMVP;
 import mat.client.shared.MatContext;
+import mat.client.shared.CustomTextAreaWithMaxLength;
 import mat.client.shared.PhoneNumberWidget;
 import mat.client.shared.RequiredIndicator;
 import mat.client.shared.SaveCancelButtonBar;
@@ -35,6 +36,7 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.SimplePanel;
+import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
 
@@ -115,6 +117,9 @@ implements ManageUsersPresenter.DetailDisplay {
 	/** The revoked status. */
 	private RadioButton revokedStatus = new RadioButton("status", "Revoked");
 	
+	/* The revoked date, past or future */
+	private Label revokeDate = new Label();
+	
 	/** The role label. */
 	private String roleLabel = "Role";
 	
@@ -128,6 +133,16 @@ implements ManageUsersPresenter.DetailDisplay {
 	
 	/** The title label. */
 	private String titleLabel = "Title";
+	
+//	private String addInfoLabel = "Additional Information";
+	
+	
+	private static final int ADD_INFO_MAX_LENGTH = 2000;
+	
+	private CustomTextAreaWithMaxLength addInfoArea = new CustomTextAreaWithMaxLength(ADD_INFO_MAX_LENGTH);
+	
+	
+	private Label addInfoLabel = new Label("Notes");
 	
 	//Label expLabel = new Label("Expires");
 	
@@ -184,6 +199,16 @@ implements ManageUsersPresenter.DetailDisplay {
 		leftPanel.add(new SpacerWidget());
 		
 		leftPanel.add(phoneWidget);
+		leftPanel.add(new SpacerWidget());
+		
+		addInfoArea.getElement().setAttribute("maxlength", "250");
+		addInfoArea.setText("");
+		addInfoArea.setHeight("80px");
+		addInfoArea.setWidth("250px");
+		addInfoLabel.getElement().setId("Admin_AddtionalInfo_Label");
+		leftPanel.add(addInfoLabel);
+		addInfoArea.setTitle("Notes");
+		leftPanel.add(addInfoArea);
 		leftPanel.add(new SpacerWidget());
 		
 		lockedLabel.addStyleName("floatRight");
@@ -246,16 +271,24 @@ implements ManageUsersPresenter.DetailDisplay {
 		hzPanel.getElement().setId("HorizontalPanel_UserExpiryDate");
 		//expLabel.getElement().setId("UserPasswordExpiry_Label");
 		rightPanel.add(LabelBuilder.buildLabel(activeStatus, statusLabel));
-		activeStatus.addStyleName("block");
-		revokedStatus.addStyleName("block");
+		activeStatus.addStyleName("userStatus");
+		revokedStatus.addStyleName("userStatus");
+		revokeDate.addStyleName("revokeDate");
 		SimplePanel sPanel = new SimplePanel();
-		sPanel.setWidth("10px");
+		sPanel.setWidth("5px");
 		hzPanel.add(activeStatus);
 		hzPanel.add(sPanel);
 		//hzPanel.add(expLabel);
 		hzPanel.addStyleName("inline");
 		rightPanel.add(hzPanel);
-		rightPanel.add(revokedStatus);
+		
+		HorizontalPanel hzRevokePanel = new HorizontalPanel();
+		hzRevokePanel.add(revokedStatus);
+		hzRevokePanel.add(sPanel);
+		//hzRevokePanel.setWidth("35%");
+		//hzPanel.addStyleName("inline");
+		hzRevokePanel.add(revokeDate);
+		rightPanel.add(hzRevokePanel);
 		activeStatus.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
 			@Override
 			public void onValueChange(ValueChangeEvent<Boolean> event) {
@@ -279,10 +312,10 @@ implements ManageUsersPresenter.DetailDisplay {
 				}
 			}
 		});
+		
 		rightPanel.add(new SpacerWidget());
 		
 		rightPanel.add(resetPassword);
-		
 		SimplePanel buttonPanel = new SimplePanel();
 		buttonPanel.add(buttonBar);
 		buttonPanel.setWidth("100%");
@@ -538,7 +571,12 @@ implements ManageUsersPresenter.DetailDisplay {
 		listBox.addItem(defaultOption, "");
 		if (organizations != null) {
 			for (Result organization : organizations) {
-				listBox.insertItem(organization.getOrgName(), "" + organization.getId(), organization.getOrgName());
+				// truncate the org names to 60 chars, so fields on screen don't wrap
+				String orgName = organization.getOrgName();
+				if (orgName.length() > 60) {
+					orgName = organization.getOrgName().substring(0,60);
+				}
+				listBox.insertItem(orgName, "" + organization.getId(), organization.getOrgName());
 			}
 		}
 	}
@@ -606,7 +644,34 @@ implements ManageUsersPresenter.DetailDisplay {
 	public void setUserLocked(boolean b) {
 		MatContext.get().setVisible(lockedLabel, b);
 	}
+
+	@Override
+	public CustomTextAreaWithMaxLength getAddInfoArea() {
+		return addInfoArea;
+	}
+
+	@Override
+	public void setAddInfoArea(CustomTextAreaWithMaxLength addInfoArea) {
+		this.addInfoArea = addInfoArea;
+	}
 	
+	@Override
+	public Label getRevokeDate() {
+		return revokeDate;
+	}
+	
+	@Override
+	public void setRevokeDate(Label revokeDate) {
+		this.revokeDate = revokeDate;
+	}
+	
+	@Override
+	public void setShowAdminNotes(boolean b) {
+		MatContext.get().setVisible(addInfoLabel, b);
+		MatContext.get().setVisible(addInfoArea, b);
+	}
+
+
 //	@Override
 //	public Label getExpLabel() {
 //		return expLabel;
