@@ -86,6 +86,9 @@ public class HQMFMeasureDetailsGenerator implements Generator {
 		}else if("v4.3".equals(version)){
 			//This is 4.2 because were on qdm version 4.2 and export 4.3. The QDM version needs to appear in the comments
 			formatVersion = "4.2";
+		} else if("v4.6".equals(version)) {
+			// This is 4.3 because we are on qdm version 4.3 and export version 4.6.
+			formatVersion = "4.3"; 
 		}
 		return formatVersion;
 		

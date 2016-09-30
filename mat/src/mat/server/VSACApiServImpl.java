@@ -738,10 +738,11 @@ public class VSACApiServImpl implements VSACApiService{
 				if (matValueSet.isGrouping()) {
 					qualityDataSetDTO.setTaxonomy(ConstantMessages.
 							GROUPING_CODE_SYSTEM);
-					handleVSACGroupedValueSet(eightHourTicket, matValueSet, defaultExpId);
-					if (matValueSet.getGroupedValueSet().size() != 0) {
+					
+//					handleVSACGroupedValueSet(eightHourTicket, matValueSet, defaultExpId);
+//					if (matValueSet.getGroupedValueSet().size() != 0) {
 						matValueSetList.add(matValueSet);
-					}
+					//}
 				} else {
 					if (matValueSet.getConceptList().getConceptList() != null) {
 						qualityDataSetDTO.setTaxonomy(matValueSet.getConceptList().
@@ -784,10 +785,21 @@ public class VSACApiServImpl implements VSACApiService{
 				if (groupedValueSetOid.length == 2) {
 					LOGGER.info("Start ValueSetsResponseDAO...Using Proxy:"+PROXY_HOST+":"+PROXY_PORT);
 					String fiveMinServiceTicket = vGroovyClient.getServiceTicket(eightHourTicket);
-					VSACResponseResult vsacResponseResult = vGroovyClient.
-							getMultipleValueSetsResponseByOID(groupedValueSetOid[0].trim(),fiveMinServiceTicket,
-									defaultExpId);
-					
+					VSACResponseResult vsacResponseResult = null;
+					if(valueSet.getExpansionProfile()!=null){
+						vsacResponseResult = vGroovyClient.
+								getMultipleValueSetsResponseByOIDAndProfile(groupedValueSetOid[0].trim(), valueSet.getExpansionProfile(), 
+										fiveMinServiceTicket);
+					} else if(!valueSet.getVersion().equalsIgnoreCase("Draft")){
+						vsacResponseResult = vGroovyClient.
+								getMultipleValueSetsResponseByOIDAndVersion(groupedValueSetOid[0].trim(), valueSet.getVersion(), 
+										fiveMinServiceTicket);
+					} else {
+						vsacResponseResult = vGroovyClient.
+								getMultipleValueSetsResponseByOID(groupedValueSetOid[0].trim(),fiveMinServiceTicket,
+										defaultExpId);
+					}
+							
 					if(vsacResponseResult != null) {
 						
 						VSACValueSetWrapper wrapperGrouped = convertXmltoValueSet(vsacResponseResult.getXmlPayLoad());

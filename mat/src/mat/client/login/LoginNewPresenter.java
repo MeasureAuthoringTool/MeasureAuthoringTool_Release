@@ -130,6 +130,7 @@ public class LoginNewPresenter {
 	}
 	
 	public void go(HasWidgets container) {
+		reset();
 		container.add(view.asWidget());
 		view.getSuccessMessagePanel().setVisible(false);
 		view.getWelcomeHeading().setVisible(true);
@@ -192,34 +193,35 @@ public class LoginNewPresenter {
 		public void onSuccess(LoginModel result) {
 			view.getUserIdGroup().setValidationState(ValidationState.NONE);
 			view.getPasswordGroup().setValidationState(ValidationState.NONE);
+			view.getAuthTokenGroup().setValidationState(ValidationState.NONE);
 			loginModel = result;
-			if(result != null) {
-				String secRole = null;
-				if(result.getRole() != null) {
-					secRole = result.getRole().getDescription();
-				}
-				MatContext.get().setUserInfo(result.getUserId(), result.getEmail(), secRole,result.getLoginId());
-				if(loginModel.isInitialPassword()){
-					MatContext.get().getEventBus().fireEvent(new FirstLoginPageEvent());
-				}else if(loginModel.isLoginFailedEvent()){
-					
+			if (loginModel != null) {				
+				if (loginModel.isLoginFailedEvent()) {
 					view.getHelpBlock().setIconType(IconType.EXCLAMATION_CIRCLE);
 					view.getMessageFormGrp().setValidationState(ValidationState.ERROR);
 					view.getHelpBlock().setText(loginModel.getErrorMessage());
-				}else if(loginModel.isTemporaryPassword()){
-					MatContext.get().getEventBus().fireEvent(new TemporaryPasswordLoginEvent());
-				}else{
-					MatContext.get().getEventBus().fireEvent(new SuccessfulLoginEvent());
+				} else {
+					String secRole = null;
+					if (loginModel.getRole() != null) {
+						secRole = loginModel.getRole().getDescription();
+					}
+					MatContext.get().setUserInfo(loginModel.getUserId(), loginModel.getEmail(), secRole, loginModel.getLoginId());
+					if (loginModel.isInitialPassword()) {
+						MatContext.get().getEventBus().fireEvent(new FirstLoginPageEvent());
+					} else if (loginModel.isTemporaryPassword()) {
+						MatContext.get().getEventBus().fireEvent(new TemporaryPasswordLoginEvent());
+					} else {
+						MatContext.get().getEventBus().fireEvent(new SuccessfulLoginEvent());
+					}
 				}
-			}
-			else {
+			} else {
 				view.getHelpBlock().setText(MatContext.get().getMessageDelegate().getServerCallNullMessage());
 			}
-			
+			view.getSubmitButton().setEnabled(true);
 		}
-		
-		
+			
 	};
+	
 	public void displayForgottenPasswordMessage() {
 		view.getWelcomeHeading().setVisible(false);
 		HTML html = new HTML("A temporary password has been sent to the e-mail address associated with the User Id you provided. Please check your e-mail and continue to sign in.");

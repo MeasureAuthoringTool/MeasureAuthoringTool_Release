@@ -456,6 +456,7 @@ public abstract class XLSGenerator {
 	 *        * */
 	protected final void processXLSRow(final MatValueSet lo) {
 		
+		
 		String measureDeveloper = "";
 		measureDeveloper = lo.getSource();
 		String standardConcept = lo.getDisplayName();
@@ -471,48 +472,26 @@ public abstract class XLSGenerator {
 		if(expansionProfile==null){
 			expansionProfile = "";
 		}
-		if (ConstantMessages.GROUPING_CODE_SYSTEM
-				.equalsIgnoreCase(lo.getType())) {
-			String taxonomy = ConstantMessages.GROUPING_CODE_SYSTEM;
-			String taxonomyVersion = "";
-			String description = "";
-			if (lo.getGroupedValueSet().get(0)
-					.getConceptList().getConceptList() != null) {
-				taxonomyVersion = lo.getGroupedValueSet().get(0)
-						.getConceptList().getConceptList().get(0)
-						.getCodeSystemVersion();
-			}
-			if (lo.getGroupedValueSet().size() == 0) {
-				cacheRow(new String[] {measureDeveloper, oid, version, expansionProfile,
-						valueSetLastModified, standardConcept, taxonomy,
-						taxonomyVersion, code, description }, null);
-			}
-			for (MatValueSet gcl : lo.getGroupedValueSet()) {
-				code = gcl.getID();
-				// description = gcl.getDescription();
+				
+		String taxonomyVersion = "";
+		String taxonomy = "";
+		String description = "";
+		if (lo.getConceptList().getConceptList() != null) {
+		
+			taxonomyVersion = lo.getConceptList().getConceptList().get(0)
+					.getCodeSystemVersion();
+			if ((lo.getConceptList().getConceptList().size() == 0)) {
 				cacheRow(new String[] {measureDeveloper, oid, version, expansionProfile,
 						valueSetLastModified, standardConcept,
 						taxonomy, taxonomyVersion, code , description}, null);
-				cacheXLSRow(gcl);
 			}
-		} else {
-			String taxonomyVersion = "";
-			String taxonomy = "";
-			String description = "";
-			if (lo.getConceptList().getConceptList() != null) {
-				taxonomy = lo.getConceptList().getConceptList().get(0)
-						.getCodeSystemName();
-				taxonomyVersion = lo.getConceptList().getConceptList().get(0)
-						.getCodeSystemVersion();
-				if ((lo.getConceptList().getConceptList().size() == 0)) {
-					cacheRow(new String[] {measureDeveloper, oid, version, expansionProfile,
-							valueSetLastModified, standardConcept,
-							taxonomy, taxonomyVersion, code , description}, null);
-				}
-				
+			
+			else {
 				for (MatConcept concept : lo.getConceptList().getConceptList()) {
+					taxonomy = concept.getCodeSystemName();
 					code = concept.getCode();
 					description = concept.getDisplayName();
+					taxonomyVersion = concept.getCodeSystemVersion();
 					cacheRow(new String[] {measureDeveloper, oid, version, expansionProfile ,
 							valueSetLastModified, standardConcept,
 							taxonomy, taxonomyVersion, code, description}, null);
@@ -520,6 +499,7 @@ public abstract class XLSGenerator {
 			}
 		}
 	}
+
 	
 	/** Size column.
 	 * 

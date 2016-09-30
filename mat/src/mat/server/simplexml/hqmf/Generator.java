@@ -41,6 +41,9 @@ public interface Generator extends MatConstants {
 	/** The Constant TYPE. */
 	public static final String TYPE = "type";
 	
+	/** The Constant TYPE. */
+	public static final String GROUPING_CHECK = "isInGrouping";
+	
 	/** The Constant MOOD. */
 	public static final String MOOD = "mood";
 	
@@ -118,6 +121,9 @@ public interface Generator extends MatConstants {
 	
 	/** The Constant VERSION_4_3_ID. */
 	public static final String VERSION_4_3_ID = "2015-09-30";
+	
+	/** The Constant Version_4_6_ID */
+	public static final String VERSION_4_6_ID = "2016-08-01";
 	
 	public static final String POPULATION_CRITERIA_EXTENSION = "2015-12-01";
 	

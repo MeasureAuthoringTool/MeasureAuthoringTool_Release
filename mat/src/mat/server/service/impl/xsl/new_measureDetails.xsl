@@ -42,15 +42,15 @@
       </xsl:text>
         <typeId root="2.16.840.1.113883.1.3" extension="POQM_HD000001UV02" />
         <templateId>
-        <item root="2.16.840.1.113883.10.20.28.1.1" extension="2015-12-01" />
-             <!--  <xsl:choose>
-	       		<xsl:when test="'4.1.2' = $qdmVersionNumber">
-						<item root="2.16.840.1.113883.10.20.28.1.1" extension="2014-11-24" />
+        <!-- <item root="2.16.840.1.113883.10.20.28.1.1" extension="2016-08-01" />-->
+             <xsl:choose>
+	       		<xsl:when test="'4.3' = $qdmVersionNumber">
+						<item root="2.16.840.1.113883.10.20.28.1.1" extension="2016-08-01" />
 	       		</xsl:when>
 	       		<xsl:when test="'4.2' = $qdmVersionNumber">
 					<item root="2.16.840.1.113883.10.20.28.1.1" extension="2015-09-30" />
 	       		</xsl:when>
-	       </xsl:choose> -->
+       		</xsl:choose> 
         </templateId>
         <id root="{normalize-space(uuid)}" />
         <code code="57024-2" codeSystem="2.16.840.1.113883.6.1">

@@ -34,6 +34,9 @@ public class MeasurePackageClauseDetail implements IsSerializable, Comparable<Me
 	
 	/** The db associated population uuid. */
 	private String dbAssociatedPopulationUUID;
+	
+	/** The is associated to grouping. */
+	private boolean isInGrouping;
 
 	/**
 	 * Gets the id.
@@ -174,6 +177,20 @@ public class MeasurePackageClauseDetail implements IsSerializable, Comparable<Me
 		this.dbAssociatedPopulationUUID = dbAssociatedPopulationUUID;
 	}
 	
+	/**
+	 * @return the isInGrouping
+	 */
+	public boolean isIsInGrouping() {
+		return isInGrouping;
+	}
+
+	/**
+	 * @param isInGrouping the isInGrouping to set
+	 */
+	public void setInGrouping(boolean isInGrouping) {
+		this.isInGrouping = isInGrouping;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */

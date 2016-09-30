@@ -9,11 +9,17 @@
         <act a_id="ACT">actCriteria</act>
         <act a_id="SPLY">supplyCriteria</act>
     </acts>
+    
+    <!--  Assessment (Added in MAT-7678, MAT-7405)  -->
+    <template oid="2.16.840.1.113883.10.20.28.3.118" class="OBS" mood="INT" status="ACTIVE" addValueSetInCode="true" addCodeTag="true" addValueTag="false" addExtensionInTemplate="true">assessment, recommended</template>
+    <template oid="2.16.840.1.113883.10.20.28.3.117" class="OBS" mood="EVN" status="COMPLETED" addValueSetInCode="true" addCodeTag="true" addValueTag="false" addExtensionInTemplate="true">assessment, performed</template>
+  
+    
     <!-- care goal -->
     <!-- Done --><template oid="2.16.840.1.113883.10.20.28.3.7" class="OBS" mood="GOL" status="ACTIVE" valueType="CD" code="ASSERTION" codeSystem="2.16.840.1.113883.5.4" addValueTag="true" addCodeTag="true">care goal</template>
     
     <!-- care experience -->
-    <template oid="2.16.840.1.113883.10.20.28.3.52" class="OBS" mood="EVN" status="COMPLETED" valueType="CD" code="406193000" codeSystem="2.16.840.1.113883.6.96" codeSystemName="SNOMED CT" codeDisplayName="Patient Satisfaction" addValueTag="true" addCodeTag="true">patient care experience</template>
+    <template oid="2.16.840.1.113883.10.20.28.3.52" class="OBS" mood="EVN" status="COMPLETED" valueType="CD" code="406193000" codeSystem="2.16.840.1.113883.6.96" codeSystemName="SNOMED CT" codeDisplayName="Patient Satisfaction" addValueTag="true" addCodeTag="true" >patient care experience</template>
     <template oid="2.16.840.1.113883.10.20.28.3.70" class="OBS" mood="EVN" status="COMPLETED" valueType="CD" code="405193005" codeSystem="2.16.840.1.113883.6.96" codeSystemName="SNOMED CT" addValueTag="true" addCodeTag="true">provider care experience</template>
     
     <!-- communication -->
@@ -50,7 +56,7 @@
     <template oid="2.16.840.1.113883.10.20.28.3.5" class="ENC" mood="EVN" status="COMPLETED" addValueSetInCode="true" addValueTag="false" addCodeTag="true">encounter, performed</template>
     <template oid="2.16.840.1.113883.10.20.28.3.28" class="ENC" mood="INT" status="ACTIVE" addValueSetInCode="true" addValueTag="false" addCodeTag="true">encounter, recommended</template>
     
-    <!-- functional status -->
+    <!-- functional status (depricated in MAT-7389, MAT-7401, MAT-7397, MAT-7409) -->
     <template oid="2.16.840.1.113883.10.20.28.3.29" class="OBS" mood="RQO" status="ACTIVE" addValueSetInCode = "true" addValueTag="false" addCodeTag="true" typeOrder="true" includeOtherSubTemplate="order-dateTime">functional status, order</template>
     <template oid="2.16.840.1.113883.10.20.28.3.30" class="OBS" mood="EVN" status="COMPLETED" addValueSetInCode = "true" addValueTag="false" addCodeTag="true">functional status, performed</template>
     <template oid="2.16.840.1.113883.10.20.28.3.31" class="OBS" mood="INT" status="ACTIVE" addValueSetInCode = "true" addValueTag="false" addCodeTag="true">functional status, recommended</template>

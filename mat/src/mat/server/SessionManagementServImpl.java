@@ -3,6 +3,7 @@ package mat.server;
 
 import mat.client.login.service.SessionManagementService;
 import mat.model.User;
+import mat.server.service.MeasureLibraryService;
 import mat.server.service.UserService;
 
 
@@ -50,6 +51,15 @@ public class SessionManagementServImpl extends SpringRemoteServiceServlet  imple
 	 */
 	private UserService getUserService() {
 		return (UserService)context.getBean("userService");
+	}
+	
+	@Override
+	public String getCurrentReleaseVersion(){
+		return getMeasureLibraryService().getCurrentReleaseVersion();
+	}
+	
+	private MeasureLibraryService getMeasureLibraryService(){
+		return (MeasureLibraryService) context.getBean("measureLibraryService");
 	}
 
 }

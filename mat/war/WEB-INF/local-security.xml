@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  - Sample namespace-based configuration
+  -
+  -->
+
 <beans:beans xmlns="http://www.springframework.org/schema/security"
     xmlns:beans="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -12,11 +18,13 @@
         <intercept-url pattern="/Mat.html" access="isAuthenticated()"  />
         <intercept-url pattern="/mat/**" access="isAuthenticated()"  />
         <form-login default-target-url="/Mat.html?gwt.codesvr=127.0.0.1:9997" login-page="/Login.html?gwt.codesvr=127.0.0.1:9997"/>
+        <!-- <logout invalidate-session="true"  success-handler-ref="logoutSuccessHandler"/> -->
       	<logout/>
        
         <session-management invalid-session-url="/Login.html?gwt.codesvr=127.0.0.1:9997">
             <concurrency-control max-sessions="1" error-if-maximum-exceeded="true" />
         </session-management>
+        <!-- <custom-filter after="SECURITY_CONTEXT_FILTER" ref="preventCachingFilter"/> -->
      
     </http>
 	
@@ -28,5 +36,8 @@
        </user-service>
 	</authentication-provider>    
    </authentication-manager>
+  <!--  <beans:bean id="logoutSuccessHandler" class="mat.server.GWTLogoutSuccessHandler"/> -->
+    <!-- <beans:bean id="preventCachingFilter" class="mat.server.PreventCachingFilter">
+    </beans:bean>  -->
 </beans:beans>
 

@@ -23,14 +23,7 @@
 	<bean id="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean">
 		<property name="jndiName" value="jdbc/mat_app" />
 	</bean>
-	<!-- TEMP TESTING ONLY 
-	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
-		<property name="driverClassName" value="com.mysql.jdbc.Driver"/>
-        <property name="url" value="jdbc:mysql://ifdevdb01:3306/MAT_APP"/>
-        <property name="username" value="mat_app_usr"/>
-        <property name="password" value="mat_app_usr"/>
-    </bean>
-	-->
+
 	<context:annotation-config transaction-manager="txManager"/>
 	<tx:annotation-driven transaction-manager="txManager"/>
 	

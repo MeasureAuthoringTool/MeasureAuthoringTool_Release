@@ -181,22 +181,35 @@ public class Mat extends MainLayout implements EntryPoint, Enableable{
 		
 		@Override
 		public void onSuccess(final SessionManagementService.Result result) {
-			if(result == null){
-				redirectToLogin();
-			}else{
-				final Date lastSignIn = result.signInDate;
-				final Date lastSignOut = result.signOutDate;
-				final Date current = new Date();
-				final boolean isAlreadySignedIn = MatContext.get().isAlreadySignedIn(lastSignOut, lastSignIn, current);
-				if(isAlreadySignedIn){
-					redirectToLogin();
+	
+			MatContext.get().getCurrentReleaseVersion(new AsyncCallback<String>() {
+
+				@Override
+				public void onFailure(Throwable caught) {
+					
 				}
-				else{
-					MatContext.get().setUserSignInDate(result.userId);
-					MatContext.get().setUserInfo(result.userId, result.userEmail, result.userRole,result.loginId);
-					loadMatWidgets(result.userFirstName, isAlreadySignedIn);
+
+				@Override
+				public void onSuccess(String resultMatVersion) {
+					if(result == null){
+						redirectToLogin();
+					}else{
+						final Date lastSignIn = result.signInDate;
+						final Date lastSignOut = result.signOutDate;
+						final Date current = new Date();
+						final boolean isAlreadySignedIn = MatContext.get().isAlreadySignedIn(lastSignOut, lastSignIn, current);
+						if(isAlreadySignedIn){
+							redirectToLogin();
+						}
+						else{
+							MatContext.get().setUserSignInDate(result.userId);
+							MatContext.get().setUserInfo(result.userId, result.userEmail, result.userRole,result.loginId);
+							loadMatWidgets(result.userFirstName, isAlreadySignedIn, resultMatVersion);
+						}
+					}
+					
 				}
-			}
+			});
 		}
 	};
 	
@@ -450,9 +463,10 @@ public class Mat extends MainLayout implements EntryPoint, Enableable{
 	 *
 	 * @param userFirstName the user first name
 	 * @param isAlreadySignedIn the is already signed in
+	 * @param resultMatVersion 
 	 */
 	@SuppressWarnings("unchecked")
-	private void loadMatWidgets(String userFirstName, boolean isAlreadySignedIn){
+	private void loadMatWidgets(String userFirstName, boolean isAlreadySignedIn, String resultMatVersion){
 		//US212 begin updating user sign in time at regular intervals
 		MatContext.get().startUserLockUpdate();
 		//US154 LOGIN_EVENT
@@ -556,6 +570,7 @@ public class Mat extends MainLayout implements EntryPoint, Enableable{
 		
 		getLogoutPanel().add(signout);
 		getWelcomeUserPanel(userFirstName);
+		getVersionPanel(resultMatVersion);
 		/*
 		 * no delay desired when hiding loading message here
 		 * tab selection below will fail if loading
