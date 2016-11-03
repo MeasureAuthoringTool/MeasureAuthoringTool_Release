@@ -158,6 +158,9 @@ implements MeasureCloningService {
 			clonedDoc = originalDoc;
 			clonedMeasure.setaBBRName(currentDetails.getShortName());
 			clonedMeasure.setDescription(currentDetails.getName());
+			if(measure.getReleaseVersion() != null){
+				clonedMeasure.setReleaseVersion("v5.0");
+			}
 			/*clonedMeasure.setMeasureStatus("In Progress");*/
 			clonedMeasure.setDraft(TRUE);
 			if (currentDetails.getMeasScoring() != null) {
@@ -235,7 +238,7 @@ implements MeasureCloningService {
 				String scoringTypeId = MeasureDetailsUtil
 						.getScoringAbbr(clonedMeasure.getMeasureScoring());
 				xmlProcessor.removeNodesBasedOnScoring(scoringTypeId);
-				xmlProcessor.createNewNodesBasedOnScoring(scoringTypeId);
+				xmlProcessor.createNewNodesBasedOnScoring(scoringTypeId,measure.getReleaseVersion());
 				clonedXml.setMeasureXMLAsByteArray(xmlProcessor
 						.transform(xmlProcessor.getOriginalDoc()));
 			}

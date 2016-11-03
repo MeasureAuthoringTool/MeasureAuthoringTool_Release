@@ -160,22 +160,20 @@ public class LoginPresenter {
 		@Override
 		public void onSuccess(LoginModel result) {
 			loginModel = result;
-			if(loginModel != null) {
-				if (loginModel.isLoginFailedEvent()) {
+			if(result != null) {
+				String secRole = null;
+				if(result.getRole() != null) {
+					secRole = result.getRole().getDescription();
+				}
+				MatContext.get().setUserInfo(result.getUserId(), result.getEmail(), secRole,result.getLoginId());
+				if(loginModel.isInitialPassword()){
+					MatContext.get().getEventBus().fireEvent(new FirstLoginPageEvent());
+				}else if(loginModel.isLoginFailedEvent()){
 					display.getErrorMessageDisplay().setMessage(loginModel.getErrorMessage());
-				} else {
-					String secRole = null;
-					if(loginModel.getRole() != null) {
-						secRole = loginModel.getRole().getDescription();
-					}
-					MatContext.get().setUserInfo(loginModel.getUserId(), loginModel.getEmail(), secRole,loginModel.getLoginId());
-					if(loginModel.isInitialPassword()){
-						MatContext.get().getEventBus().fireEvent(new FirstLoginPageEvent());
-					}else if(loginModel.isTemporaryPassword()){
-						MatContext.get().getEventBus().fireEvent(new TemporaryPasswordLoginEvent());
-					}else{
-						MatContext.get().getEventBus().fireEvent(new SuccessfulLoginEvent());
-					}
+				}else if(loginModel.isTemporaryPassword()){
+					MatContext.get().getEventBus().fireEvent(new TemporaryPasswordLoginEvent());
+				}else{
+					MatContext.get().getEventBus().fireEvent(new SuccessfulLoginEvent());
 				}
 			}
 			else {

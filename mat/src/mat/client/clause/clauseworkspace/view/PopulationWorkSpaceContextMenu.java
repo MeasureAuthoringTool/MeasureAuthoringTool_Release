@@ -1,9 +1,13 @@
 package mat.client.clause.clauseworkspace.view;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import mat.client.clause.clauseworkspace.model.CellTreeNode;
 import mat.client.clause.clauseworkspace.presenter.XmlConversionlHelper;
 import mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay;
 import mat.client.shared.MatContext;
+
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.MenuBar;
@@ -50,8 +54,6 @@ public class PopulationWorkSpaceContextMenu extends ClauseWorkspaceContextMenu {
 					String xmlForPopulationNode = XmlConversionlHelper.createXmlFromTree(selectedNode);
 					final String populationName = selectedNode.getName();
 					String measureId = MatContext.get().getCurrentMeasureId();
-					//					String url = GWT.getModuleBaseURL() + "export?id=" +measureId+ "&xml=" + xmlForPopulationNode+ "&format=subtreeHTML";
-					//					Window.open(url + "&type=open", "_blank", "");
 					xmlTreeDisplay.validatePopulationCellTreeNodes(xmlTreeDisplay.getSelectedNode());
 					if (xmlTreeDisplay.isValidHumanReadable()) {
 						MatContext.get().getMeasureService().getHumanReadableForNode(measureId, xmlForPopulationNode, new AsyncCallback<String>() {
@@ -65,7 +67,7 @@ public class PopulationWorkSpaceContextMenu extends ClauseWorkspaceContextMenu {
 						});
 					} else {
 						xmlTreeDisplay.getErrorMessageDisplay().setMessage(MatContext.get()
-								.getMessageDelegate().getINVALID_LOGIC_POPULATION_WORK_SPACE());
+								.getMessageDelegate().getINVALID_LOGIC_CQL_WORK_SPACE());
 					}
 				}
 			}
@@ -167,54 +169,103 @@ public class PopulationWorkSpaceContextMenu extends ClauseWorkspaceContextMenu {
 					deleteMenu.setEnabled(true);
 				}
 				break;
-			case CellTreeNode.CLAUSE_NODE:
-				if (xmlTreeDisplay.getSelectedNode().getName().contains(STRATUM)) {
+			case CellTreeNode.CQL_DEFINITION_NODE:				
+			case CellTreeNode.CQL_FUNCTION_NODE:
+				deleteMenu.setEnabled(true);
+				copyMenu.setEnabled(true);
+				cutMenu.setEnabled(true);
+								
+				popupMenuBar.addItem(copyMenu);
+				popupMenuBar.addItem(cutMenu);
+				popupMenuBar.addItem(deleteMenu);
+				
+				popupMenuBar.setVisible(true);
+				popupPanel.add(popupMenuBar);
+				
+				break;
+			case CellTreeNode.CQL_AGG_FUNCTION_NODE:	
+				subMenuBar = new MenuBar(true);
+				popupMenuBar.setAutoOpen(true);
+				subMenuBar.setAutoOpen(true);				
+				addMenu = new MenuItem("Add", subMenuBar); 
+				popupMenuBar.addItem(addMenu);
+				createAddCQLFunctionsMenuItem(subMenuBar);
+				
+				if(xmlTreeDisplay.getSelectedNode().hasChildren()){
+					addMenu.setEnabled(false);
+				}
+							
+				deleteMenu.setEnabled(true);
+				copyMenu.setEnabled(true);
+				cutMenu.setEnabled(true);
+				pasteMenu.setEnabled(false);
+												
+				popupMenuBar.addItem(copyMenu);
+				popupMenuBar.addItem(cutMenu);
+				popupMenuBar.addItem(deleteMenu);
+				popupMenuBar.addItem(pasteMenu);
+				
+				if ((xmlTreeDisplay.getCopiedNode() != null)
+						&& (!xmlTreeDisplay.getSelectedNode().hasChildren()) 
+						&& (xmlTreeDisplay.getCopiedNode().getNodeType() == CellTreeNode.CQL_FUNCTION_NODE)) {
+					pasteMenu.setEnabled(true);
+				}
+				
+				popupMenuBar.setVisible(true);
+				popupPanel.add(popupMenuBar);
+				break;	
+			case CellTreeNode.CLAUSE_NODE:							
+					
+				if(!xmlTreeDisplay.getSelectedNode().getName().contains(MEASURE_OBSERVATION)) {
 					subMenuBar = new MenuBar(true);
-					popupMenuBar.setAutoOpen(true);
-					subMenuBar.setAutoOpen(true);
-					createAddMenus(MatContext.get().logicalOps, CellTreeNode.LOGICAL_OP_NODE
-							, subMenuBar); // creating logical Operators Menu 2nd level
-					createAddClauseMenuItem(subMenuBar);
+					subMenuBar.setAutoOpen(true);				
 					addMenu = new MenuItem("Add", subMenuBar); // 1st level menu
 					popupMenuBar.addItem(addMenu);
+					
+					createAddCQLDefinitionMenuItem(subMenuBar);
+					
 					if ((xmlTreeDisplay.getCopiedNode() != null)
-							&& xmlTreeDisplay.getCopiedNode().getParent().
-							equals(xmlTreeDisplay.getSelectedNode())) {
+							&& (!xmlTreeDisplay.getSelectedNode().hasChildren()) 
+							&& xmlTreeDisplay.getCopiedNode().getNodeType() == CellTreeNode.CQL_DEFINITION_NODE) {
 						pasteMenu.setEnabled(true);
 					}
-					/*
-					 * POC Global Copy Paste.
-					 * if ((copiedNode != null)
-							&& copiedNode.getParent().
-							equals(xmlTreeDisplay.getSelectedNode())) {
-						pasteMenu.setEnabled(true);
-						pasteFromClipboardMenu.setEnabled(true);
-					}*/
-				}
-				//show the fist level menu to add clause
-				if(xmlTreeDisplay.getSelectedNode().getName().contains(MEASURE_OBSERVATION)
-						&& !xmlTreeDisplay.getSelectedNode().hasChildren()){
+				}else{
 					subMenuBar = new MenuBar(true);
-					popupMenuBar.setAutoOpen(true);
-					subMenuBar.setAutoOpen(true);
-					createAddClauseMenuItem(subMenuBar);
+					subMenuBar.setAutoOpen(true);	
 					addMenu = new MenuItem("Add", subMenuBar);
 					popupMenuBar.addItem(addMenu);
+					
+					MenuBar cqlAggFuncMenubar = new MenuBar(true);
+					createAddCQLAggFunctionsMenuItems(cqlAggFuncMenubar);
+					MenuItem aggFuncMenu = new MenuItem("Aggregate Functions", cqlAggFuncMenubar);
+					subMenuBar.addItem(aggFuncMenu);
+					
+					createAddCQLFunctionsMenuItem(subMenuBar);
+					
+					if ((xmlTreeDisplay.getCopiedNode() != null)
+							&& (!xmlTreeDisplay.getSelectedNode().hasChildren()) 
+							&& (xmlTreeDisplay.getCopiedNode().getNodeType() == CellTreeNode.CQL_FUNCTION_NODE || 
+									xmlTreeDisplay.getCopiedNode().getNodeType() == CellTreeNode.CQL_AGG_FUNCTION_NODE)) {
+						pasteMenu.setEnabled(true);
+					}
+				}
+				popupMenuBar.setAutoOpen(true);
+				
+				if(xmlTreeDisplay.getSelectedNode().hasChildren()){
+					addMenu.setEnabled(false);
 				}
 				addCommonMenus();
-				//Add "View Human Readable" right click option for all populations: Start
-				popupMenuBar.addItem(viewHumanReadableMenu);
-				viewHumanReadableMenu.setEnabled(true);
-				//Add "View Human Readable" right click option for all populations: End
 				copyMenu.setEnabled(true);
-				/*
-				 * POC Global Copy Paste.
-				 * copyToClipBoardMenu.setEnabled(true);*/
-				//pasteMenu.setEnabled(false);
+				
 				if (xmlTreeDisplay.getSelectedNode().getParent().getChilds().size() > 1) {
 					deleteMenu.setEnabled(true);
 				}
 				cutMenu.setEnabled(false);
+				//Add "View Human Readable" right click option for all populations: Start
+				popupMenuBar.addItem(viewHumanReadableMenu);
+				viewHumanReadableMenu.setEnabled(true);
+				//Add "View Human Readable" right click option for all populations: End
+							
 				break;
 			case CellTreeNode.LOGICAL_OP_NODE:
 				subMenuBar = new MenuBar(true);
@@ -340,6 +391,8 @@ public class PopulationWorkSpaceContextMenu extends ClauseWorkspaceContextMenu {
 				break;
 		}
 	}
+	
+	
 	/**
 	 * Common Menu's ie : (Cut/Paste/Delete/Copy/Expand) Enable/Disabled state.
 	 * @param isCopyEnabled - boolean.
@@ -372,6 +425,73 @@ public class PopulationWorkSpaceContextMenu extends ClauseWorkspaceContextMenu {
 			}
 		};
 		MenuItem item = new MenuItem("Clause", true, addClauseCmd);
+		menuBar.addItem(item);
+	}
+	
+	/**
+	 * Add Definition MenuItem.
+	 * @param menuBar
+	 */
+	private void createAddCQLFunctionsMenuItem(MenuBar menuBar){
+		
+		Command addCQLAggregateFunctionCmd = new Command() {
+			@Override
+			public void execute() {
+				popupPanel.hide();
+				//To show CQL Definitions on Population Workspace
+				CQLArtifactsDialogBox.showCQLArtifactsDialogBox(xmlTreeDisplay, true, false);
+			}
+		};
+		MenuItem item = new MenuItem("Functions", true, addCQLAggregateFunctionCmd);
+		menuBar.addItem(item);
+	}
+	
+	/**
+	 * Add CQL Aggregate functions menu items.
+	 * @param cqlAggFuncMenubar
+	 */
+	private void createAddCQLAggFunctionsMenuItems(MenuBar cqlAggFuncMenubar) {
+		List<String> functionNames = new ArrayList<String>();
+		functionNames.add("Count");
+		functionNames.add("Sum");
+		functionNames.add("Average");
+		functionNames.add("Sample Standard Deviation");
+		functionNames.add("Sample Variance");
+		functionNames.add("Population Standard Deviation");
+		functionNames.add("Population Variance");
+		functionNames.add("Minimum");
+		functionNames.add("Maximum");
+		functionNames.add("Median");
+		functionNames.add("Mode");
+		
+		for (final String name : functionNames) {
+			Command addCmd = new Command() {
+				@Override
+				public void execute() {
+					xmlTreeDisplay.setDirty(true);
+					popupPanel.hide();
+					xmlTreeDisplay.addNode(name, name, CellTreeNode.CQL_AGG_FUNCTION_NODE);
+				}
+			};
+			MenuItem menu = new MenuItem(name, true, addCmd);
+			cqlAggFuncMenubar.addItem(menu);
+		}
+	}
+	
+	/**
+	 * Add Definition MenuItem.
+	 * @param menuBar
+	 */
+	private void createAddCQLDefinitionMenuItem(MenuBar menuBar){
+		Command addCQLDefinitionCmd = new Command() {
+			@Override
+			public void execute() {
+				popupPanel.hide();
+				//To show CQL Definitions on Population Workspace
+				CQLArtifactsDialogBox.showCQLArtifactsDialogBox(xmlTreeDisplay, true, true);
+			}
+		};
+		MenuItem item = new MenuItem("Definition", true, addCQLDefinitionCmd);
 		menuBar.addItem(item);
 	}
 	

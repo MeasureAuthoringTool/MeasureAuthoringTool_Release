@@ -311,6 +311,7 @@ public class ManageOrganizationPresenter implements MatPresenter {
 						if(result.isUsed()){
 							deleteOrganization(result);
 						}
+						
 					}
 				});
 				searchDisplay.buildDataTable(result);

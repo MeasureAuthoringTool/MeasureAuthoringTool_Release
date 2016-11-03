@@ -6,6 +6,12 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import edu.emory.mathcs.backport.java.util.Collections;
 import mat.DTO.OperatorDTO;
 import mat.DTO.UnitDTO;
 import mat.client.clause.clauseworkspace.model.MeasureXmlModel;
@@ -16,6 +22,7 @@ import mat.client.codelist.ManageCodeListSearchModel;
 import mat.client.codelist.ManageValueSetSearchModel;
 import mat.client.codelist.TransferOwnerShipModel;
 import mat.client.codelist.service.SaveUpdateCodeListResult;
+import mat.client.shared.MatContext;
 import mat.dao.DataTypeDAO;
 import mat.model.Code;
 import mat.model.DataType;
@@ -32,10 +39,6 @@ import mat.server.service.UserService;
 import mat.server.service.ValueSetLastModifiedDateNotUniqueException;
 import mat.shared.ConstantMessages;
 import mat.shared.ListObjectModelValidator;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import edu.emory.mathcs.backport.java.util.Collections;
 
 /**
  * The Class CodeListServiceImpl.
@@ -532,6 +535,7 @@ implements mat.client.codelist.service.CodeListService {
 		SaveUpdateCodeListResult result = new SaveUpdateCodeListResult();
 		List<MatValueSetTransferObject> matValueSetTransferObjects = gbCopyPaste.getMatValueSetList();
 		StringBuilder finalXmlString = new StringBuilder("<elementLookUp>");
+		StringBuilder finalNewXmlString = new StringBuilder("<valuesets>");
 		for (MatValueSetTransferObject  transferObject : matValueSetTransferObjects) {
 			transferObject.scrubForMarkUp();
 			transferObject.setAppliedQDMList(qdmList);
@@ -547,16 +551,20 @@ implements mat.client.codelist.service.CodeListService {
 				saCodeListResult = getCodeListService().saveUserDefinedQDStoMeasure(transferObject);
 				if ((saCodeListResult.getXmlString() != null) && !StringUtils.isEmpty(saCodeListResult.getXmlString())) {
 					finalXmlString = finalXmlString.append(saCodeListResult.getXmlString());
+					finalNewXmlString = finalNewXmlString.append(saCodeListResult.getnewXmlString());
 				}
 			} else {
 				saCodeListResult = getCodeListService().saveQDStoMeasure(transferObject);
 				if ((saCodeListResult.getXmlString() != null) && !StringUtils.isEmpty(saCodeListResult.getXmlString())) {
 					finalXmlString = finalXmlString.append(saCodeListResult.getXmlString());
+					finalNewXmlString = finalNewXmlString.append(saCodeListResult.getnewXmlString());
 				}
 			}
 		}
 		finalXmlString.append("</elementLookUp>");
+		finalNewXmlString.append("</valuesets>");
 		result.setXmlString(finalXmlString.toString());
+		result.setnewXmlString(finalNewXmlString.toString());
 		// Temporary Commentted - Add code to append ElementLoopUp tags and then Invoke this method.
 		saveAndAppendElementLookup(result, measureId);
 		result.setAppliedQDMList(qdmList);
@@ -570,13 +578,26 @@ implements mat.client.codelist.service.CodeListService {
 	 */
 	private void saveAndAppendElementLookup(SaveUpdateCodeListResult result, String measureId) {
 		String nodeName = "qdm";
+		String newNodeName = "valueset";
 		MeasureXmlModel exportModal = new MeasureXmlModel();
 		exportModal.setMeasureId(measureId);
 		exportModal.setParentNode("/measure/elementLookUp");
 		exportModal.setToReplaceNode("qdm");
+		MeasureXmlModel newExportModal = new MeasureXmlModel();
+		newExportModal.setMeasureId(measureId);
+		newExportModal.setParentNode("/measure/cqlLookUp/valuesets");
+		newExportModal.setToReplaceNode("valueset");
+		MeasureXmlModel codeSystemModal = new MeasureXmlModel();
+		codeSystemModal.setMeasureId(MatContext.get().getCurrentMeasureId());
+		codeSystemModal.setParentNode("/measure/cqlLookUp/codeSystems");
+		codeSystemModal.setToReplaceNode("codeSystem");
 		System.out.println("XML " + result.getXmlString());
 		exportModal.setXml(result.getXmlString());
+		newExportModal.setXml(result.getnewXmlString());
+		System.out.println("New XML " + result.getnewXmlString());
+		
+		
 		MeasureLibraryServiceImpl measureService = (MeasureLibraryServiceImpl) context.getBean("measureLibraryService");
-		measureService.appendAndSaveNode(exportModal,nodeName);
+		measureService.appendAndSaveNode(exportModal,nodeName,newExportModal, newNodeName);
 	}
 }

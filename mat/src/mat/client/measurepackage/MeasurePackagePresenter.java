@@ -8,7 +8,6 @@ import mat.client.MatPresenter;
 import mat.client.MeasureComposerPresenter;
 import mat.client.clause.QDSAppliedListModel;
 import mat.client.measure.ManageMeasureDetailModel;
-import mat.client.measure.metadata.CustomCheckBox;
 import mat.client.measure.service.MeasureServiceAsync;
 import mat.client.measure.service.SaveMeasureResult;
 import mat.client.measure.service.ValidateMeasureResult;
@@ -28,7 +27,9 @@ import mat.client.umls.service.VsacApiResult;
 import mat.model.MatValueSet;
 import mat.model.QualityDataSetDTO;
 import mat.model.RiskAdjustmentDTO;
+import mat.model.cql.CQLDefinition;
 import mat.shared.MeasurePackageClauseValidator;
+import org.gwtbootstrap3.client.ui.CheckBox;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -66,12 +67,33 @@ public class MeasurePackagePresenter implements MatPresenter {
 	/** The db supp data elements. */
 	private List<QualityDataSetDTO> dbSuppDataElements = new ArrayList<QualityDataSetDTO>();
 	
+	/** The db cql supp data elements. */
+	private List<CQLDefinition> dbCQLSuppDataElements = new ArrayList<CQLDefinition>();
+	
 	/** The db risk adj vars. */
 	private List<RiskAdjustmentDTO> dbRiskAdjVars = new ArrayList<RiskAdjustmentDTO>();
 	
 	/** The is measure package success. */
 	private boolean isMeasurePackageExportSuccess = false;
 	
+	/**
+	 * Gets the db cql supp data elements.
+	 * 
+	 * @return the dbCQLSuppDataElements
+	 */
+	public List<CQLDefinition> getDbCQLSuppDataElements() {
+		return dbCQLSuppDataElements;
+	}
+
+	/**
+	 * Sets the db cql supp data elements.
+	 *
+	 * @param dbCQLSuppDataElements the dbCQLSuppDataElements to set
+	 */
+	public void setDbCQLSuppDataElements(List<CQLDefinition> dbCQLSuppDataElements) {
+		this.dbCQLSuppDataElements = dbCQLSuppDataElements;
+	}
+
 	/**
 	 * Gets the db supp data elements.
 	 *
@@ -196,11 +218,39 @@ public class MeasurePackagePresenter implements MatPresenter {
 		void setQDMElementsInSuppElements(List<QualityDataSetDTO> clauses);
 		
 		/**
+		 * Sets the CQL qDM elements in supp elements.
+		 *
+		 * @param clauses the new CQL qDM elements in supp elements
+		 */
+		void setCQLElementsInSuppElements(List<CQLDefinition> clauses);
+		
+		/**
 		 * Gets the qDM elements in supp elements.
 		 *
 		 * @return the qDM elements in supp elements
 		 */
 		List<QualityDataSetDTO> getQDMElementsInSuppElements();
+		
+		/**
+		 * Gets the CQL qDM elements in supp elements.
+		 *
+		 * @return the CQL qDM elements in supp elements
+		 */
+		List<CQLDefinition> getCQLElementsInSuppElements();
+		
+		/**
+		 * Sets the cql qDM elements.
+		 *
+		 * @param clauses the new cql qDM elements
+		 */
+		void setCQLQDMElements(List<CQLDefinition> clauses);
+		
+		/**
+		 * Gets the cql qDM elements.
+		 *
+		 * @return the cql qDM elements
+		 */
+		List<CQLDefinition> getCQLQDMElements();
 		
 		/**
 		 * Sets the qDM elements.
@@ -313,7 +363,7 @@ public class MeasurePackagePresenter implements MatPresenter {
 		 * 
 		 * @return the include vsac data
 		 */
-		CustomCheckBox getIncludeVSACData();
+		CheckBox getIncludeVSACData();
 		/**
 		 * Gets the measure error message display.
 		 *
@@ -355,9 +405,35 @@ public class MeasurePackagePresenter implements MatPresenter {
 		 * @return the risk adj success message display
 		 */
 		SuccessMessageDisplayInterface getRiskAdjSuccessMessageDisplay();
+		
+		/**
+		 * Sets the sub tree in risk adj var list.
+		 *
+		 * @param riskAdjClauseList the new sub tree in risk adj var list
+		 */
 		void setSubTreeInRiskAdjVarList(
 				List<RiskAdjustmentDTO> riskAdjClauseList);
+		
+		/**
+		 * Gets the in progress message display.
+		 *
+		 * @return the in progress message display
+		 */
 		InProgressMessageDisplay getInProgressMessageDisplay();
+		
+		/**
+		 * Sets the CQL measure.
+		 *
+		 * @param isCQLMeasure the new CQL measure
+		 */
+		void setCQLMeasure(boolean isCQLMeasure);
+		
+		/**
+		 * Sets the risk adjust label.
+		 *
+		 * @param isCQLMeasure the new risk adjust label
+		 */
+		void setRiskAdjustLabel(boolean isCQLMeasure);
 	}
 	
 	/** The vsacapi service async. */
@@ -385,7 +461,6 @@ public class MeasurePackagePresenter implements MatPresenter {
 				if(MatContext.get().getMeasureLockService().checkForEditPermission()){
 					clearMessages();
 					view.getPackageGroupingWidget().getDisclosurePanelAssociations().setVisible(false);
-					view.getPackageGroupingWidget().getDisclosurePanelItemCountTable().setVisible(false);
 					System.out.println("Overview Object"+ packageOverview.getClauses().size());
 					setNewMeasurePackage();
 				}
@@ -411,17 +486,14 @@ public class MeasurePackagePresenter implements MatPresenter {
 			
 			@Override
 			public void onClick(ClickEvent event) {
-				if(MatContext.get().getMeasureLockService().checkForEditPermission()){
-					clearMessages();
-					view.getInProgressMessageDisplay().clear();
-					((Button) view.getPackageMeasureButton()).setEnabled(false);
-					((Button) view.getPackageMeasureAndExportButton()).setEnabled(false);
-					isMeasurePackageExportSuccess = true;
-					validateGroup();
-				}
+				clearMessages();
+				view.getInProgressMessageDisplay().clear();
+				((Button) view.getPackageMeasureButton()).setEnabled(false);
+				((Button) view.getPackageMeasureAndExportButton()).setEnabled(false);
+				isMeasurePackageExportSuccess = true;
+				validateGroup();
 			}
 		});
-		
 		view.getaddRiskAdjVariablesToMeasure().addClickHandler(
 				new ClickHandler() {
 					
@@ -505,7 +577,6 @@ public class MeasurePackagePresenter implements MatPresenter {
 				clearMessages();
 				((Button) view.getPackageMeasureButton()).setEnabled(true);
 				view.getPackageGroupingWidget().getDisclosurePanelAssociations().setVisible(false);
-				view.getPackageGroupingWidget().getDisclosurePanelItemCountTable().setVisible(false);
 				updateDetailsFromView(currentDetail);
 				if (isValid()) {
 					MatContext.get().getPackageService()
@@ -607,34 +678,7 @@ public class MeasurePackagePresenter implements MatPresenter {
 	}
 	
 	
-	/**
-	 * Get Applied QDM List for Item Count Table.
-	 *
-	 * @param checkForSupplementData - Boolean.
-	 * @return the applied qdm list
-	 */
-	public final void getAppliedQDMList(boolean checkForSupplementData) {
-		String measureId = MatContext.get().getCurrentMeasureId();
-		if ((measureId != null) && !measureId.equals("")) {
-			service.getAppliedQDMForItemCount(measureId,
-					checkForSupplementData,
-					new AsyncCallback<List<QualityDataSetDTO>>() {
-				@Override
-				public void onFailure(final Throwable caught) {
-					Window.alert(MatContext.get().getMessageDelegate()
-							.getGenericErrorMessage());
-				}
 				
-				@Override
-				public void onSuccess(
-						final List<QualityDataSetDTO> result) {
-					QDSAppliedListModel appliedListModel = new QDSAppliedListModel();
-					appliedListModel.setAppliedQDMs(result);
-					view.setAppliedQdmList(appliedListModel);
-				}
-			});
-		}
-	}
 	/**
 	 * Clear messages.
 	 */
@@ -657,7 +701,6 @@ public class MeasurePackagePresenter implements MatPresenter {
 		panel.clear();
 		panel.add(view.asWidget());
 		view.getPackageGroupingWidget().getDisclosurePanelAssociations().setVisible(false);
-		view.getPackageGroupingWidget().getDisclosurePanelItemCountTable().setVisible(false);
 		view.getIncludeVSACData().setValue(false);
 	}
 	/* (non-Javadoc)
@@ -668,7 +711,6 @@ public class MeasurePackagePresenter implements MatPresenter {
 		currentDetail = null;
 		packageOverview = null;
 		view.getPackageGroupingWidget().getDisclosurePanelAssociations().setVisible(false);
-		view.getPackageGroupingWidget().getDisclosurePanelItemCountTable().setVisible(false);
 		view.getIncludeVSACData().setValue(false);
 	}
 	/* (non-Javadoc)
@@ -681,9 +723,7 @@ public class MeasurePackagePresenter implements MatPresenter {
 		if ((MatContext.get().getCurrentMeasureId() != null)
 				&& !MatContext.get().getCurrentMeasureId().equals("")) {
 			getMeasure(MatContext.get().getCurrentMeasureId());
-			getAppliedQDMList(true);
 			view.getPackageGroupingWidget().getDisclosurePanelAssociations().setVisible(false);
-			view.getPackageGroupingWidget().getDisclosurePanelItemCountTable().setVisible(false);
 			view.getIncludeVSACData().setValue(false);
 		} else {
 			displayEmpty();
@@ -818,8 +858,11 @@ public class MeasurePackagePresenter implements MatPresenter {
 	 */
 	public void updateSuppDataDetailsFromView(MeasurePackageDetail currentDetail) {
 		currentDetail.setSuppDataElements(view.getQDMElementsInSuppElements());
+		currentDetail.setCqlSuppDataElements(view.getCQLElementsInSuppElements());
 		currentDetail.setQdmElements(view.getQDMElements());
+		currentDetail.setCqlQdmElements(view.getCQLQDMElements());
 		currentDetail.setToCompareSuppDataElements(dbSuppDataElements);
+		currentDetail.setToCompareCqlSuppDataElements(dbCQLSuppDataElements);
 	}
 	
 	/**
@@ -949,21 +992,20 @@ public class MeasurePackagePresenter implements MatPresenter {
 			if (detail.getSequence().equals(measurePackageId)) {
 				currentDetail = detail;
 				setMeasurePackageDetailsOnView();
-				getItemCountListFromView(currentDetail.getPackageClauses());
+				getAssociationListFromView(currentDetail.getPackageClauses());
 				break;
 			}
 		}
 	}
 	
 	/**
-	 * Gets the item count list from view.
+	 * Gets the association list from view.
 	 *
 	 * @param packageClauses the package clauses
-	 * @return the item count list from view
+	 * @return the association list from view
 	 */
-	public void getItemCountListFromView(List<MeasurePackageClauseDetail> packageClauses){
+	public void getAssociationListFromView(List<MeasurePackageClauseDetail> packageClauses){
 		for(int i=0; i<dbPackageClauses.size(); i++){
-			dbPackageClauses.get(i).getDbItemCountList().addAll(packageClauses.get(i).getItemCountList());
 			dbPackageClauses.get(i).setDbAssociatedPopulationUUID(packageClauses.get(i).getAssociatedPopulationUUID());
 		}
 		
@@ -979,14 +1021,34 @@ public class MeasurePackagePresenter implements MatPresenter {
 		view.setPackageName(currentDetail.getPackageName());
 		view.setClausesInPackage(packageClauses);
 		view.setClauses(remainingClauses);
-		view.setQDMElementsInSuppElements(packageOverview.getSuppDataElements());
-		view.setQDMElements(packageOverview.getQdmElements());
+		if(packageOverview.getReleaseVersion() != null 
+				&& packageOverview.getReleaseVersion().equalsIgnoreCase("v5.0")){
+			view.setCQLMeasure(true);
+			view.setRiskAdjustLabel(true);
+			//Set supple data to empty if CQL measure
+			view.setQDMElementsInSuppElements(Collections.<QualityDataSetDTO>emptyList());
+			view.setQDMElements(Collections.<QualityDataSetDTO>emptyList());
+			view.setCQLElementsInSuppElements(packageOverview.getCqlSuppDataElements());
+			view.setCQLQDMElements(packageOverview.getCqlQdmElements());
+		}
+		else{
+			view.setCQLMeasure(false);
+			view.setRiskAdjustLabel(false);
+			view.setQDMElementsInSuppElements(packageOverview.getSuppDataElements());
+			view.setQDMElements(packageOverview.getQdmElements());
+			//Set CQL Suppl data to empty
+			view.setCQLElementsInSuppElements(Collections.<CQLDefinition>emptyList());
+			view.setCQLQDMElements(Collections.<CQLDefinition>emptyList());
+		}
+		//view.setQDMElements(packageOverview.getQdmElements());
 		view.setSubTreeInRiskAdjVarList(packageOverview.getRiskAdjList());
 		view.setSubTreeClauseList(packageOverview.getSubTreeClauseList());
 		dbPackageClauses.clear();
 		dbPackageClauses.addAll(currentDetail.getPackageClauses());
 		dbSuppDataElements.clear();
 		dbSuppDataElements.addAll(packageOverview.getSuppDataElements());
+		dbCQLSuppDataElements.clear();
+		dbCQLSuppDataElements.addAll(packageOverview.getCqlSuppDataElements());
 		dbRiskAdjVars.clear();
 		dbRiskAdjVars.addAll(packageOverview.getRiskAdjList());
 		

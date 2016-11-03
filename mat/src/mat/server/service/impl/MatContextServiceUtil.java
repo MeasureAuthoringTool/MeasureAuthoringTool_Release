@@ -43,7 +43,7 @@ public class MatContextServiceUtil {
 		MeasureShareDTO dto = measureDAO.extractDTOFromMeasure(measure);
 		boolean isOwner = currentUserId.equals(dto.getOwnerUserId());
 		ShareLevel shareLevel = measureDAO.findShareLevelForUser(measureId,
-				currentUserId, dto.getMeasureSetId());
+				currentUserId);
 		boolean isSharedToEdit = false;
 		if (shareLevel != null) {
 			isSharedToEdit = ShareLevel.MODIFY_ID.equals(shareLevel.getId());

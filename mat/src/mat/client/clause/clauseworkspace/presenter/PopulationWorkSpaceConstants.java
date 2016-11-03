@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
 import com.google.gwt.xml.client.Node;
 
 // TODO: Auto-generated Javadoc
@@ -34,6 +35,15 @@ public class PopulationWorkSpaceConstants {
 	
 	/** The Constant CLAUSE_TYPE. */
 	public static final String CLAUSE_TYPE = "clause";
+	
+	/** The Constant CQL Definition Type. */
+	public static final String CQL_DEFINITION_TYPE = "cqldefinition";
+	
+	/** The Constant CQL Function Type */
+	public static final String CQL_FUNCTION_TYPE = "cqlfunction";
+	
+	/** The Constant CQL Aggregate function type */
+	public static final String CQL_AGG_FUNCTION_TYPE = "cqlaggfunction";
 	
 	/** The Constant TYPE. */
 	public static final String TYPE = "type";
@@ -96,6 +106,10 @@ public class PopulationWorkSpaceConstants {
 	/** The element look up node. */
 	public static LinkedHashMap<String, Node> subTreeLookUpNode;
 	
+	/** Map for CQL Definitions for this measure */
+	public static LinkedHashMap<String, Node> cqlDefinitionLookupNode;
+	
+	public static LinkedHashMap<String, Node> cqlFunctionLookupNode;
 	/**
 	 * Sets the sub tree look up node.
 	 *

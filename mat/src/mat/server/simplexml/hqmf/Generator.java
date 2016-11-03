@@ -117,13 +117,15 @@ public interface Generator extends MatConstants {
 	public static final String CODE = "code";
 	
 	/** The Constant VERSIONID. */
+	public static final String VERSION_5_0_ID = "2016-12-01";
+	
+	/** The Constant VERSIONID. */
 	public static final String VERSION_4_1_2_ID = "2014-11-24";
 	
 	/** The Constant VERSION_4_3_ID. */
 	public static final String VERSION_4_3_ID = "2015-09-30";
 	
-	/** The Constant Version_4_6_ID */
-	public static final String VERSION_4_6_ID = "2016-08-01";
+	public static final String VERSION_PATIENT_CHARACTERISTIC_SEX="2014-11-24";
 	
 	public static final String POPULATION_CRITERIA_EXTENSION = "2015-12-01";
 	
@@ -203,6 +205,8 @@ public interface Generator extends MatConstants {
 	/** The Constant logger. */
 	public final Log LOG = LogFactory.getLog(HQMFDataCriteriaGenerator.class);
 	
+	public final Log LOGGER = LogFactory.getLog(CQLBasedHQMFDataCriteriaGenerator.class);
+	
 	/** The name space. */
 	public final String nameSpace = "http://www.w3.org/2001/XMLSchema-instance";
 	
@@ -255,6 +259,8 @@ public interface Generator extends MatConstants {
 	public static final String DIAGNOSIS = "diagnosis";
 	
 	public static final String PRINCIPAL_DIAGNOSIS = "principal diagnosis";
+	
+	public static final String ACTION_NEGATION_IND = "actionNegationInd";
 	/**
 	 * Generate.
 	 *

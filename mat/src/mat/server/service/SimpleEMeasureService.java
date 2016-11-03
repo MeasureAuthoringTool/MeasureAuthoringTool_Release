@@ -4,7 +4,6 @@ import java.util.Date;
 import java.util.List;
 
 import mat.model.MatValueSet;
-import mat.model.clause.MeasureExport;
 
 
 /**
@@ -16,6 +15,8 @@ public interface SimpleEMeasureService {
 	 * The Class ExportResult.
 	 */
 	public static class ExportResult {
+		
+		private String cqlLibraryName; 
 		
 		/** The measure name. */
 		public String measureName;
@@ -37,6 +38,14 @@ public interface SimpleEMeasureService {
 		
 		/** The last modified date. */
 		public String lastModifiedDate;
+
+		public String getCqlLibraryName() {
+			return cqlLibraryName;
+		}
+
+		public void setCqlLibraryName(String cqlLibraryName) {
+			this.cqlLibraryName = cqlLibraryName;
+		}	
 	}
 	
 	/**
@@ -134,7 +143,11 @@ public interface SimpleEMeasureService {
 
 	ExportResult getHumanReadableForNode(String measureId, String populationSubXML) throws Exception;
 
-	ExportResult getNewEMeasureHTML(String measureId) throws Exception;
+	ExportResult getNewEMeasureHTML(String measureId, String currentReleaseVersion) throws Exception;
 	public ExportResult getNewEMeasureXML(String measureId);
+
+	ExportResult getCQLLibraryFile(String measureId) throws Exception;
+
+	ExportResult getELMFile(String measureId) throws Exception;
 
 }

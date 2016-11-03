@@ -35,8 +35,10 @@ import mat.model.clause.MeasureShare;
 import mat.model.clause.MeasureShareDTO;
 import mat.model.clause.MeasureXML;
 import mat.model.clause.ShareLevel;
+import mat.model.cql.parser.CQLFileObject;
+import mat.server.CQLUtilityClass;
 import mat.server.LoggedInUserUtil;
-import mat.server.service.MeasureLibraryService;
+import mat.server.cqlparser.MATCQLParser;
 import mat.server.service.MeasurePackageService;
 import mat.server.service.SimpleEMeasureService;
 import mat.server.service.SimpleEMeasureService.ExportResult;
@@ -46,8 +48,6 @@ import mat.shared.ValidationUtility;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.web.context.support.WebApplicationContextUtils;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -239,9 +239,18 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 	 */
 	private void generateExport(final String measureId, final List<String> message ,
 			final List<MatValueSet> matValueSetList) throws Exception {
-		
+		//TODO
 		MeasureXML measureXML = measureXMLDAO.findForMeasure(measureId);
-		String exportedXML = ExportSimpleXML.export(measureXML, message, measureDAO,organizationDAO);
+		Measure measure = measureDAO.find(measureId);
+		String exportedXML = "";
+		MATCQLParser matcqlParser = new MATCQLParser();
+		String cqlFileString = CQLUtilityClass.getCqlString(CQLUtilityClass.getCQLStringFromMeasureXML(measureXML.getMeasureXMLAsString(),measureId),"").toString();
+		CQLFileObject cqlFileObject = matcqlParser.parseCQL(cqlFileString);
+		if(measure.getReleaseVersion().equalsIgnoreCase("v5.0")){
+			exportedXML = ExportSimpleXML.export(measureXML, message, measureDAO,organizationDAO, cqlFileObject);
+		} else {
+			exportedXML = ExportSimpleXML.export(measureXML, message, measureDAO,organizationDAO);
+		}
 		if (exportedXML.length() == 0) {
 			return;
 		}
@@ -251,7 +260,7 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 		//replace all @id attributes of <elementLookUp>/<qdm> with @uuid attribute value
 		exportedXML = ExportSimpleXML.setQDMIdAsUUID(exportedXML);
 		
-		Measure measure = measureDAO.find(measureId);
+//		Measure measure = measureDAO.find(measureId);
 		MeasureExport export = measureExportDAO.findForMeasure(measureId);
 		if (export == null) {
 			export = new MeasureExport();

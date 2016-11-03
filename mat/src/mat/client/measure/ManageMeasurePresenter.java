@@ -283,6 +283,11 @@ public class ManageMeasurePresenter implements MatPresenter {
 		public boolean isEMeasure();
 		
 		/**
+		 * Checks if is ELM
+		 */
+		public boolean isELM();
+		
+		/**
 		 * Checks if is e measure package.
 		 * 
 		 * @return true, if is e measure package
@@ -303,6 +308,8 @@ public class ManageMeasurePresenter implements MatPresenter {
 		 *            the new measure name
 		 */
 		public void setMeasureName(String name);
+
+		boolean isCQLLibrary();
 	}
 	
 	/**
@@ -1155,9 +1162,12 @@ public class ManageMeasurePresenter implements MatPresenter {
 				+ "&format=";
 		System.out.println("URL: " + url);
 		
-		url += (exportDisplay.isEMeasure() ? "emeasure" : exportDisplay
-				.isSimpleXML() ? "simplexml"
-						: exportDisplay.isCodeList() ? "codelist" : "zip");
+		url += (exportDisplay.isEMeasure() ? "emeasure" : 
+				exportDisplay.isSimpleXML() ? "simplexml" :
+				exportDisplay.isCodeList() ? "codelist" : 
+				exportDisplay.isCQLLibrary() ? "cqlLibrary" : 
+				exportDisplay.isELM() ? "elm" :	
+				"zip");
 		return url;
 	}
 	

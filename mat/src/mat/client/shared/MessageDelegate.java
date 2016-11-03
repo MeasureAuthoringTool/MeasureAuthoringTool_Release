@@ -149,6 +149,10 @@ public class MessageDelegate {
 	public static final String RATIO_NUM_DENO_ASSOCIATION_REQUIRED = "For Ratio measures, in the case of more than one Initial Population, "
 			+ " Numerator and Denominator must contain one association.";
 	
+	public static final String RATIO_MEASURE_OBS_ASSOCIATION_REQUIRED = "For Ratio Measures, each Measure Observation requires an association be made to the Numerator or the Denominator.";
+
+	private static final String ERROR_IN_SAVING_QDM_ELEMENTS = "Valuesets with different OIDs can not have the same valueset name.";
+	
 	/** The vsac expansion profile selection. */
 	public final String VSAC_EXPANSION_PROFILE_SELECTION = "Please Select VSAC Expansion Identifier to Apply to QDM Elements";
 	
@@ -188,6 +192,34 @@ public class MessageDelegate {
 	/** The successfully modified all oids. */
 	public final String SUCCESSFULLY_MODIFIED_ALL_OIDS = "All QDM elements and/or attributes using the same value set OID have been modified " +
 			"to the selected Version and/or Expansion Identifier.";
+	
+	public final String SUCCESSFUL_SAVED_CQL_GEN_INFO  = "Successfully saved CQL general information.";
+	public final String SUCCESSFUL_SAVED_CQL_DEFINITION  = "Successfully saved definition into CQL.";
+	public final String SUCCESSFUL_SAVED_CQL_FUNCTIONS  = "Successfully saved function into CQL.";
+	public final String SUCCESSFUL_SAVED_CQL_PARAMETER  = "Successfully saved parameter into CQL.";
+	public final String ERROR_SAVE_CQL_DEFINITION  = "Please enter definition name.";
+	
+	public final String SUCCESSFUL_SAVED_CQL_DEFINITION_WITH_ERRORS  = "Successfully saved definition into CQL with errors.";
+	public final String SUCCESSFUL_SAVED_CQL_FUNCTIONS_WITH_ERRORS  = "Successfully saved function into CQL  with errors.";
+	public final String SUCCESSFUL_SAVED_CQL_PARAMETER_WITH_ERRORS  = "Successfully saved parameter into CQL  with errors.";
+	
+	public final String ERROR_SAVE_CQL_PARAMETER  = "Please enter parameter name.";
+	public final String ERROR_SAVE_CQL_FUNCTION  = "Please enter function name.";
+	public final String ERROR_DUPLICATE_IDENTIFIER_NAME  = "Name already exists.";
+	public final String SUCESS_DEFINITION_MODIFY  = "Successfully modified definition.";
+	public final String SUCESS_PARAMETER_MODIFY  = "Successfully modified parameter.";
+	public final String SUCESS_FUNCTION_MODIFY  = "Successfully modified function.";
+	
+	public final String SUCESS_DEFINITION_MODIFY_WITH_ERRORS  = "Successfully modified definition with errors.";
+	public final String SUCESS_PARAMETER_MODIFY_WITH_ERRORS  = "Successfully modified parameter with errors.";
+	public final String SUCESS_FUNCTION_MODIFY_WITH_ERRORS  = "Successfully modified function with errors.";
+	
+	public final String ERROR_PARAMETER_NAME_NO_SPECIAL_CHAR  = "Invalid Parameter name. " +
+			"Duplicate name or use of restricted character(s).";
+	public final String ERROR_DEFINITION_NAME_NO_SPECIAL_CHAR  = "Invalid Definition name. " +
+			"Duplicate name or use of restricted character(s).";
+	public final String ERROR_FUNCTION_NAME_NO_SPECIAL_CHAR  = "Invalid Function and/or Argument name. " +
+			"Duplicate name or use of restricted character(s).";
 	
 	/**
 	 * Gets the measure save server error message.
@@ -530,7 +562,7 @@ public class MessageDelegate {
 	private final String RATIO_TOO_FEW_POPULATIONS = "For a Ratio measure, a grouping must contain at least one Initial Population.";
 	
 	/** The invalid logic population work space. */
-	private final String INVALID_LOGIC_POPULATION_WORK_SPACE = "Measure Logic is incomplete.Please validate your measure logic in both Population Workspace and Clause Workspace.";
+	private final String INVALID_LOGIC_CQL_WORK_SPACE = "Measure Logic is incomplete.Please validate your measure logic in CQL Workspace.";
 	
 	/** The invalidlogic clause work space. */
 	private final String INVALIDLOGIC_CLAUSE_WORK_SPACE = "Clause logic is incomplete.Please validate your clause logic.";
@@ -548,6 +580,9 @@ public class MessageDelegate {
 	
 	/** The stratification validation for grouping. */
 	private final String STRATIFICATION_VALIDATION_FOR_GROUPING = " Measure Grouping cannot contain more than one Stratification.";
+	
+	/** The measure observation validation for grouping. */
+	private final String MEASURE_OBS_VALIDATION_FOR_GROUPING = " A Ratio Measure may not contain more than 2 Measure Observations in a Measure grouping.";
 	
 	
 	/** The rationale required. */
@@ -672,17 +707,19 @@ public class MessageDelegate {
 	
 	/** The clause work space invalid nested clause. */
 	private final String CLAUSE_WORK_SPACE_INVALID_LOGICAL_OPERATOR = "Any logical operator under a top-level logical operator must contain at least one logical operator or clause. " +
-			                                                        "Any terminal logical operator under a top-level logical operator must contain at least one clause.";
+			"Any terminal logical operator under a top-level logical operator must contain at least one clause.";
 	
 	/** The measure observation validation for functions. */
 	private final String MEASURE_OBSERVATION_VALIDATION_FOR_FUNCTIONS = "Contents of the clause logic are not permitted for Measure Observations.";
 	
 	private final String ONLY_ONE_CHILD_REQUIRED = " Functions must contain only one child node.";
 	
+	private final String INVALID_LOGIC_MEASURE_PACKAGER = "Populations or Measure Observations within a Measure Grouping must contain a valid Definition or Function.";
+	
 	public String getONLY_ONE_CHILD_REQUIRED() {
 		return ONLY_ONE_CHILD_REQUIRED;
 	}
-
+	
 	/**
 	 * Gets the measure observation validation for functions.
 	 *
@@ -691,7 +728,7 @@ public class MessageDelegate {
 	public String getMEASURE_OBSERVATION_VALIDATION_FOR_FUNCTIONS() {
 		return MEASURE_OBSERVATION_VALIDATION_FOR_FUNCTIONS;
 	}
-
+	
 	/**
 	 * Gets the component measures added successfully.
 	 *
@@ -2156,6 +2193,15 @@ public class MessageDelegate {
 	}
 	
 	/**
+	 * Gets the ratio measure observation association required.
+	 *
+	 * @return the ratioMeasureObsAssociationRequired
+	 */
+	public String getRatioMeasureObsAssociationRequired() {
+		return RATIO_MEASURE_OBS_ASSOCIATION_REQUIRED;
+	}
+	
+	/**
 	 * Gets the measure logic is incomplete.
 	 *
 	 * @return the mEASURE_LOGIC_IS_INCOMPLETE
@@ -2249,6 +2295,15 @@ public class MessageDelegate {
 	}
 	
 	/**
+	 * Gets the measure observation validation for grouping.
+	 *
+	 * @return the measure observation validation for grouping
+	 */
+	public String getMEASURE_OBS_VALIDATION_FOR_GROUPING() {
+		return MEASURE_OBS_VALIDATION_FOR_GROUPING;
+	}
+	
+	/**
 	 * Gets the organization success message.
 	 *
 	 * @return the oRGANIZATION_SUCCESS_MESSAGE
@@ -2289,8 +2344,8 @@ public class MessageDelegate {
 	 *
 	 * @return the iNVALID_LOGIC_POPULATION_WORK_SPACE
 	 */
-	public String getINVALID_LOGIC_POPULATION_WORK_SPACE() {
-		return INVALID_LOGIC_POPULATION_WORK_SPACE;
+	public String getINVALID_LOGIC_CQL_WORK_SPACE() {
+		return INVALID_LOGIC_CQL_WORK_SPACE;
 	}
 	
 	/**
@@ -2375,6 +2430,15 @@ public class MessageDelegate {
 	 */
 	public String getWARNING_PASTING_IN_APPLIED_QDM_ELEMENTS() {
 		return WARNING_PASTING_IN_APPLIED_QDM_ELEMENTS;
+	}
+	
+	/**
+	 * Gets the error saving in  qdm elements.
+	 *
+	 * @return the error saving in qdm elements
+	 */
+	public String getERROR_IN_SAVING_QDM_ELEMENTS() {
+		return ERROR_IN_SAVING_QDM_ELEMENTS;
 	}
 	
 	/**
@@ -2467,7 +2531,7 @@ public class MessageDelegate {
 	public String getSUCCESSFULLY_MODIFIED_ALL_OIDS() {
 		return SUCCESSFULLY_MODIFIED_ALL_OIDS;
 	}
-
+	
 	/**
 	 * Gets the comparison diloag box unit error display.
 	 *
@@ -2476,4 +2540,89 @@ public class MessageDelegate {
 	public String getCOMPARISON_DILOAG_BOX_UNIT_ERROR_DISPLAY() {
 		return COMPARISON_DILOAG_BOX_UNIT_ERROR_DISPLAY;
 	}
+	
+	public String getSUCCESSFUL_SAVED_CQL_GEN_INFO() {
+		return SUCCESSFUL_SAVED_CQL_GEN_INFO;
+	}
+	
+	public String getSUCCESSFUL_SAVED_CQL_DEFINITION() {
+		return SUCCESSFUL_SAVED_CQL_DEFINITION;
+	}
+	
+	public String getSUCCESSFUL_SAVED_CQL_PARAMETER() {
+		return SUCCESSFUL_SAVED_CQL_PARAMETER;
+	}
+	
+	public String getERROR_SAVE_CQL_DEFINITION() {
+		return ERROR_SAVE_CQL_DEFINITION;
+	}
+	
+	public String getERROR_SAVE_CQL_PARAMETER() {
+		return ERROR_SAVE_CQL_PARAMETER;
+	}
+	
+	public String getERROR_DUPLICATE_IDENTIFIER_NAME() {
+		return ERROR_DUPLICATE_IDENTIFIER_NAME;
+	}
+	
+	public String getSUCESS_DEFINITION_MODIFY() {
+		return SUCESS_DEFINITION_MODIFY;
+	}
+	
+	public String getSUCESS_PARAMETER_MODIFY() {
+		return SUCESS_PARAMETER_MODIFY;
+	}
+	public String getSUCCESSFUL_SAVED_CQL_FUNCTIONS() {
+		return SUCCESSFUL_SAVED_CQL_FUNCTIONS;
+	}
+	
+	public String getERROR_SAVE_CQL_FUNCTION() {
+		return ERROR_SAVE_CQL_FUNCTION;
+	}
+	
+	public String getSUCESS_FUNCTION_MODIFY() {
+		return SUCESS_FUNCTION_MODIFY;
+	}
+	
+	public String getERROR_PARAMETER_NAME_NO_SPECIAL_CHAR() {
+		return ERROR_PARAMETER_NAME_NO_SPECIAL_CHAR;
+	}
+	
+	public String getERROR_DEFINITION_NAME_NO_SPECIAL_CHAR() {
+		return ERROR_DEFINITION_NAME_NO_SPECIAL_CHAR;
+	}
+	
+	public String getERROR_FUNCTION_NAME_NO_SPECIAL_CHAR() {
+		return ERROR_FUNCTION_NAME_NO_SPECIAL_CHAR;
+	}
+	
+	public String getSUCCESSFUL_SAVED_CQL_DEFINITION_WITH_ERRORS() {
+		return SUCCESSFUL_SAVED_CQL_DEFINITION_WITH_ERRORS;
+	}
+
+	public String getSUCCESSFUL_SAVED_CQL_FUNCTIONS_WITH_ERRORS() {
+		return SUCCESSFUL_SAVED_CQL_FUNCTIONS_WITH_ERRORS;
+	}
+
+	public String getSUCCESSFUL_SAVED_CQL_PARAMETER_WITH_ERRORS() {
+		return SUCCESSFUL_SAVED_CQL_PARAMETER_WITH_ERRORS;
+	}
+	
+	public String getSUCESS_DEFINITION_MODIFY_WITH_ERRORS() {
+		return SUCESS_DEFINITION_MODIFY_WITH_ERRORS;
+	}
+
+	public String getSUCESS_PARAMETER_MODIFY_WITH_ERRORS() {
+		return SUCESS_PARAMETER_MODIFY_WITH_ERRORS;
+	}
+
+	public String getSUCESS_FUNCTION_MODIFY_WITH_ERRORS() {
+		return SUCESS_FUNCTION_MODIFY_WITH_ERRORS;
+	}
+
+	public String getINVALID_LOGIC_MEASURE_PACKAGER() {
+		return INVALID_LOGIC_MEASURE_PACKAGER;
+	}
+
+
 }

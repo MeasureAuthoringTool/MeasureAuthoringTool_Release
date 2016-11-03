@@ -180,8 +180,7 @@ public class Mat extends MainLayout implements EntryPoint, Enableable{
 		}
 		
 		@Override
-		public void onSuccess(final SessionManagementService.Result result) {
-	
+		public void onSuccess(final SessionManagementService.Result result) {	
 			MatContext.get().getCurrentReleaseVersion(new AsyncCallback<String>() {
 
 				@Override
@@ -210,7 +209,7 @@ public class Mat extends MainLayout implements EntryPoint, Enableable{
 					
 				}
 			});
-		}
+			}
 	};
 	
 	/** Builds the admin presenter.

@@ -20,7 +20,6 @@ import org.gwtbootstrap3.client.ui.PanelFooter;
 import org.gwtbootstrap3.client.ui.PanelHeader;
 import org.gwtbootstrap3.client.ui.Row;
 import org.gwtbootstrap3.client.ui.TextBox;
-import org.gwtbootstrap3.client.ui.constants.Alignment;
 import org.gwtbootstrap3.client.ui.constants.ButtonType;
 import org.gwtbootstrap3.client.ui.constants.ColumnOffset;
 import org.gwtbootstrap3.client.ui.constants.ColumnSize;
@@ -63,7 +62,7 @@ public class LoginNewView implements LoginNewPresenter.LoginViewDisplay  {
 	 */
 	public LoginNewView() {
 		Container loginFormContianer = new Container();
-		welcomeHeading.setAlignment(Alignment.LEFT);
+		
 		successMessagePanel.setType(PanelType.SUCCESS);
 		PanelHeader successPanelHeader = new PanelHeader();
 		Icon checkIcon = new Icon(IconType.CHECK_CIRCLE);
@@ -74,7 +73,7 @@ public class LoginNewView implements LoginNewPresenter.LoginViewDisplay  {
 		successMessagePanel.add(successMessageBody);
 		successMessagePanel.setVisible(false);
 		Row headingRow = new Row();
-		Column headingCol = new Column(ColumnSize.MD_4);
+		Column headingCol = new Column(ColumnSize.SM_10);
 		headingCol.setOffset(ColumnOffset.SM_3);
 		headingCol.add(welcomeHeading);
 		headingRow.add(headingCol);
@@ -89,8 +88,8 @@ public class LoginNewView implements LoginNewPresenter.LoginViewDisplay  {
 		loginFormContianer.add(successMessagePanelRow);
 		
 		Row mainRow = new Row();
-		Column mainCol = new Column(ColumnSize.MD_4);
-		mainCol.setOffset(ColumnOffset.MD_3);
+		Column mainCol = new Column(ColumnSize.SM_10);
+		mainCol.setOffset(ColumnOffset.SM_3);
 		//Login Panel.
 		Panel loginPanel = new Panel();
 		loginPanel.setWidth("300px");
@@ -137,7 +136,7 @@ public class LoginNewView implements LoginNewPresenter.LoginViewDisplay  {
 		authLabel.setTitle("Security Code");
 		authLabel.setFor("inputAuthCode");
 		securityCodeInput.setWidth("210px");
-		securityCodeInput.setHeight("28px");
+		securityCodeInput.setHeight("28.5px");
 		securityCodeInput.setId("inputAuthCode");
 		securityCodeInput.setPlaceholder("Enter Security Code");
 		securityCodeInput.setTitle("Enter Security Code");

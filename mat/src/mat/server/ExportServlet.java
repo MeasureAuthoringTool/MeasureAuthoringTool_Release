@@ -7,11 +7,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.xpath.XPathExpressionException;
+
 import mat.model.MeasureNotes;
 import mat.model.MeasureOwnerReportDTO;
 import mat.model.User;
@@ -26,6 +28,7 @@ import mat.server.simplexml.MATCssUtil;
 import mat.server.util.XmlProcessor;
 import mat.shared.FileNameUtility;
 import mat.shared.InCorrectUserRoleException;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -77,6 +80,9 @@ public class ExportServlet extends HttpServlet {
 	/** The Constant TEXT_HTML. */
 	private static final String TEXT_HTML = "text/html";
 	
+	/** The Constant TEST_PLAN */
+	private static final String TEXT_PLAIN = "text/plain"; 
+	
 	/** The Constant CONTENT_TYPE. */
 	private static final String CONTENT_TYPE = "Content-Type";
 	
@@ -106,6 +112,11 @@ public class ExportServlet extends HttpServlet {
 	
 	/** The context. */
 	protected ApplicationContext context;
+	
+	private static final String CQL_LIBRARY = "cqlLibrary";
+	private static final String ELM = "elm"; 
+	
+	private static final String TEXT_CQL = "text/cql";
 	
 	/* (non-Javadoc)
 	 * @see javax.servlet.http.HttpServlet#doGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
@@ -143,6 +154,13 @@ public class ExportServlet extends HttpServlet {
 			} else if (CODELIST.equals(format)) {
 				export = exportCodeListXLS(resp, measureLibraryService, id,
 						measure, fnu);
+			} else if (CQL_LIBRARY.equals(format)) {
+				export = exportCQLLibraryFile(resp, measureLibraryService, id, type,
+						measure, fnu);
+			} else if(ELM.equals(format)) {
+				export = exportELMFile(resp, measureLibraryService, id, type, 
+						measure, fnu); 
+					
 			} else if (ZIP.equals(format)) {
 				export = exportEmeasureZip(resp, measureLibraryService, id,
 						measure, exportDate, fnu);
@@ -173,6 +191,46 @@ public class ExportServlet extends HttpServlet {
 	}
 	
 	
+	
+	private ExportResult exportELMFile(HttpServletResponse resp, MeasureLibraryService measureLibraryService, String id,
+			String type, Measure measure, FileNameUtility fnu) throws Exception {
+		
+		ExportResult export = getService().getELMFile(id); 
+		
+		if (SAVE.equals(type)) {
+			String currentReleaseVersion = measure.getReleaseVersion();
+			if(currentReleaseVersion.contains(".")){
+				currentReleaseVersion = currentReleaseVersion.replace(".", "_");
+			}
+			System.out.println("Release version zip " + currentReleaseVersion);
+			resp.setHeader(CONTENT_DISPOSITION, ATTACHMENT_FILENAME
+					+ fnu.getELMFileName(export.getCqlLibraryName()));
+		} else {
+			resp.setHeader(CONTENT_TYPE, TEXT_XML);
+		}
+		return export;
+	}
+
+
+
+	private ExportResult exportCQLLibraryFile(HttpServletResponse resp,
+			MeasureLibraryService measureLibraryService, String id,
+			String type, Measure measure, FileNameUtility fnu) throws Exception {
+		ExportResult export;
+		export = getService().getCQLLibraryFile(id);
+		if (SAVE.equals(type)) {
+			String currentReleaseVersion = measure.getReleaseVersion();
+			if(currentReleaseVersion.contains(".")){
+				currentReleaseVersion = currentReleaseVersion.replace(".", "_");
+			}
+			System.out.println("Release version zip " + currentReleaseVersion);
+			resp.setHeader(CONTENT_DISPOSITION, ATTACHMENT_FILENAME
+					+ fnu.getCQLFileName(export.getCqlLibraryName()));
+		} else {
+			resp.setHeader(CONTENT_TYPE, TEXT_PLAIN);
+		}
+		return export;
+	}
 	
 	public ExportResult exportMeasureNotesCSV(HttpServletResponse resp,
 			String id, Measure measure, FileNameUtility fnu) throws Exception,
@@ -300,15 +358,7 @@ public class ExportServlet extends HttpServlet {
 			IOException {
 		ExportResult export;
 		export = getService().getEMeasureZIP(id,exportDate);
-		/*if(measure.getExportedDate().before(measureLibraryService.getFormattedReleaseDate(measureLibraryService.getReleaseDate()))){
-			resp.setHeader(CONTENT_DISPOSITION, ATTACHMENT_FILENAME + fnu.getZipName(export.measureName + matVersion[0]));
-		} else if(measure.getExportedDate().equals(measureLibraryService
-				.getFormattedReleaseDate(measureLibraryService.getReleaseDate()))
-				|| measure.getExportedDate().after(measureLibraryService
-						.getFormattedReleaseDate(measureLibraryService.getReleaseDate()))){
-			resp.setHeader(CONTENT_DISPOSITION, ATTACHMENT_FILENAME + fnu.getZipName(export.measureName + matVersion[1]));
-		}*/
-		
+				
 		String currentReleaseVersion = measure.getReleaseVersion();
 		if(currentReleaseVersion.contains(".")){
 			currentReleaseVersion = currentReleaseVersion.replace(".", "_");
@@ -375,16 +425,38 @@ public class ExportServlet extends HttpServlet {
 				//						}
 			}
 		}else{
-			if ("open".equals(type)) {
-				export = getService().getNewEMeasureHTML(id);
-				resp.setHeader(CONTENT_TYPE, TEXT_HTML);
-			}else if (SAVE.equals(type)) {
-				export = getService().getNewEMeasureXML(id);
-				resp.setHeader(CONTENT_DISPOSITION, ATTACHMENT_FILENAME
-						+ fnu.getEmeasureXMLName(export.measureName + "_" + currentReleaseVersion));
-			}
+			export = exportEMeasureForNewMeasures(resp, id, type, export, fnu,
+					measure.getReleaseVersion());
 		}
 		
+		return export;
+	}
+
+
+	/**
+	 * Export Human Readable (HTML) or HQMF XML for measures > v3.0
+	 * 
+	 * @param resp
+	 * @param id
+	 * @param type
+	 * @param export
+	 * @param fnu
+	 * @param currentReleaseVersion
+	 * @return
+	 * @throws Exception
+	 */
+	public ExportResult exportEMeasureForNewMeasures(HttpServletResponse resp,
+			String id, String type, ExportResult export, FileNameUtility fnu,
+			String currentReleaseVersion) throws Exception {
+		
+		if ("open".equals(type)) {
+			export = getService().getNewEMeasureHTML(id, currentReleaseVersion);
+			resp.setHeader(CONTENT_TYPE, TEXT_HTML);
+		}else if (SAVE.equals(type)) {
+			export = getService().getNewEMeasureXML(id);
+			resp.setHeader(CONTENT_DISPOSITION, ATTACHMENT_FILENAME
+					+ fnu.getEmeasureXMLName(export.measureName + "_" + currentReleaseVersion));
+		}
 		return export;
 	}
 	
@@ -686,7 +758,7 @@ public class ExportServlet extends HttpServlet {
 		
 		//Add data rows
 		for (User user:allNonAdminActiveUsersList) {
-			csvStringBuilder.append("\"" + user.getLoginId()
+			csvStringBuilder.append("\"" + user.getLoginId() 
 					+ "\",\"" + user.getLastName() + "\",\"" + user.getFirstName()
 					+ "\",\"" + user.getOrganizationName()
 					+ "\",\"" + user.getOrgOID()

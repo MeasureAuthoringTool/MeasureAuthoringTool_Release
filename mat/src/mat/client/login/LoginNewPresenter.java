@@ -7,6 +7,7 @@ import mat.client.event.ForgottenPasswordEvent;
 import mat.client.event.SuccessfulLoginEvent;
 import mat.client.event.TemporaryPasswordLoginEvent;
 import mat.client.shared.MatContext;
+
 import org.gwtbootstrap3.client.ui.Anchor;
 import org.gwtbootstrap3.client.ui.Button;
 import org.gwtbootstrap3.client.ui.FormGroup;
@@ -18,6 +19,7 @@ import org.gwtbootstrap3.client.ui.PanelBody;
 import org.gwtbootstrap3.client.ui.TextBox;
 import org.gwtbootstrap3.client.ui.constants.IconType;
 import org.gwtbootstrap3.client.ui.constants.ValidationState;
+
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.KeyCodes;
@@ -127,6 +129,7 @@ public class LoginNewPresenter {
 		});
 		view.getUserIdText().addKeyDownHandler(submitOnEnterHandler);
 		view.getPasswordInput().addKeyDownHandler(submitOnEnterHandler);
+		view.getSecurityCodeInput().addKeyDownHandler(submitOnEnterHandler);
 	}
 	
 	public void go(HasWidgets container) {
@@ -151,19 +154,23 @@ public class LoginNewPresenter {
 	 * Method called when Sign In Button on Login View is clicked.
 	 */
 	private void submit() {
+		view.getSuccessMessagePanel().setVisible(false);
 		view.getHelpBlock().setText("");
+		view.getSubmitButton().setEnabled(false);
 		
 		if (view.getUserIdText().getText().isEmpty()) {
 			view.getUserIdGroup().setValidationState(ValidationState.ERROR);
 			view.getHelpBlock().setIconType(IconType.EXCLAMATION_CIRCLE);
 			view.getHelpBlock().setText(MatContext.get().getMessageDelegate().getLoginIDRequiredMessage());
 			view.getMessageFormGrp().setValidationState(ValidationState.ERROR);
+			view.getSubmitButton().setEnabled(true);
 		} else if (view.getPasswordInput().getText().isEmpty()) {
 			view.getHelpBlock().setIconType(IconType.EXCLAMATION_CIRCLE);
 			view.getHelpBlock().setText(MatContext.get().getMessageDelegate().getPasswordRequiredMessage());
 			view.getMessageFormGrp().setValidationState(ValidationState.ERROR);
 			view.getUserIdGroup().setValidationState(ValidationState.SUCCESS);
 			view.getPasswordGroup().setValidationState(ValidationState.ERROR);
+			view.getSubmitButton().setEnabled(true);
 		} else if (view.getSecurityCodeInput().getText().isEmpty()) {
 			view.getHelpBlock().setIconType(IconType.EXCLAMATION_CIRCLE);
 			view.getHelpBlock().setText(MatContext.get().getMessageDelegate().getSecurityCodeRequiredMessage());
@@ -171,6 +178,7 @@ public class LoginNewPresenter {
 			view.getUserIdGroup().setValidationState(ValidationState.SUCCESS);
 			view.getPasswordGroup().setValidationState(ValidationState.SUCCESS);
 			view.getAuthTokenGroup().setValidationState(ValidationState.ERROR);
+			view.getSubmitButton().setEnabled(true);
 		} else {
 			view.getUserIdGroup().setValidationState(ValidationState.SUCCESS);
 			view.getPasswordGroup().setValidationState(ValidationState.SUCCESS);
@@ -187,6 +195,8 @@ public class LoginNewPresenter {
 			view.getHelpBlock().setText(MatContext.get().getMessageDelegate().getGenericErrorMessage());
 			view.getUserIdGroup().setValidationState(ValidationState.NONE);
 			view.getPasswordGroup().setValidationState(ValidationState.NONE);
+			view.getAuthTokenGroup().setValidationState(ValidationState.NONE);
+			view.getSubmitButton().setEnabled(true);
 		}
 		
 		@Override
@@ -219,7 +229,6 @@ public class LoginNewPresenter {
 			}
 			view.getSubmitButton().setEnabled(true);
 		}
-			
 	};
 	
 	public void displayForgottenPasswordMessage() {

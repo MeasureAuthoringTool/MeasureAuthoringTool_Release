@@ -3,6 +3,7 @@ package mat.client.measure.metadata;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 import mat.client.Mat;
 import mat.client.MatPresenter;
 import mat.client.MeasureComposerPresenter;
@@ -37,6 +38,9 @@ import mat.model.MeasureSteward;
 import mat.model.MeasureType;
 import mat.model.QualityDataSetDTO;
 import mat.shared.ConstantMessages;
+
+import org.gwtbootstrap3.extras.toggleswitch.client.ui.ToggleSwitch;
+
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -183,7 +187,7 @@ public class MetaDataPresenter  implements MatPresenter {
 		 * 
 		 * @return the not endorseby nqf
 		 */
-		public HasValue<Boolean> getNotEndorsebyNQF();
+		public HasValue<Boolean> getNotEndorsebyNQF();		
 		
 		/**
 		 * Gets the measure status.
@@ -651,7 +655,7 @@ public class MetaDataPresenter  implements MatPresenter {
 		 *
 		 * @return the calender year
 		 */
-		CustomCheckBox getCalenderYear();
+		ToggleSwitch getCalenderYear();
 		
 		/**
 		 * Sets the measurement period buttons visible.
@@ -1432,42 +1436,8 @@ public class MetaDataPresenter  implements MatPresenter {
 	}
 	
 	
-	/**
-	 * Gets the applied qdm list.
-	 *
-	 * @param checkForSupplementData the check for supplement data
-	 * @return the applied qdm list
-	 */
-	private final void getAppliedQDMList(boolean checkForSupplementData) {
-		String measureId = MatContext.get().getCurrentMeasureId();
-		if ((measureId != null) && !measureId.equals("")) {
-			service.getAppliedQDMForItemCount(measureId,
-					checkForSupplementData,
-					new AsyncCallback<List<QualityDataSetDTO>>()  {
-				@Override
-				public void onFailure(final Throwable caught) {
-					Window.alert(MatContext.get().getMessageDelegate()
-							.getGenericErrorMessage());
-				}
 				
-				/**
-				 * On success.
-				 *
-				 * @param result the result
-				 */
-				@Override
-				public void onSuccess(
-						final List<QualityDataSetDTO> result) {
-					QDSAppliedListModel appliedListModel = new QDSAppliedListModel();
-					appliedListModel.setAppliedQDMs(result);
-					metaDataDisplay.buildCellTable(appliedListModel, editable);
-				}
-			});
 			
-		}
-		
-	}
-	
 	/**
 	 * Gets the all measure types.
 	 *
@@ -1587,7 +1557,7 @@ public class MetaDataPresenter  implements MatPresenter {
 	
 	/**
 	 * Back to detail.
-	 */
+	 */  
 	public void backToDetail() {
 		previousContinueButtons.setVisible(true);
 		panel.clear();
@@ -1600,6 +1570,8 @@ public class MetaDataPresenter  implements MatPresenter {
 	 */
 	private void prepopulateFields() {
 		metaDataDisplay.getNqfId().setValue(currentMeasureDetail.getNqfId());
+		
+		
 		metaDataDisplay.geteMeasureIdentifier().setText(currentMeasureDetail.getMeasureSetId());
 		metaDataDisplay.geteMeasureIdentifier().setTitle(currentMeasureDetail.getMeasureSetId());
 		metaDataDisplay.getSetName().setValue(currentMeasureDetail.getGroupName());
@@ -1676,7 +1648,6 @@ public class MetaDataPresenter  implements MatPresenter {
 		}
 		dbQDMSelectedList.clear();
 		dbQDMSelectedList.addAll(currentMeasureDetail.getQdsSelectedList());
-		getAppliedQDMList(true);
 		//Component Measures List
 		if (currentMeasureDetail.getComponentMeasuresSelectedList() != null) {
 			metaDataDisplay.setComponentMeasureSelectedList(currentMeasureDetail.getComponentMeasuresSelectedList());
@@ -1897,6 +1868,7 @@ public class MetaDataPresenter  implements MatPresenter {
 	 */
 	public void updateModelDetailsFromView(ManageMeasureDetailModel currentMeasureDetail, MetaDataDetailDisplay metaDataDisplay) {
 		currentMeasureDetail.setShortName(metaDataDisplay.getShortName().getText());
+								
 		currentMeasureDetail.setFinalizedDate(metaDataDisplay.getFinalizedDate().getText());
 		currentMeasureDetail.setClinicalRecomms(metaDataDisplay.getClinicalRecommendation().getValue());
 		currentMeasureDetail.setDefinitions(metaDataDisplay.getDefinitions().getValue());
@@ -1980,7 +1952,6 @@ public class MetaDataPresenter  implements MatPresenter {
 		currentMeasureDetail.setComponentMeasuresSelectedList(metaDataDisplay.getComponentMeasureSelectedList());
 		currentMeasureDetail.setToCompareAuthor(dbAuthorList);
 		currentMeasureDetail.setToCompareMeasure(dbMeasureTypeList);
-		currentMeasureDetail.setToCompareItemCount(dbQDMSelectedList);
 		currentMeasureDetail.setToCompareComponentMeasures(dbComponentMeasuresSelectedList);
 		currentMeasureDetail.setNqfId(metaDataDisplay.getNqfId().getValue());
 		
@@ -2085,7 +2056,6 @@ public class MetaDataPresenter  implements MatPresenter {
 			}
 		}
 		getMeasureDetail();
-		getAppliedQDMList(true);
 		getAllMeasureTypes();
 		MeasureComposerPresenter.setSubSkipEmbeddedLink("MetaDataView.containerPanel");
 		Mat.focusSkipLists("MeasureComposer");
@@ -2185,7 +2155,9 @@ public class MetaDataPresenter  implements MatPresenter {
 	 */
 	private void deleteMeasure() {
 		
-		if(isMeasureDeletable()){
+		if ((currentMeasureDetail.getMeasureOwnerId() != null) && currentMeasureDetail.getMeasureOwnerId()
+				.equalsIgnoreCase(MatContext.get().getLoggedinUserId())) {
+			
 			MatContext.get().getMeasureService().saveAndDeleteMeasure(MatContext.get().getCurrentMeasureId(), MatContext.get().getLoggedinLoginId(), new AsyncCallback<Void>(){
 				
 				@Override
@@ -2208,8 +2180,8 @@ public class MetaDataPresenter  implements MatPresenter {
 				}
 				
 			});
-
 		}
+		
 		
 	}
 	/**
@@ -2405,7 +2377,7 @@ public class MetaDataPresenter  implements MatPresenter {
 	public void setMeasureXmlModel(MeasureXmlModel measureXmlModel) {
 		this.measureXmlModel = measureXmlModel;
 	}
-	
+
 	/**
 	 * Checks if is measure deletable.
 	 *

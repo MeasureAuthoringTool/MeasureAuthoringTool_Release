@@ -107,30 +107,16 @@ public class HQMFMeasureObservationLogicGenerator extends HQMFClauseLogicGenerat
 	 * @throws XPathExpressionException - Exception
 	 */
 	private void generateMeasureObSection(MeasureExport me) throws XPathExpressionException {
-		String isInGrouping = "";
 		for (Integer key : measureGroupingMap.keySet()) {
 			NodeList groupingChildList = measureGroupingMap.get(key);
 			for (int i = 0; i < groupingChildList.getLength(); i++) {
 				String popType = groupingChildList.item(i).getAttributes().getNamedItem(TYPE).getNodeValue();
-				if(groupingChildList.item(i).getAttributes().getNamedItem(GROUPING_CHECK) != null){
-				isInGrouping = groupingChildList.item(i).getAttributes().getNamedItem(GROUPING_CHECK).getNodeValue();
-				}
 				switch(popType) {
 					case "measureObservation" :
-						if(isInGrouping != null && !isInGrouping.isEmpty()){
-							if(isInGrouping.equalsIgnoreCase("true")){
-								Node measureObSectionComponentElement
-								= createMeasureObservationSection(me.getHQMFXmlProcessor());
-								generateMeasureObDefinition(groupingChildList.item(i)
-										, measureObSectionComponentElement , me);
-							}
-						}
-						else{
-							Node measureObSectionComponentElement
-							= createMeasureObservationSection(me.getHQMFXmlProcessor());
-							generateMeasureObDefinition(groupingChildList.item(i)
-									, measureObSectionComponentElement , me);
-						}
+						Node measureObSectionComponentElement
+						= createMeasureObservationSection(me.getHQMFXmlProcessor());
+						generateMeasureObDefinition(groupingChildList.item(i)
+								, measureObSectionComponentElement , me);
 						break;
 					case "denominator" :
 						denominator = groupingChildList.item(i);

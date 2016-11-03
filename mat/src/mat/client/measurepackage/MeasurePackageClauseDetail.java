@@ -20,12 +20,6 @@ public class MeasurePackageClauseDetail implements IsSerializable, Comparable<Me
 	/** The type. */
 	private String type;
 	
-	/** The item count list. */
-	private List<QualityDataSetDTO> itemCountList = new ArrayList<QualityDataSetDTO>();
-	
-	/** The db item count list. */
-	private List<QualityDataSetDTO> dbItemCountList = new ArrayList<QualityDataSetDTO>();
-
 	/** The associated population. */
 	private String  associatedPopulationUUID;
 	
@@ -34,10 +28,10 @@ public class MeasurePackageClauseDetail implements IsSerializable, Comparable<Me
 	
 	/** The db associated population uuid. */
 	private String dbAssociatedPopulationUUID;
-	
+
 	/** The is associated to grouping. */
 	private boolean isInGrouping;
-
+	
 	/**
 	 * Gets the id.
 	 * 
@@ -95,23 +89,7 @@ public class MeasurePackageClauseDetail implements IsSerializable, Comparable<Me
 		this.type = type;
 	}
 	
-	/**
-	 * Gets the item count list.
-	 *
-	 * @return the item count list
-	 */
-	public List<QualityDataSetDTO> getItemCountList() {
-		return itemCountList;
-	}
 	
-	/**
-	 * Sets the item count list.
-	 *
-	 * @param itemCountList the new item count list
-	 */
-	public void setItemCountList(List<QualityDataSetDTO> itemCountList) {
-		this.itemCountList = itemCountList;
-	}
 	
 	
 	/**
@@ -150,14 +128,6 @@ public class MeasurePackageClauseDetail implements IsSerializable, Comparable<Me
 		this.isAssociatedPopulation = isAssociatedPopulation;
 	}
 	
-	/**
-	 * Gets the db item count list.
-	 *
-	 * @return the db item count list
-	 */
-	public List<QualityDataSetDTO> getDbItemCountList() {
-		return dbItemCountList;
-	}
 	
 	/**
 	 * Gets the db associated population uuid.
@@ -190,7 +160,7 @@ public class MeasurePackageClauseDetail implements IsSerializable, Comparable<Me
 	public void setInGrouping(boolean isInGrouping) {
 		this.isInGrouping = isInGrouping;
 	}
-
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */

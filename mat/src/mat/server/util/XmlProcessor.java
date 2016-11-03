@@ -2,6 +2,7 @@ package mat.server.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -11,7 +12,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 import java.util.UUID;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -27,8 +30,10 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+
 import mat.model.QualityDataModelWrapper;
 import mat.shared.UUIDUtilClient;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -57,7 +62,7 @@ public class XmlProcessor {
 	private static final String COHORT = "COHORT";
 	
 	/** The Constant MEASUREMENT_PERIOD_OID. */
-	private static final String MEASUREMENT_PERIOD_OID = "2.16.840.1.113883.3.67.1.101.1.53";
+	//private static final String MEASUREMENT_PERIOD_OID = "2.16.840.1.113883.3.67.1.101.1.53";
 	
 	/** The Constant PATIENT_CHARACTERISTIC_BIRTH_DATE_OID. */
 	private static final String PATIENT_CHARACTERISTIC_BIRTH_DATE_OID = "21112-8";
@@ -89,17 +94,17 @@ public class XmlProcessor {
 	/** The Constant XPATH_MEASURE_RAV_ELEMENTS. */
 	private static final String XPATH_MEASURE_RAV_ELEMENTS = "/measure/riskAdjustmentVariables";
 	
-	/** The Constant XPATH_SD_ELEMENTS_ELEMENTREF. */
-	private static final String XPATH_SD_ELEMENTS_ELEMENTREF = "/measure/supplementalDataElements/elementRef";
-	
 	/** The Constant XPATH_MEASURE_ELEMENT_LOOKUP. */
 	private static final String XPATH_MEASURE_ELEMENT_LOOKUP = "/measure/elementLookUp";
 	
 	/** The Constant XPATH_MEASURE_SUBTREE_LOOKUP. */
 	private static final String XPATH_MEASURE_SUBTREE_LOOKUP = "/measure/subTreeLookUp";
 	
+	/** The Constant XPATH_CQL_LOOKUP. */
+	private static final String XPATH_CQL_LOOKUP = "/measure/cqlLookUp";
+	
 	/** The Constant XPATH_DETAILS_ITEM_COUNT. */
-	private static final String XPATH_DETAILS_ITEM_COUNT = "/measure/measureDetails/itemCount";
+	//private static final String XPATH_DETAILS_ITEM_COUNT = "/measure/measureDetails/itemCount";
 	
 	/** The Constant XPATH_DTLS_COMPONENT_MEASURE. */
 	private static final String XPATH_DTLS_COMPONENT_MEASURE = "/measure/measureDetails/componentMeasures";
@@ -132,13 +137,28 @@ public class XmlProcessor {
 	/** The Constant XPATH_DENOMINATOR_EXCEPTIONS. */
 	private static final String XPATH_DENOMINATOR_EXCEPTIONS = "/measure/populations/denominatorExceptions";
 	
+	/** The Constant XPATH_MEASURE_DETAILS_DENOMINATOR. */
 	private static final String XPATH_MEASURE_DETAILS_DENOMINATOR = "/measure/measureDetails/denominatorDescription";
+	
+	/** The Constant XPATH_MEASURE_DETAILS_DENOMINATOR_EXCEPTIONS. */
 	private static final String XPATH_MEASURE_DETAILS_DENOMINATOR_EXCEPTIONS = "/measure/measureDetails/denominatorExceptionsDescription";
+	
+	/** The Constant XPATH_MEASURE_DETAILS_DENOMINATOR_EXCLUSIONS. */
 	private static final String XPATH_MEASURE_DETAILS_DENOMINATOR_EXCLUSIONS = "/measure/measureDetails/denominatorExclusionsDescription";
+	
+	/** The Constant XPATH_MEASURE_DETAILS_MEASURE_POPULATION_EXCLUSIONS. */
 	private static final String XPATH_MEASURE_DETAILS_MEASURE_POPULATION_EXCLUSIONS = "/measure/measureDetails/measurePopulationExclusionsDescription";
+	
+	/** The Constant XPATH_MEASURE_DETAILS_MEASURE_POPULATIONS. */
 	private static final String XPATH_MEASURE_DETAILS_MEASURE_POPULATIONS = "/measure/measureDetails/measurePopulationDescription";
+	
+	/** The Constant XPATH_MEASURE_DETAILS_MEASURE_OBSERVATIONS. */
 	private static final String XPATH_MEASURE_DETAILS_MEASURE_OBSERVATIONS = "/measure/measureDetails/measureObservationsDescription";
+	
+	/** The Constant XPATH_MEASURE_DETAILS_NUMERATOR. */
 	private static final String XPATH_MEASURE_DETAILS_NUMERATOR = "/measure/measureDetails/numeratorDescription";
+	
+	/** The Constant XPATH_MEASURE_DETAILS_NUM_EXCLUSIONS. */
 	private static final String XPATH_MEASURE_DETAILS_NUM_EXCLUSIONS = "/measure/measureDetails/numeratorExclusionsDescription";
 	
 	/** The Constant XPATH_DENOMINATOR_EXCLUSIONS. */
@@ -249,6 +269,9 @@ public class XmlProcessor {
 	
 	/** The original doc. */
 	private Document originalDoc;
+	
+	/** The Constant PARAMETER_MEASUREMENT_PERIOD. */
+	private static final String PARAMETER_MEASUREMENT_PERIOD = "Measurement Period";
 	
 	/** The Constant POPULATIONS. */
 	private static final String[] POPULATIONS = {
@@ -583,7 +606,7 @@ public class XmlProcessor {
 	 * 
 	 * @return the string
 	 */
-	public String checkForScoringType() {
+	public String checkForScoringType(String releaseVersion) {
 		if (originalDoc == null) {
 			return "";
 		}
@@ -596,7 +619,7 @@ public class XmlProcessor {
 			LOG.info("scoringType:" + scoringType);
 			
 			removeNodesBasedOnScoring(scoringType);
-			createNewNodesBasedOnScoring(scoringType);
+			createNewNodesBasedOnScoring(scoringType,releaseVersion);
 		} catch (XPathExpressionException e) {
 			e.printStackTrace();
 		}
@@ -790,10 +813,11 @@ public class XmlProcessor {
 	 * 
 	 * @param scoringType
 	 *            the scoring type
+	 * @param releaseVersion 
 	 * @throws XPathExpressionException
 	 *             the x path expression exception
 	 */
-	public void createNewNodesBasedOnScoring(String scoringType)
+	public void createNewNodesBasedOnScoring(String scoringType, String releaseVersion)
 			throws XPathExpressionException {
 		List<String> scoreBasedNodes = retrieveScoreBasedNodes(scoringType);
 		Node populationsNode = findNode(originalDoc, XPATH_POPULATIONS);
@@ -843,7 +867,11 @@ public class XmlProcessor {
 			}
 		}
 		// Create supplementalDataElements node
-		createSupplementalDataElementNode(measureStratificationsNode);
+		releaseVersion = releaseVersion.replaceAll("Draft ", "").trim();
+		if(releaseVersion.startsWith("v")){
+			releaseVersion = releaseVersion.substring(1);
+		}
+		createSupplementalDataElementNode(measureStratificationsNode,releaseVersion);
 		/*
 		 * All the adding and removing can put the children of 'populations' in
 		 * a random order. Arrange the population nodes in correct order.*/
@@ -864,6 +892,7 @@ public class XmlProcessor {
 			.removeChild(populationsNode.getChildNodes().item(0));
 		}
 		arrangeChildNodeList(populationsNode, childNodesList);
+		
 	}
 	
 	/**
@@ -900,10 +929,11 @@ public class XmlProcessor {
 	 * Creates the Supplemental Data Element Node.
 	 *
 	 * @param measureStratificationsNode stratifications Node for the measure
+	 * @param releaseVersion 
 	 * @throws XPathExpressionException the x path expression exception
 	 */
 	private void createSupplementalDataElementNode(
-			Node measureStratificationsNode) throws XPathExpressionException {
+			Node measureStratificationsNode, String releaseVersion) throws XPathExpressionException {
 		Node supplementaDataElementsElement = findNode(originalDoc,
 				XPATH_MEASURE_SD_ELEMENTS);
 		if (supplementaDataElementsElement == null) {
@@ -928,6 +958,7 @@ public class XmlProcessor {
 			.insertBefore(subTreeLookUpElement,
 					supplementaDataElementsElement.getNextSibling());
 		}
+		
 		if (findNode(originalDoc, XPATH_DTLS_COMPONENT_MEASURE) == null) {
 			Element componentMeasureElement = originalDoc
 					.createElement("componentMeasures");
@@ -944,14 +975,6 @@ public class XmlProcessor {
 				.insertBefore(componentMeasureElement,
 						measureTypeElement.getNextSibling());
 			}
-		}
-		if (findNode(originalDoc, XPATH_DETAILS_ITEM_COUNT) == null) {
-			Element itemCountElement = originalDoc
-					.createElement("itemCount");
-			Node componentMeasuresElement = findNode(originalDoc, XPATH_DTLS_COMPONENT_MEASURE);
-			((Element) componentMeasuresElement.getParentNode())
-			.insertBefore(itemCountElement,
-					componentMeasuresElement.getNextSibling());
 		}
 		// create Measure Grouping node
 		if (findNode(originalDoc, XPATH_MEASURE_GROUPING) == null) {
@@ -971,7 +994,15 @@ public class XmlProcessor {
 			.insertBefore(riskAdjustmentVariablesElement,
 					supplementaDataElementsElement.getNextSibling());
 		}
-		
+		if (findNode(originalDoc, XPATH_CQL_LOOKUP) == null) {
+			Element cqlLookUpElement = originalDoc
+					.createElement("cqlLookUp");
+			((Element) supplementaDataElementsElement.getParentNode())
+			.appendChild(cqlLookUpElement
+					);
+			
+			createCQLLookUpElements(releaseVersion);
+		}
 		System.out.println("Original Doc: "+originalDoc.toString());
 	}
 	
@@ -1091,6 +1122,13 @@ public class XmlProcessor {
 	}
 	
 	/**
+	 * Creates the general information node.
+	 */
+	public void createGeneralInformationNode(){
+		
+	}
+	
+	/**
 	 * This method creates blank nodes for Elements like 'child elements of
 	 * populations node, measureObservations node and stratifications node' The
 	 * method will return the newly created Element. The called needs to add
@@ -1112,10 +1150,14 @@ public class XmlProcessor {
 		clauseChildElem.setAttribute(TYPE, toCamelCase(dispName));
 		clauseChildElem.setAttribute(UUID_STRING, UUIDUtilClient.uuid());
 		mainChildElem.appendChild(clauseChildElem);
+		
+		/**Commenting this code for MAT-7076*/
+		
 		//logical AND is not required by stratification clause at the
 		//time of creation of new Measure But Population and Measure Observations
 		// clauses will have Logical AND by Default.
-		if (!nodeName.equalsIgnoreCase("strata")&& (topNodeOperatorMap.containsKey(nodeName))) {
+		
+		/**if (!nodeName.equalsIgnoreCase("strata")&& (topNodeOperatorMap.containsKey(nodeName))) {
 			String nodeTopLogicalOperator = topNodeOperatorMap.get(nodeName);
 			if (nodeTopLogicalOperator != null) {
 				Element logicalOpElem = originalDoc.createElement("logicalOp");
@@ -1123,7 +1165,9 @@ public class XmlProcessor {
 				logicalOpElem.setAttribute(TYPE, nodeTopLogicalOperator);
 				clauseChildElem.appendChild(logicalOpElem);
 			}
-		}
+		}*/
+		
+		/**Commenting for MAT-7076 ends.*/
 		mainChildElem.appendChild(clauseChildElem);
 		
 		return mainChildElem;
@@ -1390,13 +1434,14 @@ public class XmlProcessor {
 		
 		if (originalDoc != null) {
 			try {
-				// Measurement Period
-				Node measurementPeriodNode = this.findNode(originalDoc,
+				// Measurement Period commented - MAT-7104.
+				// Default Measurement Period is created in Parameter section so it is not required in Elementlookup.
+				/*Node measurementPeriodNode = this.findNode(originalDoc,
 						"/measure/elementLookUp/qdm[@oid='"
 								+ MEASUREMENT_PERIOD_OID + "']");
 				if (measurementPeriodNode == null) {
 					missingTimingElementList.add(MEASUREMENT_PERIOD_OID);
-				}
+				}*/
 				
 				//Patient Characteristic Birth Data
 				Node patientCharacteristicBirthDateNode = this.findNode(originalDoc,
@@ -1426,9 +1471,9 @@ public class XmlProcessor {
 	 *
 	 * @return Xml String.
 	 */
-	public String checkForStratificationAndAdd() {
+	public void checkForStratificationAndAdd() {
 		if (originalDoc == null) {
-			return "";
+			return;
 		}
 		try {
 			Node strataNode = findNode(originalDoc, XPATH_STRATA);
@@ -1453,7 +1498,7 @@ public class XmlProcessor {
 		} catch (XPathExpressionException e) {
 			e.printStackTrace();
 		}
-		return transform(originalDoc);
+		
 	}
 	
 	/**
@@ -1539,8 +1584,10 @@ public class XmlProcessor {
 	/**
 	 * Takes the spaces out of the clauseName (attribute displayName in XML).
 	 *
-	 * @param xmlModel the xml model
-	 * @return
+	 * @param xmlString the xml string
+	 * @param xPathString the x path string
+	 * @return the string
+	 * @throws XPathExpressionException the x path expression exception
 	 */
 	public static String normalizeNodeForSpaces (String xmlString, String xPathString) throws XPathExpressionException {
 		XmlProcessor xmlProcessor = new XmlProcessor(xmlString);
@@ -1557,7 +1604,8 @@ public class XmlProcessor {
 	/**
 	 * Utility method to go through the Node and its children (upto nth level)
 	 * and remove all TEXT nodes.
-	 * @param node
+	 *
+	 * @param node the node
 	 */
 	public static void clean(Node node)
 	{
@@ -1583,5 +1631,104 @@ public class XmlProcessor {
 				node.removeChild(child);
 			}
 		}
+	}
+	
+	/**
+	 * Creates the cql general info.
+	 * @param releaseVersion 
+	 *
+	 * @return the string
+	 */
+	public String createCQLLookUpElements(String releaseVersion) {
+		
+		if (originalDoc == null) {
+			return "";
+		}
+		// Get the title from originalDoc
+		javax.xml.xpath.XPath xPath = XPathFactory.newInstance().newXPath();
+		try {
+			
+			Node cqlNode = findNode(originalDoc, XPATH_CQL_LOOKUP);
+			if(cqlNode!=null){
+				
+				String libraryName = (String) xPath.evaluate(
+						"/measure/measureDetails/title/text()",
+						originalDoc.getDocumentElement(), XPathConstants.STRING);
+				
+				String version = (String) xPath.evaluate(
+						"/measure/measureDetails/version/text()",
+						originalDoc.getDocumentElement(), XPathConstants.STRING);
+				
+				Element libraryChildElem = originalDoc.createElement("library");
+				libraryChildElem.setTextContent(libraryName.replaceAll(" ", ""));
+				
+				Element versionChildElem = originalDoc.createElement("version");
+				versionChildElem.setTextContent(version);
+				
+				Element usingChildElem = originalDoc.createElement("usingModel");
+				usingChildElem.setTextContent("QDM");
+				
+				Element usingVerChildElem = originalDoc.createElement("usingModelVersion");
+				usingVerChildElem.setTextContent(releaseVersion);
+				
+				Element contextChildElem = originalDoc.createElement("cqlContext");
+				contextChildElem.setTextContent("Patient");
+				
+				Element codeSystemsChildElem = originalDoc.createElement("codeSystems");
+				Element valueSetsChildElem = originalDoc.createElement("valuesets");
+				Element codeChildElem = originalDoc.createElement("codes");
+				Element parametersChildElem = originalDoc.createElement("parameters");
+				
+				Element definitionsChildElem = originalDoc.createElement("definitions");
+				Element functionsChildElem = originalDoc.createElement("functions");
+				
+				
+				cqlNode.appendChild(libraryChildElem);
+				cqlNode.appendChild(versionChildElem);
+				cqlNode.appendChild(usingChildElem);
+				cqlNode.appendChild(usingVerChildElem);
+				cqlNode.appendChild(contextChildElem);
+				cqlNode.appendChild(codeSystemsChildElem);
+				cqlNode.appendChild(valueSetsChildElem);
+				cqlNode.appendChild(codeChildElem);
+				cqlNode.appendChild(parametersChildElem);
+				cqlNode.appendChild(definitionsChildElem);
+				cqlNode.appendChild(functionsChildElem);
+			}
+			
+			
+			
+			
+		} catch (XPathExpressionException e) {
+			e.printStackTrace();
+		}
+		return transform(originalDoc);
+		
+	}
+	
+	
+	/**
+	 * Check for default parameter MeasurementPeriod.
+	 *
+	 * @return the list
+	 */
+	public List<String> checkForDefaultParameters(){
+		List<String> missingDefaultParameterList = new ArrayList<String>();
+		
+		if (originalDoc != null) {
+			try {
+				// Measurement Period
+				Node measurementPeriodNode = this.findNode(originalDoc,
+						"/measure/cqlLookUp//parameter[@name='"
+								+ PARAMETER_MEASUREMENT_PERIOD + "']");
+				if (measurementPeriodNode == null) {
+					missingDefaultParameterList.add(PARAMETER_MEASUREMENT_PERIOD);
+				}
+				
+			} catch (XPathExpressionException e) {
+				e.printStackTrace();
+			}
+		}
+		return missingDefaultParameterList;
 	}
 }

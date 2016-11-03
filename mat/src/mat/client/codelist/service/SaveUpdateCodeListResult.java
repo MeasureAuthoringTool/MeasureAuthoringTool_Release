@@ -58,6 +58,9 @@ public class SaveUpdateCodeListResult extends GenericResult {
 	/** The xml string. */
 	private String xmlString;
 	
+	/** The xml string. */
+	private String newXmlString;
+	
 	/** The applied qdm list. */
 	List<QualityDataSetDTO> appliedQDMList ;
 	
@@ -75,6 +78,25 @@ public class SaveUpdateCodeListResult extends GenericResult {
 	 */
 	public String getXmlString() {
 		return xmlString;
+	}
+
+	/**
+	 * Sets the new xml string.
+	 * 
+	 * @param newXmlString
+	 *            the new xml string
+	 */
+	public void setnewXmlString(String newXmlString) {
+		this.newXmlString = newXmlString;
+	}
+	
+	/**
+	 * Gets the new xml string.
+	 * 
+	 * @return the new xml string
+	 */
+	public String getnewXmlString() {
+		return newXmlString;
 	}
 
 	/**
@@ -319,6 +341,5 @@ public class SaveUpdateCodeListResult extends GenericResult {
 	public void setAllOIDsUpdated(boolean allOIDsUpdated) {
 		this.allOIDsUpdated = allOIDsUpdated;
 	}
-
 	
 }

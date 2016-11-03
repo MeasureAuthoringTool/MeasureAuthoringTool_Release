@@ -4,6 +4,8 @@ import mat.client.clause.QDMAppliedSelectionPresenter;
 import mat.client.clause.QDMAppliedSelectionView;
 import mat.client.clause.clauseworkspace.presenter.ClauseWorkSpacePresenter;
 import mat.client.clause.clauseworkspace.presenter.PopulationWorkspacePresenter;
+import mat.client.clause.cqlworkspace.CQLWorkSpacePresenter;
+import mat.client.clause.cqlworkspace.CQLWorkSpaceView;
 import mat.client.event.MATClickHandler;
 import mat.client.event.MeasureSelectedEvent;
 import mat.client.measure.MeasureNotesPresenter;
@@ -32,6 +34,7 @@ import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.Widget;
+// TODO: Auto-generated Javadoc
 //MAT-4898
 //import mat.client.measure.metadata.AddEditAuthorsView;
 
@@ -139,13 +142,13 @@ public class MeasureComposerPresenter implements MatPresenter, Enableable {
 		measureComposerTabLayout.addPresenter(metaDataPresenter, "Measure Details");
 		//measureComposerTabLayout.addPresenter(qdmPresenter, "Old QDM Elements");
 		measureComposerTabLayout.addPresenter(buildAppliedQDMPresenter(), "QDM Elements");
-		measureComposerTabLayout.addPresenter(clauseWorkSpacePresenter, "Clause Workspace");
+		measureComposerTabLayout.addPresenter(buildCQLWorkSpaceTab(), "CQL Workspace");
 		measureComposerTabLayout.addPresenter(populationWorkspacePresenter, "Population Workspace");
 		//		measureComposerTabLayout.addPresenter(buildOldMeasurePackageWidget(), "Old Measure Packager"); // Commented to hide the Old measure Packager Tab menu
 		measureComposerTabLayout.addPresenter(buildMeasurePackageWidget(), "Measure Packager");
 		measureComposerTabLayout.addPresenter(measureNotesPresenter, "Measure Notes");
+		measureComposerTabLayout.addPresenter(clauseWorkSpacePresenter, "Clause Workspace");
 		measureComposerTabLayout.setHeight("98%");
-		
 		measureComposerTab = ConstantMessages.MEASURE_COMPOSER_TAB;
 		MatContext.get().tabRegistry.put(measureComposerTab, measureComposerTabLayout);
 		MatContext.get().enableRegistry.put(measureComposerTab, this);
@@ -373,6 +376,20 @@ public class MeasureComposerPresenter implements MatPresenter, Enableable {
 				new QDMAppliedSelectionPresenter(vascProfileSelectionView);
 		vsacProfileSelectionPresenter.getWidget();
 		return vsacProfileSelectionPresenter;
+	}
+	
+	
+	/**
+	 * Builds the cql work space tab.
+	 *
+	 * @return the mat presenter
+	 */
+	private MatPresenter buildCQLWorkSpaceTab(){
+		CQLWorkSpaceView cqlView = new CQLWorkSpaceView();
+		CQLWorkSpacePresenter cqlPresenter =
+				new CQLWorkSpacePresenter(cqlView);
+		cqlPresenter.getWidget();
+		return cqlPresenter;
 	}
 	
 	/**

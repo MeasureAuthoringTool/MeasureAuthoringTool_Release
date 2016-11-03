@@ -30,8 +30,6 @@ public class HQMFDataCriteriaElementGenerator implements Generator {
 	
 	protected String extensionValue = null;
 	
-	protected String qdmExtensionValue = null; 
-	
 	/** The Constant logger. */
 	private static final Log logger = LogFactory.getLog(HQMFDataCriteriaElementGenerator.class);
 	
@@ -107,7 +105,7 @@ public class HQMFDataCriteriaElementGenerator implements Generator {
 		Element itemChild = outputProcessor.getOriginalDoc()
 				.createElement(ITEM);
 		itemChild.setAttribute(ROOT, "2.16.840.1.113883.10.20.28.2.2");
-		itemChild.setAttribute("extension", qdmExtensionValue);
+		itemChild.setAttribute("extension", extensionValue);
 		templateId.appendChild(itemChild);
 		// creating Code Element for DataCriteria
 		Element codeElem = outputProcessor.getOriginalDoc()
@@ -183,14 +181,8 @@ public class HQMFDataCriteriaElementGenerator implements Generator {
 			String releaseVersion = me.getMeasure().getReleaseVersion();
 			if(releaseVersion.equalsIgnoreCase("v4")){
 				extensionValue = VERSION_4_1_2_ID;
-				qdmExtensionValue = VERSION_4_1_2_ID;
-
-			} else if(releaseVersion.equalsIgnoreCase("v4.6")) {
-				extensionValue = VERSION_4_3_ID;
-				qdmExtensionValue = VERSION_4_6_ID; 
 			} else {
 				extensionValue = VERSION_4_3_ID;
-				qdmExtensionValue = VERSION_4_3_ID;
 			}
 		}
 		
@@ -1975,8 +1967,7 @@ public class HQMFDataCriteriaElementGenerator implements Generator {
 		boolean isResultNotOutBound = isResult && ("Diagnostic Study, Performed".equalsIgnoreCase(qdmName)
 				|| "Laboratory Test, Performed".equalsIgnoreCase(qdmName)
 				|| "Functional Status, Performed".equalsIgnoreCase(qdmName)
-				|| "Risk Category Assessment".equalsIgnoreCase(qdmName)
-				|| "Assessment, Performed".equalsIgnoreCase(qdmName));
+				|| "Risk Category Assessment".equalsIgnoreCase(qdmName));
 		
 		XmlProcessor templateXMLProcessor = TemplateXMLSingleton.getTemplateXmlProcessor();
 		Node templateNode = templateXMLProcessor.findNode(templateXMLProcessor.getOriginalDoc(), "/templates/AttrTemplate[text()='"
@@ -2187,8 +2178,8 @@ public class HQMFDataCriteriaElementGenerator implements Generator {
 			}
 		}
 		
-		if ((dataCriteriaElem.getElementsByTagName(STATUS_CODE).item(0)!=null)) {
-			Node outBoundElement =  dataCriteriaElem.getElementsByTagName(STATUS_CODE).item(0).getNextSibling();
+		if ((dataCriteriaElem.getElementsByTagName("statusCode").item(0)!=null)) {
+			Node outBoundElement =  dataCriteriaElem.getElementsByTagName("statusCode").item(0);
 			if(outBoundElement != null){
 				outBoundElement.getParentNode().insertBefore(repeatNumberElement, outBoundElement);
 			} else {
@@ -2408,17 +2399,6 @@ public class HQMFDataCriteriaElementGenerator implements Generator {
 			insertBeforeNodeName = templateNode.getAttributes().getNamedItem("insertBeforeNode").getNodeValue();
 		} else if (templateNode.getAttributes().getNamedItem("insertAfterNode") != null) {
 			insertAfterNodeName = templateNode.getAttributes().getNamedItem("insertAfterNode").getNodeValue();
-		}
-		
-		//this case is only valid for method attribute
-		if(targetElementName.equalsIgnoreCase("methodCode") 
-				&& insertAfterNodeName != null 
-				&& insertAfterNodeName.equalsIgnoreCase("statusCode")
-				&& dataCriteriaElem.getElementsByTagName(insertAfterNodeName).item(0)!=null
-				&& dataCriteriaElem.getElementsByTagName(insertAfterNodeName).item(0).getNextSibling()!=null
-				&& dataCriteriaElem.getElementsByTagName(insertAfterNodeName).item(0).getNextSibling().getNodeName().equalsIgnoreCase(VALUE)){
-			
-			insertAfterNodeName = dataCriteriaElem.getElementsByTagName(insertAfterNodeName).item(0).getNextSibling().getNodeName();
 		}
 		if (templateNode.getAttributes().getNamedItem("childTarget") != null) {
 			String qdmOidValue = attributeQDMNode.getAttributes().getNamedItem(OID)
@@ -2970,8 +2950,6 @@ public class HQMFDataCriteriaElementGenerator implements Generator {
 			returnString = "[AU]";
 		}else if(unitString.equals("BAU")){
 			returnString = "[BAU]";
-		}else if(unitString.equals("g/dL")){
-			returnString = "g/dL";
 		}
 		
 		return returnString;

@@ -4,9 +4,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-
 import javax.xml.xpath.XPathExpressionException;
-
 import mat.DTO.MeasureNoteDTO;
 import mat.client.clause.clauseworkspace.model.MeasureDetailResult;
 import mat.client.clause.clauseworkspace.model.MeasureXmlModel;
@@ -27,7 +25,15 @@ import mat.model.Organization;
 import mat.model.QualityDataModelWrapper;
 import mat.model.QualityDataSetDTO;
 import mat.model.RecentMSRActivityLog;
+import mat.model.cql.CQLDefinition;
+import mat.model.cql.CQLDefinitionsWrapper;
+import mat.model.cql.CQLFunctions;
+import mat.model.cql.CQLKeywords;
+import mat.model.cql.CQLModel;
+import mat.model.cql.CQLParameter;
 import mat.server.util.XmlProcessor;
+import mat.shared.CQLValidationResult;
+import mat.shared.SaveUpdateCQLResult;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -42,8 +48,13 @@ public interface MeasureLibraryService {
 	 *            the measure xml model
 	 * @param nodeName
 	 *            the node name
+	 * @param measureXmlModel
+	 *            the new measure xml model
+	 * @param nodeName
+	 *            the new node name
 	 */
-	void appendAndSaveNode(MeasureXmlModel measureXmlModel, String nodeName);
+	void appendAndSaveNode(MeasureXmlModel measureXmlModel, String nodeName, MeasureXmlModel newMeasureXmlModel,
+			String newNodeName);
 	
 	/**
 	 * Check for timing elements and append.
@@ -68,11 +79,10 @@ public interface MeasureLibraryService {
 	
 	/**
 	 * Creates the and save element look up.
-	 * 
-	 * @param list
-	 *            the list
-	 * @param measureID
-	 *            the measure id
+	 *
+	 * @param list            the list
+	 * @param measureID            the measure id
+	 * @param expProfileToAllQDM the exp profile to all qdm
 	 */
 	void createAndSaveElementLookUp(List<QualityDataSetDTO> list,
 			String measureID, String expProfileToAllQDM);
@@ -213,6 +223,9 @@ public interface MeasureLibraryService {
 	 * 
 	 * @param measureID
 	 *            the measure id
+	 *            
+	 * @param loginUserId
+	 *            the loginUser id
 	 */
 	void saveAndDeleteMeasure(String measureID,  String loginUserId);
 	
@@ -242,15 +255,11 @@ public interface MeasureLibraryService {
 	
 	/**
 	 * Save measure note.
-	 * 
-	 * @param noteTitle
-	 *            the note title
-	 * @param noteDescription
-	 *            the note description
-	 * @param string
-	 *            the string
-	 * @param string2
-	 *            the string2
+	 *
+	 * @param model the model
+	 * @param measureId the measure id
+	 * @param userId the user id
+	 * @return the save measure notes result
 	 */
 	SaveMeasureNotesResult saveMeasureNote(MeasureNoteDTO model,
 			String measureId, String userId);
@@ -479,16 +488,6 @@ public interface MeasureLibraryService {
 	ValidateMeasureResult validateForGroup(ManageMeasureDetailModel model);
 	
 	/**
-	 * Gets the applied qdm for item count.
-	 *
-	 * @param measureId the measure id
-	 * @param checkForSupplementData the check for supplement data
-	 * @return the applied qdm for item count
-	 */
-	List<QualityDataSetDTO> getAppliedQDMForItemCount(String measureId,
-			boolean checkForSupplementData);
-	
-	/**
 	 * Gets the all measure types.
 	 *
 	 * @return the all measure types
@@ -540,16 +539,18 @@ public interface MeasureLibraryService {
 	
 	/**
 	 * Method to get User Steward and Developers List for measure.
-	 * @param measureId
-	 * @return
+	 *
+	 * @param measureId the measure id
+	 * @return the used steward and developers list
 	 */
 	MeasureDetailResult getUsedStewardAndDevelopersList(String measureId);
 	
 	/**
 	 * Service to Update Expansion Profile in Measure Xml.
-	 * @param modifyWithDTO
-	 * @param measureId
-	 * @param expansionProfile
+	 *
+	 * @param modifyWithDTO the modify with dto
+	 * @param measureId the measure id
+	 * @param expansionProfile the expansion profile
 	 */
 	void updateMeasureXMLForExpansionIdentifier(
 			List<QualityDataSetDTO> modifyWithDTO, String measureId,
@@ -558,15 +559,139 @@ public interface MeasureLibraryService {
 	
 	/**
 	 * Method to Get Default 4 Supplemental Data Elements for give Measure.
-	 * @param measureId
+	 *
+	 * @param measureId the measure id
 	 * @return QualityDataModelWrapper
 	 */
 	QualityDataModelWrapper getDefaultSDEFromMeasureXml(String measureId);
 	
+	/**
+	 * Gets the measures for measure owner.
+	 *
+	 * @return the measures for measure owner
+	 * @throws XPathExpressionException the x path expression exception
+	 */
 	List<MeasureOwnerReportDTO> getMeasuresForMeasureOwner() throws XPathExpressionException;
 	
+	/**
+	 * Gets the default expansion identifier.
+	 *
+	 * @param measureId the measure id
+	 * @return the default expansion identifier
+	 */
 	String getDefaultExpansionIdentifier(String measureId);
 	
+	/**
+	 * Gets the current release version.
+	 *
+	 * @return the current release version
+	 */
 	String getCurrentReleaseVersion();
+	
+	/**
+	 * Sets the current release version.
+	 *
+	 * @param releaseVersion the new current release version
+	 */
 	void setCurrentReleaseVersion(String releaseVersion);
+	
+	/**
+	 * Parses the cql.
+	 *
+	 * @param cqlBuilder the cql builder
+	 * @return the CQL model
+	 */
+	CQLModel parseCQL(String cqlBuilder);
+	
+	//Boolean saveCQLData(CQLModel cqlDataModel);
+	
+	/**
+	 * Gets the CQL data.
+	 *
+	 * @param measureId the measure id
+	 * @return the CQL data
+	 */
+	SaveUpdateCQLResult getCQLData(String measureId);
+	
+	/**
+	 * Gets the CQL file data.
+	 *
+	 * @param measureId the measure id
+	 * @return the CQL file data
+	 */
+	SaveUpdateCQLResult getCQLFileData(String measureId);
+	
+	/**
+	 * Validate cql.
+	 *
+	 * @param cqlModel the cql model
+	 * @return the CQL validation result
+	 */
+	CQLValidationResult validateCQL(CQLModel cqlModel);
+	
+	/**
+	 * Save and modify definitions.
+	 *
+	 * @param measureId the measure id
+	 * @param toBemodifiedObj the to bemodified obj
+	 * @param currentObj the current obj
+	 * @param definitionList the definition list
+	 * @return the save update cql result
+	 */
+	SaveUpdateCQLResult saveAndModifyDefinitions(String measureId,
+			CQLDefinition toBemodifiedObj, CQLDefinition currentObj, List<CQLDefinition> definitionList);
+		
+	/**
+	 * Save and modify parameters.
+	 *
+	 * @param measureId the measure id
+	 * @param toBemodifiedObj the to bemodified obj
+	 * @param currentObj the current obj
+	 * @param parameterList the parameter list
+	 * @return the save update cql result
+	 */
+	SaveUpdateCQLResult saveAndModifyParameters(String measureId, CQLParameter toBemodifiedObj, CQLParameter currentObj,
+			List<CQLParameter> parameterList);
+	
+	/**
+	 * Save and modify cql general info.
+	 *
+	 * @param currentMeasureId the current measure id
+	 * @param context the context
+	 * @return the save update cql result
+	 */
+	SaveUpdateCQLResult saveAndModifyCQLGeneralInfo(String currentMeasureId,
+			String context);
+	
+	/**
+	 * Save and modify functions.
+	 *
+	 * @param measureId the measure id
+	 * @param toBeModifiedObj the to be modified obj
+	 * @param currentObj the current obj
+	 * @param functionsList the functions list
+	 * @return the save update cql result
+	 */
+	SaveUpdateCQLResult saveAndModifyFunctions(String measureId, CQLFunctions toBeModifiedObj, CQLFunctions currentObj,
+			List<CQLFunctions> functionsList);
+	
+	/**
+	 * Gets the CQL data type list.
+	 *
+	 * @return the CQL data type list
+	 */
+	CQLKeywords getCQLKeywordsLists();
+
+	String getJSONObjectFromXML();
+
+	/**
+	 * Creates the and save cql look up.
+	 *
+	 * @param list            the list
+	 * @param measureID            the measure id
+	 * @param expProfileToAllQDM the exp profile to all qdm
+	 */
+	void createAndSaveCQLLookUp(List<QualityDataSetDTO> list, String measureID, String expProfileToAllQDM);
+
+	
 }

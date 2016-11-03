@@ -52,7 +52,7 @@ public class SessionManagementServImpl extends SpringRemoteServiceServlet  imple
 	private UserService getUserService() {
 		return (UserService)context.getBean("userService");
 	}
-	
+
 	@Override
 	public String getCurrentReleaseVersion(){
 		return getMeasureLibraryService().getCurrentReleaseVersion();
@@ -61,5 +61,4 @@ public class SessionManagementServImpl extends SpringRemoteServiceServlet  imple
 	private MeasureLibraryService getMeasureLibraryService(){
 		return (MeasureLibraryService) context.getBean("measureLibraryService");
 	}
-
 }

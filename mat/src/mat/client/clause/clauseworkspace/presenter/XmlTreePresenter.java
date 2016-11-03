@@ -147,6 +147,7 @@ public class XmlTreePresenter {
 			
 			PopulationWorkSpaceContextMenu populationWorkspaceContextMenu = new PopulationWorkSpaceContextMenu(xmlTreeView, popupPanel);
 			xmlTreeView.setClauseWorkspaceContextMenu(populationWorkspaceContextMenu);
+			xmlTreeView.setpopulationWorkspaceContextMenu(populationWorkspaceContextMenu);
 			CellTree.Resources resource = GWT.create(TreeResources.class);
 			CellTree cellTree = new CellTree(xmlTreeView, null, resource); // CellTree
 			// Creation
@@ -170,7 +171,7 @@ public class XmlTreePresenter {
 			panel.add(xmlTreeDisplay.asWidget());
 			invokeSaveHandler();
 			//invokeValidateHandler();
-			invokeValidateHandlerPopulationWorkspace();//added to handle the validate button
+//			invokeValidateHandlerPopulationWorkspace();//added to handle the validate button
 		} else {
 			Mat.hideLoadingMessage();
 		}
@@ -207,15 +208,19 @@ public class XmlTreePresenter {
 		}
 		setRootNode(cellTree.getRootTreeNode().toString());
 		xmlTreeDisplay = xmlTreeView;
-		xmlTreeDisplay.setEnabled(MatContext.get().getMeasureLockService()
-				.checkForEditPermission());
+		xmlTreeDisplay.setEnabled(false);
+		/*xmlTreeDisplay.setEnabled(MatContext.get().getMeasureLockService()
+				.checkForEditPermission());*/
 		panel.clear();
 		panel.add(xmlTreeDisplay.asWidget());
 		invokeSaveHandler();
 		invokeValidateHandler();
 		invokeClearHandler();
 		addClauseHandler();
-		
+		xmlTreeDisplay.getSaveBtnClauseWorkSpace().setEnabled(false);
+		xmlTreeDisplay.getValidateBtnClauseWorkSpace().setEnabled(false);
+		xmlTreeDisplay.getDeleteClauseButton().setEnabled(false);
+		xmlTreeDisplay.getIncludeQdmVaribale().setEnabled(false);
 	}
 	/**
 	 * Adds the clause handler.
@@ -292,13 +297,16 @@ public class XmlTreePresenter {
 								
 								@Override
 								public void onSuccess(Boolean result) {
+									//Disable it always as per 5.0 as clause workspace is read only
 									xmlTreeDisplay
 									.getDeleteClauseButton()
-									.setEnabled(!result);
+									.setEnabled(false);
 								}
 							});
 							
 						}
+						xmlTreeDisplay.getDeleteClauseButton().setEnabled(false);
+						xmlTreeDisplay.getIncludeQdmVaribale().setEnabled(false);
 					}
 					
 				});
@@ -366,6 +374,8 @@ public class XmlTreePresenter {
 						}
 					}
 				}
+				xmlTreeDisplay.getDeleteClauseButton().setEnabled(false);
+				xmlTreeDisplay.getIncludeQdmVaribale().setEnabled(false);
 			}
 		});
 	}
@@ -545,7 +555,7 @@ public class XmlTreePresenter {
 							String xml = XmlConversionlHelper.createXmlFromTree(cellTreeNode.getChilds().get(0));
 
 							final MeasureXmlModel measureXmlModel = createMeasureXmlModel(xml);
-							service.saveSubTreeInMeasureXml(measureXmlModel, nodeName, nodeUUID,
+							/*service.saveSubTreeInMeasureXml(measureXmlModel, nodeName, nodeUUID,
 									new AsyncCallback<SortedClauseMapResult>() {
 								@Override
 								public void onFailure(final Throwable caught) {
@@ -564,7 +574,7 @@ public class XmlTreePresenter {
 									System.out.println("originalXML is:"
 											+ getOriginalXML());
 								}
-							});
+							});*/
 						} else {
 							xmlTreeDisplay.getErrorMessageDisplay().setMessage(
 									"Unable to save clause as no subTree found under it.");
@@ -579,56 +589,56 @@ public class XmlTreePresenter {
 			public void onClick(ClickEvent event) {
 				if (MatContext.get().getMeasureLockService()
 						.checkForEditPermission()) {
-				xmlTreeDisplay.clearMessages();
-				String measureId = MatContext.get().getCurrentMeasureId();
-				final int selectedClauseindex = xmlTreeDisplay.getClauseNamesListBox().getSelectedIndex();
-				if(selectedClauseindex < 0){
-					return;
-				}
-				final String clauseUUID = xmlTreeDisplay.getClauseNamesListBox().getValue(selectedClauseindex);
-				final String clauseName = xmlTreeDisplay.getClauseNamesListBox().getItemText(selectedClauseindex);
-				
-				final CellTreeNode cellTreeNode = (CellTreeNode) (xmlTreeDisplay
-						.getXmlTree().getRootTreeNode().getChildValue(0));
-				if(cellTreeNode.getChilds().size() > 0){
-					CellTreeNode childNode = cellTreeNode.getChilds().get(0);
-					System.out.println("current clause is:"+childNode.getName());
-					if(childNode.getName().equals(clauseName)){
+					xmlTreeDisplay.clearMessages();
+					String measureId = MatContext.get().getCurrentMeasureId();
+					final int selectedClauseindex = xmlTreeDisplay.getClauseNamesListBox().getSelectedIndex();
+					if(selectedClauseindex < 0){
 						return;
 					}
-				}
-				
-				service.checkAndDeleteSubTree(measureId, clauseUUID, new AsyncCallback<HashMap<String,String>>() {
-					@Override
-					public void onSuccess(HashMap<String,String> result) {
-						if (!result.entrySet().isEmpty()) {
-							xmlTreeDisplay.getSearchSuggestTextBox().setText("Search");
-							xmlTreeDisplay
-							.getSuccessMessageDisplay()
-							.setMessage(
-									"Clause(s) successfully deleted.");
-							xmlTreeDisplay.getClauseNamesListBox().removeItem(selectedClauseindex);
-							for (Entry<String, String> entry : result.entrySet()) {
-								String key = entry.getKey();
-								Object value = entry.getValue();
-								PopulationWorkSpaceConstants.subTreeLookUpNode.remove(value);
-								PopulationWorkSpaceConstants.subTreeLookUpName.remove(key);
-							}
-							xmlTreeDisplay.clearAndAddClauseNamesToListBox();
-							xmlTreeDisplay.updateSuggestOracle();
-						} else {
-							xmlTreeDisplay.getErrorMessageDisplay().setMessage(
-									"Unable to delete clause as it is referenced in populations.");
+					final String clauseUUID = xmlTreeDisplay.getClauseNamesListBox().getValue(selectedClauseindex);
+					final String clauseName = xmlTreeDisplay.getClauseNamesListBox().getItemText(selectedClauseindex);
+
+					final CellTreeNode cellTreeNode = (CellTreeNode) (xmlTreeDisplay
+							.getXmlTree().getRootTreeNode().getChildValue(0));
+					if(cellTreeNode.getChilds().size() > 0){
+						CellTreeNode childNode = cellTreeNode.getChilds().get(0);
+						System.out.println("current clause is:"+childNode.getName());
+						if(childNode.getName().equals(clauseName)){
+							return;
 						}
-						
 					}
-					@Override
-					public void onFailure(Throwable caught) {
-					}
-				});
-				enableDisableQDMVariableCheckBox(currentSelectedClause);
+
+					/*service.checkAndDeleteSubTree(measureId, clauseUUID, new AsyncCallback<HashMap<String,String>>() {
+						@Override
+						public void onSuccess(HashMap<String,String> result) {
+							if (!result.entrySet().isEmpty()) {
+								xmlTreeDisplay.getSearchSuggestTextBox().setText("Search");
+								xmlTreeDisplay
+								.getSuccessMessageDisplay()
+								.setMessage(
+										"Clause(s) successfully deleted.");
+								xmlTreeDisplay.getClauseNamesListBox().removeItem(selectedClauseindex);
+								for (Entry<String, String> entry : result.entrySet()) {
+									String key = entry.getKey();
+									Object value = entry.getValue();
+									PopulationWorkSpaceConstants.subTreeLookUpNode.remove(value);
+									PopulationWorkSpaceConstants.subTreeLookUpName.remove(key);
+								}
+								xmlTreeDisplay.clearAndAddClauseNamesToListBox();
+								xmlTreeDisplay.updateSuggestOracle();
+							} else {
+								xmlTreeDisplay.getErrorMessageDisplay().setMessage(
+										"Unable to delete clause as it is referenced in populations.");
+							}
+
+						}
+						@Override
+						public void onFailure(Throwable caught) {
+						}
+					});
+					enableDisableQDMVariableCheckBox(currentSelectedClause);*/
+				}
 			}
-		}
 		});
 		xmlTreeDisplay.getCommentButtons().addClickHandler(new ClickHandler() {
 			@Override
@@ -729,59 +739,60 @@ public class XmlTreePresenter {
 			
 		}
 	}
-	/**
-	 * Invoke validate handler on population workspace.
-	 */
-	final void invokeValidateHandlerPopulationWorkspace() {
-		xmlTreeDisplay.getValidateBtnPopulationWorkspace().addClickHandler(new ClickHandler() {
-			@Override
-			public void onClick(final ClickEvent event) {
-				if (xmlTreeDisplay.getXmlTree() != null) {
-					xmlTreeDisplay.clearMessages();
-					List<String> result = xmlTreeDisplay
-							.validateCellTreeNodesPopulationWorkspace(xmlTreeDisplay.getXmlTree()
-									.getRootTreeNode());
-					if (result.size()==0) {
-						xmlTreeDisplay.getSuccessMessageDisplay().setMessage(
-								MatContext.get().getMessageDelegate().
-								getPOPULATION_WORK_SPACE_VALIDATION_SUCCESS());
-						
-					} else {
-						List<String> messageList = new ArrayList<String>();
-						for(String inValidNode: result){
-							if(inValidNode.equalsIgnoreCase("inValidAtLogicalOperatorNode")){
-								messageList.add(MatContext.get().getMessageDelegate().getCLAUSE_WORK_SPACE_INVALID_LOGICAL_OPERATOR());
-							}
-							if(inValidNode.equalsIgnoreCase("inValidAtMeasureObservationLogicalNode")){
-								messageList.add(MatContext.get().getMessageDelegate().getPOPULATION_WORK_SPACE_MEASURE_OBSERVATION_VALIDATION_ERROR());
-							}
-							if(inValidNode.equalsIgnoreCase("inValidAtOtherNode")){
-								messageList.add(MatContext.get().getMessageDelegate().getPOPULATION_WORK_SPACE_VALIDATION_ERROR());
-							}
-							if(inValidNode.equalsIgnoreCase("inValidAtPopulationAndStratificationNode")){
-								messageList.add(MatContext.get().getMessageDelegate().getPOPULATION_WORKSPACE_DATETIMEDIFF_ERROR_MESSAGE());
-							}
-							if(inValidNode.equalsIgnoreCase("invalidClauseLogic")){
-								messageList.add("Invalid clause logic. Please validate clause logic on Clause Workspace.");
-							}
-							if(inValidNode.equalsIgnoreCase("nestedClauseLogic")){
-								messageList.add(MatContext.get().getMessageDelegate().getCLAUSE_WORK_SPACE_INVALID_NESTED_DEPTH_CLAUSE());
-							}
-							if(inValidNode.equalsIgnoreCase("isFunctionInvalidInMO")){
-								messageList.add(MatContext.get().getMessageDelegate().getMEASURE_OBSERVATION_VALIDATION_FOR_FUNCTIONS());
-							}
-						}
-						if(messageList.size()>=1){
-							if(!messageList.get(0).equalsIgnoreCase(MatContext.get().getMessageDelegate().getMEASURE_LOGIC_IS_INCORRECT())){
-								messageList.add(0, MatContext.get().getMessageDelegate().getMEASURE_LOGIC_IS_INCORRECT());
-							}
-							xmlTreeDisplay.getWarningMessageDisplay().setMessages(messageList);
-						}
-					}
-				}
-			}
-		});
-	}
+	
+//	/**
+//	 * Invoke validate handler on population workspace.
+//	 */
+//	final void invokeValidateHandlerPopulationWorkspace() {
+//		xmlTreeDisplay.getValidateBtnPopulationWorkspace().addClickHandler(new ClickHandler() {
+//			@Override
+//			public void onClick(final ClickEvent event) {
+//				if (xmlTreeDisplay.getXmlTree() != null) {
+//					xmlTreeDisplay.clearMessages();
+//					List<String> result = xmlTreeDisplay
+//							.validateCellTreeNodesPopulationWorkspace(xmlTreeDisplay.getXmlTree()
+//									.getRootTreeNode());
+//					if (result.size()==0) {
+//						xmlTreeDisplay.getSuccessMessageDisplay().setMessage(
+//								MatContext.get().getMessageDelegate().
+//								getPOPULATION_WORK_SPACE_VALIDATION_SUCCESS());
+//						
+//					} else {
+//						List<String> messageList = new ArrayList<String>();
+//						for(String inValidNode: result){
+//							if(inValidNode.equalsIgnoreCase("inValidAtLogicalOperatorNode")){
+//								messageList.add(MatContext.get().getMessageDelegate().getCLAUSE_WORK_SPACE_INVALID_LOGICAL_OPERATOR());
+//							}
+//							if(inValidNode.equalsIgnoreCase("inValidAtMeasureObservationLogicalNode")){
+//								messageList.add(MatContext.get().getMessageDelegate().getPOPULATION_WORK_SPACE_MEASURE_OBSERVATION_VALIDATION_ERROR());
+//							}
+//							if(inValidNode.equalsIgnoreCase("inValidAtOtherNode")){
+//								messageList.add(MatContext.get().getMessageDelegate().getPOPULATION_WORK_SPACE_VALIDATION_ERROR());
+//							}
+//							if(inValidNode.equalsIgnoreCase("inValidAtPopulationAndStratificationNode")){
+//								messageList.add(MatContext.get().getMessageDelegate().getPOPULATION_WORKSPACE_DATETIMEDIFF_ERROR_MESSAGE());
+//							}
+//							if(inValidNode.equalsIgnoreCase("invalidClauseLogic")){
+//								messageList.add("Invalid clause logic. Please validate clause logic on Clause Workspace.");
+//							}
+//							if(inValidNode.equalsIgnoreCase("nestedClauseLogic")){
+//								messageList.add(MatContext.get().getMessageDelegate().getCLAUSE_WORK_SPACE_INVALID_NESTED_DEPTH_CLAUSE());
+//							}
+//							if(inValidNode.equalsIgnoreCase("isFunctionInvalidInMO")){
+//								messageList.add(MatContext.get().getMessageDelegate().getMEASURE_OBSERVATION_VALIDATION_FOR_FUNCTIONS());
+//							}
+//						}
+//						if(messageList.size()>=1){
+//							if(!messageList.get(0).equalsIgnoreCase(MatContext.get().getMessageDelegate().getMEASURE_LOGIC_IS_INCORRECT())){
+//								messageList.add(0, MatContext.get().getMessageDelegate().getMEASURE_LOGIC_IS_INCORRECT());
+//							}
+//							xmlTreeDisplay.getWarningMessageDisplay().setMessages(messageList);
+//						}
+//					}
+//				}
+//			}
+//		});
+//	}
 	
 	
 	/**
@@ -979,7 +990,8 @@ public class XmlTreePresenter {
 				}
 				@Override
 				public void onSuccess(Boolean result) {
-					xmlTreeDisplay.getIncludeQdmVaribale().setEnabled(!result);
+					//Disable it always as per 5.0 as clause workspace is read only
+					xmlTreeDisplay.getIncludeQdmVaribale().setEnabled(false);
 				}
 			});
 		} else {

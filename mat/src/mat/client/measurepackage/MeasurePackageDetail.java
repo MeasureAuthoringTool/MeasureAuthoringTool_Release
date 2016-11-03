@@ -7,6 +7,7 @@ import mat.model.Author;
 import mat.model.MeasureType;
 import mat.model.QualityDataSetDTO;
 import mat.model.RiskAdjustmentDTO;
+import mat.model.cql.CQLDefinition;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
 
@@ -31,6 +32,12 @@ public class MeasurePackageDetail implements IsSerializable, Comparable<MeasureP
 	/** The supp data elements. */
 	private List<QualityDataSetDTO> suppDataElements = new ArrayList<QualityDataSetDTO>();
 	
+	/** The cql supp data elements. */
+	private List<CQLDefinition> cqlSuppDataElements = new ArrayList<CQLDefinition>();
+	
+	/** The cql qdm elements. */
+	private List<CQLDefinition> cqlQdmElements = new ArrayList<CQLDefinition>();
+	
 	/** The value set date. */
 	private String valueSetDate;
 	
@@ -39,6 +46,10 @@ public class MeasurePackageDetail implements IsSerializable, Comparable<MeasureP
 	
 	/** The to compare supp data elements. */
 	private List<QualityDataSetDTO> toCompareSuppDataElements;
+	
+	/** The to compare CQL supp data elements. */
+	private List<CQLDefinition> toCompareCqlSuppDataElements;
+	
 	//riskAdj
 	/** The risk adj clauses. */
 	private List<RiskAdjustmentDTO> riskAdjClauses = new ArrayList<RiskAdjustmentDTO>();
@@ -172,6 +183,44 @@ public class MeasurePackageDetail implements IsSerializable, Comparable<MeasureP
 		this.suppDataElements = suppDataElements;
 	}
 	
+	/**
+	 * Gets the cql supp data elements.
+	 * 
+	 * @return the cql supp data elements
+	 */
+	public List<CQLDefinition> getCqlSuppDataElements() {
+		return cqlSuppDataElements;
+	}
+	
+	/**
+	 * Sets the cql supp data elements.
+	 * 
+	 * @param cqlSuppDataElements
+	 *            the new supp data elements
+	 */
+	public void setCqlSuppDataElements(List<CQLDefinition> cqlSuppDataElements) {
+		this.cqlSuppDataElements = cqlSuppDataElements;
+	}
+	
+	/**
+	 * Gets the cql qdm elements.
+	 * 
+	 * @return the cql qdm elements
+	 */
+	public List<CQLDefinition> getCqlQdmElements() {
+		return cqlQdmElements;
+	}
+
+	/**
+	 * Sets the cql qdm elements.
+	 * 
+	 * @param cqlSuppDataElements
+	 *            the new cql qdm elements
+	 */
+	public void setCqlQdmElements(List<CQLDefinition> CqlQdmElements) {
+		this.cqlQdmElements = CqlQdmElements;
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */
@@ -244,6 +293,14 @@ public class MeasurePackageDetail implements IsSerializable, Comparable<MeasureP
 			return false;
 		}
 		
+		if (toCompareCqlSuppDataElements == null) {
+			if (other.toCompareCqlSuppDataElements != null) {
+				return false;
+			}
+		} else if (!isEqual(toCompareCqlSuppDataElements, other.toCompareCqlSuppDataElements)) {
+			return false;
+		}
+		
 		if (toCompareRiskAdjVars == null) {
 			if (other.toCompareRiskAdjVars != null)
 				return false;
@@ -269,9 +326,7 @@ public class MeasurePackageDetail implements IsSerializable, Comparable<MeasureP
 				 MeasurePackageClauseDetail val2 = (MeasurePackageClauseDetail) listB.get(i);
 				if (val1.compareTo(val2) != 0) {
 					return false;
-				} else if(!isEqual(val1.getItemCountList(), val2.getDbItemCountList())) { 
-					return false;
-				} else if((val1.getAssociatedPopulationUUID()!=null) && (val2.getDbAssociatedPopulationUUID()!=null)) { 
+				}  else if((val1.getAssociatedPopulationUUID()!=null) && (val2.getDbAssociatedPopulationUUID()!=null)) { 
 					if(val1.getAssociatedPopulationUUID()
 							.compareTo(val2.getDbAssociatedPopulationUUID()) != 0){
 						return false;	
@@ -318,6 +373,26 @@ public class MeasurePackageDetail implements IsSerializable, Comparable<MeasureP
 	public void setToCompareSuppDataElements(
 			List<QualityDataSetDTO> toCompareSuppDataElements) {
 		this.toCompareSuppDataElements = toCompareSuppDataElements;
+	}
+	
+	
+	
+	/**
+	 * Gets the to compare CQL supp data elements.
+	 * 
+	 * @return the toCompareCqlSuppDataElements
+	 */
+	public List<CQLDefinition> getToCompareCqlSuppDataElements() {
+		return toCompareCqlSuppDataElements;
+	}
+
+	/**
+	 * Sets the to compare CQL supp data elements.
+	 *
+	 * @param list the toCompareCqlSuppDataElements to set
+	 */
+	public void setToCompareCqlSuppDataElements(List<CQLDefinition> list) {
+		this.toCompareCqlSuppDataElements = list;
 	}
 
 	/**

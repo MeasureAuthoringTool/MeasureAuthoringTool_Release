@@ -56,5 +56,5 @@ public interface SessionManagementService extends RemoteService{
 	 * Get current release version.
 	 * 
 	 */
-	public String getCurrentReleaseVersion();
+	String getCurrentReleaseVersion();
 }

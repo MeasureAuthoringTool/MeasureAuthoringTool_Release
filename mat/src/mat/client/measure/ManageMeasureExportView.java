@@ -40,6 +40,11 @@ public class ManageMeasureExportView implements ManageMeasurePresenter.ExportDis
 	/** The e measure package radio. */
 	private RadioButton eMeasurePackageRadio = new RadioButton("format", "eMeasure Package");
 	
+	/** The ELM radio */
+	private RadioButton elmRadio = new RadioButton("format", "ELM"); 
+	
+	private RadioButton cqlLibraryRadio = new RadioButton("format", "CQL Library");
+	
 	/** The save button. */
 	private PrimaryButton saveButton = new PrimaryButton("Save","primaryButton");
 	
@@ -58,20 +63,25 @@ public class ManageMeasureExportView implements ManageMeasurePresenter.ExportDis
 	 */
 	public ManageMeasureExportView(boolean isTopLevelUser) {
 		
-		simpleXMLRadio.setValue(Boolean.TRUE);
 		content.setStylePrimaryName("contentPanel");
 		content.addStyleName("leftAligned");
 		content.add(measureNameLabel);
 		content.add(new Label("Select an export option"));
 		content.add(new SpacerWidget());
 
-		content.add(wrapRadioButton(simpleXMLRadio));
+		if(isTopLevelUser) {
+			content.add(wrapRadioButton(simpleXMLRadio));
+		}
+		
+		eMeasurePackageRadio.setValue(true);
 		content.add(wrapRadioButton(eMeasureRadio));
 		content.add(wrapRadioButton(codeListRadio));
+		content.add(wrapRadioButton(cqlLibraryRadio));
+		content.add(wrapRadioButton(elmRadio));
 		content.add(wrapRadioButton(eMeasurePackageRadio));
 		content.add(new SpacerWidget());
 		content.add(new SpacerWidget());
-		
+
 		FlowPanel buttonPanel = new FlowPanel();
 		buttonPanel.addStyleName("measureExportButtonContainer");
 		saveButton.setTitle("Save");
@@ -162,6 +172,13 @@ public class ManageMeasureExportView implements ManageMeasurePresenter.ExportDis
 		return eMeasureRadio.getValue();
 	}
 	
+	/* (non-Javadoc
+	 * @see mat.client.measure.ManageMeasurePresenter.ExportDisplay#isELM()
+	 */
+	public boolean isELM() {
+		return elmRadio.getValue(); 
+	}
+	
 	/* (non-Javadoc)
 	 * @see mat.client.measure.ManageMeasurePresenter.ExportDisplay#isCodeList()
 	 */
@@ -176,5 +193,10 @@ public class ManageMeasureExportView implements ManageMeasurePresenter.ExportDis
 	@Override
 	public boolean isEMeasurePackage() {
 		return eMeasurePackageRadio.getValue();
+	}
+	
+	@Override
+	public boolean isCQLLibrary() {
+		return cqlLibraryRadio.getValue();
 	}
 }

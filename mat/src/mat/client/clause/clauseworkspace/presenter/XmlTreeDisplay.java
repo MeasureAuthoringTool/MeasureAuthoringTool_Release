@@ -3,10 +3,11 @@ package mat.client.clause.clauseworkspace.presenter;
 import java.util.List;
 import mat.client.clause.clauseworkspace.model.CellTreeNode;
 import mat.client.clause.clauseworkspace.view.ClauseWorkspaceContextMenu;
-import mat.client.measure.metadata.CustomCheckBox;
+import mat.client.clause.clauseworkspace.view.PopulationWorkSpaceContextMenu;
 import mat.client.shared.ErrorMessageDisplay;
 import mat.client.shared.SuccessMessageDisplay;
 import mat.client.shared.WarningMessageDisplay;
+import org.gwtbootstrap3.client.ui.CheckBox;
 import com.google.gwt.user.cellview.client.CellTree;
 import com.google.gwt.user.cellview.client.TreeNode;
 import com.google.gwt.user.client.ui.Button;
@@ -205,6 +206,7 @@ public interface XmlTreeDisplay {
 	 * @return the validate btn
 	 */
 	//Commented Validate Button from Population Work Space as part of Mat-3162
+	// Back to commeneted as part of MAT-7837
 	//Button getValidateBtn();
 	/**
 	 * Gets the validate btn populationWorkspace.
@@ -212,7 +214,7 @@ public interface XmlTreeDisplay {
 	 * @param treeNode the tree node
 	 * @return the validate btn
 	 */
-	Button getValidateBtnPopulationWorkspace();
+//	Button getValidateBtnPopulationWorkspace();
 	/**
 	 * Validate cell tree nodes populationWorkspace.
 	 * 
@@ -405,7 +407,7 @@ public interface XmlTreeDisplay {
 	 *
 	 * @return the include qdm varibale
 	 */
-	CustomCheckBox getIncludeQdmVaribale();
+	CheckBox getIncludeQdmVaribale();
 	
 	/**
 	 * Sets the qdm variable.
@@ -453,4 +455,6 @@ public interface XmlTreeDisplay {
 	boolean isValidHumanReadable();
 	
 	List<String> validatePopulationCellTreeNodes(CellTreeNode cellNode);
+
+	void setpopulationWorkspaceContextMenu(PopulationWorkSpaceContextMenu populationWorkspaceContextMenu);
 }

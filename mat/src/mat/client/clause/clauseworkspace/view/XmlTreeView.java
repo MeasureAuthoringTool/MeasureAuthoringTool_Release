@@ -6,12 +6,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
 import mat.client.clause.clauseworkspace.model.CellTreeNode;
 import mat.client.clause.clauseworkspace.model.CellTreeNodeImpl;
 import mat.client.clause.clauseworkspace.presenter.PopulationWorkSpaceConstants;
 import mat.client.clause.clauseworkspace.presenter.XmlConversionlHelper;
 import mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay;
-import mat.client.measure.metadata.CustomCheckBox;
 import mat.client.shared.ErrorMessageDisplay;
 import mat.client.shared.LabelBuilder;
 import mat.client.shared.MatContext;
@@ -23,7 +23,10 @@ import mat.client.shared.WarningMessageDisplay;
 import mat.shared.ConstantMessages;
 import mat.shared.MatConstants;
 import mat.shared.UUIDUtilClient;
+
 import org.apache.commons.lang.StringUtils;
+import org.gwtbootstrap3.client.ui.CheckBox;
+
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.cell.client.Cell.Context;
 import com.google.gwt.cell.client.ValueUpdater;
@@ -178,7 +181,8 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 	
 	/** The validate btn populationWorkspace. */
 	//Commented Validate Button from Population Work Space as part of Mat-3162
-	private Button validateBtnPopulationWorkspace = new SecondaryButton("Validate");//Uncomented
+	// back to commented as part of mat-7847
+//	private Button validateBtnPopulationWorkspace = new SecondaryButton("Validate");//Uncomented
 	
 	/** The save btn. */
 	private Button saveBtnClauseWorkSpace = new PrimaryButton("Save", "primaryButton");
@@ -265,6 +269,9 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 	/** The clause workspace context menu. */
 	private ClauseWorkspaceContextMenu clauseWorkspaceContextMenu;
 	
+	/** The population workspace context menu. */
+	private PopulationWorkSpaceContextMenu populationWorkspaceContextMenu;
+	
 	/** The is dirty. */
 	private boolean isDirty = false;
 	/** The is clause open. */
@@ -280,9 +287,9 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 	private boolean isQdmVariableDirty = false;
 	
 	/** The include qdm varibale. */
-	private CustomCheckBox includeQdmVaribale = new CustomCheckBox("Select 'QDM Variable' to create clause as " +
-			"local variable.", "QDM Variable", true);
-	
+	/*private CustomCheckBox includeQdmVaribale = new CustomCheckBox("Select 'QDM Variable' to create clause as " +
+			"local variable.", "QDM Variable", true);*/
+	private CheckBox includeQdmVaribale = new CheckBox("QDM Variable");
 	/** The is valid. */
 	private boolean isValid = false;
 	
@@ -382,9 +389,10 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 		successMessageDisplay.getElement().setId("successMessageDisplay_SuccessMessageDisplay");
 		savePanel.add(saveBtn);
 		//Commented Validate Button from Population Work Space as part of Mat-3162
-		validateBtnPopulationWorkspace.setTitle("Validate");//uncommented
-		validateBtnPopulationWorkspace.getElement().setId("validateBtnPopulationWorkspace_Button");
-		savePanel.add(validateBtnPopulationWorkspace);// uncommented
+		// back to commeneted as part of mat-7847
+//		validateBtnPopulationWorkspace.setTitle("Validate");//uncommented
+//		validateBtnPopulationWorkspace.getElement().setId("validateBtnPopulationWorkspace_Button");
+//		savePanel.add(validateBtnPopulationWorkspace);// uncommented
 		vp.add(warningMessageDisplay);//uncommented
 		warningMessageDisplay.getElement().setId("warningMessageDisplay_WarningMessageDisplay");
 		vp.add(savePanel);
@@ -541,6 +549,8 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 		SimplePanel chbxPanel = new SimplePanel();
 		chbxPanel.getElement().setId("QDM_Attribute_CheckBox");
 		chbxPanel.setStyleName("div-first bottomPadding10px");
+		includeQdmVaribale.setTitle("Select 'QDM Variable' to create clause as " +
+				"local variable.");
 		chbxPanel.add(includeQdmVaribale);
 		includeQdmVaribale.setVisible(false);
 		SimplePanel bottomSavePanel = new SimplePanel();
@@ -1366,7 +1376,8 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 	public void setEnabled(boolean enabled) {
 		saveBtn.setEnabled(enabled);
 		saveBtnClauseWorkSpace.setEnabled(enabled);
-		validateBtnPopulationWorkspace.setEnabled(enabled);
+		// commented as part of mat-7387
+//		validateBtnPopulationWorkspace.setEnabled(enabled);
 		validateBtnClauseWorkSpace.setEnabled(enabled);
 		deleteClauseButton.setEnabled(enabled);
 		isEditable = enabled;
@@ -1566,6 +1577,19 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 		this.clauseWorkspaceContextMenu = clauseWorkspaceContextMenu;
 		popupPanel = clauseWorkspaceContextMenu.popupPanel;
 	}
+	
+	/**
+	 * Sets the population workspace context menu.
+	 * @param populationWorkspaceContextMenu
+	 *            the populationWorkspaceContextMenu to set
+	 */
+	@Override
+	public void setpopulationWorkspaceContextMenu(
+			PopulationWorkSpaceContextMenu populationWorkspaceContextMenu) {
+		this.populationWorkspaceContextMenu = populationWorkspaceContextMenu;
+		popupPanel = clauseWorkspaceContextMenu.popupPanel;
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.google.gwt.event.dom.client.KeyDownHandler#onKeyDown(com.google.gwt.event.dom.client.KeyDownEvent)
 	 */
@@ -1619,7 +1643,7 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 							case CellTreeNode.SUBTREE_NODE:
 								if(!((selectedNode.getChilds()!=null) && (selectedNode.getChilds().size()==1))){
 									canPaste = true;
-								} 
+								}
 								break;
 							case CellTreeNode.MASTER_ROOT_NODE:
 								if (selectedNode.getName().equalsIgnoreCase(STRATIFICATION)) {
@@ -1734,7 +1758,24 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 								}
 								break;
 							case CellTreeNode.CLAUSE_NODE:
-								if (selectedNode.getParent().getName().contains(STRATIFICATION)) {
+								if ( !selectedNode.hasChildren()){
+									
+									if(selectedNode.getParent().getName().contains(MEASURE_OBSERVATION)){
+										
+										 if (copiedNode.getNodeType() == CellTreeNode.CQL_FUNCTION_NODE || 
+												 copiedNode.getNodeType() == CellTreeNode.CQL_AGG_FUNCTION_NODE) {
+											 canPaste = true;
+										 }
+									}
+									else
+									{
+										 if (copiedNode.getNodeType() == CellTreeNode.CQL_DEFINITION_NODE) {											 
+											 canPaste = true;
+										 }
+									}
+								}
+										
+								/*if (selectedNode.getParent().getName().contains(STRATIFICATION)) {
 									if ((copiedNode.getNodeType() == CellTreeNode.SUBTREE_REF_NODE)
 											|| (copiedNode.getNodeType() == CellTreeNode.LOGICAL_OP_NODE)) {
 										canPaste = true;
@@ -1743,7 +1784,7 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 										clauseWorkspaceContextMenu.pasteRootNodeTypeItem();
 										isDirty = true;
 									}
-								}
+								}*/
 							default:
 								break;
 						}
@@ -1754,6 +1795,15 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 					}
 				} else if (keyCode == PopulationWorkSpaceConstants.CUT_X) { //CUT
 					popupPanel.hide();
+					if(selectedNode.getNodeType() == CellTreeNode.CQL_DEFINITION_NODE 
+							|| selectedNode.getNodeType() == CellTreeNode.CQL_FUNCTION_NODE
+							|| selectedNode.getNodeType() == CellTreeNode.CQL_AGG_FUNCTION_NODE){
+						
+						copy();
+						removeNode();
+						isDirty = true;
+					}
+					
 					if ((selectedNode.getNodeType() != CellTreeNode.MASTER_ROOT_NODE)
 							&& (selectedNode.getNodeType() != CellTreeNode.CLAUSE_NODE)
 							&& (selectedNode.getNodeType() != CellTreeNode.ROOT_NODE)
@@ -1799,6 +1849,13 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 				}
 			} else if (keyCode == PopulationWorkSpaceConstants.DELETE_DELETE) { //DELETE
 				popupPanel.hide();
+				if((selectedNode.getNodeType() == CellTreeNode.CQL_DEFINITION_NODE)
+						||  (selectedNode.getNodeType() == CellTreeNode.CQL_FUNCTION_NODE)
+						||  (selectedNode.getNodeType() == CellTreeNode.CQL_AGG_FUNCTION_NODE)){
+					
+					removeNode();
+					isDirty = true;
+				}
 				if (((selectedNode.getNodeType() != CellTreeNode.MASTER_ROOT_NODE)
 						&& (selectedNode.getNodeType() != CellTreeNode.ROOT_NODE)
 						&& (selectedNode.getNodeType() != CellTreeNode.SUBTREE_NODE)
@@ -1806,7 +1863,8 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 						&& (selectedNode.getParent().getNodeType() != CellTreeNode.CLAUSE_NODE)
 						&& (selectedNode.getNodeType() != CellTreeNode.CLAUSE_NODE))
 						|| ((selectedNode.getNodeType() == CellTreeNode.CLAUSE_NODE)
-								&& (selectedNode.getParent().getChilds().size() > 1))) {
+								&& (selectedNode.getParent().getChilds().size() > 1))
+						) {
 					if( selectedNode.getParent().getName().equalsIgnoreCase("SATISFIES ALL")
 							||  selectedNode.getParent().getName().equalsIgnoreCase("SATISFIES ANY")){
 						if(selectedNode.getParent().getChilds().indexOf(selectedNode) != 0){
@@ -2052,22 +2110,27 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 					isDateTimeDiffNotInMO = false;
 				} else if(isFuncWithOpInMO){
 					if (!inValidNodeAtPopulationWorkspace
-						.contains("isFunctionInvalidInMO") && checkValidation
-						) {
+							.contains("isFunctionInvalidInMO") && checkValidation
+							) {
 						inValidNodeAtPopulationWorkspace
 						.add("isFunctionInvalidInMO");
-						}
+					}
 					isFuncWithOpInMO = false;
-					} else if(isSubTreeLogicValidInPopulationWorkSpace){
-						if (!inValidNodeAtPopulationWorkspace
-								.contains("invalidClauseLogic") && checkValidation
-								) {
-							inValidNodeAtPopulationWorkspace
-							.add("invalidClauseLogic");
+				} else if(isSubTreeLogicValidInPopulationWorkSpace){
+					if (!inValidNodeAtPopulationWorkspace
+							.contains("invalidClauseLogic") && checkValidation
+							) {
+						inValidNodeAtPopulationWorkspace
+						.add("invalidClauseLogic");
 					}
 					/*isSubTreeLogicValidInPopulationWorkSpace = false;*/
-				} 
+				}
 				//}
+				break;
+			case CellTreeNode.CQL_AGG_FUNCTION_NODE:
+			case CellTreeNode.CQL_DEFINITION_NODE:
+			case CellTreeNode.CQL_FUNCTION_NODE:
+				editNode(true, cellTreeNode);
 				break;
 			default:
 				editNode(false, cellTreeNode);
@@ -2173,16 +2236,16 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 				if(!isValid) {
 					setValid(!(inValideNodesList.size() == 0));
 				}
-				if(!isClauseWorkSpace) { 
+				if(!isClauseWorkSpace) {
 					// Check for measure Ob and datetimediff is to be performed on Population workspace only.
 					if (!isMeasureObservations
 							&& (subTreeCellTreeNode.getName().toUpperCase().contains("DATETIMEDIFF"))) {
 						setValid(true);
 						isDateTimeDiffNotInMO = true;
 						setValidHumanReadable(false);
-					
-						//validate functions with Operator which is not valid in Measure Observation  
-					} else if(isMeasureObservations 
+						
+						//validate functions with Operator which is not valid in Measure Observation
+					} else if(isMeasureObservations
 							&& !MatContext.get().functions.contains(capWords(subTreeCellTreeNode.getName()))){
 						setValid(true);
 						isFuncWithOpInMO = true;
@@ -2349,15 +2412,15 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 					validateClauseWorkspaceForSetOpNode(inValidNodeList, node);
 					break;
 				case CellTreeNode.FUNCTIONS_NODE:
-				validateClauseWorkspaceFunctionNode(inValidNodeList, node);
+					validateClauseWorkspaceFunctionNode(inValidNodeList, node);
 					break;
 				case CellTreeNode.SUBTREE_REF_NODE:
-				validateClauseWorkspaceSubTreeRefNode(inValidNodeList, node);
+					validateClauseWorkspaceSubTreeRefNode(inValidNodeList, node);
 					
 					break;
 				case CellTreeNode.SUBTREE_NODE:
 					//validation for empty clause logic in clauseWorkspace
-				validateClauseWorkspaceSubTreeNode(inValidNodeList, node);
+					validateClauseWorkspaceSubTreeNode(inValidNodeList, node);
 					
 					break;
 				default:
@@ -2373,7 +2436,7 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 		}
 		return inValidNodeList;
 	}
-
+	
 	/**
 	 * Validate clause workspace sub tree node.
 	 *
@@ -2389,7 +2452,7 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 			editNode(false, node);
 		}
 	}
-
+	
 	/**
 	 * Validate clause workspace sub tree ref node.
 	 *
@@ -2406,7 +2469,7 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 			editNode(false, node);
 		}
 	}
-
+	
 	/**
 	 * Validate clause workspace function node.
 	 *
@@ -2459,9 +2522,9 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 						editNode(true, node);
 					}
 				}
-			} else if(MatContext.get().functions.contains(capWords(funcType)) 
+			} else if(MatContext.get().functions.contains(capWords(funcType))
 					&& !(node.getName().contains(MatConstants.DATETIMEDIFF))
-					&& node.getChilds().size() != checkChildCount){
+					&& (node.getChilds().size() != checkChildCount)){
 				invalidKeyForMap = "invalidChildsATFunction";
 				editNode(false, node);
 				if (!inValidNodeList.contains(invalidKeyForMap)) {
@@ -2480,7 +2543,7 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 			}
 		}
 	}
-
+	
 	/**
 	 * Validate clause workspace for set op node.
 	 *
@@ -2510,7 +2573,7 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 		}
 	}
 	
-
+	
 	/**
 	 * Method to convert String into Sentence/Title Case.
 	 *
@@ -2998,12 +3061,12 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 	 */
 	/* (non-Javadoc)
 	 * @see mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay#getValidateBtnPopulationWorkspace()
-	 */
-	@Override
-	public Button getValidateBtnPopulationWorkspace() {
-		
-		return validateBtnPopulationWorkspace;
-	}
+//	 */
+//	@Override
+//	public Button getValidateBtnPopulationWorkspace() {
+//		
+//		return validateBtnPopulationWorkspace;
+//	}
 	
 	/* (non-Javadoc)
 	 * @see mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay#setClauseEnabled(boolean)
@@ -3017,7 +3080,7 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 	 * @see mat.client.clause.clauseworkspace.presenter.XmlTreeDisplay#getIncludeQdmVaribale()
 	 */
 	@Override
-	public CustomCheckBox getIncludeQdmVaribale() {
+	public CheckBox getIncludeQdmVaribale() {
 		return includeQdmVaribale;
 	}
 	
@@ -3154,7 +3217,7 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 		
 		return retValue;
 	}
-
+	
 	/**
 	 * Validate clause workspace element ref node.
 	 *
@@ -3162,7 +3225,7 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 	 * @param dataTypeMap the data type map
 	 * @param inValidNodeList the in valid node list
 	 */
-	private void validateClauseWorkspaceElementRefNode(CellTreeNode node, 
+	private void validateClauseWorkspaceElementRefNode(CellTreeNode node,
 			Map<String, List<String>> dataTypeMap, List<String> inValidNodeList){
 		
 		String timingElement = "timing element";
