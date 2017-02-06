@@ -43,6 +43,7 @@ import mat.model.clause.MeasureXML;
 import mat.model.cql.CQLDefinition;
 import mat.model.cql.CQLDefinitionsWrapper;
 import mat.server.service.PackagerService;
+import mat.server.util.MATPropertiesService;
 import mat.server.util.ResourceLoader;
 import mat.server.util.XmlProcessor;
 import mat.shared.ConstantMessages;
@@ -270,7 +271,7 @@ public class PackagerServiceImpl implements PackagerService {
 			overview.setPackages(pkgs);
 			overview.setReleaseVersion(measure.getReleaseVersion());
 			if(measure.getReleaseVersion() != null && 
-					measure.getReleaseVersion().equalsIgnoreCase("v5.0")){
+					(measure.getReleaseVersion().equalsIgnoreCase(MATPropertiesService.get().getCurrentReleaseVersion()))){
 				qdmAndSupplDataforMeasurePackager(overview, processor);
 				getNewRiskAdjVariablesForMeasurePackager(overview, processor);
 			} else {
@@ -673,9 +674,9 @@ public class PackagerServiceImpl implements PackagerService {
 	 * @return the intersection of qdm and sde
 	 */
 	private void getIntersectionOfQDMAndSDE(MeasurePackageOverview overview, XmlProcessor  processor, String measureId) {
-		Map<String, ArrayList<QualityDataSetDTO>> finalMap = new HashMap<String, ArrayList<QualityDataSetDTO>>();
+		//Map<String, ArrayList<QualityDataSetDTO>> finalMap = new HashMap<String, ArrayList<QualityDataSetDTO>>();
 		sortSDEAndQDMsForMeasurePackager(overview,processor);
-		logger.info("finalMap()of QualityDataSetDTO ::" + finalMap.size());
+		//logger.info("finalMap()of QualityDataSetDTO ::" + finalMap.size());
 		
 	}
 	
@@ -1053,7 +1054,7 @@ public class PackagerServiceImpl implements PackagerService {
 	public void saveQDMData(MeasurePackageDetail detail) {
 		Measure measure = measureDAO.find(detail.getMeasureId());
 		MeasureXML measureXML = measureXMLDAO.findForMeasure( measure.getId());
-		if(measure.getReleaseVersion().equalsIgnoreCase("v5.0")){
+		if(measure.getReleaseVersion().equalsIgnoreCase("v5.0") || measure.getReleaseVersion().equalsIgnoreCase("v5.1")){
 			saveDefinitionsData(measureXML, detail.getCqlSuppDataElements());
 		} else {
 			saveQDMData(measureXML, detail.getSuppDataElements());
@@ -1152,7 +1153,7 @@ public class PackagerServiceImpl implements PackagerService {
 		XmlProcessor processor = new XmlProcessor(
 				measureXML.getMeasureXMLAsString());
 		if(measure.getReleaseVersion() != null 
-				&& measure.getReleaseVersion().equalsIgnoreCase("v5.0")){
+				&& (measure.getReleaseVersion().equalsIgnoreCase("v5.0") || measure.getReleaseVersion().equalsIgnoreCase("v5.1"))){
 			saveRiskAdjVariableWithDefinitions(allRiskAdjVars, processor);
 		} else {
 			saveRiskAdjVariableWithClauses(allRiskAdjVars, processor);

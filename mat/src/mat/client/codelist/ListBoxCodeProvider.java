@@ -169,7 +169,7 @@ public class ListBoxCodeProvider implements IsSerializable {
 				//US 62
 				for(AsyncCallback<List<? extends HasListBox>> callback : pendingUnitList) {
 					callback.onFailure(caught);
-				}				
+				}	
 				for(AsyncCallback<List<? extends HasListBox>> callback : pendingUnitTypeList) {
 					callback.onFailure(caught);
 				}

@@ -1,6 +1,7 @@
 package mat.client.clause.clauseworkspace.presenter;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -106,6 +107,10 @@ public class PopulationWorkSpaceConstants {
 	/** The element look up node. */
 	public static LinkedHashMap<String, Node> subTreeLookUpNode;
 	
+	/** The Definition Names and Function Names. */
+	public static Collection<String> defNames;
+	public static Collection<String> funcNames;
+	
 	/** Map for CQL Definitions for this measure */
 	public static LinkedHashMap<String, Node> cqlDefinitionLookupNode;
 	
@@ -198,6 +203,8 @@ public class PopulationWorkSpaceConstants {
 	
 	/** The datatype map. */
 	public static Map<String, List<String>> datatypeMap;
+
+	public static List<String> AggfuncNames = new ArrayList<String>();
 	
 	static {
 		constantsMap.put("populations", "Populations");
@@ -224,6 +231,19 @@ public class PopulationWorkSpaceConstants {
 		topNodeOperatorMap.put("numeratorexclusions", "or");
 		topNodeOperatorMap.put("denominatorexceptions", "or");
 		topNodeOperatorMap.put("measurepopulationexclusions", "or");
+		
+		//Argument Function Names
+		AggfuncNames.add("Count");
+		AggfuncNames.add("Sum");
+		AggfuncNames.add("Average");
+		AggfuncNames.add("Sample Standard Deviation");
+		AggfuncNames.add("Sample Variance");
+		AggfuncNames.add("Population Standard Deviation");
+		AggfuncNames.add("Population Variance");
+		AggfuncNames.add("Minimum");
+		AggfuncNames.add("Maximum");
+		AggfuncNames.add("Median");
+		AggfuncNames.add("Mode");
 	}
 	
 	/**

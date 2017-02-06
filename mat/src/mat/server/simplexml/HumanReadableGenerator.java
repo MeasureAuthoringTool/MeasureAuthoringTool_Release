@@ -1,6 +1,7 @@
 package mat.server.simplexml;
 
 import mat.server.simplexml.cql.CQLHumanReadableGenerator;
+import mat.server.util.MATPropertiesService;
 import mat.server.util.XmlProcessor;
 
 public class HumanReadableGenerator {
@@ -32,7 +33,7 @@ public class HumanReadableGenerator {
 		
 		String html = "";
 		System.out.println("Generating human readable for ver:"+measureReleaseVersion);
-		if(measureReleaseVersion.equals("v5.0")){
+		if(measureReleaseVersion.equals(MATPropertiesService.get().getCurrentReleaseVersion())){
 			html = CQLHumanReadableGenerator.generateHTMLForMeasure(measureId, simpleXmlStr);
 		}else{
 			html = HQMFHumanReadableGenerator.generateHTMLForMeasure(measureId,simpleXmlStr);

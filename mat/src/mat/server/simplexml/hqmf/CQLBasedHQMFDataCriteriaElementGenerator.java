@@ -9,6 +9,7 @@ import java.util.Map;
 import javax.xml.xpath.XPathExpressionException;
 
 import mat.model.clause.MeasureExport;
+import mat.server.util.MATPropertiesService;
 import mat.server.util.XmlProcessor;
 import mat.shared.UUIDUtilClient;
 
@@ -137,7 +138,7 @@ public class CQLBasedHQMFDataCriteriaElementGenerator implements Generator {
 			String releaseVersion = me.getMeasure().getReleaseVersion();
 			if(releaseVersion.equalsIgnoreCase("v4")){
 				return VERSION_4_1_2_ID;
-			}else if(releaseVersion.equalsIgnoreCase("v5.0")) {
+			}else if(releaseVersion.equalsIgnoreCase(MATPropertiesService.get().getCurrentReleaseVersion())) {
 				return VERSION_5_0_ID; 
 			} else {
 				return VERSION_4_3_ID;
@@ -200,7 +201,7 @@ public class CQLBasedHQMFDataCriteriaElementGenerator implements Generator {
 			if(releaseVersion.equalsIgnoreCase("v4")){
 				extensionValue = VERSION_4_1_2_ID;
 				
-			} else if(releaseVersion.equalsIgnoreCase("v5.0")) {
+			} else if(releaseVersion.equalsIgnoreCase("v5.0") || releaseVersion.equalsIgnoreCase("v5.1")) {
 				extensionValue = VERSION_5_0_ID; 
 			} else {
 				extensionValue = VERSION_4_3_ID;

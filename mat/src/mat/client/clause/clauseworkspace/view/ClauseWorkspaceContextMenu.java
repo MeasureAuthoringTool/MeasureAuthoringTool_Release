@@ -61,6 +61,9 @@ public class ClauseWorkspaceContextMenu {
 		@Template("<table tabindex =\"0\"width=\"100%\"><tr><td>{0}</td><td align=\"right\">{1}</td></tr></table>")
 		SafeHtml menuTable(String name, String shortCut);
 		
+		@Template("<table tabindex =\"0\"width=\"100%\"><tr><td>{0}</td></tr></table>")
+		SafeHtml menuTable(String name);
+		
 		/**
 		 * Menu table with icon.
 		 *
@@ -82,6 +85,8 @@ public class ClauseWorkspaceContextMenu {
 	
 	/** The add menu. */
 	MenuItem addMenu;
+	
+	MenuItem addFuncMenu;
 	
 	/** The add menu lhs. */
 	MenuItem addMenuLHS;
@@ -114,6 +119,8 @@ public class ClauseWorkspaceContextMenu {
 	 */
 	/** The delete menu. */
 	MenuItem deleteMenu;
+	
+	MenuItem replaceMenu;
 	
 	/** The cut menu. */
 	MenuItem cutMenu;
@@ -192,7 +199,7 @@ public class ClauseWorkspaceContextMenu {
 				xmlTreeDisplay.removeNode();
 			}
 		};
-		deleteMenu = new MenuItem(template.menuTable("Delete", "Delete"), deleteCmd);
+		deleteMenu = new MenuItem(template.menuTable("Delete"), deleteCmd);
 		Command cutCmd = new Command() {
 			@Override
 			public void execute() {
@@ -1345,15 +1352,15 @@ public class ClauseWorkspaceContextMenu {
 	 * Adds the common menus.
 	 */
 	protected void addCommonMenus() {
-		popupMenuBar.addItem(copyMenu);
-		popupMenuBar.addItem(pasteMenu);
+		//popupMenuBar.addItem(copyMenu);
+		//popupMenuBar.addItem(pasteMenu);
 		/*
 		 * POC Global Copy Paste changes.
 		 * popupMenuBar.addItem(copyToClipBoardMenu);
 		popupMenuBar.addItem(pasteFromClipboardMenu);*/
-		popupMenuBar.addItem(cutMenu);
+		//popupMenuBar.addItem(cutMenu);
 		popupMenuBar.addItem(deleteMenu);
-		popupMenuBar.addItem(expandMenu);
+		//popupMenuBar.addItem(expandMenu);
 		popupMenuBar.setVisible(true);
 		popupPanel.add(popupMenuBar);
 	}

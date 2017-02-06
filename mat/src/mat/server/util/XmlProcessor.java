@@ -2,7 +2,6 @@ package mat.server.util;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -12,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Properties;
 import java.util.UUID;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -854,6 +852,23 @@ public class XmlProcessor {
 			String clauseDisplayName = "Stratum";
 			Element stratificationElement = createTemplateNode(
 					stratificationsNodeName, clauseDisplayName);
+			
+			NodeList childs  = stratificationElement.getChildNodes();
+			Element stratificationEle = originalDoc
+					.createElement(STRATIFICATION);
+			stratificationEle.setAttribute(DISPLAY_NAME, STRATIFICATION_DISPLAYNAME);
+			stratificationEle.setAttribute(UUID_STRING, UUIDUtilClient.uuid());
+			stratificationEle.setAttribute(TYPE, STRATIFICATION);
+			List<Node> nCList = new ArrayList<Node>();
+			for (int i = 0; i < childs.getLength(); i++) {
+				nCList.add(childs.item(i));
+				stratificationElement.removeChild(childs.item(i));
+			}
+			for (Node cNode : nCList) {
+				stratificationEle.appendChild(cNode);
+			}
+			stratificationElement.appendChild(stratificationEle);
+			
 			measureStratificationsNode = stratificationElement;
 			// insert measureObservations element after populations element
 			Node measureNode = populationsNode.getParentNode();
@@ -1467,41 +1482,6 @@ public class XmlProcessor {
 	}
 	
 	/**
-	 * Check for stratification and add.
-	 *
-	 * @return Xml String.
-	 */
-	public void checkForStratificationAndAdd() {
-		if (originalDoc == null) {
-			return;
-		}
-		try {
-			Node strataNode = findNode(originalDoc, XPATH_STRATA);
-			if ((strataNode != null) && (strataNode.hasChildNodes() && !(strataNode.getChildNodes().item(0)
-					.getNodeName().equalsIgnoreCase(STRATIFICATION)))) {
-				NodeList childs  = strataNode.getChildNodes();
-				Element stratificationEle = originalDoc
-						.createElement(STRATIFICATION);
-				stratificationEle.setAttribute(DISPLAY_NAME, STRATIFICATION_DISPLAYNAME);
-				stratificationEle.setAttribute(UUID_STRING, UUIDUtilClient.uuid());
-				stratificationEle.setAttribute(TYPE, STRATIFICATION);
-				List<Node> nCList = new ArrayList<Node>();
-				for (int i = 0; i < childs.getLength(); i++) {
-					nCList.add(childs.item(i));
-					strataNode.removeChild(childs.item(i));
-				}
-				for (Node cNode : nCList) {
-					stratificationEle.appendChild(cNode);
-				}
-				strataNode.appendChild(stratificationEle);
-			}
-		} catch (XPathExpressionException e) {
-			e.printStackTrace();
-		}
-		
-	}
-	
-	/**
 	 * Check for qdm id and update.
 	 *
 	 * @return the string
@@ -1660,7 +1640,7 @@ public class XmlProcessor {
 						originalDoc.getDocumentElement(), XPathConstants.STRING);
 				
 				Element libraryChildElem = originalDoc.createElement("library");
-				libraryChildElem.setTextContent(libraryName.replaceAll(" ", ""));
+				libraryChildElem.setTextContent(cleanString(libraryName));
 				
 				Element versionChildElem = originalDoc.createElement("version");
 				versionChildElem.setTextContent(version);
@@ -1706,6 +1686,41 @@ public class XmlProcessor {
 		
 	}
 	
+	public void updateCQLLibraryName() throws XPathExpressionException{
+		
+		Node cqlLibraryNode = findNode(originalDoc, "/measure/cqlLookUp/library");
+		
+		if(cqlLibraryNode != null){
+			
+			Node measureTitleNode = findNode(originalDoc, "/measure/measureDetails/title");
+			String libraryName = measureTitleNode.getTextContent();
+			libraryName = cleanString(libraryName);
+			
+			cqlLibraryNode.setTextContent(libraryName);
+		}
+	}
+	
+	/**
+	 * This method will take a String and remove all non-alphabet/non-numeric characters 
+	 * except underscore ("_") characters.
+	 * @param originalString
+	 * @return cleanedString
+	 */
+	private String cleanString(String originalString) {
+		originalString = originalString.replaceAll(" ", "");
+		
+		String cleanedString = "";
+				
+		for(int i=0;i<originalString.length();i++){
+			char c = originalString.charAt(i);
+			int intc = (int)c;
+			if(c == '_' || (intc >= 48 && intc <= 57) || (intc >= 65 && intc <= 90) || (intc >= 97 && intc <= 122)){
+				cleanedString = cleanedString + "" + c;
+			}
+		}
+		
+		return cleanedString;
+	}
 	
 	/**
 	 * Check for default parameter MeasurementPeriod.

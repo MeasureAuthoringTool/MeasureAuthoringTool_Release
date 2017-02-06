@@ -92,6 +92,7 @@ import mat.server.service.MeasurePackageService;
 import mat.server.service.UserService;
 import mat.server.service.impl.MatContextServiceUtil;
 import mat.server.util.ExportSimpleXML;
+import mat.server.util.MATPropertiesService;
 import mat.server.util.MeasureUtility;
 import mat.server.util.ResourceLoader;
 import mat.server.util.UuidUtility;
@@ -100,6 +101,7 @@ import mat.shared.CQLValidationResult;
 import mat.shared.ConstantMessages;
 import mat.shared.DateStringValidator;
 import mat.shared.DateUtility;
+import mat.shared.GetUsedCQLArtifactsResult;
 import mat.shared.SaveUpdateCQLResult;
 import mat.shared.UUIDUtilClient;
 import mat.shared.model.util.MeasureDetailsUtil;
@@ -110,7 +112,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cqframework.cql.cql2elm.CQLtoELM;
-import org.cqframework.cql.cql2elm.CqlTranslator;
 import org.exolab.castor.mapping.Mapping;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
@@ -1234,7 +1235,14 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		detail.setId(dto.getMeasureId());
 		detail.setStatus(dto.getStatus());
 		detail.seteMeasureId(dto.geteMeasureId());
-		detail.setClonable(isOwner || isSuperUser);
+		
+		String measureReleaseVersion = (measure.getReleaseVersion() == null)?"":measure.getReleaseVersion();
+		if(measureReleaseVersion.length() == 0 || measureReleaseVersion.startsWith("v4") || measureReleaseVersion.startsWith("v3")){
+			detail.setClonable(false);
+		}else{
+			detail.setClonable(isOwner || isSuperUser);
+		}
+		
 		detail.setEditable((isOwner || isSuperUser || ShareLevel.MODIFY_ID.equals(dto.getShareLevel())) && dto.isDraft());
 		detail.setExportable(dto.isPackaged());
 		detail.setHqmfReleaseVersion(measure.getReleaseVersion());
@@ -2019,7 +2027,7 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		mDetail.setDraft(false);
 		setValueFromModel(mDetail, meas);
 		getService().save(meas);
-		saveMeasureXml(createMeasureXmlModel(mDetail, meas, MEASURE_DETAILS, MEASURE));
+				
 		SaveMeasureResult result = new SaveMeasureResult();
 		result.setSuccess(true);
 		result.setId(meas.getId());
@@ -2196,7 +2204,7 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 				setMeasureCreated(false);
 				pkg = new Measure();
 				/*model.setMeasureStatus("In Progress");*/
-				pkg.setReleaseVersion("v5.0");
+				pkg.setReleaseVersion(MATPropertiesService.get().getCurrentReleaseVersion());
 				model.setRevisionNumber("000");
 				measureSet = new MeasureSet();
 				measureSet.setId(UUID.randomUUID().toString());				
@@ -2259,6 +2267,13 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		logger.info("In MeasureLibraryServiceImpl.saveFinalizedVersion() method..");
 		Measure m = getService().getById(measureId);
 		logger.info("Measure Loaded for: " + measureId);
+				
+		boolean isMeasureVersionable = MatContextServiceUtil.get().isCurrentMeasureEditable(getMeasureDAO(),measureId);
+		if(!isMeasureVersionable){
+			SaveMeasureResult saveMeasureResult = new SaveMeasureResult();
+			return returnFailureReason(saveMeasureResult, SaveMeasureResult.INVALID_DATA);
+		}
+		
 		String versionNumber = null;
 		if (isMajor) {
 			versionNumber = findOutMaximumVersionNumber(m.getMeasureSet().getId());
@@ -2402,7 +2417,8 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 					String scoringTypeAfterNewXml = (String) xPath.evaluate(
 							"/measure/measureDetails/scoring/@id",
 							xmlProcessor.getOriginalDoc().getDocumentElement(), XPathConstants.STRING);
-					xmlProcessor.checkForScoringType(getCurrentReleaseVersion());
+					xmlProcessor.checkForScoringType(MATPropertiesService.get().getQmdVersion());
+					xmlProcessor.updateCQLLibraryName();
 					checkForTimingElementsAndAppend(xmlProcessor);
 					checkForDefaultCQLParametersAndAppend(xmlProcessor);
 					checkForDefaultCQLDefinitionsAndAppend(xmlProcessor);
@@ -2422,7 +2438,7 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		} else {
 			XmlProcessor processor = new XmlProcessor(measureXmlModel.getXml());
 			processor.addParentNode(MEASURE);
-			processor.checkForScoringType(getCurrentReleaseVersion());
+			processor.checkForScoringType(MATPropertiesService.get().getQmdVersion());
 			checkForTimingElementsAndAppend(processor);
 			checkForDefaultCQLParametersAndAppend(processor);
 			checkForDefaultCQLDefinitionsAndAppend(processor);
@@ -2478,7 +2494,7 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 					supplementalDataElementNode.appendChild(cqlDefinitionRefNode);
 				}
 
-				processor.checkForStratificationAndAdd();
+				//processor.checkForStratificationAndAdd();
 				measureXmlModel.setXml(processor.transform(processor.getOriginalDoc()));
 				getService().saveMeasureXml(measureXmlModel);
 			} catch (XPathExpressionException e) {
@@ -5294,6 +5310,24 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 			String currentMeasureId, String context) {
 		return getCqlService().saveAndModifyCQLGeneralInfo(currentMeasureId, context);
 	}
+	 
+	 @Override
+	 public SaveUpdateCQLResult deleteDefinition(String measureId, CQLDefinition toBeDeletedObj, CQLDefinition currentObj,
+			 List<CQLDefinition> definitionList) {
+		 return getCqlService().deleteDefinition(measureId, toBeDeletedObj, currentObj, definitionList);
+	 }
+	 
+	 @Override
+	 public SaveUpdateCQLResult deleteFunctions(String measureId, CQLFunctions toBeDeletedObj, CQLFunctions currentObj, 
+			 List<CQLFunctions> functionsList) {
+		 return getCqlService().deleteFunctions(measureId, toBeDeletedObj, currentObj, functionsList);
+	 }
+	 
+	 @Override
+	 public SaveUpdateCQLResult deleteParameter(String measureId, CQLParameter toBeDeletedObj, CQLParameter currentObj, 
+			 List<CQLParameter> parameterList) {
+		 return getCqlService().deleteParameter(measureId, toBeDeletedObj, currentObj, parameterList);
+	 }
 	
 	/* (non-Javadoc)
 	 * @see mat.server.service.MeasureLibraryService#getCQLDataTypeList()
@@ -5309,6 +5343,11 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 	@Override
 	public String getJSONObjectFromXML(){
 		return getCqlService().getJSONObjectFromXML();
+	}
+	
+	@Override
+	public GetUsedCQLArtifactsResult getUsedCqlArtifacts(String measureId) {
+		return getCqlService().getUsedCQlArtifacts(measureId);
 	}
 	
 }

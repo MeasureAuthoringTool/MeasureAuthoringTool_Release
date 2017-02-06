@@ -193,6 +193,9 @@ public class MessageDelegate {
 	public final String SUCCESSFULLY_MODIFIED_ALL_OIDS = "All QDM elements and/or attributes using the same value set OID have been modified " +
 			"to the selected Version and/or Expansion Identifier.";
 	
+	public final String VIEW_CQL_ERROR_MESSAGE = "You are viewing CQL with few validation errors. Errors are marked with triangle sign on line number.";
+	public final String VIEW_CQL_NO_ERRORS_MESSAGE ="You are viewing CQL with no validation errors.";
+	
 	public final String SUCCESSFUL_SAVED_CQL_GEN_INFO  = "Successfully saved CQL general information.";
 	public final String SUCCESSFUL_SAVED_CQL_DEFINITION  = "Successfully saved definition into CQL.";
 	public final String SUCCESSFUL_SAVED_CQL_FUNCTIONS  = "Successfully saved function into CQL.";
@@ -220,6 +223,8 @@ public class MessageDelegate {
 			"Duplicate name or use of restricted character(s).";
 	public final String ERROR_FUNCTION_NAME_NO_SPECIAL_CHAR  = "Invalid Function and/or Argument name. " +
 			"Duplicate name or use of restricted character(s).";
+	
+	public final String DELETE_WARNING_MESSAGE = "You have selected to delete this expression. Do you want to permanently delete";
 	
 	/**
 	 * Gets the measure save server error message.
@@ -715,6 +720,13 @@ public class MessageDelegate {
 	private final String ONLY_ONE_CHILD_REQUIRED = " Functions must contain only one child node.";
 	
 	private final String INVALID_LOGIC_MEASURE_PACKAGER = "Populations or Measure Observations within a Measure Grouping must contain a valid Definition or Function.";
+	
+	private final String DELETE_CONFIRMATION_PARAMETER = "You have selected to delete this expression. Do you want to permanently delete this Parameter?";
+	
+	private final String DELETE_CONFIRMATION_DEFINITION = "You have selected to delete this expression. Do you want to permanently delete this Definition?";
+	
+	private final String DELETE_CONFIRMATION_FUNCTION = "You have selected to delete this expression. Do you want to permanently delete this Function?";
+	
 	
 	public String getONLY_ONE_CHILD_REQUIRED() {
 		return ONLY_ONE_CHILD_REQUIRED;
@@ -2622,6 +2634,30 @@ public class MessageDelegate {
 
 	public String getINVALID_LOGIC_MEASURE_PACKAGER() {
 		return INVALID_LOGIC_MEASURE_PACKAGER;
+	}
+	
+	public String getDELETE_WARNING_MESSAGE() {
+		return DELETE_WARNING_MESSAGE; 
+	}
+
+	public String getVIEW_CQL_ERROR_MESSAGE() {
+		return VIEW_CQL_ERROR_MESSAGE;
+	}
+
+	public String getVIEW_CQL_NO_ERRORS_MESSAGE() {
+		return VIEW_CQL_NO_ERRORS_MESSAGE;
+	}
+
+	public String getDELETE_CONFIRMATION_PARAMETER() {
+		return DELETE_CONFIRMATION_PARAMETER;
+	}
+
+	public String getDELETE_CONFIRMATION_DEFINITION() {
+		return DELETE_CONFIRMATION_DEFINITION;
+	}
+
+	public String getDELETE_CONFIRMATION_FUNCTION() {
+		return DELETE_CONFIRMATION_FUNCTION;
 	}
 
 

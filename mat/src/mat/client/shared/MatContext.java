@@ -220,7 +220,7 @@ public class MatContext implements IsSerializable {
 	
 	/** The data type list. */
 	private List<String> dataTypeList = new ArrayList<String>();
-	
+		
 	/** The profile list. */
 	private List<String> expIdentifierList = new ArrayList<String>();
 	
@@ -242,6 +242,10 @@ public class MatContext implements IsSerializable {
 	
 	/** The all attribute list. */
 	public List<String> allAttributeList = new ArrayList<String>();
+	
+	public List<String> allUnitsList = new ArrayList<String>();
+	
+	private List<String> allCQLUnitsList = new ArrayList<String>();
 	
 	
 	//private GlobalCopyPaste copyPaste;
@@ -1524,7 +1528,7 @@ public class MatContext implements IsSerializable {
 	 * @return the all cql keywords and qdm datatypes for cql work space
 	 */
 	public void getAllCqlKeywordsAndQDMDatatypesForCQLWorkSpace(){
-		
+				
 		measureService.getCQLKeywordsList(new AsyncCallback<CQLKeywords>() {
 			
 			@Override
@@ -1570,6 +1574,57 @@ public class MatContext implements IsSerializable {
 	}
 	
 	/**
+	 * Gets of all of the units and updates the all units list. 
+	 */
+	public void getAllUnits() {
+		
+		listBoxCodeProvider.getUnitList(new AsyncCallback<List<? extends HasListBox>>() {
+
+			@Override
+			public void onFailure(Throwable caught) {				
+			}
+
+			@Override
+			public void onSuccess(List<? extends HasListBox> result) {
+				if(result != null){
+					allUnitsList.clear();
+					allUnitsList.add(MatContext.PLEASE_SELECT);
+					for(HasListBox listBoxContent : result) {
+						allUnitsList.add(listBoxContent.getItem());
+					}
+				}
+			}
+		}); 
+	}
+	
+	/**
+	 * Gets of all of the units and updates the all units list. 
+	 * @return all cql list.
+	 */
+	public List<String> getAllCQLUnits() {
+		getCodeListService().getAllCqlUnits(new AsyncCallback<List<String>> (){
+
+			@Override
+			public void onFailure(Throwable caught) {
+				
+			}
+
+			@Override
+			public void onSuccess(List<String> result) {
+				if(result != null){
+					allCQLUnitsList.clear();
+					allCQLUnitsList.add(MatContext.PLEASE_SELECT);
+					for(String listBoxContent : result) {
+						allCQLUnitsList.add(listBoxContent);
+					}
+				}
+			}
+		});
+		return allCQLUnitsList;
+		
+	}
+	
+	/**
 	 * Sets the all data type options.
 	 *
 	 * @param texts the new all data type options
@@ -1577,7 +1632,7 @@ public class MatContext implements IsSerializable {
 	public void setAllDataTypeOptions(List<? extends HasListBox> texts) {
 		setListBoxItems(texts, MatContext.PLEASE_SELECT);
 	}
-	
+		
 	/**
 	 * Sets the list box items.
 	 *
@@ -1970,8 +2025,39 @@ public class MatContext implements IsSerializable {
 	 */
 	public void setAllAttributeList(List<String> allAttributeList) {
 		this.allAttributeList = allAttributeList;
+	}	
+	
+	/**
+	 * Gets the list of all of the units
+	 * @return the list of all of the units
+	 */
+	public List<String> getAllUnitsList() {
+		return this.allUnitsList;
 	}
 	
+	/**
+	 * Sets the list of all of the units
+	 * @param allUnitsList the list of all of the units
+	 */
+	public void setAllUnitsList(List<String> allUnitsList) {
+		this.allUnitsList = allUnitsList;
+	}
+	
+	/**
+	 * Gets the list of all of the cql units
+	 * @return the list of all of the cql units
+	 */
+	public List<String> getAllCQLUnitsList() {
+		return this.allCQLUnitsList;
+	}
+	
+	/**
+	 * Sets the list of all of the cql units
+	 * @param allUnitsList the list of all of the cql units
+	 */
+	public void setAllCQLUnitsList(List<String> allCQLUnitsList) {
+		this.allCQLUnitsList = allCQLUnitsList;
+	}
 	
 	/*public GlobalCopyPaste getCopyPaste() {
 		return copyPaste;

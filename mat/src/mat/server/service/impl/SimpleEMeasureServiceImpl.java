@@ -40,6 +40,7 @@ import mat.server.service.SimpleEMeasureService;
 import mat.server.simplexml.HumanReadableGenerator;
 import mat.server.simplexml.hqmf.CQLBasedHQMFGenerator;
 import mat.server.simplexml.hqmf.HQMFGenerator;
+import mat.server.util.MATPropertiesService;
 import mat.server.util.XmlProcessor;
 import mat.shared.ConstantMessages;
 import mat.shared.DateUtility;
@@ -588,11 +589,11 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 	public final byte[] getZipBarr(final String measureId,final MeasureExport me)
 			throws Exception {
 				byte[] wkbkbarr = null;
-				if (me.getCodeList() == null) {
+				/*if (me.getCodeList() == null) {
 					wkbkbarr = getHSSFWorkbookBytes(createErrorEMeasureXLS());
 				} else {
 					wkbkbarr = me.getCodeListBarr();
-				}
+				}*/
 				
 				String simpleXmlStr = me.getSimpleXML();
 				String emeasureHTMLStr = getHumanReadableForMeasure(measureId, simpleXmlStr, me.getMeasure().getReleaseVersion());
@@ -632,7 +633,7 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 	    
 	    String measureXML = ""; 
 
-	    if(measure.getReleaseVersion().equals("v5.0")) {
+	    if(measure.getReleaseVersion().equalsIgnoreCase(MATPropertiesService.get().getCurrentReleaseVersion())) {
 			measureXML = getCQLBasedEMeasureXML(measureExport);  
 		} else {
 			 measureXML = getNewEMeasureXML(measureExport);
@@ -678,11 +679,11 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 	public final byte[] getZipBarr(final String measureId,Date exportDate, final MeasureExport me, String releaseVersion)
 			throws Exception {
 		byte[] wkbkbarr = null;
-		if (me.getCodeList() == null) {
+		/*if (me.getCodeList() == null) {
 			wkbkbarr = getHSSFWorkbookBytes(createErrorEMeasureXLS());
 		} else {
 			wkbkbarr = me.getCodeListBarr();
-		}
+		}*/
 		System.out.println("MAKING THE ZIP FILE!!!!!!");
 		StringUtility su = new StringUtility();
 		ExportResult emeasureXMLResult = getEMeasureXML(measureId);
@@ -864,11 +865,11 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 			final String seqNum) throws Exception {
 		
 		byte[] wkbkbarr = null;
-		if (me.getCodeList() == null) {
+		/*if (me.getCodeList() == null) {
 			wkbkbarr = getHSSFWorkbookBytes(createErrorEMeasureXLS());
 		} else {
 			wkbkbarr = me.getCodeListBarr();
-		}
+		}*/
 		
 		String simpleXmlStr = me.getSimpleXML();
 		String emeasureHTMLStr = getHumanReadableForMeasure(measureId, simpleXmlStr, me.getMeasure().getReleaseVersion());
@@ -903,11 +904,11 @@ public class SimpleEMeasureServiceImpl implements SimpleEMeasureService {
 			final MeasureExport me, final Map<String, byte[]> filesMap,
 			final String seqNum) throws Exception {
 		byte[] wkbkbarr = null;
-		if (me.getCodeList() == null) {
+		/*if (me.getCodeList() == null) {
 			wkbkbarr = getHSSFWorkbookBytes(createErrorEMeasureXLS());
 		} else {
 			wkbkbarr = me.getCodeListBarr();
-		}
+		}*/
 		StringUtility su = new StringUtility();
 		ExportResult emeasureXMLResult = getEMeasureXML(measureId, me);
 		String emeasureName = emeasureXMLResult.measureName;

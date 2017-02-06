@@ -1,20 +1,27 @@
 package mat.client.clause.cqlworkspace;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import mat.client.CustomPager;
 import mat.client.shared.CQLButtonToolBar;
 import mat.client.shared.ErrorMessageAlert;
 import mat.client.shared.MatContext;
 import mat.client.shared.MatSimplePager;
+import mat.client.shared.CQLSuggestOracle;
+import mat.client.shared.DeleteConfirmationMessageAlert;
 import mat.client.shared.MessageAlert;
 import mat.client.shared.SpacerWidget;
 import mat.client.shared.SuccessMessageAlert;
 import mat.client.shared.WarningConfirmationMessageAlert;
+import mat.client.shared.WarningMessageAlert;
 import mat.client.util.CellTableUtility;
 import mat.model.QualityDataSetDTO;
 import mat.model.clause.QDSAttributes;
@@ -23,6 +30,7 @@ import mat.model.cql.CQLFunctionArgument;
 import mat.model.cql.CQLFunctions;
 import mat.model.cql.CQLParameter;
 import mat.shared.ClickableSafeHtmlCell;
+import mat.shared.GetUsedCQLArtifactsResult;
 
 import org.gwtbootstrap3.client.ui.Anchor;
 import org.gwtbootstrap3.client.ui.AnchorListItem;
@@ -68,6 +76,8 @@ import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.ColumnSortEvent.ListHandler;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
 import com.google.gwt.user.client.ui.HorizontalPanel;
@@ -75,6 +85,7 @@ import com.google.gwt.user.client.ui.MultiWordSuggestOracle;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.SuggestBox;
+import com.google.gwt.user.client.ui.SuggestOracle;
 import com.google.gwt.user.client.ui.SuggestOracle.Suggestion;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
@@ -148,11 +159,17 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 	/** The CQL success message. */
 	private MessageAlert successMessageAlert = new SuccessMessageAlert();
 	
+	/** The CQL warning message */
+	private MessageAlert warningMessageAlert = new WarningMessageAlert();
+	
 	/** The CQL error message. */
 	private MessageAlert errorMessageAlert = new ErrorMessageAlert();
 	
 	/** The CQL warning message. */
 	private WarningConfirmationMessageAlert warningConfirmationMessageAlert = new WarningConfirmationMessageAlert();
+	
+	/** The Delete Confirmation Dialog Box */
+	private DeleteConfirmationDialogBox deleteConfirmationDialogBox = new DeleteConfirmationDialogBox(); 
 	
 	/** The CQL warning message. */
 	private WarningConfirmationMessageAlert globalWarningConfirmationMessageAlert = new WarningConfirmationMessageAlert();
@@ -180,9 +197,9 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 	private SuggestBox searchSuggestTextBox;
 	
 	/**
-	 * HashMap parameterNameMap.
+	 * TreeMap parameterNameMap.
 	 */
-	private HashMap<String, String> parameterNameMap = new HashMap<String, String>();
+	private Map<String, String> parameterNameMap = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
 	/**
 	 * HashMap parameterMap.
 	 */
@@ -248,14 +265,14 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 	 */
 	private List<CQLFunctions> viewFunctions = new ArrayList<CQLFunctions>();
 	/**
-	 * HashMap defineNameMap.
+	 * TreeMap defineNameMap.
 	 */
-	private HashMap<String, String> defineNameMap = new HashMap<String, String>();
+	private Map<String, String> defineNameMap = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
 	
 	/**
-	 * HashMap funcNameMap.
+	 * TreeMap funcNameMap.
 	 */
-	private HashMap<String, String> funcNameMap = new HashMap<String, String>();
+	private Map<String, String> funcNameMap = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
 	/**
 	 * HashMap definitionMap.
 	 */
@@ -342,6 +359,12 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 	
 	/** The context pop toggle switch. */
 	private InlineRadio contextFuncPOPRadioBtn = new InlineRadio("Population");
+	
+	DeleteConfirmationMessageAlert deleteConfirmationMessgeAlert = new DeleteConfirmationMessageAlert(); 
+	
+	private GetUsedCQLArtifactsResult usedCqlArtifacts; 
+	
+	
 	
 	//private AnchorListItem includeLibrary;
 	
@@ -551,15 +574,36 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 							System.out.println("In Parameter DoubleClickHandler, doing setText()");
 							//disable parameterName and Logic fields for Default Parameter
 							boolean isReadOnly = getParameterMap().get(selectedParamID).isReadOnly();
+							getParameterButtonBar().getDeleteButton().setTitle("Delete");
 							
 							if(MatContext.get().getMeasureLockService()
 									.checkForEditPermission()){
 								setParameterWidgetReadOnly(!isReadOnly);
 							}
+							
+							// load most recent used cql artifacts
+							MatContext.get().getMeasureService().getUsedCQLArtifacts(MatContext.get().getCurrentMeasureId(), new AsyncCallback<GetUsedCQLArtifactsResult>() {
+
+								@Override
+								public void onFailure(Throwable caught) {
+									Window.alert(MatContext.get().getMessageDelegate().getGenericErrorMessage());								
+								}
+
+								@Override
+								public void onSuccess(GetUsedCQLArtifactsResult result) {
+									if(result.getUsedCQLParameters().contains(getParameterMap().get(selectedParamID).getParameterName())) {
+										getParameterButtonBar().getDeleteButton().setEnabled(false);
+									} 
+								}
+								
+							});
 						}
-					}
+					} 
+					
 					successMessageAlert.clearAlert();
 					errorMessageAlert.clearAlert();
+					warningMessageAlert.clearAlert();
+
 				}
 				
 			}
@@ -567,7 +611,7 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 	}
 	
 	/**
-	 * Adds the define event handkers.
+	 * Adds the define event handlers.
 	 */
 	private void addDefineEventHandlers() {
 		getDefineNameListBox().addDoubleClickHandler(new DoubleClickHandler() {
@@ -598,16 +642,36 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 							}
 							//disable definitionName and fields for Supplemental data definitions
 							boolean isReadOnly = getDefinitionMap().get(selectedDefinitionID).isSupplDataElement();
+							getDefineButtonBar().getDeleteButton().setTitle("Delete");
 							
-							if(MatContext.get().getMeasureLockService()
-									.checkForEditPermission()){
+							if(MatContext.get().getMeasureLockService().checkForEditPermission()){
 								setDefinitionWidgetReadOnly(!isReadOnly);
 							}
+							
+							// load most recent used cql artifacts
+							MatContext.get().getMeasureService().getUsedCQLArtifacts(MatContext.get().getCurrentMeasureId(), new AsyncCallback<GetUsedCQLArtifactsResult>() {
+
+								@Override
+								public void onFailure(Throwable caught) {
+									Window.alert(MatContext.get().getMessageDelegate().getGenericErrorMessage());								
+								}
+
+								@Override
+								public void onSuccess(GetUsedCQLArtifactsResult result) {
+									if(result.getUsedCQLDefinitions().contains(getDefinitionMap().get(selectedDefinitionID).getDefinitionName())) {
+										getDefineButtonBar().getDeleteButton().setEnabled(false);
+
+									}
+								}
+								
+							});
 						}
 					}
 					
 					successMessageAlert.clearAlert();
 					errorMessageAlert.clearAlert();
+					warningMessageAlert.clearAlert();
+
 				}
 			}
 		});
@@ -642,8 +706,28 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 								contextFuncPOPRadioBtn.setValue(true);
 								contextFuncPATRadioBtn.setValue(false);
 							}
+							
+							getFunctionButtonBar().getDeleteButton().setEnabled(true);
+							
+							// load most recent used cql artifacts
+							MatContext.get().getMeasureService().getUsedCQLArtifacts(MatContext.get().getCurrentMeasureId(), new AsyncCallback<GetUsedCQLArtifactsResult>() {
+
+								@Override
+								public void onFailure(Throwable caught) {
+									Window.alert(MatContext.get().getMessageDelegate().getGenericErrorMessage());								
+								}
+
+								@Override
+								public void onSuccess(GetUsedCQLArtifactsResult result) {
+									if(result.getUsedCQLFunctionss().contains(getFunctionMap().get(selectedFunctionId).getFunctionName())) {
+										getFunctionButtonBar().getDeleteButton().setEnabled(false);
+
+									}
+								}
+								
+							});
 						}
-					}
+					} 
 					if (currentSelectedFunctionObjId != null) {
 						CQLFunctions selectedFunction = getFunctionMap().get(currentSelectedFunctionObjId);
 						if (selectedFunction.getArgumentList() != null) {
@@ -657,6 +741,8 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 				createAddArgumentViewForFunctions(functionArgumentList);
 				successMessageAlert.clearAlert();
 				errorMessageAlert.clearAlert();
+				warningMessageAlert.clearAlert();
+
 			}
 		});
 	}
@@ -677,7 +763,7 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 			getParameterNameMap().put(parameter.getId(), parameter.getParameterName());
 			getParameterMap().put(parameter.getId(), parameter);
 		}
-		updateSuggestOracle();
+		updateNewSuggestParamOracle();
 		if(getViewParameterList().size() < 10){
 			getParamBadge().setText("0" + getViewParameterList().size());
 		} else {
@@ -705,7 +791,7 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 			getDefinitionMap().put(define.getId(), define);
 		}
 		
-		updateSuggestDefineOracle();
+		updateNewSuggestDefineOracle();
 		if(getViewDefinitions().size() < 10){
 			getDefineBadge().setText("0" + getViewDefinitions().size());
 		} else {
@@ -735,7 +821,7 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 				}
 			}*/
 		}
-		updateSuggestFuncOracle();
+		updateNewSuggestFuncOracle();
 		if(viewFunctions.size() < 10){
 			functionBadge.setText("0" + viewFunctions.size());
 		} else {
@@ -783,20 +869,25 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 		VerticalPanel generalInfoTopPanel = new VerticalPanel();
 		
 		Label libraryNameLabel = new Label(LabelType.INFO, "CQL Library Name");
-		TextArea libraryNameValue = new TextArea();
+		
 		libraryNameLabel.getElement().setAttribute("style", "font-size:90%;margin-left:15px;background-color:#0964A2;");
 		libraryNameLabel.setWidth("150px");
+		
+		TextArea libraryNameValue = new TextArea();
 		libraryNameValue.getElement().setAttribute("style", "margin-left:15px;width:250px;height:25px;");
-		libraryNameValue.setText(MatContext.get().getCurrentMeasureName().replaceAll(" ", ""));
+		libraryNameValue.setText(createCQLLibraryName(MatContext.get().getCurrentMeasureName()));
 		libraryNameValue.setReadOnly(true);
 		
 		Label libraryVersionLabel = new Label(LabelType.INFO, "Version");
-		TextArea libraryVersionValue = new TextArea();
+		
 		libraryVersionLabel.getElement().setAttribute("style", "font-size:90%;margin-left:15px;background-color:#0964A2;");
 		libraryVersionLabel.setWidth("150px");
+		
+		TextArea libraryVersionValue = new TextArea();
 		libraryVersionValue.getElement().setAttribute("style", "margin-left:15px;width:250px;height:25px;");
 		
 		String measureVersion = MatContext.get().getCurrentMeasureVersion();
+		
 		measureVersion = measureVersion.replaceAll("Draft ", "").trim();
 		if(measureVersion.startsWith("v")){
 			measureVersion = measureVersion.substring(1);
@@ -814,12 +905,14 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 		usingModelValue.setReadOnly(true);
 		
 		Label modelVersionLabel = new Label(LabelType.INFO, "Version");
-		TextArea modelVersionValue = new TextArea();
+		
 		modelVersionLabel.getElement().setAttribute("style", "font-size:90%;margin-left:15px;background-color:#0964A2;");
 		modelVersionLabel.setWidth("150px");
+		TextArea modelVersionValue = new TextArea();
 		modelVersionValue.getElement().setAttribute("style", "margin-left:15px;width:250px;height:25px;");
-		modelVersionValue.setText("5.0");
+		//modelVersionValue.setText("5.0");
 		modelVersionValue.setReadOnly(true);
+		modelVersionValue.setText("5.0.2");
 		
 		generalInfoTopPanel.add(new SpacerWidget());
 		// messagePanel.add(successMessageAlert);
@@ -857,6 +950,22 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 		
 	}
 	
+	private String createCQLLibraryName(String currentMeasureName) {
+		currentMeasureName = currentMeasureName.replaceAll(" ", "");
+		
+		String cqlLibName = "";
+				
+		for(int i=0;i<currentMeasureName.length();i++){
+			char c = currentMeasureName.charAt(i);
+			int intc = (int)c;
+			if(c == '_' || (intc >= 48 && intc <= 57) || (intc >= 65 && intc <= 90) || (intc >= 97 && intc <= 122)){
+				cqlLibName = cqlLibName + "" + c;
+			}
+		}
+		
+		return cqlLibName;
+	}
+
 	/**
 	 * Method to create Right Hand side Nav bar in CQL Workspace.
 	 */
@@ -974,9 +1083,11 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 		navPills.setWidth("200px");
 		
 		messagePanel.add(successMessageAlert);
+		messagePanel.add(warningMessageAlert);
 		messagePanel.add(errorMessageAlert);
 		messagePanel.add(warningConfirmationMessageAlert);
 		messagePanel.add(globalWarningConfirmationMessageAlert);
+		messagePanel.add(deleteConfirmationMessgeAlert);
 		
 		// rightHandNavPanel.add(messagePanel);
 		rightHandNavPanel.add(navPills);
@@ -1000,8 +1111,8 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 		rightVerticalPanel.getElement().setId("rhsVerticalPanel_VerticalPanelParam");
 		rightVerticalPanel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
 		Label paramLibraryLabel = new Label("Parameter Library");
-		searchSuggestTextBox = new SuggestBox();
-		updateSuggestOracle();
+		searchSuggestTextBox = new SuggestBox(getSuggestOracle(parameterNameMap.values()));
+		//updateSuggestOracle();
 		searchSuggestTextBox.setWidth("180px");
 		searchSuggestTextBox.setText("Search");
 		searchSuggestTextBox.getElement().setId("searchTextBox_TextBoxParameterLib");
@@ -1059,8 +1170,8 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 		rightVerticalPanel.getElement().setId("rhsVerticalPanel_VerticalPanelParam");
 		rightVerticalPanel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
 		Label defineLibraryLabel = new Label("Definition Library");
-		searchSuggestDefineTextBox = new SuggestBox();
-		updateSuggestDefineOracle();
+		searchSuggestDefineTextBox = new SuggestBox(getSuggestOracle(defineNameMap.values()));
+		//updateNewSuggestDefineOracle();
 		searchSuggestDefineTextBox.setWidth("180px");
 		searchSuggestDefineTextBox.setText("Search");
 		searchSuggestDefineTextBox.getElement().setId("searchTextBox_TextBoxParameterLib");
@@ -1117,8 +1228,8 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 		rightVerticalPanel.getElement().setId("rhsVerticalPanel_VerticalPanelFunc");
 		rightVerticalPanel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
 		Label functionLibraryLabel = new Label("Function Library");
-		searchSuggestFuncTextBox = new SuggestBox();
-		updateSuggestFuncOracle();
+		searchSuggestFuncTextBox = new SuggestBox(getSuggestOracle(funcNameMap.values()));
+		//updateNewSuggestFuncOracle();
 		searchSuggestFuncTextBox.setWidth("180px");
 		searchSuggestFuncTextBox.setText("Search");
 		searchSuggestFuncTextBox.getElement().setId("searchTextBox_TextBoxFuncLib");
@@ -1155,6 +1266,10 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 		
 	}
 	
+	private SuggestOracle getSuggestOracle(Collection<String> values) {
+		return new CQLSuggestOracle(values);
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -1234,7 +1349,8 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 		
 		vp.add(new SpacerWidget());
 		vp.add(parameterFP);
-		vp.setHeight("675px");
+		vp.setHeight("675px");	
+		
 		addParameterEventHandler();
 		mainFlowPanel.add(vp);
 		
@@ -1299,6 +1415,7 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 	public void clearAndAddParameterNamesToListBox() {
 		if (parameterNameListBox != null) {
 			parameterNameListBox.clear();
+			viewParameterList = sortParamList(viewParameterList);
 			for (CQLParameter param : viewParameterList) {
 				parameterNameListBox.addItem(param.getParameterName(), param.getId());
 			}
@@ -1313,6 +1430,16 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 		}
 	}
 	
+	private List<CQLParameter> sortParamList(List<CQLParameter> viewParamList) {
+		Collections.sort(viewParamList, new Comparator<CQLParameter>() {
+		      @Override
+		      public int compare(final CQLParameter object1, final CQLParameter object2) {
+		          return object1.getParameterName().compareToIgnoreCase(object2.getParameterName());
+		      }
+		  });
+	return viewParamList;
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -1367,7 +1494,7 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 		
 		Label defineContextLabel = new Label(LabelType.INFO, "Context");
 		FlowPanel defineConextPanel = new FlowPanel();
-		
+				
 		contextDefinePATRadioBtn.setValue(true);
 		contextDefinePATRadioBtn.setText("Patient");
 		contextDefinePATRadioBtn.setId("context_PatientRadioButton");
@@ -1375,6 +1502,7 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 		contextDefinePOPRadioBtn.setText("Population");
 		contextDefinePOPRadioBtn.setId("context_PopulationRadioButton");
 		
+		defineButtonBar.getTimingExpButton().setVisible(false);
 		defineConextPanel.add(contextDefinePATRadioBtn);
 		defineConextPanel.add(contextDefinePOPRadioBtn);
 		defineConextPanel.setStyleName("contextToggleSwitch");
@@ -1392,7 +1520,7 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 		definitionVP.setStyleName("topping");
 		definitionFP.add(definitionVP);
 		definitionFP.setStyleName("cqlRightContainer");
-		
+				
 		VerticalPanel vp = new VerticalPanel();
 		vp.setStyleName("cqlRightContainer");
 		vp.setWidth("700px");
@@ -1439,6 +1567,33 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 		}
 	}
 	
+	/**
+	 * Update suggest param oracle.
+	 */
+	public void updateNewSuggestParamOracle() {
+		if (searchSuggestDefineTextBox != null) {
+			CQLSuggestOracle cqlSuggestOracle = new CQLSuggestOracle(parameterNameMap.values());
+		}
+	}
+	
+	/**
+	 * Update suggest define oracle.
+	 */
+	public void updateNewSuggestDefineOracle() {
+		if (searchSuggestDefineTextBox != null) {
+			CQLSuggestOracle cqlSuggestOracle = new CQLSuggestOracle(defineNameMap.values());
+		}
+	}
+	
+	/**
+	 * Update suggest func oracle.
+	 */
+	public void updateNewSuggestFuncOracle() {
+		if (searchSuggestFuncTextBox != null) {
+			CQLSuggestOracle cqlSuggestOracle = new CQLSuggestOracle(funcNameMap.values());
+		}
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -1452,6 +1607,7 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 	public void clearAndAddDefinitionNamesToListBox() {
 		if (defineNameListBox != null) {
 			defineNameListBox.clear();
+			viewDefinitions = sortDefinitionNames(viewDefinitions);
 			for (CQLDefinition define : viewDefinitions) {
 				defineNameListBox.addItem(define.getDefinitionName(), define.getId());
 			}
@@ -1466,6 +1622,16 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 		}
 	}
 	
+	private List<CQLDefinition> sortDefinitionNames(List<CQLDefinition> viewDef) {
+		Collections.sort(viewDef, new Comparator<CQLDefinition>() {
+		      @Override
+		      public int compare(final CQLDefinition object1, final CQLDefinition object2) {
+		          return object1.getDefinitionName().compareToIgnoreCase(object2.getDefinitionName());
+		      }
+		  });
+	return viewDef;
+	}
+
 	/**
 	 * Clear and add functions names to list box.
 	 */
@@ -1473,6 +1639,8 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 	public void clearAndAddFunctionsNamesToListBox() {
 		if (funcNameListBox != null) {
 			funcNameListBox.clear();
+			//sort functions
+			viewFunctions = sortFunctionNames(viewFunctions);
 			for (CQLFunctions func : viewFunctions) {
 				funcNameListBox.addItem(func.getFunctionName(), func.getId());
 			}
@@ -1487,6 +1655,16 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 		}
 	}
 	
+	private List<CQLFunctions> sortFunctionNames(List<CQLFunctions> viewFunc) {
+			  Collections.sort(viewFunc, new Comparator<CQLFunctions>() {
+			      @Override
+			      public int compare(final CQLFunctions object1, final CQLFunctions object2) {
+			          return object1.getFunctionName().compareToIgnoreCase(object2.getFunctionName());
+			      }
+			  });
+		return viewFunc;
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -1559,11 +1737,12 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 		contextFuncPOPRadioBtn.setValue(false);
 		contextFuncPOPRadioBtn.setText("Population");
 		contextFuncPOPRadioBtn.setId("context_PopulationRadioButton");
+		functionButtonBar.getTimingExpButton().setVisible(false);
 		
 		funcConextPanel.add(contextFuncPATRadioBtn);
 		funcConextPanel.add(contextFuncPOPRadioBtn);
 		funcConextPanel.setStyleName("contextToggleSwitch");
-		
+				
 		funcVP.add(new SpacerWidget());
 		funcVP.add(functionNameLabel);
 		funcVP.add(new SpacerWidget());
@@ -2201,7 +2380,7 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 	 * @return the parameter map
 	 */
 	@Override
-	public HashMap<String, CQLParameter> getParameterMap() {
+	public Map<String, CQLParameter> getParameterMap() {
 		return parameterMap;
 	}
 	
@@ -2217,7 +2396,7 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 	 * @return the parameter name map
 	 */
 	@Override
-	public HashMap<String, String> getParameterNameMap() {
+	public Map<String, String> getParameterNameMap() {
 		return parameterNameMap;
 	}
 	
@@ -2249,7 +2428,7 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 	 * @return the define name map
 	 */
 	@Override
-	public HashMap<String, String> getDefineNameMap() {
+	public Map<String, String> getDefineNameMap() {
 		return defineNameMap;
 	}
 	
@@ -2265,7 +2444,7 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 	 * @return the definition map
 	 */
 	@Override
-	public HashMap<String, CQLDefinition> getDefinitionMap() {
+	public Map<String, CQLDefinition> getDefinitionMap() {
 		return definitionMap;
 	}
 	
@@ -2804,7 +2983,7 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 	 * getFunctionMap()
 	 */
 	@Override
-	public HashMap<String, CQLFunctions> getFunctionMap() {
+	public Map<String, CQLFunctions> getFunctionMap() {
 		return functionMap;
 	}
 	
@@ -2893,6 +3072,28 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 	public Button getGlobalWarningConfirmationNoButton() {
 		return getGlobalWarningConfirmationMessageAlert().getWarningConfirmationNoButton();
 	}
+	
+	@Override
+	public DeleteConfirmationDialogBox getDeleteConfirmationDialogBox() {
+		return deleteConfirmationDialogBox;
+	}
+	
+	@Override
+	public void setDeleteConfirmationDialogBox(DeleteConfirmationDialogBox deleteConfirmationDialogBox) {
+		this.deleteConfirmationDialogBox = deleteConfirmationDialogBox;
+	}
+	
+	@Override
+	public Button getDeleteConfirmationDialogBoxYesButton() {
+		return this.deleteConfirmationDialogBox.getYesButton();
+	}
+	
+	@Override
+	public Button getDeleteConfirmationDialogBoxNoButton() {
+		return this.deleteConfirmationDialogBox.getNoButton();
+	}
+	
+
 	
 	
 	/*
@@ -3181,7 +3382,7 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 	 *
 	 * @return the func name map
 	 */
-	public HashMap<String, String> getFuncNameMap() {
+	public Map<String, String> getFuncNameMap() {
 		return funcNameMap;
 	}
 	
@@ -3344,12 +3545,12 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 		dialogContents.getElement().setId("dialogContents_VerticalPanel");
 		panel.setWidget(dialogContents);
 		
-		HTML html1 = new HTML("CTRL-Alt-t  :timings");
-		HTML html2 = new HTML("Ctrl-Alt-f  :functions");
-		HTML html3 = new HTML("Ctrl-Alt-d  :definitions");
-		HTML html4 = new HTML("Ctrl-Alt-p  :parameters");
-		HTML html5 = new HTML("Ctrl-Alt-a  :attributes");
-		HTML html6 = new HTML("Ctrl-Space :all");
+		HTML html1 = new HTML("CTRL-Alt-t  : Timings");
+		HTML html2 = new HTML("Ctrl-Alt-f  : Functions");
+		HTML html3 = new HTML("Ctrl-Alt-d  : Definitions");
+		HTML html4 = new HTML("Ctrl-Alt-p  : Parameters");
+		HTML html5 = new HTML("Ctrl-Alt-a  : Attributes");
+		HTML html6 = new HTML("Ctrl-Space  : All");
 		dialogContents.add(html1);
 		dialogContents.add(html2);
 		dialogContents.add(html3);
@@ -3499,9 +3700,11 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 	@Override
 	public void resetMessageDisplay() {
 		getSuccessMessageAlert().clearAlert();
+		getWarningMessageAlert().clearAlert();
 		getErrorMessageAlert().clearAlert();
 		getWarningConfirmationMessageAlert().clearAlert();
 		getGlobalWarningConfirmationMessageAlert().clearAlert();
+		getDeleteConfirmationMessageAlert().clearAlert(); 
 		hideAceEditorAutoCompletePopUp();
 		
 	}
@@ -3623,8 +3826,10 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 	@Override
 	public void showUnsavedChangesWarning() {
 		getErrorMessageAlert().clearAlert();
+		getWarningMessageAlert().clearAlert();
 		getSuccessMessageAlert().clearAlert();
 		getGlobalWarningConfirmationMessageAlert().clearAlert();
+		getDeleteConfirmationMessageAlert().clearAlert();
 		getWarningConfirmationMessageAlert().createAlert();
 		getWarningConfirmationMessageAlert().getWarningConfirmationYesButton().setFocus(true);
 	}
@@ -3635,8 +3840,10 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 	@Override
 	public void showGlobalUnsavedChangesWarning() {
 		getErrorMessageAlert().clearAlert();
+		getWarningMessageAlert().clearAlert(); 
 		getSuccessMessageAlert().clearAlert();
 		getWarningConfirmationMessageAlert().clearAlert();
+		getDeleteConfirmationMessageAlert().clearAlert();
 		getGlobalWarningConfirmationMessageAlert().createAlert();
 		getGlobalWarningConfirmationMessageAlert().getWarningConfirmationYesButton().setFocus(true);
 	}
@@ -3649,6 +3856,51 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 	@Override
 	public Button getFuncTimingExpButton(){
 		return getFunctionButtonBar().getTimingExpButton();
+	}
+	
+	@Override
+	public DeleteConfirmationMessageAlert getDeleteConfirmationMessageAlert() {
+		return this.deleteConfirmationMessgeAlert; 
+	}
+	
+	@Override
+	public void setDeleteConfirmationMessageAlert(DeleteConfirmationMessageAlert deleteConfirmationMessageAlert) {
+		this.deleteConfirmationMessgeAlert = deleteConfirmationMessageAlert; 
+	}
+	
+	@Override
+	public void showDeleteConfirmationMessageAlert(String message) {
+		getErrorMessageAlert().clearAlert();
+		getWarningMessageAlert().clearAlert();
+		getSuccessMessageAlert().clearAlert();
+		getWarningConfirmationMessageAlert().clearAlert();
+		getDeleteConfirmationMessageAlert().createWarningAlert(message);
+		getDeleteConfirmationMessageAlert().getWarningConfirmationYesButton().setFocus(true);
+	}
+	
+	@Override
+	public Button getDeleteConfirmationYesButton() {
+		return this.getDeleteConfirmationMessageAlert().getWarningConfirmationYesButton();
+	}
+	
+	@Override
+	public Button getDeleteConfirmationNoButton() {
+		return this.getDeleteConfirmationMessageAlert().getWarningConfirmationNoButton();
+	}
+	
+	@Override
+	public void setUsedCQLArtifacts(GetUsedCQLArtifactsResult results) {
+		this.usedCqlArtifacts = results; 
+	}
+
+	@Override
+	public void setWarningMessageAlert(WarningMessageAlert warningMessageAlert) {
+		this.warningMessageAlert = warningMessageAlert; 
+	}
+
+	@Override
+	public MessageAlert getWarningMessageAlert() {
+		return warningMessageAlert;
 	}
 	
 }
