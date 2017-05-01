@@ -1544,6 +1544,8 @@ var Autocomplete = function() {
         	var funcsKeywords = window.funcsList();
         	var paramKeywords = window.paramList();
         	var attributesKeywords = window.allAttributeList();
+        	var dataTypeKeywords = window.dataTypeList(); 
+        	var valueSetKeywords = window.valueSetList(); 
         	var allWords = window.definitioList()+window.funcsList()+window.paramList()+window.allAttributeList()+timingKeywords;
             
             if(keyString == "t"){
@@ -1572,7 +1574,16 @@ var Autocomplete = function() {
             } else if(keyString == "a"){
             	matches = [];
             	this.getSpecificKeyWords(attributesKeywords, matches, "attributes");
+            } else if(keyString == "y"){
+            	matches = []; 
+            	this.getSpecificKeyWords(dataTypeKeywords, matches, "datatypes");
+            } else if(keyString == "v") {
+            	matches = []; 
+            	this.getSpecificKeyWords(valueSetKeywords, matches, "valuesets");
+
             } else if(keyString == "space"){
+            	this.getSpecificKeyWords(valueSetKeywords, matches, "valuesets");
+            	this.getSpecificKeyWords(dataTypeKeywords, matches, "datatypes");
             	this.getSpecificKeyWords(timingKeywords,matches, "timings");
             	
             	var fk1 = [];
@@ -1705,7 +1716,7 @@ Autocomplete.startCommand = {
         editor.completer.showPopup(editor);
         editor.completer.cancelContextMenu();
     },
-    bindKey: "Ctrl-Space|Ctrl-Alt-Space|Alt-Space|Ctrl-Alt-t|Ctrl-Alt-f|Ctrl-Alt-d|Ctrl-Alt-p|Ctrl-Alt-a"
+    bindKey: "Ctrl-Space|Ctrl-Alt-Space|Alt-Space|Ctrl-Alt-t|Ctrl-Alt-f|Ctrl-Alt-d|Ctrl-Alt-p|Ctrl-Alt-a|Ctrl-Alt-y|Ctrl-Alt-v"
 };
 
 var FilteredList = function(array, filterText, mutateData) {

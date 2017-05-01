@@ -1,11 +1,13 @@
 package mat.client.umls.service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import mat.model.MatValueSet;
 import mat.model.QualityDataSetDTO;
-import mat.model.VSACExpansionIdentifier;
+import mat.model.VSACExpansionProfile;
 import mat.model.VSACVersion;
+import mat.model.cql.CQLQualityDataSetDTO;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
 
@@ -34,12 +36,18 @@ public class VsacApiResult implements IsSerializable {
 	
 	/** The QualityDataSetDTO List. */
 	private List<QualityDataSetDTO> updatedQualityDataDTOLIst;
+	
+	/** The CQLQualityDataSetDTO List. */
+	private List<CQLQualityDataSetDTO> updatedCQLQualityDataDTOLIst;
+	
 	/** The vsac response. */
 	private List<MatValueSet> vsacResponse;
 	
-	private List<VSACExpansionIdentifier> vsacExpIdentifierResp;
+	private List<VSACExpansionProfile> vsacExpProfileResp;
 	
 	private List<VSACVersion> vsacVersionResp;
+	
+	private HashMap<CQLQualityDataSetDTO, CQLQualityDataSetDTO> cqlQualityDataSetMap;
 	
 	/**
 	 * Gets the failure reason.
@@ -121,17 +129,31 @@ public class VsacApiResult implements IsSerializable {
 	}
 
 	/**
+	 * @return the updatedCQLQualityDataDTOLIst
+	 */
+	public List<CQLQualityDataSetDTO> getUpdatedCQLQualityDataDTOLIst() {
+		return updatedCQLQualityDataDTOLIst;
+	}
+
+	/**
+	 * @param updatedCQLQualityDataDTOLIst the updatedCQLQualityDataDTOLIst to set
+	 */
+	public void setUpdatedCQLQualityDataDTOLIst(List<CQLQualityDataSetDTO> updatedCQLQualityDataDTOLIst) {
+		this.updatedCQLQualityDataDTOLIst = updatedCQLQualityDataDTOLIst;
+	}
+
+	/**
 	 * @return the vsacProfileResp
 	 */
-	public List<VSACExpansionIdentifier> getVsacExpIdentifierResp() {
-		return vsacExpIdentifierResp;
+	public List<VSACExpansionProfile> getVsacExpProfileResp() {
+		return vsacExpProfileResp;
 	}
 
 	/**
 	 * @param vsacProfileResp the vsacProfileResp to set
 	 */
-	public void setVsacExpIdentifierResp(List<VSACExpansionIdentifier> vsacExpIdentifierResp) {
-		this.vsacExpIdentifierResp = vsacExpIdentifierResp;
+	public void setVsacExpProfileResp(List<VSACExpansionProfile> vsacExpProfileResp) {
+		this.vsacExpProfileResp = vsacExpProfileResp;
 	}
 
 	public List<VSACVersion> getVsacVersionResp() {
@@ -140,6 +162,14 @@ public class VsacApiResult implements IsSerializable {
 
 	public void setVsacVersionResp(List<VSACVersion> vsacVersionResp) {
 		this.vsacVersionResp = vsacVersionResp;
+	}
+
+	public HashMap<CQLQualityDataSetDTO, CQLQualityDataSetDTO> getCqlQualityDataSetMap() {
+		return cqlQualityDataSetMap;
+	}
+
+	public void setCqlQualityDataSetMap(HashMap<CQLQualityDataSetDTO, CQLQualityDataSetDTO> cqlQualityDataSetMap) {
+		this.cqlQualityDataSetMap = cqlQualityDataSetMap;
 	}
 	
 }

@@ -5,8 +5,14 @@ import mat.client.admin.ManageAdminPresenter;
 import mat.client.admin.reports.ManageAdminReportingPresenter;
 import mat.client.admin.reports.ManageAdminReportingView;
 import mat.client.codelist.ListBoxCodeProvider;
+import mat.client.cql.CQLLibraryDetailView;
+import mat.client.cql.CQLLibraryDraftView;
+import mat.client.cql.CQLLibraryHistoryView;
+import mat.client.cql.CQLLibraryShareView;
+import mat.client.cql.CQLLibraryVersionView;
 import mat.client.event.BackToLoginPageEvent;
 import mat.client.event.BackToMeasureLibraryPage;
+import mat.client.event.CQLLibraryEditEvent;
 import mat.client.event.LogoffEvent;
 import mat.client.event.MATClickHandler;
 import mat.client.event.MeasureEditEvent;
@@ -164,6 +170,12 @@ public class Mat extends MainLayout implements EntryPoint, Enableable{
 	/** The measure library. */
 	private ManageMeasurePresenter measureLibrary;
 	
+	/** The cql composer. */
+	private CqlComposerPresenter cqlComposer;
+	
+	/** The cql library. */
+	private CqlLibraryPresenter cqlLibrary;
+	
 	private ManageAdminReportingPresenter reportingPresenter;
 	
 	/** The tab index. */
@@ -230,6 +242,15 @@ public class Mat extends MainLayout implements EntryPoint, Enableable{
 	}
 	
 	/**
+	 * Builds the cql composer.
+	 *
+	 * @return the cql composer presenter
+	 */
+	private CqlComposerPresenter buildCqlComposer() {
+		return new CqlComposerPresenter();
+	}
+	
+	/**
 	 * Builds the measure library widget.
 	 *
 	 * @param isAdmin the is admin
@@ -276,6 +297,23 @@ public class Mat extends MainLayout implements EntryPoint, Enableable{
 		
 	}
 	
+	/**
+	 * Builds the cql library widget.
+	 *
+	 * @param isAdmin the is admin
+	 * @return the cql library presenter
+	 */
+	private CqlLibraryPresenter buildCqlLibraryWidget() {
+		CqlLibraryView cqlLibraryView = new CqlLibraryView();
+		CQLLibraryDetailView detailView = new CQLLibraryDetailView();
+		CQLLibraryVersionView versionView = new CQLLibraryVersionView();
+		CQLLibraryDraftView draftView = new CQLLibraryDraftView();
+		CQLLibraryShareView shareView = new CQLLibraryShareView();
+		CQLLibraryHistoryView historyView = new CQLLibraryHistoryView();
+		CqlLibraryPresenter cqlLibraryPresenter = new CqlLibraryPresenter(cqlLibraryView, detailView, 
+				versionView,draftView, shareView, historyView);
+		return cqlLibraryPresenter;
+	}
 	/**
 	 * Builds the my account widget.
 	 *
@@ -420,6 +458,15 @@ public class Mat extends MainLayout implements EntryPoint, Enableable{
 			}
 		});
 		
+		MatContext.get().getEventBus().addHandler(CQLLibraryEditEvent.TYPE, new CQLLibraryEditEvent.Handler() {
+			@Override
+			final public void onCQLLibraryEdit(CQLLibraryEditEvent event) {
+				//				currentMeasure.setText(event.getMeasureName());
+				mainTabLayout.selectTab(cqlComposer);
+				focusSkipLists("CqlComposer");
+			}
+		});
+		
 		MatContext.get().getEventBus().addHandler(BackToMeasureLibraryPage.TYPE, new BackToMeasureLibraryPage.Handler() {
 			
 			@Override
@@ -510,6 +557,14 @@ public class Mat extends MainLayout implements EntryPoint, Enableable{
 			measureComposer= buildMeasureComposer();
 			title = ClientConstants.TITLE_MEASURE_COMPOSER;
 			tabIndex = mainTabLayout.addPresenter(measureComposer, mainTabLayout.fmt.normalTitle(title));
+			
+			cqlLibrary = buildCqlLibraryWidget();
+			title = ClientConstants.TITLE_CQL_LIB;
+			tabIndex = mainTabLayout.addPresenter(cqlLibrary, mainTabLayout.fmt.normalTitle(title));
+			
+			cqlComposer= buildCqlComposer();
+			title = ClientConstants.TITLE_CQL_COMPOSER;
+			tabIndex = mainTabLayout.addPresenter(cqlComposer, mainTabLayout.fmt.normalTitle(title));
 			
 			title = ClientConstants.TITLE_MY_ACCOUNT;
 			tabIndex = mainTabLayout.addPresenter(buildMyAccountWidget(), mainTabLayout.fmt.normalTitle(title));

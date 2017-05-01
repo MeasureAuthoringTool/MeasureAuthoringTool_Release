@@ -3,11 +3,13 @@ package mat.dao.impl;
 import java.util.Date;
 
 import mat.model.AuditLog;
+import mat.model.CQLAuditLog;
 import mat.model.CodeListAuditLog;
 import mat.model.CodeSystem;
 import mat.model.ListObject;
 import mat.model.MeasureAuditLog;
 import mat.model.QualityDataSet;
+import mat.model.clause.CQLLibrary;
 import mat.model.clause.Measure;
 import mat.model.clause.MeasureExport;
 import mat.server.LoggedInUserUtil;
@@ -83,7 +85,7 @@ public class AuditEventListener implements  PreDeleteEventListener, PreInsertEve
 	private boolean shouldAudit(Object obj, String event) {
 		if(event.equals(ConstantMessages.INSERT)){
 			return obj instanceof Measure ||  
-				obj instanceof QualityDataSet || obj instanceof ListObject || obj instanceof MeasureExport;
+				obj instanceof QualityDataSet || obj instanceof CQLLibrary || obj instanceof MeasureExport;
 		}else{
 			//Production Error fix subsequent measurePackaging update information is not logged.
 			return obj instanceof MeasureExport  || obj instanceof QualityDataSet;			
@@ -105,6 +107,7 @@ public class AuditEventListener implements  PreDeleteEventListener, PreInsertEve
 		Object returnObject = null;
 		String user = LoggedInUserUtil.getLoggedInUser();
 		String emailAddress = LoggedInUserUtil.getLoggedInUserEmailAddress();
+		String userName = LoggedInUserUtil.getLoggedUserName();
 
 		//JUNIT tests doesn't use any user
 		if(user == null){
@@ -125,25 +128,15 @@ public class AuditEventListener implements  PreDeleteEventListener, PreInsertEve
 				measureAuditLog.setMeasure(((MeasureExport)obj).getMeasure());
 			}
 			returnObject = measureAuditLog;
-		}else if(obj instanceof ListObject) {
-			CodeSystem codeSystem = ((ListObject) obj).getCodeSystem();
-			Boolean draft = ((ListObject) obj).isDraft();
-			String descCodeSystem = null;
-			if(codeSystem != null){
-				descCodeSystem = codeSystem.getDescription();
+		} else if(obj instanceof CQLLibrary) {
+			CQLAuditLog cqlAuditLog = new CQLAuditLog();
+			cqlAuditLog.setTime(new Date());				
+			cqlAuditLog.setUserId(userName);
+			if(obj instanceof CQLLibrary){
+				cqlAuditLog.setActivityType("CQL Library Created");
+				cqlAuditLog.setCqlLibrary((CQLLibrary)obj);
 			}
-			CodeListAuditLog codeListAuditLog = new CodeListAuditLog();
-			if(descCodeSystem != null && descCodeSystem.equalsIgnoreCase(ConstantMessages.GROUPED_CODE_LIST_CS)){
-				if(draft != null && draft.booleanValue())
-					codeListAuditLog.setActivityType("Draft Grouped Value Set Created");
-			}else{
-				if(draft != null && draft.booleanValue())
-					codeListAuditLog.setActivityType("Draft Value Set Created");
-			}
-			codeListAuditLog.setTime(new Date());
-			codeListAuditLog.setCodeList(((ListObject)obj));
-			codeListAuditLog.setUserId(emailAddress);
-			returnObject = codeListAuditLog;
+			returnObject = cqlAuditLog;
 		}else{
 			AuditLog auditLog = new AuditLog();
 			auditLog.setActivityType(activity);

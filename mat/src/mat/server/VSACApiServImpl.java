@@ -7,19 +7,18 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.Map.Entry;
 import mat.client.umls.service.VsacApiResult;
 import mat.dao.DataTypeDAO;
 import mat.model.DataType;
-import mat.model.MatConcept;
 import mat.model.MatValueSet;
 import mat.model.QualityDataModelWrapper;
 import mat.model.QualityDataSetDTO;
-import mat.model.VSACExpansionIdentifierWrapper;
+import mat.model.VSACExpansionProfileWrapper;
 import mat.model.VSACValueSetWrapper;
 import mat.model.VSACVersionWrapper;
-import mat.model.cql.CQLCodeSystem;
+import mat.model.cql.CQLQualityDataModelWrapper;
+import mat.model.cql.CQLQualityDataSetDTO;
 import mat.server.service.MeasureLibraryService;
 import mat.server.service.VSACApiService;
 import mat.server.util.ResourceLoader;
@@ -144,9 +143,9 @@ public class VSACApiServImpl implements VSACApiService{
 	 * @param xmlPayLoad the xml pay load
 	 * @return the VSAC profile wrapper
 	 */
-	private VSACExpansionIdentifierWrapper convertXmlToProfileList(final String xmlPayLoad){
+	private VSACExpansionProfileWrapper convertXmlToProfileList(final String xmlPayLoad){
 		LOGGER.info("Start VSACAPIServiceImpl convertXmlToProfileList");
-		VSACExpansionIdentifierWrapper profileDetails = null;
+		VSACExpansionProfileWrapper profileDetails = null;
 		String xml = xmlPayLoad;
 		if ((xml != null) && StringUtils.isNotBlank(xml)) {
 			LOGGER.info("xml To reterive RetrieveVSACProfileListResponse tag is not null ");
@@ -155,11 +154,11 @@ public class VSACApiServImpl implements VSACApiService{
 			Mapping mapping = new Mapping();
 			mapping.loadMapping(new ResourceLoader().getResourceAsURL("VSACExpIdentifierMapping.xml"));
 			Unmarshaller unmar = new Unmarshaller(mapping);
-			unmar.setClass(VSACExpansionIdentifierWrapper.class);
+			unmar.setClass(VSACExpansionProfileWrapper.class);
 			unmar.setWhitespacePreserve(true);
-			profileDetails = (VSACExpansionIdentifierWrapper) unmar.unmarshal(new InputSource(new StringReader(xml)));
+			profileDetails = (VSACExpansionProfileWrapper) unmar.unmarshal(new InputSource(new StringReader(xml)));
 			LOGGER.info("unmarshalling complete..RetrieveVSACProfileListResponse"
-					+ profileDetails.getExpIdentifierList().get(0).getName());
+					+ profileDetails.getExpProfileList().get(0).getName());
 			
 		} catch (Exception e) {
 			if (e instanceof IOException) {
@@ -248,6 +247,23 @@ public class VSACApiServImpl implements VSACApiService{
 			LOGGER.info("Successfully updated Measure XML for  : " + entrySet.getKey().getOid());
 		}
 		LOGGER.info("End VSACAPIServiceImpl updateAllInMeasureXml :");
+	}
+	
+	/** Method to Iterate through Map of Quality Data set DTO(modify With) as key and Quality Data Set DTO (modifiable) as Value and update
+	 * Measure XML by calling {@link MeasureLibraryServiceImpl} method 'updateMeasureXML'.
+	 * @param map - HaspMap
+	 * @param measureId - String */
+	private void updateAllCQLInLibraryXml(HashMap<CQLQualityDataSetDTO, CQLQualityDataSetDTO> map, String libraryId) {
+		LOGGER.info("Start VSACAPIServiceImpl updateAllInMeasureXml :");
+		Iterator<Entry<CQLQualityDataSetDTO, CQLQualityDataSetDTO>> it = map.entrySet().iterator();
+		while (it.hasNext()) {
+			Map.Entry<CQLQualityDataSetDTO, CQLQualityDataSetDTO> entrySet = it.next();
+			LOGGER.info("Calling updateLibraryXML for : " + entrySet.getKey().getOid());
+			getLibraryService().updateCQLLookUpTagWithModifiedValueSet(entrySet.getKey(),
+					entrySet.getValue(), libraryId);
+			LOGGER.info("Successfully updated Library XML for  : " + entrySet.getKey().getOid());
+		}
+		LOGGER.info("End VSACAPIServiceImpl updateAllInLibraryXml :");
 	}
 	/***
 	 * Method to update valueset's without versions from VSAC in Measure XML.
@@ -392,8 +408,8 @@ public class VSACApiServImpl implements VSACApiService{
 				if ((vsacResponseResult.getXmlPayLoad() != null)
 						&& StringUtils.isNotEmpty(vsacResponseResult.getXmlPayLoad())) {
 					// Caster conversion here.
-					VSACExpansionIdentifierWrapper wrapper = convertXmlToProfileList(vsacResponseResult.getXmlPayLoad());
-					result.setVsacExpIdentifierResp(wrapper.getExpIdentifierList());
+					VSACExpansionProfileWrapper wrapper = convertXmlToProfileList(vsacResponseResult.getXmlPayLoad());
+					result.setVsacExpProfileResp(wrapper.getExpProfileList());
 					return result;
 				}
 			}
@@ -586,6 +602,139 @@ public class VSACApiServImpl implements VSACApiService{
 		LOGGER.info("End VSACAPIServiceImpl updateVSACValueSets method :");
 		return result;
 	}
+	
+	/**
+	 * *
+	 * Method to update valueset's without versions from VSAC in Measure XML.
+	 * Skip supplemental Data Elements and Timing elements, Expired, Birth date and User defined QDM.
+	 *
+	 * @param measureId            - Selected Measure Id.
+	 * @param defaultExpId the default exp id
+	 * @return VsacApiResult - Result.
+	 */
+	@Override
+	public final VsacApiResult updateCQLVSACValueSets(List<CQLQualityDataSetDTO> appliedQDMList, String defaultExpId, String sessionId) {
+		VsacApiResult result = new VsacApiResult();
+		LOGGER.info("Start VSACAPIServiceImpl updateVSACValueSets method :");
+		if (isAlreadySignedIn(sessionId)) {
+			HashMap<CQLQualityDataSetDTO, CQLQualityDataSetDTO> updateInMeasureXml =
+					new HashMap<CQLQualityDataSetDTO, CQLQualityDataSetDTO>();
+			ArrayList<CQLQualityDataSetDTO> modifiedQDMList = new ArrayList<CQLQualityDataSetDTO>();
+			if (defaultExpId == null) {
+				defaultExpId = getDefaultExpId();
+			}
+			for (CQLQualityDataSetDTO cqlQualityDataSetDTO : appliedQDMList) {
+				CQLQualityDataSetDTO toBeModifiedQDM = cqlQualityDataSetDTO;
+				LOGGER.info(" VSACAPIServiceImpl updateVSACValueSets :: OID:: " + cqlQualityDataSetDTO.getOid());
+				// Filter out Timing Element , Expired, Birthdate, User defined QDM's and
+				// supplemental data elements.
+				if (ConstantMessages.TIMING_ELEMENT.equals(cqlQualityDataSetDTO.getDataType())
+						|| ConstantMessages.USER_DEFINED_QDM_OID.equalsIgnoreCase(cqlQualityDataSetDTO.getOid())
+						|| cqlQualityDataSetDTO.isSuppDataElement()
+						|| ConstantMessages.BIRTHDATE_OID.equals(cqlQualityDataSetDTO.getOid())
+						|| ConstantMessages.EXPIRED_OID.equals(cqlQualityDataSetDTO.getOid())) {
+					LOGGER.info("VSACAPIServiceImpl updateVSACValueSets :: QDM filtered as it is of either"
+							+ "for following type Supplemental data or User defined or Timing Element.");
+					if (ConstantMessages.USER_DEFINED_QDM_OID.equalsIgnoreCase(cqlQualityDataSetDTO.getOid())) {
+						toBeModifiedQDM.setNotFoundInVSAC(true);
+						toBeModifiedQDM.setHasModifiedAtVSAC(true);
+						modifiedQDMList.add(toBeModifiedQDM);
+						DataType qdmDataType = getDataTypeDAO().findByDataTypeName(toBeModifiedQDM.getDataType());
+						if ((qdmDataType == null) || ConstantMessages.PATIENT_CHARACTERISTIC_BIRTHDATE.equals(
+								cqlQualityDataSetDTO.getDataType()) || ConstantMessages.
+								PATIENT_CHARACTERISTIC_EXPIRED.equals(cqlQualityDataSetDTO.getDataType())) {
+							toBeModifiedQDM.setDataTypeHasRemoved(true);
+						}
+					}
+					continue;
+				} else {
+					LOGGER.info("Start ValueSetsResponseDAO...Using Proxy:" + PROXY_HOST + ":" + PROXY_PORT);
+					VSACResponseResult vsacResponseResult = null;
+					try {
+						String fiveMinuteServiceTicket = vGroovyClient.getServiceTicket(
+								UMLSSessionTicket.getTicket(sessionId));
+						if(cqlQualityDataSetDTO.getExpansionIdentifier() != null){
+							vsacResponseResult = vGroovyClient.getMultipleValueSetsResponseByOIDAndProfile(cqlQualityDataSetDTO.getOid(),
+									cqlQualityDataSetDTO.getExpansionIdentifier(), fiveMinuteServiceTicket);
+						} else  {
+							if (!(cqlQualityDataSetDTO.getVersion().equals("1.0")
+									|| cqlQualityDataSetDTO.getVersion().equals("1"))) {
+								vsacResponseResult = vGroovyClient.
+										getMultipleValueSetsResponseByOIDAndVersion(cqlQualityDataSetDTO.getOid(),
+												cqlQualityDataSetDTO.getVersion(), fiveMinuteServiceTicket);
+							} else {
+								vsacResponseResult = vGroovyClient.getMultipleValueSetsResponseByOID(
+										cqlQualityDataSetDTO.getOid(), fiveMinuteServiceTicket, defaultExpId);
+							}
+						}
+					} catch (Exception ex) {
+						LOGGER.info("VSACAPIServiceImpl updateVSACValueSets :: Value Set reterival failed at "
+								+ "VSAC for OID :" + cqlQualityDataSetDTO.getOid() + " with Data Type : "
+								+ cqlQualityDataSetDTO.getDataType());
+					}
+					if ((vsacResponseResult != null) && (vsacResponseResult.getXmlPayLoad() != null)) {
+						if (vsacResponseResult.getIsFailResponse()
+								&& (vsacResponseResult.getFailReason() == VSAC_TIME_OUT_FAILURE_CODE)) {
+							LOGGER.info("Value Set reterival failed at VSAC for OID :"
+									+ cqlQualityDataSetDTO.getOid() + " with Data Type : "
+									+ cqlQualityDataSetDTO.getDataType() + ". Failure Reason: "
+									+ vsacResponseResult.getFailReason());
+							// inValidateVsacUser();
+							// MatContext.get().setUMLSLoggedIn(false);
+							result.setSuccess(false);
+							result.setFailureReason(vsacResponseResult.getFailReason());
+							return result;
+						}
+						if ((vsacResponseResult.getXmlPayLoad() != null)
+								&& StringUtils.isNotEmpty(vsacResponseResult.getXmlPayLoad())) {
+							VSACValueSetWrapper wrapper = convertXmltoValueSet(vsacResponseResult.getXmlPayLoad());
+							MatValueSet matValueSet = wrapper.getValueSetList().get(0);
+							if (matValueSet != null) {
+								cqlQualityDataSetDTO.setCodeListName(matValueSet.getDisplayName());
+								if (matValueSet.isGrouping()) {
+									cqlQualityDataSetDTO.setTaxonomy(ConstantMessages.
+											GROUPING_CODE_SYSTEM);
+								} else {
+									if (matValueSet.getConceptList().getConceptList() != null) {
+										cqlQualityDataSetDTO.setTaxonomy(matValueSet.getConceptList().
+												getConceptList().get(0).getCodeSystemName());
+									} else {
+										cqlQualityDataSetDTO.setTaxonomy(StringUtils.EMPTY);
+									}
+								}
+								updateInMeasureXml.put(cqlQualityDataSetDTO, toBeModifiedQDM);
+								toBeModifiedQDM.setHasModifiedAtVSAC(true); // Used at Applied QDM Tab
+								//to show icons in CellTable.
+							}
+						} else {
+							toBeModifiedQDM.setHasModifiedAtVSAC(true);
+							toBeModifiedQDM.setNotFoundInVSAC(true);
+						}
+					} else {
+						toBeModifiedQDM.setHasModifiedAtVSAC(true);
+						toBeModifiedQDM.setNotFoundInVSAC(true);
+					}
+				}
+				//to validate removed DataTypes in Applied QDM ELements
+				DataType qdmDataType = getDataTypeDAO().findByDataTypeName(toBeModifiedQDM.getDataType());
+				if((qdmDataType == null) || ConstantMessages.PATIENT_CHARACTERISTIC_BIRTHDATE.equals(cqlQualityDataSetDTO.getDataType())
+						|| ConstantMessages.PATIENT_CHARACTERISTIC_EXPIRED.equals(cqlQualityDataSetDTO.getDataType())){
+					toBeModifiedQDM.setDataTypeHasRemoved(true);
+				}
+				modifiedQDMList.add(toBeModifiedQDM);
+			}
+			result.setCqlQualityDataSetMap(updateInMeasureXml);
+			result.setSuccess(true);
+			result.setUpdatedCQLQualityDataDTOLIst(modifiedQDMList);
+		} else {
+			result.setSuccess(false);
+			result.setFailureReason(result.UMLS_NOT_LOGGEDIN);
+			LOGGER.info("VSACAPIServiceImpl updateVSACValueSets :: UMLS Login is required");
+		}
+		LOGGER.info("End VSACAPIServiceImpl updateVSACValueSets method :");
+		return result;
+	}
+	
 	/**
 	 *Method to authenticate user at VSAC and save eightHourTicket into UMLSSessionMap for valid user.
 	 *@param userName - String.
@@ -865,6 +1014,139 @@ public class VSACApiServImpl implements VSACApiService{
 	 * */
 	public final MeasureLibraryService getMeasureLibraryService() {
 		return (MeasureLibraryService) context.getBean("measureLibraryService");
+	}
+	
+	/**
+	 * CQL Library Service Object.
+	 * @return cqlLibraryService.
+	 * */
+	public final CQLLibraryService getLibraryService() {
+		return (CQLLibraryService) context.getBean("cqlLibraryService");
+	}
+
+	public VsacApiResult updateStandaloneCQLVSACValueSets(String libraryId, String defaultExpId2, String sessionId) {
+
+		VsacApiResult result = new VsacApiResult();
+		LOGGER.info("Start VSACAPIServiceImpl updateVSACValueSets method :");
+		if (isAlreadySignedIn(sessionId)) {
+			List<CQLQualityDataSetDTO> appliedQDMList = getLibraryService().getCQLData(libraryId).getCqlModel().getAllValueSetList();
+			HashMap<CQLQualityDataSetDTO, CQLQualityDataSetDTO> updateInLibraryXml =
+					new HashMap<CQLQualityDataSetDTO, CQLQualityDataSetDTO>();
+			ArrayList<CQLQualityDataSetDTO> modifiedQDMList = new ArrayList<CQLQualityDataSetDTO>();
+			if (defaultExpId == null) {
+				defaultExpId = getDefaultExpId();
+			}
+			for (CQLQualityDataSetDTO cqlQualityDataSetDTO : appliedQDMList) {
+				CQLQualityDataSetDTO toBeModifiedQDM = cqlQualityDataSetDTO;
+				LOGGER.info(" VSACAPIServiceImpl updateVSACValueSets :: OID:: " + cqlQualityDataSetDTO.getOid());
+				// Filter out Timing Element , Expired, Birthdate, User defined QDM's and
+				// supplemental data elements.
+				if (ConstantMessages.TIMING_ELEMENT.equals(cqlQualityDataSetDTO.getDataType())
+						|| ConstantMessages.USER_DEFINED_QDM_OID.equalsIgnoreCase(cqlQualityDataSetDTO.getOid())
+						|| cqlQualityDataSetDTO.isSuppDataElement()
+						|| ConstantMessages.BIRTHDATE_OID.equals(cqlQualityDataSetDTO.getOid())
+						|| ConstantMessages.EXPIRED_OID.equals(cqlQualityDataSetDTO.getOid())) {
+					LOGGER.info("VSACAPIServiceImpl updateVSACValueSets :: QDM filtered as it is of either"
+							+ "for following type Supplemental data or User defined or Timing Element.");
+					if (ConstantMessages.USER_DEFINED_QDM_OID.equalsIgnoreCase(cqlQualityDataSetDTO.getOid())) {
+						toBeModifiedQDM.setNotFoundInVSAC(true);
+						toBeModifiedQDM.setHasModifiedAtVSAC(true);
+						modifiedQDMList.add(toBeModifiedQDM);
+						DataType qdmDataType = getDataTypeDAO().findByDataTypeName(toBeModifiedQDM.getDataType());
+						if ((qdmDataType == null) || ConstantMessages.PATIENT_CHARACTERISTIC_BIRTHDATE.equals(
+								cqlQualityDataSetDTO.getDataType()) || ConstantMessages.
+								PATIENT_CHARACTERISTIC_EXPIRED.equals(cqlQualityDataSetDTO.getDataType())) {
+							toBeModifiedQDM.setDataTypeHasRemoved(true);
+						}
+					}
+					continue;
+				} else {
+					LOGGER.info("Start ValueSetsResponseDAO...Using Proxy:" + PROXY_HOST + ":" + PROXY_PORT);
+					VSACResponseResult vsacResponseResult = null;
+					try {
+						String fiveMinuteServiceTicket = vGroovyClient.getServiceTicket(
+								UMLSSessionTicket.getTicket(sessionId));
+						if(cqlQualityDataSetDTO.getExpansionIdentifier() != null){
+							vsacResponseResult = vGroovyClient.getMultipleValueSetsResponseByOIDAndProfile(cqlQualityDataSetDTO.getOid(),
+									cqlQualityDataSetDTO.getExpansionIdentifier(), fiveMinuteServiceTicket);
+						} else  {
+							if (!(cqlQualityDataSetDTO.getVersion().equals("1.0")
+									|| cqlQualityDataSetDTO.getVersion().equals("1"))) {
+								vsacResponseResult = vGroovyClient.
+										getMultipleValueSetsResponseByOIDAndVersion(cqlQualityDataSetDTO.getOid(),
+												cqlQualityDataSetDTO.getVersion(), fiveMinuteServiceTicket);
+							} else {
+								vsacResponseResult = vGroovyClient.getMultipleValueSetsResponseByOID(
+										cqlQualityDataSetDTO.getOid(), fiveMinuteServiceTicket, defaultExpId);
+							}
+						}
+					} catch (Exception ex) {
+						LOGGER.info("VSACAPIServiceImpl updateVSACValueSets :: Value Set reterival failed at "
+								+ "VSAC for OID :" + cqlQualityDataSetDTO.getOid() + " with Data Type : "
+								+ cqlQualityDataSetDTO.getDataType());
+					}
+					if ((vsacResponseResult != null) && (vsacResponseResult.getXmlPayLoad() != null)) {
+						if (vsacResponseResult.getIsFailResponse()
+								&& (vsacResponseResult.getFailReason() == VSAC_TIME_OUT_FAILURE_CODE)) {
+							LOGGER.info("Value Set reterival failed at VSAC for OID :"
+									+ cqlQualityDataSetDTO.getOid() + " with Data Type : "
+									+ cqlQualityDataSetDTO.getDataType() + ". Failure Reason: "
+									+ vsacResponseResult.getFailReason());
+							// inValidateVsacUser();
+							// MatContext.get().setUMLSLoggedIn(false);
+							result.setSuccess(false);
+							result.setFailureReason(vsacResponseResult.getFailReason());
+							return result;
+						}
+						if ((vsacResponseResult.getXmlPayLoad() != null)
+								&& StringUtils.isNotEmpty(vsacResponseResult.getXmlPayLoad())) {
+							VSACValueSetWrapper wrapper = convertXmltoValueSet(vsacResponseResult.getXmlPayLoad());
+							MatValueSet matValueSet = wrapper.getValueSetList().get(0);
+							if (matValueSet != null) {
+								cqlQualityDataSetDTO.setCodeListName(matValueSet.getDisplayName());
+								if (matValueSet.isGrouping()) {
+									cqlQualityDataSetDTO.setTaxonomy(ConstantMessages.
+											GROUPING_CODE_SYSTEM);
+								} else {
+									if (matValueSet.getConceptList().getConceptList() != null) {
+										cqlQualityDataSetDTO.setTaxonomy(matValueSet.getConceptList().
+												getConceptList().get(0).getCodeSystemName());
+									} else {
+										cqlQualityDataSetDTO.setTaxonomy(StringUtils.EMPTY);
+									}
+								}
+								updateInLibraryXml.put(cqlQualityDataSetDTO, toBeModifiedQDM);
+								toBeModifiedQDM.setHasModifiedAtVSAC(true); // Used at Applied QDM Tab
+								//to show icons in CellTable.
+							}
+						} else {
+							toBeModifiedQDM.setHasModifiedAtVSAC(true);
+							toBeModifiedQDM.setNotFoundInVSAC(true);
+						}
+					} else {
+						toBeModifiedQDM.setHasModifiedAtVSAC(true);
+						toBeModifiedQDM.setNotFoundInVSAC(true);
+					}
+				}
+				//to validate removed DataTypes in Applied QDM ELements
+				DataType qdmDataType = getDataTypeDAO().findByDataTypeName(toBeModifiedQDM.getDataType());
+				if((qdmDataType == null) || ConstantMessages.PATIENT_CHARACTERISTIC_BIRTHDATE.equals(cqlQualityDataSetDTO.getDataType())
+						|| ConstantMessages.PATIENT_CHARACTERISTIC_EXPIRED.equals(cqlQualityDataSetDTO.getDataType())){
+					toBeModifiedQDM.setDataTypeHasRemoved(true);
+				}
+				modifiedQDMList.add(toBeModifiedQDM);
+			}
+			updateAllCQLInLibraryXml(updateInLibraryXml, libraryId);
+			result.setSuccess(true);
+			result.setUpdatedCQLQualityDataDTOLIst(modifiedQDMList);
+		} else {
+			result.setSuccess(false);
+			result.setFailureReason(result.UMLS_NOT_LOGGEDIN);
+			LOGGER.info("VSACAPIServiceImpl updateVSACValueSets :: UMLS Login is required");
+		}
+		LOGGER.info("End VSACAPIServiceImpl updateVSACValueSets method :");
+		return result;
+	
 	}
 	
 }

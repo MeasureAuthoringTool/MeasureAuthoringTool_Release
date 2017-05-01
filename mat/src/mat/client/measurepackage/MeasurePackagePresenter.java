@@ -1023,7 +1023,7 @@ public class MeasurePackagePresenter implements MatPresenter {
 		view.setClausesInPackage(packageClauses);
 		view.setClauses(remainingClauses);
 		if(packageOverview.getReleaseVersion() != null 
-				&& packageOverview.getReleaseVersion().equalsIgnoreCase("v5.1")){
+				&& isCQLMeasure(packageOverview.getReleaseVersion())){
 			view.setCQLMeasure(true);
 			view.setRiskAdjustLabel(true);
 			//Set supple data to empty if CQL measure
@@ -1236,7 +1236,9 @@ public class MeasurePackagePresenter implements MatPresenter {
 	
 	/**
 	 * Service call to VSAC to update Measure Xml before invoking simple xml and value set sheet generation.
+	 *
 	 * @param measureId - String.
+	 * @param updateVsacResult the update vsac result
 	 */ //commented out for 5.1 release
 	/*private void updateValueSetsBeforePackaging(final String measureId) {
 		vsacapiServiceAsync.updateAllVSACValueSetsAtPackage(measureId,
@@ -1380,7 +1382,23 @@ public class MeasurePackagePresenter implements MatPresenter {
 		Window.Location.replace(url + "&type=save");
 	}
 	
-	
+	/**
+	 * Checks if is measure is CQL Measure depending 
+	 * on Measure release version.
+	 *
+	 * @param releaseVersion the release version
+	 * @return true, if is CQL measure
+	 */
+	private boolean isCQLMeasure(String releaseVersion) {
+		
+		String str[] = releaseVersion.replace("v", "").split("\\.");
+		int version_int = Integer.parseInt(str[0]);
+		if(version_int<5){
+			return false;
+		}
+		
+		return true;
+	}
 	
 }
 

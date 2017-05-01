@@ -4,8 +4,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import org.cqframework.cql.cql2elm.CqlTranslatorException;
-
 import mat.DTO.MeasureNoteDTO;
 import mat.client.clause.clauseworkspace.model.MeasureDetailResult;
 import mat.client.clause.clauseworkspace.model.MeasureXmlModel;
@@ -16,6 +14,8 @@ import mat.client.measure.ManageMeasureShareModel;
 import mat.client.measure.MeasureNotesModel;
 import mat.client.measure.TransferMeasureOwnerShipModel;
 import mat.client.shared.MatException;
+import mat.client.umls.service.VsacApiResult;
+import mat.model.CQLValueSetTransferObject;
 import mat.model.MatValueSet;
 import mat.model.MeasureType;
 import mat.model.Organization;
@@ -24,15 +24,15 @@ import mat.model.QualityDataSetDTO;
 import mat.model.RecentMSRActivityLog;
 import mat.model.cql.CQLDefinition;
 import mat.model.cql.CQLFunctions;
+import mat.model.cql.CQLIncludeLibrary;
 import mat.model.cql.CQLKeywords;
 import mat.model.cql.CQLModel;
 import mat.model.cql.CQLParameter;
-import mat.server.util.CQLUtil;
-import mat.server.util.CQLUtil.CQLArtifactHolder;
+import mat.model.cql.CQLQualityDataModelWrapper;
+import mat.model.cql.CQLQualityDataSetDTO;
 import mat.shared.GetUsedCQLArtifactsResult;
 import mat.shared.SaveUpdateCQLResult;
 
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
@@ -55,8 +55,7 @@ public interface MeasureService extends RemoteService {
 	 * @param nodeName
 	 *            the new node name
 	 */
-	void appendAndSaveNode(MeasureXmlModel measureXmlModel, String nodeName, MeasureXmlModel newMeasureXmlModel,
-			String newNodeName);
+	void appendAndSaveNode(MeasureXmlModel measureXmlModel, String nodeName);
 	
 	/**
 	 * Clone measure xml.
@@ -125,6 +124,9 @@ public interface MeasureService extends RemoteService {
 	//			boolean checkForSupplementData);
 	
 	QualityDataModelWrapper getAppliedQDMFromMeasureXml(String measureId,
+			boolean checkForSupplementData);
+	
+	CQLQualityDataModelWrapper getCQLAppliedQDMFromMeasureXml(String measureId,
 			boolean checkForSupplementData);
 	
 	/**
@@ -535,12 +537,29 @@ public interface MeasureService extends RemoteService {
 	void updateMeasureXMLForExpansionIdentifier(List<QualityDataSetDTO> modifyWithDTO, String measureId, String expansionProfile);
 	
 	/**
+	 * Update measure xml for expansion identifier.
+	 *
+	 * @param modifyWithDTO the modify with dto
+	 * @param measureId the measure id
+	 * @param expansionProfile the expansion profile
+	 */
+	void updateCQLMeasureXMLForExpansionProfile(List<CQLQualityDataSetDTO> modifyWithDTO, String measureId, String expansionProfile);
+	
+	/**
 	 * Method to Get Default 4 Supplemental Data Elements for give Measure.
 	 *
 	 * @param measureId the measure id
 	 * @return QualityDataModelWrapper
 	 */
 	QualityDataModelWrapper getDefaultSDEFromMeasureXml(String measureId);
+	
+	/**
+	 * Method to Get Default 4 Supplemental Data Elements for give Measure.
+	 *
+	 * @param measureId the measure id
+	 * @return CQLQualityDataModelWrapper
+	 */
+	CQLQualityDataModelWrapper getDefaultCQLSDEFromMeasureXml(String measureId);
 	
 	/**
 	 * Parses the cql.
@@ -558,7 +577,9 @@ public interface MeasureService extends RemoteService {
 	 * @param measureId the measure id
 	 * @return the CQL data
 	 */
-	SaveUpdateCQLResult getCQLData(String measureId);
+//	SaveUpdateCQLResult getCQLData(String measureId, String fromTable);
+	
+	SaveUpdateCQLResult getMeasureCQLData(String measureId);
 	
 	/**
 	 * Gets the CQL file data.
@@ -566,7 +587,7 @@ public interface MeasureService extends RemoteService {
 	 * @param measureId the measure id
 	 * @return the CQL file data
 	 */
-	SaveUpdateCQLResult getCQLFileData(String measureId);
+//	SaveUpdateCQLResult getCQLFileData(String measureId);
 	
 	/**
 	 * Save and modify definitions.
@@ -665,4 +686,27 @@ public interface MeasureService extends RemoteService {
 	SaveUpdateCQLResult parseCQLForErrors(String cqlString);
 	
 	GetUsedCQLArtifactsResult getUsedCQLArtifacts(String measureId);
+
+	SaveUpdateCQLResult parseCQLStringForError(String cqlFileString);
+
+	SaveUpdateCQLResult deleteValueSet(String toBeDeletedValueSetId, String measureID);	
+	CQLQualityDataModelWrapper getCQLValusets(String measureID);
+
+	SaveUpdateCQLResult saveCQLValuesettoMeasure(CQLValueSetTransferObject valueSetTransferObject);
+
+	SaveUpdateCQLResult saveCQLUserDefinedValuesettoMeasure(CQLValueSetTransferObject valueSetTransferObject);
+
+	SaveUpdateCQLResult updateCQLValuesetsToMeasure(CQLValueSetTransferObject matValueSetTransferObject);
+
+	SaveUpdateCQLResult saveIncludeLibrayInCQLLookUp(String measureId, CQLIncludeLibrary toBeModifiedObj,
+			CQLIncludeLibrary currentObj, List<CQLIncludeLibrary> incLibraryList);
+
+	SaveUpdateCQLResult getMeasureCQLFileData(String measureId);
+
+	SaveUpdateCQLResult deleteInclude(String currentMeasureId,
+			CQLIncludeLibrary toBeModifiedIncludeObj,
+			CQLIncludeLibrary cqlLibObject,
+			List<CQLIncludeLibrary> viewIncludeLibrarys);
+	
+	VsacApiResult updateCQLVSACValueSets(String currentMeasureId, String expansionId);
 }

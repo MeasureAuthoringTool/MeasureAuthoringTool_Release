@@ -1,7 +1,10 @@
 package mat.server;
 
+import java.util.List;
+
 import mat.client.umls.service.VSACAPIService;
 import mat.client.umls.service.VsacApiResult;
+import mat.model.cql.CQLQualityDataSetDTO;
 
 // TODO: Auto-generated Javadoc
 /** VSACAPIServiceImpl class. **/
@@ -77,7 +80,7 @@ public class VSACAPIServiceImpl extends SpringRemoteServiceServlet implements VS
 	 * @return the all profile list
 	 */
 	@Override
-	public final VsacApiResult getAllExpIdentifierList() {
+	public final VsacApiResult getAllExpProfileList() {
 		String sessionId = getThreadLocalRequest().getSession().getId();
 		return this.getVsacApiService().getAllExpIdentifierList(sessionId);
 	}
@@ -127,6 +130,20 @@ public class VSACAPIServiceImpl extends SpringRemoteServiceServlet implements VS
 	public final VsacApiResult getMostRecentValueSetByOID(final String oid, String expansionId) {
 		String sessionId = getThreadLocalRequest().getSession().getId();
 		return this.getVsacApiService().getMostRecentValueSetByOID(oid, expansionId,sessionId);
+	}
+
+
+	@Override
+	public VsacApiResult updateCQLVSACValueSets(List<CQLQualityDataSetDTO> appliedQDMList, String defaultExpId) {
+		String sessionId = getThreadLocalRequest().getSession().getId();
+		return this.getVsacApiService().updateCQLVSACValueSets(appliedQDMList, defaultExpId, sessionId);
+	}
+
+
+	@Override
+	public VsacApiResult updateStandaloneCQLVSACValueSets(String libraryId, String defaultExpId) {
+		String sessionId = getThreadLocalRequest().getSession().getId();
+		return this.getVsacApiService().updateStandaloneCQLVSACValueSets(libraryId, defaultExpId, sessionId);
 	}
 	
 	

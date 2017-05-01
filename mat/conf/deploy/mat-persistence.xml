@@ -174,6 +174,9 @@
 			class="mat.dao.impl.MeasureAuditLogDAO" parent="baseDAO">
 	</bean>
 	
+	<bean id="cqlLibraryAuditLogDAO"
+			class="mat.dao.impl.CQLLibraryAuditLogDAO" parent="baseDAO">
+	</bean>
 	<bean id="userAuditLogDAO"
 			class="mat.dao.impl.UserAuditLogDAO" parent="baseDAO">
 	</bean>
@@ -295,12 +298,31 @@
 			class="mat.dao.impl.RecentMSRActivityLogDAO" parent="baseDAO">
 	</bean>
 	
+	 <bean id="recentCQLActivityLogDAO"
+			class="mat.dao.impl.RecentCQLActivityLogDAO" parent="baseDAO">
+	</bean>
+	
 	<bean id="organizationDAO"
             class="mat.dao.impl.OrganizationDAO" parent="baseDAO">
     </bean>
     
     <bean id="cqlDAO"
 		class="mat.dao.impl.clause.CQLDAO" parent="baseDAO">
+	</bean>
+	<bean id="cqlLibraryDAO" 
+	    class="mat.dao.impl.clause.CQLLibraryDAO" parent="baseDAO">	    
+	</bean>
+	
+	<bean id="cqlLibraryAssociationDAO" 
+	    class="mat.dao.impl.clause.CQLLibraryAssociationDAO" parent="baseDAO">
+	</bean>
+	
+	<bean id="cqlLibrarySetDAO"
+		class="mat.dao.impl.clause.CQLLibrarySetDAO" parent="baseDAO">
+	</bean>	
+	
+	<bean id="cqlLibraryShareDAO"
+		class="mat.dao.impl.clause.CQLLibraryShareDAO" parent="baseDAO">
 	</bean>
 
 	<bean id="daoService" class="mat.dao.service.DAOService" >
@@ -349,8 +371,14 @@
 		<property name="measureXMLDAO" ref="measureXMLDAO"/>
 		<property name="measureNotesDAO" ref="measureNotesDAO"/>
 		<property name="recentMSRActivityLogDAO" ref="recentMSRActivityLogDAO"/>
+		<property name="recentCQLActivityLogDAO" ref="recentCQLActivityLogDAO"/>
 		<property name="organizationDAO" ref="organizationDAO"/>
 		<property name="cqlDAO" ref="cqlDAO"/>
+		<property name="cqlLibraryDAO" ref="cqlLibraryDAO"/>
+		<property name="cqlLibraryAssociationDAO" ref="cqlLibraryAssociationDAO"/>
+		<property name="cqlLibrarySetDAO" ref="cqlLibrarySetDAO"/>
+		<property name="cqlLibraryAuditLogDAO" ref="cqlLibraryAuditLogDAO"/>
+		<property name="cqlLibraryShareDAO" ref="cqlLibraryShareDAO"/>
 	</bean>
      
 </beans>

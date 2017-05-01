@@ -26,7 +26,7 @@ import mat.client.shared.ErrorMessageDisplayInterface;
 import mat.client.shared.HasVisible;
 import mat.client.shared.ListBoxMVP;
 import mat.client.shared.MatContext;
-import mat.client.shared.MeasureSearchFilterWidget;
+import mat.client.shared.SearchWidgetWithFilter;
 import mat.client.shared.MessageDelegate;
 import mat.client.shared.PrimaryButton;
 import mat.client.shared.ReadOnlyHelper;
@@ -849,12 +849,7 @@ public class MetaDataPresenter  implements MatPresenter {
 	 */
 	public static interface AddEditComponentMeasuresDisplay {
 		
-		/**
-		 * Gets the measure search filter widget.
-		 *
-		 * @return the measure search filter widget
-		 */
-		MeasureSearchFilterWidget getMeasureSearchFilterWidget();
+		
 		
 		/**
 		 * Gets the selected filter.
@@ -1428,7 +1423,7 @@ public class MetaDataPresenter  implements MatPresenter {
 		} else {
 			Mat.hideLoadingMessage();
 		}
-		((Button) addEditComponentMeasuresDisplay.getSearchButton()).setEnabled(!busy);
+		((org.gwtbootstrap3.client.ui.Button) addEditComponentMeasuresDisplay.getSearchButton()).setEnabled(!busy);
 		((TextBox) (addEditComponentMeasuresDisplay.getSearchString())).setEnabled(!busy);
 		((Button) addEditComponentMeasuresDisplay.getReturnButton()).setEnabled(!busy);
 		addEditComponentMeasuresDisplay.getApplytoComponentMeasuresBtn().setEnabled(!busy);
@@ -1595,12 +1590,11 @@ public class MetaDataPresenter  implements MatPresenter {
 		metaDataDisplay.getMeasureObservations().setValue(currentMeasureDetail.getMeasureObservations());
 		metaDataDisplay.getMeasurePopulationExclusions().setValue(currentMeasureDetail.getMeasurePopulationExclusions());
 		
+		boolean isEndorsedByNQF = currentMeasureDetail.getEndorseByNQF();
+		metaDataDisplay.getNotEndorsebyNQF().setValue(!isEndorsedByNQF);
+		metaDataDisplay.getEndorsebyNQF().setValue(isEndorsedByNQF);
+		
 		metaDataDisplay.getCopyright().setValue(currentMeasureDetail.getCopyright());
-		if ((currentMeasureDetail.getEndorseByNQF() != null) && currentMeasureDetail.getEndorseByNQF().equals(true)) {
-			metaDataDisplay.getEndorsebyNQF().setValue(true);
-		} else {
-			metaDataDisplay.getNotEndorsebyNQF().setValue(true);
-		}
 		
 		/*metaDataDisplay.getMeasureStatus().setValueMetadata(currentMeasureDetail.getMeasureStatus());*/
 		metaDataDisplay.getGuidance().setValue(currentMeasureDetail.getGuidance());

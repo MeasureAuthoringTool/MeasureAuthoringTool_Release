@@ -11,6 +11,8 @@ import mat.shared.ConstantMessages;
  */
 public class MessageDelegate {
 	
+	
+	
 	/** The Constant WELCOME_MESSAGE. */
 	public static final String WELCOME_MESSAGE = "You have successfully logged into the MAT.";
 	
@@ -62,6 +64,9 @@ public class MessageDelegate {
 	/** The Constant LOGIN_ID_REQUIRED. */
 	public static final String LOGIN_ID_REQUIRED = "User ID is required.";
 	
+	public static final String LIBRARY_NAME_REQUIRED = "Library Name is required.";
+	
+	public static final String CQL_STAND_ALONE_LIBRARY_NAME_ERROR = "Invalid Library Name. Must start with an alpha-character or underscore followed by an alpha-numeric character(s) or underscore(s), and must not contain spaces.";
 	/** The Constant EMAIL_ID_INCORRECT_FORMAT. */
 	public static final String EMAIL_ID_INCORRECT_FORMAT = "Email Address has an incorrect format.";
 	/** The Constant EMAIL_ID_REQUIRED. */
@@ -74,6 +79,14 @@ public class MessageDelegate {
 	
 	/** The Constant NO_MEASURES. */
 	public static final String NO_MEASURES = "No measures returned. Please search again.";
+	
+	/** The Constant NO_MEASURES. */
+	public static final String NO_LIBRARUES = "No libraries returned. Please search again.";
+	
+	public static final String WARNING_BAD_DATA_TYPE_COMBINATION ="Successfully saved with errors. You have an incorrect value set/code datatype combination.";
+	
+	public  final String NO_INCLUDES = "No libraries returned.Please search again.";
+	
 	
 	/** The Constant OID_REQUIRED. */
 	public static final String OID_REQUIRED = "OID is required.";
@@ -152,18 +165,20 @@ public class MessageDelegate {
 	public static final String RATIO_MEASURE_OBS_ASSOCIATION_REQUIRED = "For Ratio Measures, each Measure Observation requires an association be made to the Numerator or the Denominator.";
 
 	private static final String ERROR_IN_SAVING_QDM_ELEMENTS = "Valuesets with different OIDs can not have the same valueset name.";
+
+	private static final String CQL_LIBRARY_LIMIT_WARNING = "You have reached the maximum number of selected CQL Libraries (10).";
 	
 	/** The vsac expansion profile selection. */
-	public final String VSAC_EXPANSION_PROFILE_SELECTION = "Please Select VSAC Expansion Identifier to Apply to QDM Elements";
+	public final String VSAC_EXPANSION_PROFILE_SELECTION = "Please Select VSAC Expansion Profile to Apply to value sets.";
 	
 	/** The vsac expansion profile selection. */
-	public final String DEFAULT_EXPANSION_PROFILE_REMOVED = "Successfully removed the default VSAC Expansion Identifier from the Applied QDM Elements list.";
+	public final String DEFAULT_EXPANSION_PROFILE_REMOVED = "Successfully removed VSAC Expansion Profile from value sets.";
 	
 	/** The vsac profile applied to qdm elements. */
-	public final String VSAC_PROFILE_APPLIED_TO_QDM_ELEMENTS = "Successfully Applied VSAC Expansion Identifier to QDM Elements.";
+	public final String VSAC_PROFILE_APPLIED_TO_QDM_ELEMENTS = "Successfully applied VSAC Expansion Profile to value sets.";
 	
 	/** The successful oid retreival from vsac. */
-	public final String  SUCCESSFUL_OID_RETREIVAL_FROM_VSAC = "Successfully retrieved value set data from the VSAC.";
+	public final String  SUCCESSFUL_OID_RETREIVAL_FROM_VSAC = "Value set successfully retrieved from VSAC.";
 	
 	/** The warning pasting in applied qdm elements. */
 	public final String WARNING_PASTING_IN_APPLIED_QDM_ELEMENTS = "You are trying to paste QDM elements in this measure." +
@@ -176,7 +191,7 @@ public class MessageDelegate {
 	public final String COPY_QDM_SELECT_ATLEAST_ONE  = "Please select at least one applied QDM element to copy.";
 	
 	/** The successful qdm remove msg. */
-	public final String SUCCESSFUL_QDM_REMOVE_MSG  = "Selected QDM element has been removed successfully.";
+	public final String SUCCESSFUL_QDM_REMOVE_MSG  = "Selected value set has been removed successfully.";
 	
 	/** The warning measure package creation generic. */
 	public final String WARNING_MEASURE_PACKAGE_CREATION_GENERIC = "Unable to create measure package. " +
@@ -195,11 +210,13 @@ public class MessageDelegate {
 	
 	public final String VIEW_CQL_ERROR_MESSAGE = "You are viewing CQL with few validation errors. Errors are marked with triangle sign on line number.";
 	public final String VIEW_CQL_NO_ERRORS_MESSAGE ="You are viewing CQL with no validation errors.";
+	public final String VIEW_CQL_ERROR_MESSAGE_BAD_VALUESET_DATATYPE ="CQL file with validation errors. You have an incorrect value set/code datatype combination.";
 	
 	public final String SUCCESSFUL_SAVED_CQL_GEN_INFO  = "Successfully saved CQL general information.";
 	public final String SUCCESSFUL_SAVED_CQL_DEFINITION  = "Successfully saved definition into CQL.";
 	public final String SUCCESSFUL_SAVED_CQL_FUNCTIONS  = "Successfully saved function into CQL.";
 	public final String SUCCESSFUL_SAVED_CQL_PARAMETER  = "Successfully saved parameter into CQL.";
+	public final String SUCCESSFUL_SAVED_CQL_INCLUDE_LIBRARY  = "Library Insert Alias Name Here successfully Included.";
 	public final String ERROR_SAVE_CQL_DEFINITION  = "Please enter definition name.";
 	
 	public final String SUCCESSFUL_SAVED_CQL_DEFINITION_WITH_ERRORS  = "Successfully saved definition into CQL with errors.";
@@ -223,8 +240,18 @@ public class MessageDelegate {
 			"Duplicate name or use of restricted character(s).";
 	public final String ERROR_FUNCTION_NAME_NO_SPECIAL_CHAR  = "Invalid Function and/or Argument name. " +
 			"Duplicate name or use of restricted character(s).";
+	public final String ERROR_INCLUDE_ALIAS_NAME_NO_SPECIAL_CHAR  = "Invalid Library Alias. Must be unique, start with an alpha-character or underscore followed by an alpha-numeric character(s) or underscore(s), and must not contain spaces.";
 	
 	public final String DELETE_WARNING_MESSAGE = "You have selected to delete this expression. Do you want to permanently delete";
+	
+	public final String SAVE_INCLUDE_LIBRARY_VALIATION_ERROR = "Alias name and CQL Library selection are required.";
+	
+	public final String MODIFY_CQL_LIBRARY_NAME = "Successfully modified CQL Library Name.";
+	
+	
+	public static final String NO_USERS_RETURNED = "No Users returned. Please search again.";
+	
+	public static final String NO_VERSION_CREATED = "Unable to version. There are validation errors in CQL. Please correct and try again.";
 	
 	/**
 	 * Gets the measure save server error message.
@@ -303,7 +330,7 @@ public class MessageDelegate {
 	private final String POPULATION_WORK_SPACE_MEASURE_OBSERVATION_VALIDATION_ERROR = " Logic must only contain clauses.";
 	
 	/** The invalid character validation error. */
-	private final String INVALID_CHARACTER_VALIDATION_ERROR =" Value set name cannot contain any of the following characters : + * ? : - | ! ; %";
+	private final String INVALID_CHARACTER_VALIDATION_ERROR =" Value set name cannot contain any of the following characters + * ? : - | ! \" %";
 	
 	/** The organization success message. */
 	private final String ORGANIZATION_SUCCESS_MESSAGE = "Organization successfully added.";
@@ -372,7 +399,7 @@ public class MessageDelegate {
 	private final String DOESNT_FOLLOW_RULES = "The new password you entered does not match the following rules:";
 	
 	/** The duplicate applied qdm. */
-	private final String DUPLICATE_APPLIED_QDM = "OID is already applied in combination with Datatype, Version, or Expansion Identifier.";
+	private final String DUPLICATE_APPLIED_VALUE_SET = "Value set name already exists.";
 	
 	/** The duplicate codes msg. */
 	private final String DUPLICATE_CODES_MSG = "All code(s) were identified as duplicates to code(s) already in the value set and were ignored upon import.";
@@ -463,7 +490,7 @@ public class MessageDelegate {
 	private final String MODIFY_QDM_NON_ATTRIBUTE_VALIDATION = "A value set with a non-Attribute category must be used for this data element.";
 	
 	/** The modify qdm select atleast one. */
-	private final String MODIFY_QDM_SELECT_ATLEAST_ONE = "Please select atleast one applied QDM to modify.";
+	private final String MODIFY_VALUE_SET_SELECT_ATLEAST_ONE = "Please select atleast one applied value set to modify.";
 	
 	/** The must contain lower. */
 	private final String MUST_CONTAIN_LOWER = "Must contain a lowercase letter.";
@@ -626,7 +653,7 @@ public class MessageDelegate {
 	private final String STEWARD_REQUIRED = "Steward is required.";
 	
 	/** The successful modify applied qdm. */
-	private final String SUCCESSFUL_MODIFY_APPLIED_QDM = "Selected QDM element has been modified successfully.";
+	private final String SUCCESSFUL_MODIFY_APPLIED_VALUESET = "Selected value set has been modified successfully.";
 	
 	/** The system error. */
 	private final String SYSTEM_ERROR = "Import failed due to system error. Please try again.";
@@ -671,7 +698,7 @@ public class MessageDelegate {
 	private final String VALIDATION_MSG_DATA_TYPE_VSAC = "Please select datatype from drop down list.";
 	
 	/** The validation msg element without vsac. */
-	private final String VALIDATION_MSG_ELEMENT_WITHOUT_VSAC = "Please enter name and select a datatype associated with it.";
+	private final String VALIDATION_MSG_ELEMENT_WITHOUT_VSAC = "Please enter value set name.";
 	
 	/** The value set date invalid. */
 	private final String VALUE_SET_DATE_INVALID = "Value Set Package Date is not a valid date.";
@@ -683,7 +710,7 @@ public class MessageDelegate {
 	private final String VSAC_RETRIEVE_FAILED = "Unable to retrieve from VSAC. Please check the data and try again.";
 	
 	/** The vsac update successfull. */
-	private final String VSAC_UPDATE_SUCCESSFULL = "Successfully updated applied QDM list with VSAC data.";
+	private final String VSAC_UPDATE_SUCCESSFULL = "Successfully updated applied Value Set list with VSAC data.";
 	
 	
 	/** The comment added successfully. */
@@ -727,6 +754,33 @@ public class MessageDelegate {
 	
 	private final String DELETE_CONFIRMATION_FUNCTION = "You have selected to delete this expression. Do you want to permanently delete this Function?";
 	
+	private final String DELETE_CONFIRMATION_INCLUDE = "You have selected to delete this expression. Do you want to permanently delete this Library Alias?";
+	
+	private final String ERROR_LIBRARY_VERSION ="Please select a Library Name to version and select a version type of Major or Minor.";
+	
+	private final String ERROR_LIBRARY_DRAFT = "Please select a Library Version to create a draft.";
+	
+	private final String ERROR_SELECT_ATTRIBUTE_NAME = "Please select Attribute Name.";
+	
+	private final String ERROR_SELECT_ITEM_NAME = "Please select Item Name.";
+	
+	private final String ERROR_SELECT_ITEM_TYPE = "Please select Item Type.";
+	
+	private final String ERROR_SELECT_ITEM_NAME_OR_DATA_TYPE = "Please select Item Name or Datatype.";
+	
+	private final String ERROR_INVALID_CODE_DATA_TYPE = "Invalid code/datatype combination.";
+	
+	private final String ERROR_INVALID_QUANTITY = "Please Enter valid Quantity.";
+	
+	private final String ERROR_INVALID_DATE_TIME_QUANTITY = "You can not enter both DateTime and Quantity.";
+	
+	private final String ERROR_INVALID_MODE_DETAILS = "Please Select valid Mode Details.";
+	
+	private final String ERROR_SELECT_ATTRIBUTE_TO_INSERT = "Please Select Attribute to insert into Editor";
+	
+	private final String ERROR_ENTER_DATE_TIME_AND_QUANTITY = "Please enter DateTime or Quantity/units.";
+	
+	private final String ERROR_INVALID_DATE_TIME = "Please Enter a valid Date/Time.";
 	
 	public String getONLY_ONE_CHILD_REQUIRED() {
 		return ONLY_ONE_CHILD_REQUIRED;
@@ -988,8 +1042,8 @@ public class MessageDelegate {
 	 * 
 	 * @return String
 	 */
-	public String getDuplicateAppliedQDMMsg() {
-		return DUPLICATE_APPLIED_QDM;
+	public String getDuplicateAppliedValueSetMsg() {
+		return DUPLICATE_APPLIED_VALUE_SET;
 	}
 	
 	/**
@@ -1391,8 +1445,8 @@ public class MessageDelegate {
 	 * 
 	 * @return String the mODIFY_QDM_SELECT_ATLEAST_ONE
 	 */
-	public String getMODIFY_QDM_SELECT_ATLEAST_ONE() {
-		return MODIFY_QDM_SELECT_ATLEAST_ONE;
+	public String getMODIFY_VALUE_SET_SELECT_ATLEAST_ONE() {
+		return MODIFY_VALUE_SET_SELECT_ATLEAST_ONE;
 	}
 	
 	/**
@@ -1880,8 +1934,8 @@ public class MessageDelegate {
 	 * 
 	 * @return String
 	 */
-	public String getSuccessfulModifyQDMMsg() {
-		return SUCCESSFUL_MODIFY_APPLIED_QDM;
+	public String getSUCCESSFUL_MODIFY_APPLIED_VALUESET() {
+		return SUCCESSFUL_MODIFY_APPLIED_VALUESET;
 		
 	}
 	
@@ -2402,7 +2456,7 @@ public class MessageDelegate {
 	 *
 	 * @return the vsac expansion profile selection
 	 */
-	public String getVsacExpansionIdentifierSelection() {
+	public String getVsacExpansionProfileSelection() {
 		return VSAC_EXPANSION_PROFILE_SELECTION;
 	}
 	
@@ -2659,6 +2713,121 @@ public class MessageDelegate {
 	public String getDELETE_CONFIRMATION_FUNCTION() {
 		return DELETE_CONFIRMATION_FUNCTION;
 	}
+	
+	public String getDELETE_CONFIRMATION_INCLUDE() {
+		return DELETE_CONFIRMATION_INCLUDE;
+	}
 
+	public String getValuesetSuccessMessage(String codeListName) {
+		return "Value set " + codeListName + " has been applied successfully.";
+	}
 
+	public String getERROR_INCLUDE_ALIAS_NAME_NO_SPECIAL_CHAR() {
+		return ERROR_INCLUDE_ALIAS_NAME_NO_SPECIAL_CHAR;
+	}
+
+	public String getSUCCESSFUL_SAVED_CQL_INCLUDE_LIBRARY() {
+		return SUCCESSFUL_SAVED_CQL_INCLUDE_LIBRARY;
+	}
+
+	public String getIncludeLibrarySuccessMessage(String aliasName) {
+		return " Library " + aliasName + " successfully included.";
+	}
+
+	public String getSAVE_INCLUDE_LIBRARY_VALIATION_ERROR() {
+		return SAVE_INCLUDE_LIBRARY_VALIATION_ERROR;
+	}
+
+	public  String getNoIncludes() {
+		return NO_INCLUDES;
+	}
+
+	public String getLibraryNameRequired() {
+		return LIBRARY_NAME_REQUIRED;
+	}
+
+	public String getCqlStandAloneLibraryNameError() {
+		return CQL_STAND_ALONE_LIBRARY_NAME_ERROR;
+	}
+
+	public static String getNoLibrarues() {
+		return NO_LIBRARUES;
+	}
+
+	public String getERROR_LIBRARY_VERSION() {
+		return ERROR_LIBRARY_VERSION;
+	}
+
+	public String getMODIFY_CQL_LIBRARY_NAME() {
+		return MODIFY_CQL_LIBRARY_NAME;
+	}
+
+	public String getERROR_LIBRARY_DRAFT() {
+		return ERROR_LIBRARY_DRAFT;
+	}
+
+	public String getCqlLimitWarningMessage() {
+		return CQL_LIBRARY_LIMIT_WARNING;
+	}
+
+	public static String getNoUsersReturned() {
+		return NO_USERS_RETURNED;
+	}
+
+	public String getNoVersionCreated() {
+		return NO_VERSION_CREATED;
+	}
+
+	public String getWarningBadDataTypeCombination() {
+		return WARNING_BAD_DATA_TYPE_COMBINATION;
+	}
+
+	public String getVIEW_CQL_ERROR_MESSAGE_BAD_VALUESET_DATATYPE() {
+		return VIEW_CQL_ERROR_MESSAGE_BAD_VALUESET_DATATYPE;
+	}
+
+	public String getERROR_SELECT_ATTRIBUTE_NAME() {
+		return ERROR_SELECT_ATTRIBUTE_NAME;
+	}
+
+	public String getERROR_SELECT_ITEM_NAME() {
+		return ERROR_SELECT_ITEM_NAME;
+	}
+
+	public String getERROR_SELECT_ITEM_TYPE() {
+		return ERROR_SELECT_ITEM_TYPE;
+	}
+
+	public String getERROR_SELECT_ITEM_NAME_OR_DATA_TYPE() {
+		return ERROR_SELECT_ITEM_NAME_OR_DATA_TYPE;
+	}
+
+	public String getERROR_INVALID_CODE_DATA_TYPE() {
+		return ERROR_INVALID_CODE_DATA_TYPE;
+	}
+
+	public String getERROR_INVALID_QUANTITY() {
+		return ERROR_INVALID_QUANTITY;
+	}
+
+	public String getERROR_INVALID_DATE_TIME_QUANTITY() {
+		return ERROR_INVALID_DATE_TIME_QUANTITY;
+	}
+
+	public String getERROR_INVALID_MODE_DETAILS() {
+		return ERROR_INVALID_MODE_DETAILS;
+	}
+
+	public String getERROR_SELECT_ATTRIBUTE_TO_INSERT() {
+		return ERROR_SELECT_ATTRIBUTE_TO_INSERT;
+	}
+
+	public String getERROR_ENTER_DATE_TIME_AND_QUANTITY() {
+		return ERROR_ENTER_DATE_TIME_AND_QUANTITY;
+	}
+
+	public String getERROR_INVALID_DATE_TIME() {
+		return ERROR_INVALID_DATE_TIME;
+	}
+	
 }

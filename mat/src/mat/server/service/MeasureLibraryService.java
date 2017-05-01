@@ -4,7 +4,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+
 import javax.xml.xpath.XPathExpressionException;
+
 import mat.DTO.MeasureNoteDTO;
 import mat.client.clause.clauseworkspace.model.MeasureDetailResult;
 import mat.client.clause.clauseworkspace.model.MeasureXmlModel;
@@ -18,6 +20,8 @@ import mat.client.measure.service.SaveMeasureNotesResult;
 import mat.client.measure.service.SaveMeasureResult;
 import mat.client.measure.service.ValidateMeasureResult;
 import mat.client.shared.MatException;
+import mat.client.umls.service.VsacApiResult;
+import mat.model.CQLValueSetTransferObject;
 import mat.model.MatValueSet;
 import mat.model.MeasureOwnerReportDTO;
 import mat.model.MeasureType;
@@ -26,12 +30,13 @@ import mat.model.QualityDataModelWrapper;
 import mat.model.QualityDataSetDTO;
 import mat.model.RecentMSRActivityLog;
 import mat.model.cql.CQLDefinition;
-import mat.model.cql.CQLDefinitionsWrapper;
 import mat.model.cql.CQLFunctions;
+import mat.model.cql.CQLIncludeLibrary;
 import mat.model.cql.CQLKeywords;
 import mat.model.cql.CQLModel;
 import mat.model.cql.CQLParameter;
-import mat.server.util.CQLUtil.CQLArtifactHolder;
+import mat.model.cql.CQLQualityDataModelWrapper;
+import mat.model.cql.CQLQualityDataSetDTO;
 import mat.server.util.XmlProcessor;
 import mat.shared.CQLValidationResult;
 import mat.shared.GetUsedCQLArtifactsResult;
@@ -55,8 +60,7 @@ public interface MeasureLibraryService {
 	 * @param nodeName
 	 *            the new node name
 	 */
-	void appendAndSaveNode(MeasureXmlModel measureXmlModel, String nodeName, MeasureXmlModel newMeasureXmlModel,
-			String newNodeName);
+	void appendAndSaveNode(MeasureXmlModel measureXmlModel, String nodeName);
 	
 	/**
 	 * Check for timing elements and append.
@@ -613,7 +617,9 @@ public interface MeasureLibraryService {
 	 * @param measureId the measure id
 	 * @return the CQL data
 	 */
-	SaveUpdateCQLResult getCQLData(String measureId);
+	//SaveUpdateCQLResult getCQLData(String measureId,String fromTable);
+	
+	SaveUpdateCQLResult getMeasureCQLData(String measureId);
 	
 	/**
 	 * Gets the CQL file data.
@@ -621,7 +627,7 @@ public interface MeasureLibraryService {
 	 * @param measureId the measure id
 	 * @return the CQL file data
 	 */
-	SaveUpdateCQLResult getCQLFileData(String measureId);
+	//SaveUpdateCQLResult getCQLFileData(String xmlString);
 	
 	/**
 	 * Validate cql.
@@ -731,7 +737,39 @@ public interface MeasureLibraryService {
 	void createAndSaveCQLLookUp(List<QualityDataSetDTO> list, String measureID, String expProfileToAllQDM);
 
 	GetUsedCQLArtifactsResult getUsedCqlArtifacts(String measureId);
-
-
 	
+	SaveUpdateCQLResult deleteValueSet(String toBeDeletedValueSetId, String measureID);
+
+	CQLQualityDataModelWrapper getCQLAppliedQDMFromMeasureXml(String measureId, boolean checkForSupplementData);
+
+	CQLQualityDataModelWrapper getDefaultCQLSDEFromMeasureXml(String measureId);
+
+	SaveUpdateCQLResult parseCQLStringForError(String cqlFileString);
+
+	CQLQualityDataModelWrapper getCQLValusets(String measureID);
+
+	SaveUpdateCQLResult saveCQLValuesettoMeasure(CQLValueSetTransferObject valueSetTransferObject);
+
+	SaveUpdateCQLResult saveCQLUserDefinedValuesettoMeasure(CQLValueSetTransferObject matValueSetTransferObject);
+
+	SaveUpdateCQLResult modifyCQLValueSetstoMeasure(CQLValueSetTransferObject matValueSetTransferObject);
+
+	void updateCQLLookUpTagWithModifiedValueSet(CQLQualityDataSetDTO modifyWithDTO, CQLQualityDataSetDTO modifyDTO,
+			String measureId);
+	SaveUpdateCQLResult saveIncludeLibrayInCQLLookUp(String measureId,
+			CQLIncludeLibrary toBeModifiedObj, CQLIncludeLibrary currentObj,
+			List<CQLIncludeLibrary> incLibraryList);
+
+	SaveUpdateCQLResult getMeasureCQLFileData(String measureId);
+
+	void updateCQLMeasureXMLForExpansionIdentifier(List<CQLQualityDataSetDTO> modifyWithDTOList, String measureId,
+			String expansionProfile);
+
+	SaveUpdateCQLResult deleteInclude(String currentMeasureId,
+			CQLIncludeLibrary toBeModifiedIncludeObj,
+			CQLIncludeLibrary cqlLibObject,
+			List<CQLIncludeLibrary> viewIncludeLibrarys);
+
+	VsacApiResult updateCQLVSACValueSets(String currentMeasureId, String expansionId, String sessionId);
+
 }

@@ -1,6 +1,10 @@
 package mat.client.umls.service;
 
+import java.util.List;
+
 import com.google.gwt.user.client.rpc.AsyncCallback;
+
+import mat.model.cql.CQLQualityDataSetDTO;
 
 /**
  * The Interface VSACAPIServiceAsync.
@@ -62,6 +66,28 @@ public interface VSACAPIServiceAsync {
 			AsyncCallback<VsacApiResult> callback);
 	
 	/**
+	 * Update vsac value sets.
+	 * 
+	 * @param appliedQDMList
+	 *            the applied qdm list
+	 * @param callback
+	 *            the callback
+	 */
+	void updateCQLVSACValueSets(List<CQLQualityDataSetDTO> appliedQDMList, String defaultExpId,
+			AsyncCallback<VsacApiResult> callback);
+	
+	/**
+	 * Update stand alone vsac value sets.
+	 * 
+	 * @param libraryId
+	 *            the library id
+	 * @param callback
+	 *            the callback
+	 */
+	void updateStandaloneCQLVSACValueSets(String libraryId, String defaultExpId,
+			AsyncCallback<VsacApiResult> callback);
+	
+	/**
 	 * Validate vsac user.
 	 * 
 	 * @param userName
@@ -74,7 +100,7 @@ public interface VSACAPIServiceAsync {
 	void validateVsacUser(String userName, String password,
 			AsyncCallback<Boolean> callback);
 	
-	void getAllExpIdentifierList(AsyncCallback<VsacApiResult> callback);
+	void getAllExpProfileList(AsyncCallback<VsacApiResult> callback);
 	
 	void getAllVersionListByOID(String oid, AsyncCallback<VsacApiResult> callback);
 	

@@ -30,6 +30,7 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import mat.model.QualityDataModelWrapper;
+import mat.model.cql.CQLQualityDataModelWrapper;
 import mat.shared.UUIDUtilClient;
 
 import org.apache.commons.lang.StringUtils;
@@ -1009,7 +1010,7 @@ public class XmlProcessor {
 			.insertBefore(riskAdjustmentVariablesElement,
 					supplementaDataElementsElement.getNextSibling());
 		}
-		if (findNode(originalDoc, XPATH_CQL_LOOKUP) == null) {
+		/*if (findNode(originalDoc, XPATH_CQL_LOOKUP) == null) {
 			Element cqlLookUpElement = originalDoc
 					.createElement("cqlLookUp");
 			((Element) supplementaDataElementsElement.getParentNode())
@@ -1017,7 +1018,7 @@ public class XmlProcessor {
 					);
 			
 			createCQLLookUpElements(releaseVersion);
-		}
+		}*/
 		System.out.println("Original Doc: "+originalDoc.toString());
 	}
 	
@@ -1308,130 +1309,7 @@ public class XmlProcessor {
 		return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase();
 	}
 	
-	/**
-	 * Method to create XML from QualityDataModelWrapper object for
-	 * elementLookUp.
-	 * 
-	 * @param qualityDataSetDTO
-	 *            the quality data set dto
-	 * @return the org.apache.commons.io.output. byte array output stream
-	 */
-	public static org.apache.commons.io.output.ByteArrayOutputStream convertQualityDataDTOToXML(
-			QualityDataModelWrapper qualityDataSetDTO) {
-		LOG.info("In MeasureLibraryServiceImpl.convertQualityDataDTOToXML()");
-		Mapping mapping = new Mapping();
-		org.apache.commons.io.output.ByteArrayOutputStream stream = new org.apache.commons.io.output.ByteArrayOutputStream();
-		try {
-			mapping.loadMapping(new ResourceLoader()
-			.getResourceAsURL("QualityDataModelMapping.xml"));
-			Marshaller marshaller = new Marshaller(new OutputStreamWriter(
-					stream));
-			marshaller.setMapping(mapping);
-			marshaller.marshal(qualityDataSetDTO);
-			LOG.debug("Marshalling of QualityDataSetDTO is successful.."
-					+ stream.toString());
-		}catch(IOException e) {
-			LOG.info("Failed to load QualityDataModelMapping.xml in convertQualityDataDTOToXML method"
-					+ e, e);
-		}catch(MappingException e) {
-			LOG.info("Mapping Failed in convertQualityDataDTOToXML method"
-					+ e, e);
-		}catch(MarshalException e) {
-			LOG.info("Unmarshalling Failed in convertQualityDataDTOToXML method"
-					+ e, e);
-		}catch(ValidationException e) {
-			LOG.info("Validation Exception in convertQualityDataDTOToXML method"
-					+ e, e);
-		}catch(Exception e) {
-			LOG.info("Other Exception in convertQualityDataDTOToXML method "
-					+ e, e);
-		}
-		LOG.info("Exiting MeasureLibraryServiceImpl.convertQualityDataDTOToXML()");
-		return stream;
-	}
 	
-	/**
-	 * Convertclause to risk adj var xml.
-	 *
-	 * @param qualityDataSetDTO the quality data set dto
-	 * @return the org.apache.commons.io.output. byte array output stream
-	 */
-	public static org.apache.commons.io.output.ByteArrayOutputStream convertclauseToRiskAdjVarXML(QualityDataModelWrapper qualityDataSetDTO){
-		
-		LOG.info("In MeasureLibraryServiceImpl.convertclauseToRiskAdjVarXML()");
-		Mapping mapping = new Mapping();
-		org.apache.commons.io.output.ByteArrayOutputStream stream = new org.apache.commons.io.output.ByteArrayOutputStream();
-		try {
-			mapping.loadMapping(new ResourceLoader()
-			.getResourceAsURL("SubTreeToRiskAdjustmentVarMapping.xml"));
-			Marshaller marshaller = new Marshaller(new OutputStreamWriter(
-					stream));
-			marshaller.setMapping(mapping);
-			marshaller.marshal(qualityDataSetDTO);
-			LOG.debug("Marshalling of SubTreeToRiskAdjustmentVarMapping is successful in convertclauseToRiskAdjVarXML()"
-					+ stream.toString());
-		}catch(IOException e) {
-			LOG.info("Failed to load SubTreeToRiskAdjustmentVarMapping.xml in convertclauseToRiskAdjVarXML()"
-					+ e, e);
-		}catch(MappingException e){
-			LOG.info("Mapping Failed in convertclauseToRiskAdjVarXML()"
-					+ e, e);
-		}catch(MarshalException e) {
-			LOG.info("Unmarshalling Failed in convertclauseToRiskAdjVarXML()"
-					+ e, e);
-		}catch(ValidationException e) {
-			LOG.info("Validation Exception in convertclauseToRiskAdjVarXML()"
-					+ e, e);
-		}catch(Exception e) {
-			LOG.info("Other Exception in convertclauseToRiskAdjVarXML()"
-					+ e, e);
-		}
-		LOG.info("Exiting MeasureLibraryServiceImpl.convertclauseToRiskAdjVarXML()");
-		return stream;
-		
-		
-	}
-	/**
-	 * Method to create XML from QualityDataModelWrapper object for
-	 * supplementalDataElement .
-	 * 
-	 * @param qualityDataSetDTO
-	 *            the quality data set dto
-	 * @return the org.apache.commons.io.output. byte array output stream
-	 */
-	public static org.apache.commons.io.output.ByteArrayOutputStream convertQDMOToSuppleDataXML(
-			QualityDataModelWrapper qualityDataSetDTO) {
-		LOG.info("In MeasureLibraryServiceImpl.convertQDMOToSuppleDataXML()");
-		Mapping mapping = new Mapping();
-		org.apache.commons.io.output.ByteArrayOutputStream stream = new org.apache.commons.io.output.ByteArrayOutputStream();
-		try {
-			mapping.loadMapping(new ResourceLoader()
-			.getResourceAsURL("QDMToSupplementDataMapping.xml"));
-			Marshaller marshaller = new Marshaller(new OutputStreamWriter(
-					stream));
-			marshaller.setMapping(mapping);
-			marshaller.marshal(qualityDataSetDTO);
-			LOG.debug("Marshalling of QualityDataSetDTO is successful in convertQDMOToSuppleDataXML()"
-					+ stream.toString());
-		}catch(IOException e) {
-			LOG.info("Failed to load QualityDataModelMapping.xml in convertQDMOToSuppleDataXML()"
-					+ e, e);
-		}catch(MappingException e){
-			LOG.info("Mapping Failed in convertQDMOToSuppleDataXML()"
-					+ e, e);
-		}catch(MarshalException e) {
-			LOG.info("Unmarshalling Failed in convertQDMOToSuppleDataXML()"
-					+ e, e);
-		}catch(ValidationException e) {
-			LOG.info("Validation Exception in convertQDMOToSuppleDataXML()"
-					+ e, e);
-		}catch(Exception e) {
-			LOG.info("Other Exception in convertQDMOToSuppleDataXML()"
-					+ e, e);
-		}
-		LOG.info("Exiting MeasureLibraryServiceImpl.convertQDMOToSuppleDataXML()");
-		return stream;
-	}
 	
 	/**
 	 * This method will check for the timing element to be present in
@@ -1444,19 +1322,19 @@ public class XmlProcessor {
 	 * 
 	 * @return String
 	 */
-	public List<String> checkForTimingElements() {
+	/*public List<String> checkForTimingElements() {
 		List<String> missingTimingElementList = new ArrayList<String>();
 		
 		if (originalDoc != null) {
 			try {
 				// Measurement Period commented - MAT-7104.
 				// Default Measurement Period is created in Parameter section so it is not required in Elementlookup.
-				/*Node measurementPeriodNode = this.findNode(originalDoc,
+				Node measurementPeriodNode = this.findNode(originalDoc,
 						"/measure/elementLookUp/qdm[@oid='"
 								+ MEASUREMENT_PERIOD_OID + "']");
 				if (measurementPeriodNode == null) {
 					missingTimingElementList.add(MEASUREMENT_PERIOD_OID);
-				}*/
+				}
 				
 				//Patient Characteristic Birth Data
 				Node patientCharacteristicBirthDateNode = this.findNode(originalDoc,
@@ -1481,11 +1359,11 @@ public class XmlProcessor {
 		return missingTimingElementList;
 	}
 	
-	/**
+	*//**
 	 * Check for qdm id and update.
 	 *
 	 * @return the string
-	 */
+	 *//*
 	public String checkForQdmIDAndUpdate() {
 		if (originalDoc == null) {
 			return "";
@@ -1515,7 +1393,7 @@ public class XmlProcessor {
 			e.printStackTrace();
 		}
 		return transform(originalDoc);
-	}
+	}*/
 	
 	/**
 	 * Transform.
@@ -1675,10 +1553,7 @@ public class XmlProcessor {
 				cqlNode.appendChild(definitionsChildElem);
 				cqlNode.appendChild(functionsChildElem);
 			}
-			
-			
-			
-			
+				
 		} catch (XPathExpressionException e) {
 			e.printStackTrace();
 		}
@@ -1709,14 +1584,19 @@ public class XmlProcessor {
 	private String cleanString(String originalString) {
 		originalString = originalString.replaceAll(" ", "");
 		
-		String cleanedString = "";
-				
+		String cleanedString = "";	
 		for(int i=0;i<originalString.length();i++){
 			char c = originalString.charAt(i);
 			int intc = (int)c;
+			
 			if(c == '_' || (intc >= 48 && intc <= 57) || (intc >= 65 && intc <= 90) || (intc >= 97 && intc <= 122)){
-				cleanedString = cleanedString + "" + c;
-			}
+				
+				if(!(cleanedString.isEmpty() && Character.isDigit(c))){
+					cleanedString = cleanedString + "" + c;
+				}
+				
+			} 
+
 		}
 		
 		return cleanedString;

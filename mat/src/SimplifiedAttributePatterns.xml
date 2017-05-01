@@ -111,7 +111,7 @@
   <mode mode="Nullable" />
  </attribute>
  <attribute attribName="refills">
-  <mode mode="Comparison" />   
+  <mode mode="Comparison" />
   <mode mode="Nullable" />
  </attribute>
  <attribute attribName="relatedTo">

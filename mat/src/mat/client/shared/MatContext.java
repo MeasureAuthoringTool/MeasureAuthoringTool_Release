@@ -8,6 +8,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.shared.HandlerManager;
+import com.google.gwt.http.client.UrlBuilder;
+import com.google.gwt.user.client.DOM;
+import com.google.gwt.user.client.Timer;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.rpc.IsSerializable;
+import com.google.gwt.user.client.ui.TabPanel;
+import com.google.gwt.user.client.ui.Widget;
+// TODO: Auto-generated Javadoc
+//import mat.client.measure.AdminManageMeasureSearchView;
+
 import mat.DTO.OperatorDTO;
 import mat.client.Enableable;
 import mat.client.admin.service.AdminService;
@@ -25,6 +38,7 @@ import mat.client.codelist.HasListBox;
 import mat.client.codelist.ListBoxCodeProvider;
 import mat.client.codelist.service.CodeListService;
 import mat.client.codelist.service.CodeListServiceAsync;
+import mat.client.event.CQLLibrarySelectedEvent;
 import mat.client.event.ForgottenPasswordEvent;
 import mat.client.event.MeasureSelectedEvent;
 import mat.client.login.LoginModel;
@@ -35,6 +49,8 @@ import mat.client.login.service.SessionManagementService;
 import mat.client.login.service.SessionManagementServiceAsync;
 import mat.client.measure.ManageMeasureSearchModel;
 import mat.client.measure.ManageMeasureSearchView;
+import mat.client.measure.service.CQLLibraryService;
+import mat.client.measure.service.CQLLibraryServiceAsync;
 import mat.client.measure.service.MeasureService;
 import mat.client.measure.service.MeasureServiceAsync;
 import mat.client.measurepackage.service.PackageService;
@@ -46,21 +62,10 @@ import mat.client.umls.service.VSACAPIServiceAsync;
 import mat.client.umls.service.VsacApiResult;
 import mat.client.util.ClientConstants;
 import mat.model.GlobalCopyPasteObject;
-import mat.model.VSACExpansionIdentifier;
+import mat.model.VSACExpansionProfile;
 import mat.model.cql.CQLKeywords;
+import mat.model.cql.CQLQualityDataSetDTO;
 import mat.shared.ConstantMessages;
-import com.google.gwt.core.client.GWT;
-import com.google.gwt.event.shared.HandlerManager;
-import com.google.gwt.http.client.UrlBuilder;
-import com.google.gwt.user.client.DOM;
-import com.google.gwt.user.client.Timer;
-import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.rpc.IsSerializable;
-import com.google.gwt.user.client.ui.TabPanel;
-import com.google.gwt.user.client.ui.Widget;
-// TODO: Auto-generated Javadoc
-//import mat.client.measure.AdminManageMeasureSearchView;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -71,6 +76,9 @@ public class MatContext implements IsSerializable {
 	/** The is umls logged in. */
 	private boolean isUMLSLoggedIn = false;
 	
+	/** The do library lock updates. */
+	private boolean doLibraryLockUpdates = false;
+
 	/** The do measure lock updates. */
 	private boolean doMeasureLockUpdates = false;
 	
@@ -100,6 +108,9 @@ public class MatContext implements IsSerializable {
 	
 	/** The measure service. */
 	private MeasureServiceAsync measureService;
+	
+	/** The cql library service. */
+	private CQLLibraryServiceAsync cqlLibraryService;
 	
 	/** The measure package service. */
 	private PackageServiceAsync measurePackageService;
@@ -131,6 +142,8 @@ public class MatContext implements IsSerializable {
 	/** The current measure info. */
 	private MeasureSelectedEvent currentMeasureInfo;
 	
+	private CQLLibrarySelectedEvent currentLibraryInfo;
+	
 	/** The is measure deleted. */
 	private boolean isMeasureDeleted;
 	
@@ -154,7 +167,7 @@ public class MatContext implements IsSerializable {
 	
 	
 	/** The zoom factor service. */
-	private ZoomFactorService zoomFactorService = new ZoomFactorService();
+//	private ZoomFactorService zoomFactorService = new ZoomFactorService();
 	
 	
 	/** The qds view. */
@@ -219,32 +232,42 @@ public class MatContext implements IsSerializable {
 	public Map<String, String> removedRelationshipTypes = new TreeMap<String,String>(String.CASE_INSENSITIVE_ORDER);
 	
 	/** The data type list. */
-	private List<String> dataTypeList = new ArrayList<String>();
+	public List<String> dataTypeList = new ArrayList<String>();
+	
+	/** The qdm data type list. */
+	private List<String> qdmDataTypeList = new ArrayList<String>();
 		
 	/** The profile list. */
-	private List<String> expIdentifierList = new ArrayList<String>();
+	private List<String> expProfileList = new ArrayList<String>();
 	
-	/** The vsac exp identifier list. */
-	private List<VSACExpansionIdentifier> vsacExpIdentifierList = new ArrayList<VSACExpansionIdentifier>();
+	/** The vsac exp Profile list. */
+	private List<VSACExpansionProfile> vsacExpProfileList = new ArrayList<VSACExpansionProfile>();
 	
 	/** The global copy paste. */
 	private GlobalCopyPasteObject globalCopyPaste;
 	
+	
+	public List<String> valuesets = new ArrayList<String>(); 
 	
 	/** The definitions. */
 	public List<String> definitions = new ArrayList<String>(); 
 	
 	/** The parameters. */
 	public List<String> parameters = new ArrayList<String>();
-	
+		
 	/** The funcs. */
 	public List<String> funcs = new ArrayList<String>();
+	
+	/** The includes. */
+	public List<String> includes = new ArrayList<String>();
 	
 	/** The all attribute list. */
 	public List<String> allAttributeList = new ArrayList<String>();
 	
+	/** The all units list. */
 	public List<String> allUnitsList = new ArrayList<String>();
 	
+	/** The all CQL units list. */
 	private List<String> allCQLUnitsList = new ArrayList<String>();
 	
 	
@@ -396,6 +419,15 @@ public class MatContext implements IsSerializable {
 			@Override
 			public void onMeasureSelected(MeasureSelectedEvent event) {
 				currentMeasureInfo = event;
+			}
+		});
+		
+		eventBus.addHandler(CQLLibrarySelectedEvent.TYPE, new CQLLibrarySelectedEvent.Handler() {
+			
+			@Override
+			public void onLibrarySelected(CQLLibrarySelectedEvent event) {
+				currentLibraryInfo = event;
+				
 			}
 		});
 		
@@ -559,6 +591,20 @@ public class MatContext implements IsSerializable {
 			measureService = (MeasureServiceAsync) GWT.create(MeasureService.class);
 		}
 		return measureService;
+	}
+	
+	/**
+	 * Gets the CQL library service.
+	 *
+	 * @return the CQL library service
+	 */
+	public CQLLibraryServiceAsync getCQLLibraryService(){
+		if(cqlLibraryService == null){
+			cqlLibraryService = (CQLLibraryServiceAsync)GWT.create(CQLLibraryService.class);
+			
+		}
+		return cqlLibraryService;
+		
 	}
 	
 	/**
@@ -844,6 +890,20 @@ public class MatContext implements IsSerializable {
 			return false;
 		}
 	}
+
+	/**
+	 * Checks if is current library editable.
+	 * 
+	 * @return true, if is current library editable
+	 */
+	public boolean isCurrentLibraryEditable() {
+		if(currentLibraryInfo != null) {
+			return currentLibraryInfo.isEditable();
+		}
+		else {
+			return false;
+		}
+	}
 	
 	/**
 	 * Checks if is current measure locked.
@@ -853,6 +913,20 @@ public class MatContext implements IsSerializable {
 	public boolean isCurrentMeasureLocked(){
 		if(currentMeasureInfo != null) {
 			return currentMeasureInfo.isLocked();
+		}
+		else {
+			return false;
+		}
+	}
+	
+	/**
+	 * Checks if is current library locked.
+	 * 
+	 * @return true, if is current library locked
+	 */
+	public boolean isCurrentLibraryLocked(){
+		if(currentLibraryInfo != null) {
+			return currentLibraryInfo.isLocked();
 		}
 		else {
 			return false;
@@ -975,9 +1049,9 @@ public class MatContext implements IsSerializable {
 	 * 
 	 * @return the zoom factor service
 	 */
-	public ZoomFactorService getZoomFactorService(){
+	/*public ZoomFactorService getZoomFactorService(){
 		return zoomFactorService;
-	}
+	}*/
 	
 	/**
 	 * Gets the current measure info.
@@ -988,6 +1062,16 @@ public class MatContext implements IsSerializable {
 		return currentMeasureInfo;
 	}
 	
+	public CQLLibrarySelectedEvent getCurrentLibraryInfo() {
+		return currentLibraryInfo;
+	}
+
+
+	public void setCurrentLibraryInfo(CQLLibrarySelectedEvent currentLibraryInfo) {
+		this.currentLibraryInfo = currentLibraryInfo;
+	}
+
+
 	/**
 	 * Sets the current measure info.
 	 * 
@@ -1012,6 +1096,18 @@ public class MatContext implements IsSerializable {
 	 */
 	public MeasureLockService getMeasureLockService(){
 		return measureLockService;
+	}
+	
+	/** The library lock service. */
+	private LibraryLockService libraryLockService = new LibraryLockService();
+	
+	/**
+	 * Gets the library lock service.
+	 * 
+	 * @return the library lock service
+	 */
+	public LibraryLockService getLibraryLockService(){
+		return libraryLockService;
 	}
 	
 	/*
@@ -1105,6 +1201,34 @@ public class MatContext implements IsSerializable {
 	 */
 	public void stopMeasureLockUpdate(){
 		doMeasureLockUpdates = false;
+	}
+	
+	/**
+	 * run a repeating process that updates the current library lock while flag doLibraryLockUpdates returns true.
+	 */
+	public void startLibraryLockUpdate(){
+		if (!doLibraryLockUpdates) {
+			doLibraryLockUpdates = true;
+			Timer t = new Timer() {
+				@Override
+				public void run() {
+					if (doLibraryLockUpdates) {
+						getLibraryLockService().setLibraryLock();
+					} else {
+						//terminate job
+						this.cancel();
+					}
+					
+				}
+			};
+			t.scheduleRepeating(lockUpdateTime);
+		}
+	}
+	/**
+	 * set flag doLibraryLockUpdates to false the repeating process will verify based on its value.
+	 */
+	public void stopLibraryLockUpdate(){
+		doLibraryLockUpdates = false;
 	}
 	
 	/**
@@ -1520,6 +1644,27 @@ public class MatContext implements IsSerializable {
 					}
 				});
 	}
+	
+	/**
+	 * Gets the qdm data type list.
+	 *
+	 * @return the qdm data type list
+	 */
+	public List<String> getQdmDataTypeList() {
+		return qdmDataTypeList;
+	}
+
+
+	/**
+	 * Sets the qdm data type list.
+	 *
+	 * @param qdmDataTypeList the new qdm data type list
+	 */
+	public void setQdmDataTypeList(List<String> qdmDataTypeList) {
+		this.qdmDataTypeList = qdmDataTypeList;
+	}
+
+
 	// Get all CQL Data types/Timings/Functions from cqlTemplate.xml
 	// And All QDM Data types except Attributes.
 	/**
@@ -1543,8 +1688,31 @@ public class MatContext implements IsSerializable {
 				
 			}
 		});
+		getAllDataType();
 		
+	}
+
+	public void getAllCqlKeywordsAndQDMDatatypesForCQLWorkSpaceSA(){
 		
+		cqlLibraryService.getCQLKeywordsLists(new AsyncCallback<CQLKeywords>() {
+			
+			@Override
+			public void onFailure(Throwable caught) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void onSuccess(CQLKeywords result) {
+				cqlKeywords = result;
+				
+			}
+		});
+		getAllDataType();
+		
+	}
+
+/*	private void getAllDataTypes() {
 		listBoxCodeProvider.getAllDataType(
 				new AsyncCallback<List<? extends HasListBox>>() {
 					
@@ -1570,12 +1738,13 @@ public class MatContext implements IsSerializable {
 						}
 					}
 				});
-		
-	}
+	}*/
 	
 	/**
-	 * Gets of all of the units and updates the all units list. 
-	 */
+ * Gets of all of the units and updates the all units list.
+ *
+ * @return the all units
+ */
 	public void getAllUnits() {
 		
 		listBoxCodeProvider.getUnitList(new AsyncCallback<List<? extends HasListBox>>() {
@@ -1645,10 +1814,11 @@ public class MatContext implements IsSerializable {
 		if (itemList != null) {
 			for (HasListBox listBoxContent : itemList) {
 				//MAT-4366
-				if(! listBoxContent.getItem().equalsIgnoreCase("Patient Characteristic Birthdate") &&
-						! listBoxContent.getItem().equalsIgnoreCase("Patient Characteristic Expired")){
-					dataTypeList.add(listBoxContent.getItem());
+				if(! listBoxContent.getItem().equalsIgnoreCase("attribute")){
+						dataTypeList.add(listBoxContent.getItem());
 				}
+				qdmDataTypeList.add(listBoxContent.getItem());
+			
 				
 			}
 			
@@ -1668,7 +1838,7 @@ public class MatContext implements IsSerializable {
 			
 			@Override
 			public void onSuccess(VsacApiResult result) {
-				if (result.getVsacExpIdentifierResp() != null) {
+				if (result.getVsacExpProfileResp() != null) {
 					
 				}
 				
@@ -1724,16 +1894,16 @@ public class MatContext implements IsSerializable {
 	 *
 	 * @return the all profile list
 	 */
-	public void getAllExpIdentifierList(){
+	public void getAllExpProfileList(){
 		vsacapiServiceAsync
-		.getAllExpIdentifierList(new AsyncCallback<VsacApiResult>() {
+		.getAllExpProfileList(new AsyncCallback<VsacApiResult>() {
 			
 			@Override
 			public void onSuccess(
 					VsacApiResult result) {
-				if (result.getVsacExpIdentifierResp() != null) {
-					vsacExpIdentifierList = result.getVsacExpIdentifierResp();
-					expIdentifierList = getExpIdentifierList(result.getVsacExpIdentifierResp());
+				if (result.getVsacExpProfileResp() != null) {
+					vsacExpProfileList = result.getVsacExpProfileResp();
+					expProfileList = getExpProfileList(result.getVsacExpProfileResp());
 				}
 			}
 			
@@ -1745,12 +1915,12 @@ public class MatContext implements IsSerializable {
 	}
 	
 	/**
-	 * Gets the vsac exp identifier list.
+	 * Gets the vsac exp Profile list.
 	 *
-	 * @return the vsac exp identifier list
+	 * @return the vsac exp Profile list
 	 */
-	public List<VSACExpansionIdentifier> getVsacExpIdentifierList() {
-		return vsacExpIdentifierList;
+	public List<VSACExpansionProfile> getVsacExpProfileList() {
+		return vsacExpProfileList;
 	}
 	
 	
@@ -1862,12 +2032,12 @@ public class MatContext implements IsSerializable {
 	 * public void setCopiedNode(CellTreeNode copiedNode) {
 		this.copiedNode = copiedNode;
 	}*/
-	private List<String> getExpIdentifierList(List<VSACExpansionIdentifier> list) {
-		List<String> expIdentifier = new ArrayList<String>();
+	private List<String> getExpProfileList(List<VSACExpansionProfile> list) {
+		List<String> expProfile = new ArrayList<String>();
 		for (int i = 0; i < list.size(); i++) {
-			expIdentifier.add(list.get(i).getName());
+			expProfile.add(list.get(i).getName());
 		}
-		return expIdentifier;
+		return expProfile;
 	}
 	
 	
@@ -1876,8 +2046,8 @@ public class MatContext implements IsSerializable {
 	 *
 	 * @return the profile list
 	 */
-	public List<String> getExpIdentifierList() {
-		return expIdentifierList;
+	public List<String> getExpProfileList() {
+		return expProfileList;
 	}
 	
 	
@@ -1886,8 +2056,8 @@ public class MatContext implements IsSerializable {
 	 *
 	 * @param profileList the new profile list
 	 */
-	public void setExpIdentifierList(List<String> profileList) {
-		expIdentifierList = profileList;
+	public void setExpProfileList(List<String> profileList) {
+		expProfileList = profileList;
 	}
 	
 	/**
@@ -1908,6 +2078,12 @@ public class MatContext implements IsSerializable {
 		this.globalCopyPaste = globalCopyPaste;
 	}
 	
+	/**
+	 * Gets the current release version.
+	 *
+	 * @param currentReleaseVersionCallback the current release version callback
+	 * @return the current release version
+	 */
 	public void getCurrentReleaseVersion(AsyncCallback<String> currentReleaseVersionCallback){
 		getSessionService().getCurrentReleaseVersion(currentReleaseVersionCallback);
 	}
@@ -1923,6 +2099,31 @@ public class MatContext implements IsSerializable {
 	}
 
 
+	/**
+	 * Gets the valuesets
+	 * @return the valuests
+	 */
+	public List<String> getValuesets() {
+		return this.valuesets;
+	}
+	
+	/**
+	 * Sets the valuesets
+	 * @param valuesets the valuesets
+	 */
+	public void setValuesets(List<CQLQualityDataSetDTO> valuesets) {
+		
+		List<String> valuesetNames = new ArrayList<>(); 
+		
+		for(int i = 0; i < valuesets.size(); i++) {
+			valuesetNames.add(valuesets.get(i).getCodeListName());
+		}
+		
+		
+		this.valuesets = valuesetNames;
+	}
+	
+	
 	/**
 	 * Gets the definitions.
 	 *
@@ -2028,7 +2229,8 @@ public class MatContext implements IsSerializable {
 	}	
 	
 	/**
-	 * Gets the list of all of the units
+	 * Gets the list of all of the units.
+	 *
 	 * @return the list of all of the units
 	 */
 	public List<String> getAllUnitsList() {
@@ -2036,7 +2238,8 @@ public class MatContext implements IsSerializable {
 	}
 	
 	/**
-	 * Sets the list of all of the units
+	 * Sets the list of all of the units.
+	 *
 	 * @param allUnitsList the list of all of the units
 	 */
 	public void setAllUnitsList(List<String> allUnitsList) {
@@ -2044,7 +2247,8 @@ public class MatContext implements IsSerializable {
 	}
 	
 	/**
-	 * Gets the list of all of the cql units
+	 * Gets the list of all of the cql units.
+	 *
 	 * @return the list of all of the cql units
 	 */
 	public List<String> getAllCQLUnitsList() {
@@ -2052,13 +2256,95 @@ public class MatContext implements IsSerializable {
 	}
 	
 	/**
-	 * Sets the list of all of the cql units
-	 * @param allUnitsList the list of all of the cql units
+	 * Sets the list of all of the cql units.
+	 *
+	 * @param allCQLUnitsList the new all CQL units list
 	 */
 	public void setAllCQLUnitsList(List<String> allCQLUnitsList) {
 		this.allCQLUnitsList = allCQLUnitsList;
 	}
+
+
+	/**
+	 * Gets the includes.
+	 *
+	 * @return the includes
+	 */
+	public List<String> getIncludes() {
+		return includes;
+	}
+
+
+	/**
+	 * Sets the includes.
+	 *
+	 * @param includes the new includes
+	 */
+	public void setIncludes(List<String> includes) {
+		this.includes = includes;
+	}
+
+	/**
+	 * Gets the current CQL Library id.
+	 * 
+	 * @return the CQL Library id
+	 */
+	public String getCurrentCQLLibraryId() {
+		if(currentLibraryInfo != null) {
+			return currentLibraryInfo.getCqlLibraryId();
+		}
+		else {
+			return "";
+		}
+	}
 	
+	/**
+	 * Gets the current CQL Library name.
+	 * 
+	 * @return the current CQL Library name
+	 */
+	public String getCurrentCQLLibraryeName() {
+		if(currentLibraryInfo != null) {
+			return currentLibraryInfo.getLibraryName();
+		}
+		else {
+			return "";
+		}
+	}
+	
+	/**
+	 * Gets the current Library version.
+	 * 
+	 * @return the current Library version
+	 */
+	public String getCurrentCQLLibraryVersion() {
+		if(currentLibraryInfo != null) {
+			return currentLibraryInfo.getCqlLibraryVersion();
+		}
+		else {
+			return "";
+		}
+	}
+	
+	/**
+	 * Sets the current measure version.
+	 * 
+	 * @param s
+	 *            the new current measure version
+	 */
+	public void setCurrentCQLLibraryVersion(String s) {
+		if(currentLibraryInfo != null) {
+			currentLibraryInfo.setCqlLibraryVersion(s);;
+		}
+	}
+
+	public CQLLibraryServiceAsync getLibraryService() {
+		if(cqlLibraryService == null){
+			cqlLibraryService = (CQLLibraryServiceAsync) GWT.create(CQLLibraryService.class);
+		}
+		return cqlLibraryService;
+	}
+
 	/*public GlobalCopyPaste getCopyPaste() {
 		return copyPaste;
 	}

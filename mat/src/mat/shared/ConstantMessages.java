@@ -33,6 +33,9 @@ public  class ConstantMessages {
 	/** The Constant INVALID_VALUE_SET_DATE. */
 	public static final int INVALID_DATA = 6;
 	
+	/** The Constant INVALID_VALUE_SET_DATE. */
+	public static final int INVALID_CQL_DATA = 7;
+	
 	/** The Constant FILE_NOT_SELECTED. */
 	public static final String FILE_NOT_SELECTED ="Please Select a File.";
 	
@@ -392,6 +395,16 @@ public  class ConstantMessages {
 	/** The Constant CREATE_NEW_VERSION. */
 	public static final String CREATE_NEW_VERSION = "Measure Version of Draft";
 	
+	
+	/** The Constant CREATE_NEW_MEASURE. */
+	public static final String CREATE_NEW_CQL = "New Library";
+	
+	/** The Constant CREATE_NEW_DRAFT. */
+	public static final String CREATE_NEW_CQL_DRAFT = "Draft of Existing Library";
+	
+	/** The Constant CREATE_NEW_VERSION. */
+	public static final String CREATE_NEW_CQL_VERSION = "Library Version of Draft";
+	
 	/** The Constant MAXIMUM_ALLOWED_VERSION. */
 	public static final String MAXIMUM_ALLOWED_VERSION = "999.999";
 	
@@ -453,6 +466,9 @@ public  class ConstantMessages {
 	
 	/** The Constant MEASURE_COMPOSER_TAB. */
 	public static final String MEASURE_COMPOSER_TAB = "measureTab";
+	
+	/** The constant CQL_COMPOSER_TAB. */
+	public static final String CQL_COMPOSER_TAB = "cqlTab";
 	
 	/** The Constant USER_DEFINED_QDM_OID. */
 	public static final String USER_DEFINED_QDM_OID="1.1.1.1";

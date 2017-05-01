@@ -1,18 +1,8 @@
 package mat.server;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.apache.commons.lang.StringUtils;
-import org.cqframework.cql.cql2elm.CQLtoELM;
-import org.cqframework.cql.cql2elm.CqlTranslator;
-import org.cqframework.cql.cql2elm.CqlTranslatorException;
 
 import mat.DTO.MeasureNoteDTO;
 import mat.client.clause.clauseworkspace.model.MeasureDetailResult;
@@ -28,6 +18,8 @@ import mat.client.measure.service.SaveMeasureNotesResult;
 import mat.client.measure.service.SaveMeasureResult;
 import mat.client.measure.service.ValidateMeasureResult;
 import mat.client.shared.MatException;
+import mat.client.umls.service.VsacApiResult;
+import mat.model.CQLValueSetTransferObject;
 import mat.model.MatValueSet;
 import mat.model.MeasureType;
 import mat.model.Organization;
@@ -35,17 +27,14 @@ import mat.model.QualityDataModelWrapper;
 import mat.model.QualityDataSetDTO;
 import mat.model.RecentMSRActivityLog;
 import mat.model.cql.CQLDefinition;
-import mat.model.cql.CQLDefinitionsWrapper;
 import mat.model.cql.CQLFunctions;
+import mat.model.cql.CQLIncludeLibrary;
 import mat.model.cql.CQLKeywords;
 import mat.model.cql.CQLModel;
 import mat.model.cql.CQLParameter;
-import mat.server.cqlparser.CQLErrorListener;
-import mat.server.cqlparser.cqlLexer;
-import mat.server.cqlparser.cqlParser;
+import mat.model.cql.CQLQualityDataModelWrapper;
+import mat.model.cql.CQLQualityDataSetDTO;
 import mat.server.service.MeasureLibraryService;
-import mat.server.util.CQLUtil;
-import mat.shared.CQLErrors;
 import mat.shared.GetUsedCQLArtifactsResult;
 import mat.shared.SaveUpdateCQLResult;
 
@@ -63,8 +52,8 @@ MeasureService {
 	 * @see mat.client.measure.service.MeasureService#appendAndSaveNode(mat.client.clause.clauseworkspace.model.MeasureXmlModel, java.lang.String)
 	 */
 	@Override
-	public void appendAndSaveNode(MeasureXmlModel measureXmlModel, String nodeName, MeasureXmlModel newMeasureXmlModel, String newNodeName) {
-		this.getMeasureLibraryService().appendAndSaveNode(measureXmlModel, nodeName, newMeasureXmlModel, newNodeName);
+	public void appendAndSaveNode(MeasureXmlModel measureXmlModel, String nodeName) {
+		this.getMeasureLibraryService().appendAndSaveNode(measureXmlModel, nodeName);
 		
 	}
 	
@@ -135,6 +124,10 @@ MeasureService {
 		return this.getMeasureLibraryService().getAppliedQDMFromMeasureXml(measureId, checkForSupplementData);
 	}
 	
+	@Override
+	public CQLQualityDataModelWrapper getCQLAppliedQDMFromMeasureXml(String measureId, boolean checkForSupplementData) {
+		return this.getMeasureLibraryService().getCQLAppliedQDMFromMeasureXml(measureId, checkForSupplementData);
+	}
 	/* (non-Javadoc)
 	 * @see mat.client.measure.service.MeasureService#getMaxEMeasureId()
 	 */
@@ -516,12 +509,28 @@ MeasureService {
 	}
 	
 	/* (non-Javadoc)
+	 * @see mat.client.measure.service.MeasureService#updateMeasureXMLForExpansionIdentifier(java.util.List, java.lang.String, java.lang.String)
+	 */
+	@Override
+	public void updateCQLMeasureXMLForExpansionProfile(List<CQLQualityDataSetDTO> modifyWithDTOList,
+			String measureId, String expansionProfile) {
+		this.getMeasureLibraryService().updateCQLMeasureXMLForExpansionIdentifier(modifyWithDTOList, measureId, expansionProfile);
+	}
+	
+	/* (non-Javadoc)
 	 * @see mat.client.measure.service.MeasureService#getDefaultSDEFromMeasureXml(java.lang.String)
 	 */
 	@Override
 	public QualityDataModelWrapper getDefaultSDEFromMeasureXml(String measureId) {
-		// TODO Auto-generated method stub
 		return this.getMeasureLibraryService().getDefaultSDEFromMeasureXml(measureId);
+	}
+	
+	/* (non-Javadoc)
+	 * @see mat.client.measure.service.MeasureService#getDefaultCQLSDEFromMeasureXml(java.lang.String)
+	 */
+	@Override
+	public CQLQualityDataModelWrapper getDefaultCQLSDEFromMeasureXml(String measureId) {
+		return this.getMeasureLibraryService().getDefaultCQLSDEFromMeasureXml(measureId);
 	}
 	
 	/* (non-Javadoc)
@@ -535,18 +544,18 @@ MeasureService {
 	/* (non-Javadoc)
 	 * @see mat.client.measure.service.MeasureService#getCQLData(java.lang.String)
 	 */
-	@Override
-	public SaveUpdateCQLResult getCQLData(String measureId) {
-		return this.getMeasureLibraryService().getCQLData(measureId);
-	}
+	/*@Override
+	public SaveUpdateCQLResult getCQLData(String measureId,String fromTable) {
+		return this.getMeasureLibraryService().getCQLData(measureId,fromTable);
+	}*/
 	
 	/* (non-Javadoc)
 	 * @see mat.client.measure.service.MeasureService#getCQLData(java.lang.String)
 	 */
-	@Override
+	/*@Override
 	public SaveUpdateCQLResult getCQLFileData(String measureId) {
 		return this.getMeasureLibraryService().getCQLFileData(measureId);
-	}
+	}*/
 	
 	
 	/* (non-Javadoc)
@@ -606,60 +615,19 @@ MeasureService {
 
 	@Override
 	public SaveUpdateCQLResult parseCQLForErrors(String measureId) {
-		SaveUpdateCQLResult result = new SaveUpdateCQLResult();
-		List<String> Errors = new ArrayList<String>();
+		
 		MeasureXmlModel measureXML = getMeasureXmlForMeasure(measureId);
-		//MATCQLParser matcqlParser = new MATCQLParser();
-		String cqlFileString = CQLUtilityClass.getCqlString(CQLUtilityClass.getCQLStringFromMeasureXML(measureXML.getXml(),measureId),"").toString();
-		/*cqlLexer lexer = new cqlLexer(new ANTLRInputStream(cqlFileString));
-		System.out.println(cqlFileString);
-		CommonTokenStream tokens = new CommonTokenStream(lexer);
-		cqlParser parser = new cqlParser(tokens);
-		CQLErrorListener cqlErrorListener = new CQLErrorListener();
-		parser.addErrorListener(cqlErrorListener);
-		parser.setBuildParseTree(true);
-
-		ParserRuleContext tree = parser.logic();
-		parser.notifyErrorListeners("");
-
-		System.out.println(parser.getNumberOfSyntaxErrors());
-		System.out.println(cqlErrorListener.getErrors());
-
-		if(cqlErrorListener.getErrors().size()!=0){
-			//result.setValid(false);
-			result.setCqlErrors(cqlErrorListener.getErrors());
-		} else {
-			//result.setValid(true);
-		}*/
-
+		String cqlFileString = CQLUtilityClass.getCqlString(CQLUtilityClass.getCQLStringFromXML(measureXML.getXml()),"").toString();
 		
-		List<CqlTranslatorException> cqlErrorsList = new ArrayList<CqlTranslatorException>();
-		List<CQLErrors> errors = new ArrayList<CQLErrors>();
-		if(!StringUtils.isBlank(cqlFileString)){
-			
-			CQLtoELM cqlToElm = new CQLtoELM(cqlFileString); 
-			cqlToElm.doTranslation(true, false, false);
-			
-			String elmString = cqlToElm.getElmString(); 
-			
-			if(cqlToElm.getErrors() != null) {
-				cqlErrorsList.addAll(cqlToElm.getErrors());
-			}
-		}
-		
-		for(CqlTranslatorException cte : cqlErrorsList){
-			//Errors.add(cte.getMessage());
-			//result.getCqlErrors().add(cte);
-			CQLErrors cqlErrors = new CQLErrors();
-			cqlErrors.setErrorInLine(cte.getLocator().getStartLine());
-			cqlErrors.setErrorAtOffeset(cte.getLocator().getStartChar());
-			cqlErrors.setErrorMessage(cte.getMessage());
-			errors.add(cqlErrors);
-		}
-		
-		result.setCqlErrors(errors);
-		
-	return result;
+		return parseCQLStringForError(cqlFileString);
+	}
+	
+	/* (non-Javadoc)
+	 * @see mat.client.measure.service.MeasureService#parseCQLStringForError(java.lang.String)
+	 */
+	@Override
+	public SaveUpdateCQLResult parseCQLStringForError( String cqlFileString) {
+		return this.getMeasureLibraryService().parseCQLStringForError(cqlFileString);
 	}
 
 	@Override
@@ -686,6 +654,62 @@ MeasureService {
 		
 	}
 	
+	@Override
+	public SaveUpdateCQLResult deleteValueSet(String toBeDeletedValueSetId, String measureID) {
+		return this.getMeasureLibraryService().deleteValueSet(toBeDeletedValueSetId,  measureID);
+		
+	}
+
+	@Override
+	public CQLQualityDataModelWrapper getCQLValusets(String measureID) {
+		return this.getMeasureLibraryService().getCQLValusets(measureID);
+	}
+
+	@Override
+	public SaveUpdateCQLResult saveCQLValuesettoMeasure(CQLValueSetTransferObject valueSetTransferObject) {
+		return this.getMeasureLibraryService().saveCQLValuesettoMeasure(valueSetTransferObject);
+	}
 	
+	@Override
+	public SaveUpdateCQLResult saveCQLUserDefinedValuesettoMeasure(CQLValueSetTransferObject valueSetTransferObject) {
+		return this.getMeasureLibraryService().saveCQLUserDefinedValuesettoMeasure(valueSetTransferObject);
+	}
 	
+	@Override
+	public SaveUpdateCQLResult updateCQLValuesetsToMeasure(
+			CQLValueSetTransferObject matValueSetTransferObject) {
+		return this.getMeasureLibraryService().modifyCQLValueSetstoMeasure(matValueSetTransferObject);
+	}
+	
+	@Override
+	public SaveUpdateCQLResult saveIncludeLibrayInCQLLookUp(String measureId,
+			CQLIncludeLibrary toBeModifiedObj, CQLIncludeLibrary currentObj,
+			List<CQLIncludeLibrary> incLibraryList){
+		return this.getMeasureLibraryService().saveIncludeLibrayInCQLLookUp(measureId, toBeModifiedObj, currentObj, incLibraryList);
+	}
+
+	@Override
+	public SaveUpdateCQLResult getMeasureCQLData(String measureId) {
+		// TODO Auto-generated method stub
+		return this.getMeasureLibraryService().getMeasureCQLData(measureId);
+	}
+@Override
+public
+	SaveUpdateCQLResult getMeasureCQLFileData(String measureId) {
+		return this.getMeasureLibraryService().getMeasureCQLFileData(measureId);
+	}
+
+@Override
+public SaveUpdateCQLResult deleteInclude(String currentMeasureId,
+		CQLIncludeLibrary toBeModifiedIncludeObj,
+		CQLIncludeLibrary cqlLibObject,
+		List<CQLIncludeLibrary> viewIncludeLibrarys) {
+	return this.getMeasureLibraryService().deleteInclude(currentMeasureId, toBeModifiedIncludeObj, cqlLibObject, viewIncludeLibrarys);
+}
+
+@Override
+public VsacApiResult updateCQLVSACValueSets(String currentMeasureId, String expansionId) {
+	String sessionId = getThreadLocalRequest().getSession().getId();
+	return this.getMeasureLibraryService().updateCQLVSACValueSets(currentMeasureId, expansionId, sessionId);
+}
 }

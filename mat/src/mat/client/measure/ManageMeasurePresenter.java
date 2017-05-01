@@ -22,7 +22,7 @@ import mat.client.measure.service.MeasureCloningService;
 import mat.client.measure.service.MeasureCloningServiceAsync;
 import mat.client.measure.service.SaveMeasureResult;
 import mat.client.shared.ContentWithHeadingWidget;
-import mat.client.shared.CreateMeasureWidget;
+import mat.client.shared.CreateNewItemWidget;
 import mat.client.shared.CustomButton;
 import mat.client.shared.ErrorMessageDisplay;
 import mat.client.shared.ErrorMessageDisplayInterface;
@@ -30,7 +30,7 @@ import mat.client.shared.FocusableWidget;
 import mat.client.shared.ListBoxMVP;
 import mat.client.shared.ManageMeasureModelValidator;
 import mat.client.shared.MatContext;
-import mat.client.shared.MeasureSearchFilterWidget;
+import mat.client.shared.SearchWidgetWithFilter;
 import mat.client.shared.MessageDelegate;
 import mat.client.shared.MostRecentMeasureWidget;
 import mat.client.shared.PrimaryButton;
@@ -517,7 +517,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 		/** Gets the creates the measure widget.
 		 * 
 		 * @return the creates the measure widget */
-		CreateMeasureWidget getCreateMeasureWidget();
+		CreateNewItemWidget getCreateMeasureWidget();
 		
 		/**
 		 * Gets the error measure deletion.
@@ -559,7 +559,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 		 * 
 		 * @return the measure search filter widget
 		 */
-		MeasureSearchFilterWidget getMeasureSearchFilterWidget();
+		SearchWidgetWithFilter getMeasureSearchFilterWidget();
 		
 		/** Gets the most recent measure widget.
 		 * 
@@ -884,6 +884,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 	private ClickHandler cancelClickHandler = new ClickHandler() {
 		@Override
 		public void onClick(ClickEvent event) {
+			isClone = false;
 			draftDisplay.getSearchWidget().getSearchInput().setValue("");
 			versionDisplay.getSearchWidget().getSearchInput().setValue("");
 			detailDisplay.getName().setValue("");
@@ -1125,6 +1126,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 	public void beforeClosingDisplay() {
 		isMeasureDeleted = false;
 		measureDeletion = false;
+		isClone = false;
 	}
 	
 	/* (non-Javadoc)
@@ -1244,7 +1246,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 			@Override
 			public void onFailure(Throwable caught) {
 				// O&M 17
-				((Button) draftDisplay.getSaveButton())
+				((org.gwtbootstrap3.client.ui.Button) draftDisplay.getSaveButton())
 				.setEnabled(true);
 				
 				Mat.hideLoadingMessage();
@@ -1288,7 +1290,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 								public void onFailure(
 										Throwable caught) {
 									// O&M 17
-									((Button) draftDisplay
+									((org.gwtbootstrap3.client.ui.Button) draftDisplay
 											.getSaveButton())
 											.setEnabled(true);
 								}
@@ -1297,7 +1299,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 								public void onSuccess(
 										Boolean result) {
 									// O&M 17
-									((Button) draftDisplay
+									((org.gwtbootstrap3.client.ui.Button) draftDisplay
 											.getSaveButton())
 											.setEnabled(true);
 								}
@@ -1318,7 +1320,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 		draftDisplay.getErrorMessageDisplay().clear();
 		searchDisplay.getErrorMessageDisplayForBulkExport().clear();
 		panel.getButtonPanel().clear();
-		panel.setButtonPanel(null, draftDisplay.getZoomButton());
+		panel.setButtonPanel(null,null, draftDisplay.getZoomButton(),"searchButton_measureDraft");
 		draftDisplay.getSearchWidget().setVisible(false);
 		isSearchVisibleOnDraft = false;
 		panel.setHeading("My Measures > Create Draft of Existing Measure", "MeasureLibrary");
@@ -1357,7 +1359,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 		searchDisplay.getSuccessMeasureDeletion().clear();
 		searchDisplay.getErrorMeasureDeletion().clear();
 		panel.getButtonPanel().clear();
-		panel.setButtonPanel(null, versionDisplay.getZoomButton());
+		panel.setButtonPanel(null, null,versionDisplay.getZoomButton(),"searchButton_measureVersion");
 		versionDisplay.getSearchWidget().setVisible(false);
 		isSearchVisibleOnVersion = false;
 		panel.setHeading("My Measures > Create Measure Version of Draft", "MeasureLibrary");
@@ -1497,7 +1499,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 					Integer.MAX_VALUE, filter);
 			searchRecentMeasures();
 			panel.getButtonPanel().clear();
-			panel.setButtonPanel(searchDisplay.getCreateMeasureButton(), searchDisplay.getZoomButton());
+			panel.setButtonPanel(searchDisplay.getCreateMeasureButton(),"createElement_measureLib", searchDisplay.getZoomButton(),"searchButton_measureLib");
 			fp.add(searchDisplay.asWidget());
 		}
 		// MAT-1929: Retain filters at measure library screen. commented
@@ -1586,16 +1588,27 @@ public class ManageMeasurePresenter implements MatPresenter {
 	 */
 	private void draftDisplayHandlers(final DraftDisplay draftDisplay) {
 		
-		TextBox searchWidget = (draftDisplay.getSearchWidget().getSearchInput());
-		searchWidget.addKeyUpHandler(new KeyUpHandler() {
+		draftDisplay.getSearchWidget().getSearchInputFocusPanel().addKeyUpHandler(new KeyUpHandler() {
 			
 			@Override
 			public void onKeyUp(KeyUpEvent event) {
 				if (event.getNativeKeyCode() == KeyCodes.KEY_ENTER) {
-					((Button) draftDisplay.getSearchButton()).click();
+					draftDisplay.getSearchWidget().getSearchButton().click();
 				}
 			}
 		});
+		
+		
+		/*TextBox searchWidget = (draftDisplay.getSearchWidget().getSearchInput());
+		 * searchWidget.addKeyUpHandler(new KeyUpHandler() {
+			
+			@Override
+			public void onKeyUp(KeyUpEvent event) {
+				if (event.getNativeKeyCode() == KeyCodes.KEY_ENTER) {
+					((org.gwtbootstrap3.client.ui.Button) draftDisplay.getSearchButton()).click();
+				}
+			}
+		});*/
 		
 		draftDisplay.getZoomButton().addClickHandler(new ClickHandler() {
 			@Override
@@ -1621,7 +1634,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 			@Override
 			public void onClick(ClickEvent event) {
 				// O&M 17
-				((Button) draftDisplay.getSaveButton()).setEnabled(false);
+				((org.gwtbootstrap3.client.ui.Button) draftDisplay.getSaveButton()).setEnabled(false);
 				
 				ManageMeasureSearchModel.Result selectedMeasure = draftDisplay.getSelectedMeasure();
 				if ((selectedMeasure != null) && (selectedMeasure.getId() != null)) {
@@ -1630,7 +1643,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 						@Override
 						public void onFailure(Throwable caught) {
 							// O&M 17
-							((Button) draftDisplay.getSaveButton()).setEnabled(true);
+							((org.gwtbootstrap3.client.ui.Button) draftDisplay.getSaveButton()).setEnabled(true);
 							draftDisplay.getErrorMessageDisplay().setMessage(MatContext.get()
 									.getMessageDelegate().getGenericErrorMessage());
 							MatContext.get().recordTransactionEvent(null, null,	null,
@@ -1646,7 +1659,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 					});
 				} else {
 					// O&M 17
-					((Button) draftDisplay.getSaveButton()).setEnabled(true);
+					((org.gwtbootstrap3.client.ui.Button) draftDisplay.getSaveButton()).setEnabled(true);
 					draftDisplay.getErrorMessageDisplay()
 					.setMessage("Please select a Measure Version to create a Draft.");
 				}
@@ -2066,6 +2079,10 @@ public class ManageMeasurePresenter implements MatPresenter {
 									
 								}
 							});
+				} else {
+					if(result.getFailureReason() == ConstantMessages.INVALID_CQL_DATA){
+						versionDisplay.getErrorMessageDisplay().setMessage(MatContext.get().getMessageDelegate().getNoVersionCreated());
+					}
 				}
 			}
 		});
@@ -2670,7 +2687,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 			}
 		});
 		
-		TextBox searchWidget = (TextBox) (searchDisplay.getSearchString());
+	/*	TextBox searchWidget = (TextBox) (searchDisplay.getSearchString());
 		searchWidget.addKeyUpHandler(new KeyUpHandler() {
 			
 			@Override
@@ -2679,7 +2696,18 @@ public class ManageMeasurePresenter implements MatPresenter {
 					((Button) searchDisplay.getSearchButton()).click();
 				}
 			}
+		});*/
+		
+		searchDisplay.getMeasureSearchFilterWidget().getMainFocusPanel().addKeyUpHandler(new KeyUpHandler() {
+			
+			@Override
+			public void onKeyUp(KeyUpEvent event) {
+				if (event.getNativeKeyCode() == KeyCodes.KEY_ENTER) {
+					searchDisplay.getMeasureSearchFilterWidget().getSearchButton().click();
+				}
+			}
 		});
+		
 		//added by hari
 		searchDisplay.getAdminSearchButton().addClickHandler(
 				new ClickHandler() {
@@ -2779,6 +2807,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 	 * @param searchText the search text */
 	private void searchMeasuresForDraft(String searchText) {
 		final String lastSearchText = (searchText != null) ? searchText.trim() : null;
+		showSearchingBusy(true);
 		MatContext.get().getMeasureService().searchMeasuresForDraft(lastSearchText,
 				new AsyncCallback<ManageMeasureSearchModel>() {
 			@Override
@@ -2787,6 +2816,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 						MatContext.get().getMessageDelegate().getGenericErrorMessage());
 				MatContext.get().recordTransactionEvent(null, null, null,
 						"Unhandled Exception: " + caught.getLocalizedMessage(), 0);
+				showSearchingBusy(false);
 			}
 			
 			@Override
@@ -2794,6 +2824,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 				draftMeasureResults = new ManageDraftMeasureModel();
 				draftMeasureResults.setData(result);
 				draftDisplay.buildDataTable(draftMeasureResults);
+				showSearchingBusy(false);
 			}
 		});
 		
@@ -2807,6 +2838,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 	 */
 	private void searchMeasuresForVersion(String searchText) {
 		final String lastSearchText = (searchText != null) ? searchText.trim() : null;
+		showSearchingBusy(true);
 		MatContext.get().getMeasureService()
 		.searchMeasuresForVersion(lastSearchText, new AsyncCallback<ManageMeasureSearchModel>() {
 			@Override
@@ -2815,6 +2847,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 						MatContext.get().getMessageDelegate().getGenericErrorMessage());
 				MatContext.get().recordTransactionEvent(null, null, null,
 						"Unhandled Exception: " + caught.getLocalizedMessage(), 0);
+				showSearchingBusy(false);
 			}
 			
 			@Override
@@ -2822,6 +2855,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 					ManageMeasureSearchModel result) {
 				versionMeasureResults = new ManageVersionMeasureModel(result.getData());
 				versionDisplay.buildDataTable(versionMeasureResults);
+				showSearchingBusy(false);
 			}
 		});
 		
@@ -3005,7 +3039,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 		} else {
 			Mat.hideLoadingMessage();
 		}
-		((Button) searchDisplay.getSearchButton()).setEnabled(!busy);
+		((org.gwtbootstrap3.client.ui.Button) searchDisplay.getSearchButton()).setEnabled(!busy);
 		((Button) searchDisplay.getBulkExportButton()).setEnabled(!busy);
 		((TextBox) (searchDisplay.getSearchString())).setEnabled(!busy);
 		
@@ -3268,15 +3302,27 @@ public class ManageMeasurePresenter implements MatPresenter {
 	 *            the version display
 	 */
 	private void versionDisplayHandlers(final VersionDisplay versionDisplay) {
-		TextBox searchWidget = (versionDisplay.getSearchWidget().getSearchInput());
+		/*TextBox searchWidget = (versionDisplay.getSearchWidget().getSearchInput());
 		searchWidget.addKeyUpHandler(new KeyUpHandler() {
 			@Override
 			public void onKeyUp(KeyUpEvent event) {
 				if (event.getNativeKeyCode() == KeyCodes.KEY_ENTER) {
-					((Button) versionDisplay.getSearchButton()).click();
+					((org.gwtbootstrap3.client.ui.Button) versionDisplay.getSearchButton()).click();
+				}
+			}
+		});*/
+		
+		
+		versionDisplay.getSearchWidget().getSearchInputFocusPanel().addKeyUpHandler(new KeyUpHandler() {
+			
+			@Override
+			public void onKeyUp(KeyUpEvent event) {
+				if (event.getNativeKeyCode() == KeyCodes.KEY_ENTER) {
+					versionDisplay.getSearchWidget().getSearchButton().click();
 				}
 			}
 		});
+		
 		
 		versionDisplay.getZoomButton().addClickHandler(new ClickHandler() {
 			@Override
@@ -3302,6 +3348,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 			@Override
 			public void onClick(ClickEvent event) {
 				ManageMeasureSearchModel.Result selectedMeasure = versionDisplay.getSelectedMeasure();
+				versionDisplay.getErrorMessageDisplay().clear();
 				if (((selectedMeasure !=null) && (selectedMeasure.getId() != null))
 						&& (versionDisplay.getMajorRadioButton().getValue() || versionDisplay
 								.getMinorRadioButton().getValue())) {

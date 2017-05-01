@@ -14,12 +14,13 @@ import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Widget;
 
+import mat.client.CqlComposerPresenter;
 import mat.client.Enableable;
 import mat.client.MatPresenter;
 import mat.client.MeasureComposerPresenter;
-import mat.client.clause.clauseworkspace.presenter.ClauseWorkSpacePresenter;
 import mat.client.clause.clauseworkspace.presenter.PopulationWorkspacePresenter;
 import mat.client.clause.clauseworkspace.presenter.XmlTreePresenter;
+import mat.client.clause.cqlworkspace.CQLStandaloneWorkSpacePresenter;
 import mat.client.clause.cqlworkspace.CQLWorkSpacePresenter;
 import mat.client.measure.ManageMeasureDetailModel;
 import mat.client.measure.metadata.MetaDataPresenter;
@@ -334,7 +335,6 @@ public class MatTabLayoutPanel extends MATTabPanel implements BeforeSelectionHan
 	 */
 	private boolean isUnsavedDataOnTab(int selectedIndex, int currentIndex) {
 		MatContext.get().setErrorTabIndex(-1);
-		
 		MatPresenter previousPresenter = presenterMap.get(selectedIndex);
 		if ((selectedIndex == 1) && (previousPresenter instanceof MeasureComposerPresenter)) {
 			MeasureComposerPresenter composerPresenter = (MeasureComposerPresenter) previousPresenter;
@@ -349,19 +349,19 @@ public class MatTabLayoutPanel extends MATTabPanel implements BeforeSelectionHan
 				validateClauseWorkspaceTab(clauseWorkspacePresenter, selectedIndex);
 			}*/ 
 			
-			else if (composerPresenter.getMeasureComposerTabLayout().getSelectedIndex() == 2) {
-				int CQLWorkspaceTab = 2;
+			else if (composerPresenter.getMeasureComposerTabLayout().getSelectedIndex() == 1) {
+				int CQLWorkspaceTab = 1;
 				CQLWorkSpacePresenter cqlWorkspacePresenter = (CQLWorkSpacePresenter)
 						composerPresenter.getMeasureComposerTabLayout().presenterMap.get(CQLWorkspaceTab);
 				validateCQLWorkspaceTab(cqlWorkspacePresenter, selectedIndex);
-			} else if (composerPresenter.getMeasureComposerTabLayout().getSelectedIndex() == 3) {
-				int populationWorkspaceTab = 3;
+			} else if (composerPresenter.getMeasureComposerTabLayout().getSelectedIndex() == 2) {
+				int populationWorkspaceTab = 2;
 				PopulationWorkspacePresenter clauseWorkspacePresenter = (PopulationWorkspacePresenter)
 						composerPresenter.getMeasureComposerTabLayout().presenterMap.get(populationWorkspaceTab);
 				validateClauseWorkspaceTab(clauseWorkspacePresenter.getSelectedTreePresenter(), selectedIndex);
 			}
-			else if (composerPresenter.getMeasureComposerTabLayout().getSelectedIndex() == 4) {
-				int measurePackagerTab = 4;
+			else if (composerPresenter.getMeasureComposerTabLayout().getSelectedIndex() == 3) {
+				int measurePackagerTab = 3;
 				MeasurePackagePresenter measurePackagerPresenter = (MeasurePackagePresenter)
 						composerPresenter.getMeasureComposerTabLayout().presenterMap.get(measurePackagerTab);
 				validateNewMeasurePackageTab(selectedIndex, measurePackagerPresenter);
@@ -371,19 +371,23 @@ public class MatTabLayoutPanel extends MATTabPanel implements BeforeSelectionHan
 		} else if ((selectedIndex == 0) && (previousPresenter instanceof MetaDataPresenter)) {
 			MetaDataPresenter metaDataPresenter = (MetaDataPresenter) previousPresenter;
 			validateMeasureDetailsTab(selectedIndex, metaDataPresenter);
-		} else if ((selectedIndex == 2) && (previousPresenter instanceof CQLWorkSpacePresenter)) {
+		} else if ((selectedIndex == 1) && (previousPresenter instanceof CQLWorkSpacePresenter)) {
 			CQLWorkSpacePresenter cqlPresenter = (CQLWorkSpacePresenter) previousPresenter;
 			validateCQLWorkspaceTab(cqlPresenter, selectedIndex);
-		} else if ((selectedIndex == 3) && (previousPresenter instanceof PopulationWorkspacePresenter)) {
+		} else if ((selectedIndex == 2) && (previousPresenter instanceof PopulationWorkspacePresenter)) {
 			PopulationWorkspacePresenter clauseWorkspacePresenter = (PopulationWorkspacePresenter) previousPresenter;
 			validateClauseWorkspaceTab(clauseWorkspacePresenter.getSelectedTreePresenter(), selectedIndex);
-		} 
-		/*else if (previousPresenter instanceof XmlTreePresenter) {
-			validateClauseWorkspaceTab((XmlTreePresenter) previousPresenter, selectedIndex);
-		}*/
-		else if (previousPresenter instanceof MeasurePackagePresenter) {
+		} else if (previousPresenter instanceof MeasurePackagePresenter) {
 			MeasurePackagePresenter measurePackagerPresenter = (MeasurePackagePresenter) previousPresenter;
 			validateNewMeasurePackageTab(selectedIndex, measurePackagerPresenter);
+		} else if((selectedIndex ==3) && previousPresenter instanceof CqlComposerPresenter){
+			CqlComposerPresenter composerPresenter = (CqlComposerPresenter) previousPresenter;
+			if (composerPresenter.getCqlComposerTabLayout().getSelectedIndex() == 0) {
+				int CQLWorkspaceTab = 0;
+				CQLStandaloneWorkSpacePresenter cqlWorkspacePresenter = (CQLStandaloneWorkSpacePresenter)
+						composerPresenter.getCqlComposerTabLayout().presenterMap.get(CQLWorkspaceTab);
+				validateCQLLibraryWorkSpaceTab(cqlWorkspacePresenter, selectedIndex);
+			} 
 		}
 		return isUnsavedData;
 	}
@@ -454,18 +458,35 @@ public class MatTabLayoutPanel extends MATTabPanel implements BeforeSelectionHan
 	private void validateCQLWorkspaceTab(CQLWorkSpacePresenter cqlWorkSpacePresenter, int selectedIndex) {
 		
 		cqlWorkSpacePresenter.getSearchDisplay().resetMessageDisplay();
-		if (cqlWorkSpacePresenter.getSearchDisplay().getIsPageDirty()) {
+		if (cqlWorkSpacePresenter.getSearchDisplay().getCqlLeftNavBarPanelView().getIsPageDirty()) {
 			isUnsavedData = true;
-			cqlWorkSpacePresenter.getSearchDisplay().getGlobalWarningConfirmationMessageAlert().createAlert();
-			cqlWorkSpacePresenter.getSearchDisplay().getGlobalWarningConfirmationMessageAlert().getWarningConfirmationYesButton().setFocus(true);
+			cqlWorkSpacePresenter.getSearchDisplay().getCqlLeftNavBarPanelView().getGlobalWarningConfirmationMessageAlert().createAlert();
+			cqlWorkSpacePresenter.getSearchDisplay().getCqlLeftNavBarPanelView().getGlobalWarningConfirmationMessageAlert().getWarningConfirmationYesButton().setFocus(true);
 			String auditMessage = cqlWorkSpacePresenter.getSearchDisplay().getClickedMenu().toUpperCase() + "_TAB_YES_CLICKED";
 			handleClickEventsOnUnsavedChangesMsg(selectedIndex, 
-					cqlWorkSpacePresenter.getSearchDisplay().getGlobalWarningConfirmationMessageAlert(), auditMessage);
+					cqlWorkSpacePresenter.getSearchDisplay().getCqlLeftNavBarPanelView().getGlobalWarningConfirmationMessageAlert(), auditMessage);
 		} else {
 			isUnsavedData = false;
 		}
 	}
 
+	private void validateCQLLibraryWorkSpaceTab(CQLStandaloneWorkSpacePresenter cqlStandaloneWorkSpacePresenter , int selectedIndex) {
+		cqlStandaloneWorkSpacePresenter.getSearchDisplay().resetMessageDisplay();
+		
+		if (cqlStandaloneWorkSpacePresenter.getSearchDisplay().getCqlLeftNavBarPanelView().getIsPageDirty()) {
+			isUnsavedData = true;
+			cqlStandaloneWorkSpacePresenter.getSearchDisplay().getCqlLeftNavBarPanelView().getGlobalWarningConfirmationMessageAlert().createAlert();
+			cqlStandaloneWorkSpacePresenter.getSearchDisplay().getCqlLeftNavBarPanelView().getGlobalWarningConfirmationMessageAlert().getWarningConfirmationYesButton().setFocus(true);
+			String auditMessage = cqlStandaloneWorkSpacePresenter.getSearchDisplay().getClickedMenu().toUpperCase() + "_TAB_YES_CLICKED";
+			handleClickEventsOnUnsavedChangesMsg(selectedIndex, 
+					cqlStandaloneWorkSpacePresenter.getSearchDisplay().getCqlLeftNavBarPanelView().getGlobalWarningConfirmationMessageAlert(), auditMessage);
+		} else {
+			isUnsavedData = false;
+		}
+		
+		
+	}
+	
 	
 	/**
 	 * Validate clause workspace tab.

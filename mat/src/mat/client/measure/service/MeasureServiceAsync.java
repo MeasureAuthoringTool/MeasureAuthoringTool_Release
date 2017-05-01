@@ -4,8 +4,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import org.cqframework.cql.cql2elm.CqlTranslatorException;
-
 import mat.DTO.MeasureNoteDTO;
 import mat.client.clause.clauseworkspace.model.MeasureDetailResult;
 import mat.client.clause.clauseworkspace.model.MeasureXmlModel;
@@ -15,6 +13,8 @@ import mat.client.measure.ManageMeasureSearchModel;
 import mat.client.measure.ManageMeasureShareModel;
 import mat.client.measure.MeasureNotesModel;
 import mat.client.measure.TransferMeasureOwnerShipModel;
+import mat.client.umls.service.VsacApiResult;
+import mat.model.CQLValueSetTransferObject;
 import mat.model.MatValueSet;
 import mat.model.MeasureType;
 import mat.model.Organization;
@@ -22,15 +22,16 @@ import mat.model.QualityDataModelWrapper;
 import mat.model.QualityDataSetDTO;
 import mat.model.RecentMSRActivityLog;
 import mat.model.cql.CQLDefinition;
-import mat.model.cql.CQLDefinitionsWrapper;
 import mat.model.cql.CQLFunctions;
+import mat.model.cql.CQLIncludeLibrary;
 import mat.model.cql.CQLKeywords;
 import mat.model.cql.CQLModel;
 import mat.model.cql.CQLParameter;
-import mat.server.util.CQLUtil;
-import mat.server.util.CQLUtil.CQLArtifactHolder;
+import mat.model.cql.CQLQualityDataModelWrapper;
+import mat.model.cql.CQLQualityDataSetDTO;
 import mat.shared.GetUsedCQLArtifactsResult;
 import mat.shared.SaveUpdateCQLResult;
+
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
 // TODO: Auto-generated Javadoc
@@ -39,8 +40,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
  */
 public interface MeasureServiceAsync {
 	
-	void appendAndSaveNode(MeasureXmlModel measureXmlModel, String nodeName, MeasureXmlModel newMeasureXmlModel,
-			String newNodeName, AsyncCallback<Void> callback);
+	void appendAndSaveNode(MeasureXmlModel measureXmlModel, String nodeName, AsyncCallback<Void> callback);
 	
 	/**
 	 * Clone measure xml.
@@ -67,6 +67,8 @@ public interface MeasureServiceAsync {
 	 */
 	void createAndSaveElementLookUp(List<QualityDataSetDTO> list,
 			String measureID, String expProfileToAllQDM, AsyncCallback<Void> callback);
+	void deleteValueSet(String toBeDeletedValueSetId, String measureID,
+			 AsyncCallback<SaveUpdateCQLResult> callback);
 	
 	/**
 	 * Creates the and save cql look up.
@@ -133,6 +135,10 @@ public interface MeasureServiceAsync {
 	void getAppliedQDMFromMeasureXml(String measureId,
 			boolean checkForSupplementData,
 			AsyncCallback<QualityDataModelWrapper> asyncCallback);
+	
+	void getCQLAppliedQDMFromMeasureXml(String measureId,
+			boolean checkForSupplementData,
+			AsyncCallback<CQLQualityDataModelWrapper> asyncCallback);
 	
 	/**
 	 * Gets the max e measure id.
@@ -593,6 +599,17 @@ public interface MeasureServiceAsync {
 			AsyncCallback<Void> callback);
 	
 	/**
+	 * Update CQL measure xml for expansion identifier.
+	 *
+	 * @param list the list
+	 * @param measureId the measure id
+	 * @param expansionProfile the expansion profile
+	 * @param callback the callback
+	 */
+	void updateCQLMeasureXMLForExpansionProfile(List<CQLQualityDataSetDTO> list, String measureId, String expansionProfile,
+			AsyncCallback<Void> callback);
+	
+	/**
 	 * Gets the default sde from measure xml.
 	 *
 	 * @param measureId the measure id
@@ -600,6 +617,15 @@ public interface MeasureServiceAsync {
 	 * @return the default sde from measure xml
 	 */
 	void getDefaultSDEFromMeasureXml(String measureId, AsyncCallback<QualityDataModelWrapper> callback);
+	
+	/**
+	 * Gets the default sde from measure xml.
+	 *
+	 * @param measureId the measure id
+	 * @param callback the callback
+	 * @return the default sde from measure xml
+	 */
+	void getDefaultCQLSDEFromMeasureXml(String measureId, AsyncCallback<CQLQualityDataModelWrapper> callback);
 	
 	/**
 	 * Parses the cql.
@@ -616,7 +642,7 @@ public interface MeasureServiceAsync {
 	 * @param callback the callback
 	 * @return the CQL data
 	 */
-	void getCQLData(String measureId, AsyncCallback<SaveUpdateCQLResult> callback);
+	//void getCQLData(String measureId, String fromTable,AsyncCallback<SaveUpdateCQLResult> callback);
 	
 	/**
 	 * Save and modify definitions.
@@ -653,14 +679,6 @@ public interface MeasureServiceAsync {
 	void saveAndModifyCQLGeneralInfo(String currentMeasureId, String context,
 			AsyncCallback<SaveUpdateCQLResult> asyncCallback);
 	
-	/**
-	 * Gets the CQL file data.
-	 *
-	 * @param measureId the measure id
-	 * @param asyncCallback the async callback
-	 * @return the CQL file data
-	 */
-	void getCQLFileData(String measureId, AsyncCallback<SaveUpdateCQLResult> asyncCallback);
 	
 	/**
 	 * Save and modify functions.
@@ -723,6 +741,37 @@ public interface MeasureServiceAsync {
 	void getJSONObjectFromXML(AsyncCallback<String> asyncCallback);
 
 	void parseCQLForErrors(String cqlString, AsyncCallback<SaveUpdateCQLResult> callback);
+
+	void parseCQLStringForError(String cqlFileString, AsyncCallback<SaveUpdateCQLResult> callback);
+
+	void getCQLValusets(String measureID, AsyncCallback<CQLQualityDataModelWrapper> callback);
+	
+	void saveCQLValuesettoMeasure(CQLValueSetTransferObject valueSetTransferObject, 
+			AsyncCallback<SaveUpdateCQLResult> callback);
+
+	void saveCQLUserDefinedValuesettoMeasure(CQLValueSetTransferObject valueSetTransferObject,
+			AsyncCallback<SaveUpdateCQLResult> callback);
+
+	void updateCQLValuesetsToMeasure(CQLValueSetTransferObject matValueSetTransferObject,
+			AsyncCallback<SaveUpdateCQLResult> callback);
+
+	void saveIncludeLibrayInCQLLookUp(String measureId, CQLIncludeLibrary toBeModifiedObj, CQLIncludeLibrary currentObj,
+			List<CQLIncludeLibrary> incLibraryList, AsyncCallback<SaveUpdateCQLResult> callback);
+
+	void getMeasureCQLData(String measureId, AsyncCallback<SaveUpdateCQLResult> callback);
+
+	//void getCQLFileData(String measureId, AsyncCallback<SaveUpdateCQLResult> callback);
+
+	void getMeasureCQLFileData(String measureId, AsyncCallback<SaveUpdateCQLResult> callback);
+
+	void deleteInclude(String currentMeasureId,
+			CQLIncludeLibrary toBeModifiedIncludeObj,
+			CQLIncludeLibrary cqlLibObject,
+			List<CQLIncludeLibrary> viewIncludeLibrarys,
+			AsyncCallback<SaveUpdateCQLResult> asyncCallback);
+
+	void updateCQLVSACValueSets(String currentMeasureId, String expansionId,
+			AsyncCallback<VsacApiResult> asyncCallback);
 
 	
 }

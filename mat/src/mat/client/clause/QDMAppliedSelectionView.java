@@ -3,34 +3,10 @@ package mat.client.clause;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import mat.client.CustomPager;
-import mat.client.ImageResources;
-import mat.client.codelist.HasListBox;
-import mat.client.shared.CustomButton;
-import mat.client.shared.ErrorMessageDisplay;
-import mat.client.shared.ErrorMessageDisplayInterface;
-import mat.client.shared.InProgressMessageDisplay;
-import mat.client.shared.LabelBuilder;
-import mat.client.shared.ListBoxMVP;
-import mat.client.shared.MatCheckBoxCell;
-import mat.client.shared.MatContext;
-import mat.client.shared.MatSimplePager;
-import mat.client.shared.PrimaryButton;
-import mat.client.shared.SaveCancelButtonBar;
-import mat.client.shared.SearchWidget;
-import mat.client.shared.SpacerWidget;
-import mat.client.shared.SuccessMessageDisplay;
-import mat.client.umls.service.VSACAPIServiceAsync;
-import mat.client.util.CellTableUtility;
-import mat.client.util.MatTextBox;
-import mat.model.QualityDataSetDTO;
-import mat.shared.ClickableSafeHtmlCell;
-import mat.shared.ConstantMessages;
+
 /*import mat.shared.CustomBootStrapCheckBox;*/
 import org.gwtbootstrap3.client.ui.CheckBox;
-import org.gwtbootstrap3.extras.toggleswitch.client.ui.ToggleSwitch;
-import org.gwtbootstrap3.extras.toggleswitch.client.ui.base.constants.ColorType;
-import org.gwtbootstrap3.extras.toggleswitch.client.ui.base.constants.SizeType;
+
 import com.google.gwt.cell.client.Cell;
 import com.google.gwt.cell.client.CompositeCell;
 import com.google.gwt.cell.client.FieldUpdater;
@@ -68,12 +44,37 @@ import com.google.gwt.user.client.ui.InlineLabel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.SimplePanel;
+import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.MultiSelectionModel;
 import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SingleSelectionModel;
+
+import mat.client.CustomPager;
+import mat.client.ImageResources;
+import mat.client.codelist.HasListBox;
+import mat.client.shared.CustomButton;
+import mat.client.shared.ErrorMessageDisplay;
+import mat.client.shared.ErrorMessageDisplayInterface;
+import mat.client.shared.InProgressMessageDisplay;
+import mat.client.shared.LabelBuilder;
+import mat.client.shared.ListBoxMVP;
+import mat.client.shared.MatCheckBoxCell;
+import mat.client.shared.MatContext;
+import mat.client.shared.MatSimplePager;
+import mat.client.shared.PrimaryButton;
+import mat.client.shared.SaveCancelButtonBar;
+import mat.client.shared.SearchWidget;
+import mat.client.shared.SpacerWidget;
+import mat.client.shared.SuccessMessageDisplay;
+import mat.client.umls.service.VSACAPIServiceAsync;
+import mat.client.util.CellTableUtility;
+import mat.client.util.MatTextBox;
+import mat.model.QualityDataSetDTO;
+import mat.shared.ClickableSafeHtmlCell;
+import mat.shared.ConstantMessages;
 
 
 
@@ -127,7 +128,7 @@ HasSelectionHandlers<Boolean> {
 			"Use a default Expansion Identifier ?", 1);*/
 	/*CustomBootStrapCheckBox defaultExpIdentifierSel = new CustomBootStrapCheckBox("Use a default Expansion Identifier ?");*/
 	private CheckBox defaultExpIdentifierSel = new CheckBox();
-	ToggleSwitch toggleSwitch = new ToggleSwitch();
+	//ToggleSwitch toggleSwitch = new ToggleSwitch();
 	/** The vsac profile list box. */
 	private ListBoxMVP defaultExpIdentifierListBox = new ListBoxMVP();
 	
@@ -211,7 +212,7 @@ HasSelectionHandlers<Boolean> {
 	private MatSimplePager spager;
 	
 	/** The save cancel button bar. */
-	private SaveCancelButtonBar saveCancelButtonBar = new SaveCancelButtonBar();
+	private SaveCancelButtonBar saveCancelButtonBar = new SaveCancelButtonBar("qdmApplied");
 	
 	/** The search widget. */
 	private SearchWidget searchWidget = new SearchWidget("Retrieve OID",
@@ -277,9 +278,9 @@ HasSelectionHandlers<Boolean> {
 		clearQDMTopButton.getElement().setAttribute("tabIndex", "0");
 		
 		topButtonLayOut.getElement().setId("topButtonLayOut_HorzPanel");
-		topButtonLayOut.add(copyQDMTopButton);
-		topButtonLayOut.add(buildPasteTopPanel(checkForEnable()));
-		topButtonLayOut.add(clearQDMTopButton);
+//		topButtonLayOut.add(copyQDMTopButton);
+//		topButtonLayOut.add(buildPasteTopPanel(checkForEnable()));
+//		topButtonLayOut.add(clearQDMTopButton);
 		topButtonLayOut.setStyleName("continueButton");
 		
 		HorizontalPanel hp = new HorizontalPanel();
@@ -289,11 +290,11 @@ HasSelectionHandlers<Boolean> {
 		hp.add(buildElementWithVSACExpansionIdentifier());
 		
 		verticalPanel.getElement().setId("vPanel_VerticalPanel");
-		verticalPanel.add(new SpacerWidget());
-		verticalPanel.add(successMessagePanel);
-		verticalPanel.add(errorMessagePanel);
-		errorMessagePanel.getElement().setId(
-				"errorMessagePanel_ErrorMessageDisplay");
+//		verticalPanel.add(new SpacerWidget());
+//		verticalPanel.add(successMessagePanel);
+//		verticalPanel.add(errorMessagePanel);
+//		errorMessagePanel.getElement().setId(
+//				"errorMessagePanel_ErrorMessageDisplay");
 		
 		HorizontalPanel bottomButtonLayOut = new HorizontalPanel();
 		SimplePanel pasteTopPanel =  new SimplePanel();
@@ -306,25 +307,25 @@ HasSelectionHandlers<Boolean> {
 		bottomButtonLayOut.getElement().setId("bottomButtonLayOut_HorzPanel");
 		pasteTopPanel.add(pasteQDMBottomButton);
 		
-		bottomButtonLayOut.add(copyQDMBottomButton);
-		bottomButtonLayOut.add(buildPasteBottomPanel(checkForEnable()));
-		bottomButtonLayOut.add(clearQDMBottomButton);
+//		bottomButtonLayOut.add(copyQDMBottomButton);
+//		bottomButtonLayOut.add(buildPasteBottomPanel(checkForEnable()));
+//		bottomButtonLayOut.add(clearQDMBottomButton);
 		bottomButtonLayOut.setStyleName("continueButton");
 		HorizontalPanel hPanel = new HorizontalPanel();
 		hPanel.getElement().setId("hPanel_HorizontalPanel");
 		hPanel.setWidth("930px");
-		hPanel.add(updateVSACButton);
+//		hPanel.add(updateVSACButton);
 		hPanel.add(bottomButtonLayOut);
 		
-		verticalPanel.add(new SpacerWidget());
-		verticalPanel.add(new SpacerWidget());
+//		verticalPanel.add(new SpacerWidget());
+//		verticalPanel.add(new SpacerWidget());
 		verticalPanel.add(hp);
-		verticalPanel.add(new SpacerWidget());
+//		verticalPanel.add(new SpacerWidget());
 		updateVSACButton.setTitle("Retrieve the most recent versions of applied value sets from VSAC");
 		updateVSACButton.getElement().setId("updateVsacButton_Button");
 		verticalPanel.add(topButtonLayOut);
 		verticalPanel.add(cellTablePanel);
-		verticalPanel.add(new SpacerWidget());
+//		verticalPanel.add(new SpacerWidget());
 		verticalPanel.add(hPanel);
 		verticalPanel.add(inProgressMessageDisplay);
 		verticalPanel.add(updateVSACSuccessMessagePanel);
@@ -409,7 +410,7 @@ HasSelectionHandlers<Boolean> {
 		VerticalPanel mainPanel = new VerticalPanel();
 		mainPanel.getElement().setId("mainPanel_VerticalPanel");
 		mainPanel.setWidth("95%");
-		mainPanel.add(buildDefaultExpIdentifierPanel());
+//		mainPanel.add(buildDefaultExpIdentifierPanel());
 		mainPanel.add(new SpacerWidget());
 		mainPanel.add(new SpacerWidget());
 		return mainPanel;
@@ -477,7 +478,7 @@ HasSelectionHandlers<Boolean> {
 		mainPanel = new VerticalPanel();
 		mainPanel.getElement().setId("mainPanel_VerticalPanel");
 		mainPanel.setWidth("95%");
-		mainPanel.add(buildSearchPanel());
+//		mainPanel.add(buildSearchPanel());
 		mainPanel.add(new SpacerWidget());
 		mainPanel.add(new SpacerWidget());
 		return mainPanel;
@@ -551,6 +552,7 @@ HasSelectionHandlers<Boolean> {
 	 */
 	@Override
 	public void buildAppliedQDMCellTable(QDSAppliedListModel appliedListModel, boolean isEditable) {
+		isEditable = false; 
 		cellTablePanel.clear();
 		cellTablePanel.setStyleName("cellTablePanel");
 		if ((appliedListModel.getAppliedQDMs() != null)
@@ -572,7 +574,7 @@ HasSelectionHandlers<Boolean> {
 			CustomPager.Resources pagerResources = GWT
 					.create(CustomPager.Resources.class);
 			spager = new MatSimplePager(CustomPager.TextLocation.CENTER,
-					pagerResources, false, 0, true);
+					pagerResources, false, 0, true,"AppliedQDM");
 			spager.setDisplay(table);
 			spager.setPageStart(0);
 			Label invisibleLabel;
@@ -767,20 +769,20 @@ HasSelectionHandlers<Boolean> {
 			
 			String colName = "Modify";
 			
-			if(!isEditable){
-				colName = "Select";
-			}
-			
-			// Modify by Delete Column
-			table.addColumn(new Column<QualityDataSetDTO, QualityDataSetDTO>(
-					getCompositeCellForQDMModifyAndDelete(isEditable)) {
-				
-				@Override
-				public QualityDataSetDTO getValue(QualityDataSetDTO object) {
-					return object;
-				}
-			}, SafeHtmlUtils.fromSafeConstant("<span title='"+colName+"'>  "
-					+ colName + "</span>"));
+//			if(!isEditable){
+//				colName = "Select";
+//			}
+//			
+//			// Modify by Delete Column
+//			table.addColumn(new Column<QualityDataSetDTO, QualityDataSetDTO>(
+//					getCompositeCellForQDMModifyAndDelete(isEditable)) {
+//				
+//				@Override
+//				public QualityDataSetDTO getValue(QualityDataSetDTO object) {
+//					return object;
+//				}
+//			}, SafeHtmlUtils.fromSafeConstant("<span title='"+colName+"'>  "
+//					+ colName + "</span>"));
 			
 			
 			table.setColumnWidth(0, 25.0, Unit.PCT);
@@ -1198,8 +1200,9 @@ HasSelectionHandlers<Boolean> {
 		if(isEditable){
 			cells.add(getModifyQDMButtonCell());
 			cells.add(getDeleteQDMButtonCell());
+			cells.add(getQDMCheckBoxCell());
+
 		}
-		cells.add(getQDMCheckBoxCell());
 		CompositeCell<QualityDataSetDTO> cell = new CompositeCell<QualityDataSetDTO>(
 				cells) {
 			@Override
@@ -1498,10 +1501,10 @@ HasSelectionHandlers<Boolean> {
 	 *
 	 * @return the cancel qdm button
 	 */
-	@Override
+	/*@Override
 	public Button getCancelQDMButton() {
 		return saveCancelButtonBar.getCancelButton();
-	}
+	}*/
 	
 	/* (non-Javadoc)
 	 * @see mat.client.clause.VSACProfileSelectionPresenter.SearchDisplay#getApplyButton()
@@ -1524,10 +1527,10 @@ HasSelectionHandlers<Boolean> {
 	 *
 	 * @return the retrieve from vsac button
 	 */
-	@Override
-	public PrimaryButton getRetrieveFromVSACButton(){
+	//@Override
+	/*public Button getRetrieveFromVSACButton(){
 		return searchWidget.getSearchButton();
-	}
+	}*/
 	
 	/* (non-Javadoc)
 	 * @see mat.client.clause.VSACProfileSelectionPresenter.SearchDisplay#getSaveButton()
@@ -1537,10 +1540,10 @@ HasSelectionHandlers<Boolean> {
 	 *
 	 * @return the save button
 	 */
-	@Override
+	/*@Override
 	public Button getSaveButton(){
 		return saveCancelButtonBar.getSaveButton();
-	}
+	}*/
 	
 	/* (non-Javadoc)
 	 * @see mat.client.clause.VSACProfileSelectionPresenter.SearchDisplay#getUpdateFromVSACButton()
@@ -1638,7 +1641,7 @@ HasSelectionHandlers<Boolean> {
 	 * @return the OID input
 	 */
 	@Override
-	public MatTextBox getOIDInput() {
+	public TextBox getOIDInput() {
 		return searchWidget.getSearchInput();
 	}
 	
@@ -1921,6 +1924,9 @@ HasSelectionHandlers<Boolean> {
 	public void setQdmSelectedList(List<QualityDataSetDTO> qdmSelectedList) {
 		this.qdmSelectedList = qdmSelectedList;
 	}
+
+
+	
 	
 	
 }

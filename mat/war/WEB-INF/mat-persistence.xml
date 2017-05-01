@@ -30,17 +30,13 @@
 		<property name="contexts" value="prod" />
 	</bean>
     
-
-     <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
-        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
-	    <property name="url" value="jdbc:mysql://devdb:3306/MATDB"/>
-        <property name="username" value="user"/>
-        <property name="password" value="password"/>  
- 
-    </bean>
-    
- 
-
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+		<property name="url" value="jdbc:mysql://devdb:3306/MATDB"/>
+		<property name="username" value="user"/>
+		<property name="password" value="password"/>  
+	</bean>
+      
 	<context:annotation-config />
 	
 	<!-- Hibernate SessionFactory -->
@@ -185,6 +181,11 @@
 	<bean id="measureAuditLogDAO"
 			class="mat.dao.impl.MeasureAuditLogDAO" parent="baseDAO">
 	</bean>
+	
+	
+	<bean id="cqlLibraryAuditLogDAO"
+			class="mat.dao.impl.CQLLibraryAuditLogDAO" parent="baseDAO">
+	</bean>
 
     <bean id="userAuditLogDAO"
 			class="mat.dao.impl.UserAuditLogDAO" parent="baseDAO">
@@ -211,6 +212,10 @@
 	<bean id="measureSetDAO"
 		class="mat.dao.impl.clause.MeasureSetDAO" parent="baseDAO">
 	</bean>		
+	
+	<bean id="cqlLibrarySetDAO"
+		class="mat.dao.impl.clause.CQLLibrarySetDAO" parent="baseDAO">
+	</bean>	
 	
 	<!-- <bean id="metadataDAO"
 		class="mat.dao.impl.clause.MetadataDAO" parent="baseDAO">
@@ -307,6 +312,10 @@
 			class="mat.dao.impl.RecentMSRActivityLogDAO" parent="baseDAO">
 	</bean>
 	
+	 <bean id="recentCQLActivityLogDAO"
+			class="mat.dao.impl.RecentCQLActivityLogDAO" parent="baseDAO">
+	</bean>
+	
 	<bean id="organizationDAO"
             class="mat.dao.impl.OrganizationDAO" parent="baseDAO">
     </bean>
@@ -317,6 +326,17 @@
 	<bean id="cqlDAO"
 		class="mat.dao.impl.clause.CQLDAO" parent="baseDAO">
 	</bean>
+	<bean id="cqlLibraryDAO" 
+	    class="mat.dao.impl.clause.CQLLibraryDAO" parent="baseDAO">
+	</bean>
+	<bean id="cqlLibraryAssociationDAO" 
+	    class="mat.dao.impl.clause.CQLLibraryAssociationDAO" parent="baseDAO">
+	</bean>
+	
+	<bean id="cqlLibraryShareDAO"
+		class="mat.dao.impl.clause.CQLLibraryShareDAO" parent="baseDAO">
+	</bean>
+	
 	<bean id="daoService" class="mat.dao.service.DAOService" >
 		<property name="auditLogDAO" ref="auditLogDAO"/>
 		<property name="securityRoleDAO" ref="securityRoleDAO"/>
@@ -340,6 +360,7 @@
 		<property name="operatorDAO" ref="operatorDAO"/>
 		<property name="measureDAO" ref="measureDAO"/>
 		<property name="measureSetDAO" ref="measureSetDAO"/>
+		<property name="cqlLibrarySetDAO" ref="cqlLibrarySetDAO"/>
 		<!-- <property name="clauseDAO" ref="clauseDAO"/> -->
 		<property name="qDSAttributesDAO" ref="qDSAttributesDAO"/>
         <property name="attributesDAO" ref="attributesDAO"/>
@@ -352,6 +373,7 @@
 		<property name="unitTypeDAO" ref="unitTypeDAO"/>
 		<property name="unitTypeMatrixDAO" ref="unitTypeMatrixDAO"/>
 		<property name="measureAuditLogDAO" ref="measureAuditLogDAO"/>
+		<property name="cqlLibraryAuditLogDAO" ref="cqlLibraryAuditLogDAO"/>
 		<property name="userAuditLogDAO" ref="userAuditLogDAO"/>
 		<property name="codeListAuditLogDAO" ref="codeListAuditLogDAO"/>
 		<property name="measureValidationLogDAO" ref="measureValidationLogDAO"/>
@@ -362,9 +384,13 @@
 		<property name="measureXMLDAO" ref="measureXMLDAO"/>
 		<property name="measureNotesDAO" ref="measureNotesDAO"/>
 		<property name="recentMSRActivityLogDAO" ref="recentMSRActivityLogDAO"/>
+		<property name="recentCQLActivityLogDAO" ref="recentCQLActivityLogDAO"/>
 		<property name="organizationDAO" ref="organizationDAO"/>
 		<property name="userPasswordHistoryDAO" ref="userPasswordHistoryDAO"/>
 		<property name="cqlDAO" ref="cqlDAO"/>
+		<property name="cqlLibraryDAO" ref="cqlLibraryDAO"/>
+		<property name="cqlLibraryAssociationDAO" ref="cqlLibraryAssociationDAO"/>
+		<property name="cqlLibraryShareDAO" ref="cqlLibraryShareDAO"/>
 	</bean>
 	 
 </beans>

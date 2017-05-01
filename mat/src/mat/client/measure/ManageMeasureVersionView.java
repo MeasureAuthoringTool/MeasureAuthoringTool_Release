@@ -53,7 +53,7 @@ public class ManageMeasureVersionView implements ManageMeasurePresenter.VersionD
 	private static final int PAGE_SIZE = 25;
 	
 	/** The button bar. */
-	private SaveCancelButtonBar buttonBar = new SaveCancelButtonBar();
+	private SaveCancelButtonBar buttonBar = new SaveCancelButtonBar("measuVersion");
 	
 	/** The cell table panel. */
 	private VerticalPanel cellTablePanel = new VerticalPanel();
@@ -89,7 +89,7 @@ public class ManageMeasureVersionView implements ManageMeasurePresenter.VersionD
 		zoomButton.getElement().setId("zoomButton_CustomButton");
 		mainPanel.setStylePrimaryName("contentPanel");
 		mainPanel.addStyleName("leftAligned");
-		searchWidget.getSearchInput().setHeight("20px");
+		//searchWidget.getSearchInput().setHeight("20px");
 		mainPanel.add(searchWidget);		
 		mainPanel.add(new SpacerWidget());
 		
@@ -193,7 +193,7 @@ public class ManageMeasureVersionView implements ManageMeasurePresenter.VersionD
 		cellTable = addColumnToTable(cellTable);
 		sortProvider.addDataDisplay(cellTable);
 		CustomPager.Resources pagerResources = GWT.create(CustomPager.Resources.class);
-		MatSimplePager spager = new MatSimplePager(CustomPager.TextLocation.CENTER, pagerResources, false, 0, true);
+		MatSimplePager spager = new MatSimplePager(CustomPager.TextLocation.CENTER, pagerResources, false, 0, true,"measureVersion");
 		spager.setPageStart(0);
 		spager.setDisplay(cellTable);
 		spager.setPageSize(PAGE_SIZE);

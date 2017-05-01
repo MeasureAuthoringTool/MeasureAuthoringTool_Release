@@ -23,6 +23,9 @@ package edu.ycp.cs.dh.acegwt.client.ace;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Collections;
+import java.util.Comparator;
+
 import mat.client.shared.MatContext;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.core.client.JsArray;
@@ -36,6 +39,8 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HasText;
 import com.google.gwt.user.client.ui.RequiresResize;
+
+import java.util.Collections;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -888,7 +893,59 @@ public class AceEditor extends Composite implements RequiresResize, HasText, Tak
 	  
 	  $wnd.allAttributeList = @edu.ycp.cs.dh.acegwt.client.ace.AceEditor::createAttributesJsArrayString();
 	  
+	  $wnd.dataTypeList = @edu.ycp.cs.dh.acegwt.client.ace.AceEditor::createDatatypesJsArrayString(); 
+	  
+	  $wnd.valueSetList = @edu.ycp.cs.dh.acegwt.client.ace.AceEditor::createValueSetJsArrayString();
+	  
 	}-*/;
+	
+	@SuppressWarnings("unchecked")
+	private static JsArrayString createValueSetJsArrayString() {
+		List<String> valueSetList = MatContext.get().getValuesets();
+		valueSetList.add("SDE Ethnicity");
+		valueSetList.add("SDE Race");
+		valueSetList.add("SDE Sex");
+		valueSetList.add("SDE Payer");
+		
+		Collections.sort(valueSetList, new Comparator() {
+
+			@Override
+			public int compare(Object o1, Object o2) {
+				String string1 = (String) o1; 
+				String string2 = (String) o2; 
+				return string1.toLowerCase().compareTo(string2.toLowerCase());
+			}
+			
+		});
+		
+		JsArrayString jsArray = (JsArrayString) JsArrayString.createArray(); 
+		for(String string : valueSetList) {
+			jsArray.push("\"" + string + "\"");
+		}
+
+		
+		return jsArray; 
+	}
+	
+	/**
+	 * Creates the datatypes js array string
+	 * 
+	 * 
+	 * @return the js array string
+	 */
+	private static JsArrayString createDatatypesJsArrayString() {
+		List<String> dataTypeList = MatContext.get().dataTypeList;
+		JsArrayString jsArray = (JsArrayString) JsArrayString.createArray();
+		
+		for(String string: dataTypeList) {
+			
+			if(!string.equals(MatContext.get().PLEASE_SELECT)) {
+				jsArray.push("[\"" +string + "\"]");
+			}
+		}
+		
+		return jsArray; 
+	}
 	
 	/**
 	 * Creates the definitions js array string.

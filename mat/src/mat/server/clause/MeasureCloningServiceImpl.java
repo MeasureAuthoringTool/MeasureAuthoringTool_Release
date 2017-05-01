@@ -29,12 +29,12 @@ import mat.dao.clause.MeasureDAO;
 import mat.dao.clause.MeasureSetDAO;
 import mat.dao.clause.MeasureXMLDAO;
 import mat.model.MeasureNotes;
-import mat.model.QualityDataModelWrapper;
 import mat.model.User;
 import mat.model.clause.Measure;
 import mat.model.clause.MeasureSet;
 import mat.model.clause.MeasureXML;
 import mat.model.cql.CQLParameter;
+import mat.server.CQLLibraryService;
 import mat.server.LoggedInUserUtil;
 import mat.server.SpringRemoteServiceServlet;
 import mat.server.service.MeasureLibraryService;
@@ -43,10 +43,11 @@ import mat.server.service.impl.MatContextServiceUtil;
 import mat.server.util.MATPropertiesService;
 import mat.server.util.MeasureUtility;
 import mat.server.util.XmlProcessor;
+import mat.shared.ConstantMessages;
 import mat.shared.UUIDUtilClient;
 import mat.shared.model.util.MeasureDetailsUtil;
 
-import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.xerces.dom.ElementImpl;
@@ -69,7 +70,8 @@ implements MeasureCloningService {
 	private static final String QDM_EXPIRED_NON_DEFAULT = "expired";
 	/** Constant for QDM Birth date Name String**/
 	private static final String QDM_BIRTHDATE_NON_DEFAULT = "birthdate";
-
+	@Autowired
+	private CQLLibraryService cqlLibraryService;
 	/** The measure dao. */
 	@Autowired
 	private MeasureDAO measureDAO;
@@ -182,8 +184,15 @@ implements MeasureCloningService {
 		userDAO = (UserDAO) context.getBean("userDAO");
 		cqlService = (CQLService) context.getBean("cqlService");
 		measureLibraryService = (MeasureLibraryService) context.getBean("measureLibraryService");
+		cqlLibraryService = (CQLLibraryService) context.getBean("cqlLibraryService");
 		
-		boolean isMeasureClonable = MatContextServiceUtil.get().isCurrentMeasureClonable(measureDAO, currentDetails.getId());
+		boolean isMeasureClonable = false;
+		if(creatingDraft){
+			isMeasureClonable = MatContextServiceUtil.get().isCurrentMeasureDraftable(measureDAO, userDAO, currentDetails.getId());
+		}else{
+			isMeasureClonable = MatContextServiceUtil.get().isCurrentMeasureClonable(measureDAO, currentDetails.getId());
+		}
+		
 		if(!isMeasureClonable){
 			Exception e = new Exception("Cannot access this measure.");
 			log(e.getMessage(), e);
@@ -286,6 +295,7 @@ implements MeasureCloningService {
 				
 				//create the default 4 CMS supplemental definitions
 				appendSupplementalDefinitions(xmlProcessor, false);
+				xmlProcessor.updateCQLLibraryName();
 			}
 			
 			clonedXml.setMeasureXMLAsByteArray(xmlProcessor
@@ -350,12 +360,43 @@ implements MeasureCloningService {
 				.getScoringAbbr(clonedMeasure.getMeasureScoring());
 		
 		xmlProcessor.createNewNodesBasedOnScoring(scoringTypeId,MATPropertiesService.get().getQmdVersion());
+		
+		// This section generates CQL Look Up tag from CQLXmlTemplate.xml
+
+		XmlProcessor cqlXmlProcessor = cqlLibraryService.loadCQLXmlTemplateFile();
+		javax.xml.xpath.XPath xPath = XPathFactory.newInstance().newXPath();
+		String libraryName = (String) xPath.evaluate(
+				"/measure/measureDetails/title/text()",
+				xmlProcessor.getOriginalDoc().getDocumentElement(), XPathConstants.STRING);
+		
+		String version = (String) xPath.evaluate(
+				"/measure/measureDetails/version/text()",
+				xmlProcessor.getOriginalDoc().getDocumentElement(), XPathConstants.STRING);
+		
+		
+		String cqlLookUpTag = cqlLibraryService.getCQLLookUpXml((MeasureUtility.cleanString(libraryName)),
+				version, cqlXmlProcessor, "//measure");
+		if (cqlLookUpTag != null && StringUtils.isNotEmpty(cqlLookUpTag)
+				&& StringUtils.isNotBlank(cqlLookUpTag)) {
+			try {
+				xmlProcessor.appendNode(cqlLookUpTag, "cqlLookUp", "/measure");
+			} catch (SAXException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
 		//xmlProcessor.checkForStratificationAndAdd();
 		
 		//copy qdm to cqlLookup/valuesets
 		NodeList qdmNodes = xmlProcessor.findNodeList(xmlProcessor.getOriginalDoc(), "/measure/elementLookUp/qdm");		
 		Node cqlValuesetsNode = xmlProcessor.findNode(xmlProcessor.getOriginalDoc(), "/measure/cqlLookUp/valuesets");
 		List<Node> qdmNodeList = new ArrayList<Node>();
+		List<Node> cqlValuesetsNodeList = new ArrayList<Node>();
+		
 		/**
 		 * We need to capture old "Patient Characteristic Expired"(oid=419099009) and "Patient Characteristic Birthdate"(oid=21112-8)
 		 * and remove them. Also we need to remove qdm with name="Birthdate' and 'Expired' which are non default qdms along with Occurrence
@@ -404,7 +445,55 @@ implements MeasureCloningService {
 					cqlValuesetsNode.appendChild(clonedqdmNode);
 				}
 			}
+			for(int i=0;i<cqlValuesetsNode.getChildNodes().getLength();i++){
+				cqlValuesetsNodeList.add(cqlValuesetsNode.getChildNodes().item(i));
+			}
 		}
+		
+				
+		//Remove all duplicate value sets for new Value Sets workspace.
+		if(cqlValuesetsNodeList != null && cqlValuesetsNodeList.size() >0){
+			List<String> cqlVSACValueSets = new ArrayList<String>();
+			List<String> cqlUserDefValueSets = new ArrayList<String>();
+			for(int i=0;i<cqlValuesetsNodeList.size();i++){
+				Node cqlNode = cqlValuesetsNodeList.get(i);
+				Node parentNode = cqlNode.getParentNode();
+				String valuesetName = cqlNode.getAttributes().getNamedItem("name").getTextContent();
+				String valuesetOID = cqlNode.getAttributes().getNamedItem("oid").getTextContent();
+				if(!valuesetOID.equalsIgnoreCase(ConstantMessages.USER_DEFINED_QDM_OID)){
+					if(!cqlVSACValueSets.contains(valuesetName)){
+					cqlVSACValueSets.add(valuesetName);
+					}else{
+						parentNode.removeChild(cqlNode);
+					}
+				}
+				else{
+					if(!cqlUserDefValueSets.contains(valuesetName)){
+						cqlUserDefValueSets.add(valuesetName);
+					}else{
+						parentNode.removeChild(cqlNode);
+					}
+				}
+			}
+			
+			//Loop through user Defined and remove if it exists already in VSAC list
+			for(int i=0;i<cqlValuesetsNodeList.size();i++){
+				Node cqlNode = cqlValuesetsNodeList.get(i);
+				Node parentNode = cqlNode.getParentNode();
+				String valuesetOID = cqlNode.getAttributes().getNamedItem("oid").getTextContent();
+				if(valuesetOID.equalsIgnoreCase(ConstantMessages.USER_DEFINED_QDM_OID)){
+					for (String userDefName : cqlUserDefValueSets) {
+						if(cqlVSACValueSets.contains(userDefName)){
+							parentNode.removeChild(cqlNode);
+						}
+					}
+				}
+			}
+			
+			cqlVSACValueSets.clear();
+			cqlUserDefValueSets.clear();
+		}
+		
 		//Remove all unclonable QDM's collected above in For Loop from elementLookUp tag.
 		if(qdmNodeList != null && qdmNodeList.size() >0){
 			for(int i=0;i<qdmNodeList.size();i++){
@@ -419,7 +508,7 @@ implements MeasureCloningService {
 			parentNode.removeChild(birthDataQDMNode);
 		}*/
 		
-		checkForTimingElementsAndAppend(xmlProcessor);
+		//checkForTimingElementsAndAppend(xmlProcessor);
 		checkForDefaultCQLParametersAndAppend(xmlProcessor);
 		checkForDefaultCQLDefinitionsAndAppend(xmlProcessor);
 		checkForDefaultCQLCodeSystemsAndAppend(xmlProcessor);
@@ -440,6 +529,18 @@ implements MeasureCloningService {
 		
 		if (defaultCQLDefNodeList != null && defaultCQLDefNodeList.getLength() == 4) {
 			logger.info("All Default definition elements present in the measure while cloning.");
+			logger.info("Check if SupplementalDataElement present in the measure while cloning.");
+			// This checks if SDE holds child elements ,if not then append it.
+			String defaultSDE = "/measure/supplementalDataElements";
+			try {
+				Node sdeNode = xmlProcessor.findNode(xmlProcessor.getOriginalDoc(), defaultSDE);
+				if(sdeNode != null && !sdeNode.hasChildNodes()){
+					appendSupplementalDefinitions(xmlProcessor, true);
+				}
+			} catch (XPathExpressionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			return;
 		}
 		
@@ -511,7 +612,7 @@ implements MeasureCloningService {
 	
 	private void checkForTimingElementsAndAppend(XmlProcessor xmlProcessor) {
 		
-		List<String> missingMeasurementPeriod = xmlProcessor.checkForTimingElements();
+		/*List<String> missingMeasurementPeriod = xmlProcessor.checkForTimingElements();
 		
 		if (missingMeasurementPeriod.isEmpty()) {
 			logger.info("All timing elements present in the measure while cloning.");
@@ -541,7 +642,7 @@ implements MeasureCloningService {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
-		}
+		}*/
 		
 	}
 	

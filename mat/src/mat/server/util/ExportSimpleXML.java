@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -26,17 +27,14 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import mat.dao.OrganizationDAO;
+import mat.dao.clause.CQLLibraryDAO;
 import mat.dao.clause.MeasureDAO;
 import mat.model.Organization;
 import mat.model.clause.Measure;
 import mat.model.clause.MeasureXML;
-import mat.model.cql.parser.CQLCodeModelObject;
-import mat.model.cql.parser.CQLCodeSystemModelObject;
-import mat.model.cql.parser.CQLDefinitionModelObject;
-import mat.model.cql.parser.CQLFileObject;
-import mat.model.cql.parser.CQLFunctionModelObject;
-import mat.model.cql.parser.CQLParameterModelObject;
-import mat.model.cql.parser.CQLValueSetModelObject;
+import mat.model.cql.CQLModel;
+import mat.server.util.CQLUtil.CQLArtifactHolder;
+import mat.shared.SaveUpdateCQLResult;
 import mat.shared.UUIDUtilClient;
 import net.sf.saxon.TransformerFactoryImpl;
 
@@ -46,6 +44,7 @@ import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Attr;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -123,26 +122,20 @@ public class ExportSimpleXML {
 	 * @param message            the message
 	 * @param measureDAO TODO
 	 * @param organizationDAO the organization dao
+	 * @param cqlLibraryDAO 
 	 * @return the string
 	 */
 	public static String export(MeasureXML measureXMLObject, List<String> message, 
-			MeasureDAO measureDAO, OrganizationDAO organizationDAO, CQLFileObject cqlFileObject) {
+			MeasureDAO measureDAO, OrganizationDAO organizationDAO, CQLLibraryDAO cqlLibraryDAO, CQLModel cqlModel) {
 		String exportedXML = "";
         //Validate the XML
 		Document measureXMLDocument;
 		try {
 			measureXMLDocument = getXMLDocument(measureXMLObject);
-			/*if(validateMeasure(measureXMLDocument, message)){*/
 			measure_Id = measureXMLObject.getMeasure_id();
-			exportedXML = generateExportedXML(measureXMLDocument, organizationDAO,measureDAO, measure_Id, cqlFileObject);
-			
-			
+			exportedXML = generateExportedXML(measureXMLDocument, organizationDAO,measureDAO, measure_Id,cqlLibraryDAO, cqlModel);			
 			int insertAt = exportedXML.indexOf("<title>"); 
 			exportedXML = exportedXML.substring(0,  insertAt) + "<cqlUUID>" + UUIDUtilClient.uuid() + "</cqlUUID>" + exportedXML.substring(insertAt, exportedXML.length());
-			
-			
-			
-			//}
 		} catch (ParserConfigurationException e) {
 			e.printStackTrace();
 		} catch (SAXException e) {
@@ -215,12 +208,13 @@ public class ExportSimpleXML {
 	 * @param organizationDAO the organization dao
 	 * @param measureDAO TODO
 	 * @param measure_Id TODO
+	 * @param cqlLibraryDAO 
 	 * @return the string
 	 */
-	private static String generateExportedXML(Document measureXMLDocument, OrganizationDAO organizationDAO, MeasureDAO measureDAO, String measure_Id, CQLFileObject cqlFileObject) {
+	private static String generateExportedXML(Document measureXMLDocument, OrganizationDAO organizationDAO, MeasureDAO measureDAO, String measure_Id, CQLLibraryDAO cqlLibraryDAO, CQLModel cqlModel) {
 		_logger.info("In ExportSimpleXML.generateExportedXML()");
 		try {
-			return traverseXML(measureXMLDocument,organizationDAO, measureDAO, measure_Id, cqlFileObject);
+			return traverseXML(measureXMLDocument,organizationDAO, measureDAO, measure_Id, cqlLibraryDAO, cqlModel);
 		} catch (Exception e) {
 			_logger.info("Exception thrown on ExportSimpleXML.generateExportedXML()");
 			e.printStackTrace();
@@ -286,11 +280,12 @@ public class ExportSimpleXML {
 		 * @param organizationDAO the organization dao
 		 * @param MeasureDAO TODO
 		 * @param measure_Id TODO
+		 * @param cqlLibraryDAO 
 		 * @return the string
 		 * @throws XPathExpressionException             the x path expression exception
 		 */
 		private static String traverseXML(Document originalDoc, OrganizationDAO organizationDAO,
-				MeasureDAO MeasureDAO, String measure_Id, CQLFileObject cqlFileObject) throws XPathExpressionException {
+				MeasureDAO MeasureDAO, String measure_Id, CQLLibraryDAO cqlLibraryDAO, CQLModel cqlModel) throws XPathExpressionException {
 			//set attributes
 			updateVersionforMeasureDetails(originalDoc, MeasureDAO, measure_Id);
 			//update Steward and developer's node id with oid.
@@ -299,15 +294,12 @@ public class ExportSimpleXML {
 			List<String> usedClauseIds = getUsedClauseIds(originalDoc);
 			//using the above list we need to traverse the originalDoc and remove the unused Clauses
 			removeUnwantedClauses(usedClauseIds, originalDoc);
-//			List<String> usedCQLArtifacts = checkForUsedCQLArtifacts(originalDoc, cqlFileObject);
-//			removeUnwantedCQLArtifacts(usedCQLArtifacts, originalDoc);
-
 			
 			removeNode("/measure/subTreeLookUp",originalDoc);
 			expandAndHandleGrouping(originalDoc);
 			
 			// remove unused cql artifacts
-			removeUnusedCQLArtifacts(originalDoc, cqlFileObject);
+			removeUnusedCQLArtifacts(originalDoc, cqlLibraryDAO, cqlModel);
 			
 			//addUUIDToFunctions(originalDoc);
 			//modify the <startDate> and <stopDate> tags to have date in YYYYMMDD format
@@ -324,373 +316,177 @@ public class ExportSimpleXML {
 		/**
 		 * Removes all unused cql artifacts
 		 * @param originalDoc
-		 * @param cqlFileObject
+		 * @param cqlLibraryDAO 
+		 * @param cqlModel
 		 * @throws XPathExpressionException
 		 */
-		private static void removeUnusedCQLArtifacts(Document originalDoc, CQLFileObject cqlFileObject) throws XPathExpressionException {
-			System.out.println("Getting Used CQL Artifacts");
-			CQLUtil.CQLArtifactHolder usedCQLArtifactHolder = CQLUtil.getUsedCQLArtifacts(originalDoc, cqlFileObject);
+		private static void removeUnusedCQLArtifacts(Document originalDoc, CQLLibraryDAO cqlLibraryDAO, CQLModel cqlModel) throws XPathExpressionException {
 			
-			System.out.println("Used CQL Definitions: " + usedCQLArtifactHolder.getCqlDefinitionUUIDSet());
-			System.out.println("Used CQL Functions: " + usedCQLArtifactHolder.getCqlFunctionUUIDSet());
-			System.out.println("Used CQL Valuesets: " + usedCQLArtifactHolder.getCqlValuesetIdentifierSet());
-			System.out.println("Used CQL Parameters: " + usedCQLArtifactHolder.getCqlParameterIdentifierSet());
+			CQLArtifactHolder usedCQLArtifactHolder = CQLUtil.getCQLArtifactsReferredByPoplns(originalDoc);
+			List<String> expressionList = new ArrayList<String>();
+			expressionList.addAll(usedCQLArtifactHolder.getCqlDefFromPopSet());
+			expressionList.addAll(usedCQLArtifactHolder.getCqlFuncFromPopSet());
+			SaveUpdateCQLResult result = CQLUtil.parseCQLLibraryForErrors(cqlModel, cqlLibraryDAO, expressionList);
 			
-			CQLUtil.removeUnusedCQLDefinitions(originalDoc, usedCQLArtifactHolder.getCqlDefinitionUUIDSet()); 
-			CQLUtil.removeUnusedCQLFunctions(originalDoc, usedCQLArtifactHolder.getCqlFunctionUUIDSet());
-			CQLUtil.removeUnusedValuesets(originalDoc, usedCQLArtifactHolder.getCqlValuesetIdentifierSet());
-			CQLUtil.removeUnusedCodes(originalDoc, usedCQLArtifactHolder.getCqlCodesSet());
-			CQLUtil.removeUnusedParameters(originalDoc, usedCQLArtifactHolder.getCqlParameterIdentifierSet());
+			result.getUsedCQLArtifacts().getUsedCQLDefinitions().addAll(usedCQLArtifactHolder.getCqlDefFromPopSet());
+			result.getUsedCQLArtifacts().getUsedCQLFunctions().addAll(usedCQLArtifactHolder.getCqlFuncFromPopSet());
 			
-			/**
-			 * For CQL, the valuesets need special processing.
-			 * A valueset(OID) can be associated with different datatypes at Definition/Function level.
-			 * For Data Criteria in Human Readable HTML & HQMF XML, we need to reflect the right OID and 
-			 * data-type combination used.
-			 */
+			CQLUtil.removeUnusedCQLDefinitions(originalDoc, result.getUsedCQLArtifacts().getUsedCQLDefinitions()); 
+			CQLUtil.removeUnusedCQLFunctions(originalDoc, result.getUsedCQLArtifacts().getUsedCQLFunctions());
+			CQLUtil.removeUnusedParameters(originalDoc, result.getUsedCQLArtifacts().getUsedCQLParameters());
 			
-			resolveValueSetsWithDataTypesUsed(originalDoc, usedCQLArtifactHolder, cqlFileObject);
+			resolveValueSetsWithDataTypesUsed(originalDoc, result, cqlModel);
+			
+			CQLUtil.removeUnusedIncludes(originalDoc, result.getUsedCQLArtifacts().getUsedCQLLibraries(), cqlModel);
+			CQLUtil.addUsedCQLLibstoSimpleXML(originalDoc, result.getUsedCQLArtifacts().getIncludeLibMap());
+			CQLUtil.addUnUsedGrandChildrentoSimpleXML(originalDoc, result, cqlModel);
+			
+			System.out.println("All included libs:"+cqlModel.getIncludedCQLLibXMLMap().keySet());			
 		}
 		
 		private static void resolveValueSetsWithDataTypesUsed(
-				Document originalDoc, CQLUtil.CQLArtifactHolder cqlArtifactHolder, CQLFileObject cqlFileObject) throws XPathExpressionException {
+				Document originalDoc, SaveUpdateCQLResult result, CQLModel cqlModel) throws XPathExpressionException {
 			
-			Map<String, CQLValueSetModelObject> valueSetDataTypeMap = new HashMap<String, CQLValueSetModelObject>();
-			Map<String, CQLCodeModelObject> codeDataTypeMap = new HashMap<String, CQLCodeModelObject>();
+			System.out.println("usedValueSetMap:"+result.getUsedCQLArtifacts().getValueSetDataTypeMap());
 			
-			//collect value-sets,data-type combinations for definitions
-			for(String cqlDefnUUID: cqlArtifactHolder.getCqlDefinitionUUIDSet()){
-				String xPathCQLDef = "/measure/cqlLookUp/definitions/definition[@id='" + cqlDefnUUID +"']";
-				Node cqlDefinition = (Node) xPath.evaluate(xPathCQLDef, 
-						originalDoc.getDocumentElement(), XPathConstants.NODE);
-				
-				String cqlDefnName = "\"" + cqlDefinition.getAttributes().getNamedItem("name").getNodeValue() + "\"";
-				CQLDefinitionModelObject cqlDefinitionModelObject = cqlFileObject.getDefinitionsMap().get(cqlDefnName);
-				
-				System.out.println("Value sets for Defn:"+cqlDefnName);
-				List<CQLValueSetModelObject> cqlValueSetModelObjects = cqlDefinitionModelObject.getReferredToValueSets();
-				for(CQLValueSetModelObject cqlValueSetModelObject: cqlValueSetModelObjects){
-					System.out.println(cqlValueSetModelObject.getIdentifier()+":"+cqlValueSetModelObject.getDataTypeUsed());
-					valueSetDataTypeMap.put(cqlValueSetModelObject.getIdentifier()+":"+cqlValueSetModelObject.getDataTypeUsed(), cqlValueSetModelObject);	
-				}
-				
-				List<CQLCodeModelObject> cqlCodeModelObjects = cqlDefinitionModelObject.getReferredToCodes();
-				for(CQLCodeModelObject cqlCodeModelObject: cqlCodeModelObjects){
-					codeDataTypeMap.put(cqlCodeModelObject.getIdentifier()+":"+cqlCodeModelObject.getDataTypeUsed(), cqlCodeModelObject);	
-				}
-			}
-			
-			//collect value-sets,data-type combinations for functions
-			for(String cqlFuncUUID : cqlArtifactHolder.getCqlFunctionUUIDSet()){
-				String xPathCQLDef = "/measure/cqlLookUp/functions/function[@id='" + cqlFuncUUID +"']";
-				Node cqlFunction = (Node) xPath.evaluate(xPathCQLDef, 
-						originalDoc.getDocumentElement(), XPathConstants.NODE);
-				
-				String cqlFuncName = "\"" + cqlFunction.getAttributes().getNamedItem("name").getNodeValue() + "\"";
-				CQLFunctionModelObject cqlFunctionModelObject = cqlFileObject.getFunctionsMap().get(cqlFuncName);
-				
-				List<CQLValueSetModelObject> cqlValueSetModelObjects = cqlFunctionModelObject.getReferredToValueSets();
-				for(CQLValueSetModelObject cqlValueSetModelObject: cqlValueSetModelObjects){
-					valueSetDataTypeMap.put(cqlValueSetModelObject.getIdentifier()+":"+cqlValueSetModelObject.getDataTypeUsed(), cqlValueSetModelObject);	
-				}
-				
-				List<CQLCodeModelObject> cqlCodeModelObjects = cqlFunctionModelObject.getReferredToCodes();
-				for(CQLCodeModelObject cqlCodeModelObject: cqlCodeModelObjects){
-					codeDataTypeMap.put(cqlCodeModelObject.getIdentifier()+":"+cqlCodeModelObject.getDataTypeUsed(), cqlCodeModelObject);	
-				}
-			}
-			
-			List<Node> newCQLValueSetNodes = new ArrayList<Node>();
-			List<Node> newCQLQDMNodes = new ArrayList<Node>();
-			Set<CQLCodeSystemModelObject> usedCodeSystems = new HashSet<CQLCodeSystemModelObject>();
-			
-			for(String valueSetDatatype: valueSetDataTypeMap.keySet()){
-				CQLValueSetModelObject cqlValueSetModelObject = valueSetDataTypeMap.get(valueSetDatatype);
-				
-				String xPathForValueset= "/measure/cqlLookUp//valueset[@name ='" + cqlValueSetModelObject.getIdentifier().replace("\"", "") + "']"; 
-				System.out.println(xPathForValueset);
-				
-				Node cqlValuesetNode = (Node) xPath.evaluate(xPathForValueset, originalDoc.getDocumentElement(), XPathConstants.NODE);
-				Node newCQLValueSetNode = cqlValuesetNode.cloneNode(true);
-				newCQLValueSetNode.getAttributes().getNamedItem("datatype").setNodeValue(cqlValueSetModelObject.getDataTypeUsed().replace("\"", ""));
-				newCQLValueSetNodes.add(newCQLValueSetNode);
-				
-				Node newCQLQDMNode = newCQLValueSetNode.cloneNode(true);
-				originalDoc.renameNode(newCQLQDMNode, null, "qdm");
-				newCQLQDMNodes.add(newCQLQDMNode);
-			}			
-			
-			for(String codeDataType: codeDataTypeMap.keySet()){
-				CQLCodeModelObject cqlCodeModelObject = codeDataTypeMap.get(codeDataType);
-				CQLCodeSystemModelObject cqlCodeSystemModelObject = cqlCodeModelObject.getCqlCodeSystemModelObject();
-							
-				usedCodeSystems.add(cqlCodeSystemModelObject);
-				
-				String xPathForCode= "//elementLookUp/qdm[@name ='" + cqlCodeModelObject.getCodeIdentifier().replace("\"", "") + "']";
-								
-				Node cqlQDMNode = (Node) xPath.evaluate(xPathForCode, originalDoc.getDocumentElement(), XPathConstants.NODE);
-				Node newCQLQDMNode = cqlQDMNode.cloneNode(true);
-				newCQLQDMNode.getAttributes().getNamedItem("datatype").setNodeValue(cqlCodeModelObject.getDataTypeUsed().replace("\"", ""));
-				newCQLQDMNodes.add(newCQLQDMNode);
-			}
-			
-			//remove & replace valueset nodes in cqlLookUp/valuesets
-			String xPathForValuesets= "/measure/cqlLookUp/valuesets";
-			Node cqlValuesetsNode = (Node) xPath.evaluate(xPathForValuesets, originalDoc.getDocumentElement(), XPathConstants.NODE);
-			Node cqlLookUpNode = cqlValuesetsNode.getParentNode();
-			cqlLookUpNode.removeChild(cqlValuesetsNode);
-			
-			Node newValueSetsNode = originalDoc.createElement("valuesets");
-			for(Node newCQLNode: newCQLValueSetNodes){
-				newValueSetsNode.appendChild(newCQLNode);
-			}
-			originalDoc.importNode(newValueSetsNode, true);
-			cqlLookUpNode.appendChild(newValueSetsNode);
-			
-			//remove & replace qdm nodes in elementLookUp
-			String xPathForElementLookup= "/measure/elementLookUp";
-			Node elementLookupNode = (Node) xPath.evaluate(xPathForElementLookup, originalDoc.getDocumentElement(), XPathConstants.NODE);
-			Node measureNode = elementLookupNode.getParentNode();
-			measureNode.removeChild(elementLookupNode);
-			
-			Node newElementLookUpNode = originalDoc.createElement("elementLookUp");
-			for(Node newQDMNode: newCQLQDMNodes){
-				newElementLookUpNode.appendChild(newQDMNode);
-			}
-			originalDoc.importNode(newElementLookUpNode, true);
-			measureNode.appendChild(newElementLookUpNode);
-			
-			//finally remove all the unused "codeSystems"
-			removeUnusedCodeSystems(usedCodeSystems, originalDoc);
-		}
-
-		/*private static List<String> checkForUsedCQLArtifacts(Document originalDoc, CQLFileObject cqlFileObject){
-			List<String> masterList = new ArrayList<String>();
-			masterList = getAllCQLDefnArtifacts(originalDoc, cqlFileObject);
-			List<String> funcList = getAllCQLFuncArtifacts(originalDoc, cqlFileObject);
-			for(int i=0;i<funcList.size();i++){
-				if(!masterList.contains(funcList.get(i))){
-					masterList.add(funcList.get(i));
-				}
-			}
-			
-			return masterList;
-		}*/
-		
-		private static void removeUnusedCodeSystems(
-				Set<CQLCodeSystemModelObject> usedCodeSystems, Document originalDoc) throws XPathExpressionException {
-			
-			String nameXPathString = ""; 
-			for(CQLCodeSystemModelObject codeSystem : usedCodeSystems) {
-				String codeSystemIdentifier = codeSystem.getIdentifier().replace("\"", "");
-				if(codeSystemIdentifier.indexOf(":") > -1){
-					String codeSystemName = codeSystemIdentifier.substring(0, codeSystemIdentifier.indexOf(":"));
-					String codeSystemVersion = codeSystemIdentifier.substring(0);
-					nameXPathString += "[@codeSystemName !='" + codeSystemName + "'][@codeSystemVersion !='" + codeSystemVersion +"']";
-				}
-			}
+			Map<String, Document> includedXMLMap = new HashMap<String, Document>();
+			List<String> valueSetDataTypeUniqueList = new ArrayList<String>();
 						
-			String xPathForUnusedCodeSystem= "/measure/cqlLookUp/codeSystems/codeSystem" + nameXPathString; 
-			System.out.println(xPathForUnusedCodeSystem);
+			String xPathForElementLookupNode = "//elementLookUp";
+			Node elementLookUpNode = (Node) xPath.evaluate(xPathForElementLookupNode, originalDoc.getDocumentElement(), XPathConstants.NODE);
 			
-			NodeList unusedCqlCodeSysNodeList = (NodeList) xPath.evaluate(xPathForUnusedCodeSystem, originalDoc.getDocumentElement(), XPathConstants.NODESET);
-			for(int i = 0; i < unusedCqlCodeSysNodeList.getLength(); i++) {
-				Node current = unusedCqlCodeSysNodeList.item(i); 
-				Node parent = current.getParentNode(); 
-				parent.removeChild(current);
+			if(elementLookUpNode != null){
+				Node parentNode = elementLookUpNode.getParentNode();
+				parentNode.removeChild(elementLookUpNode);
+				
+				elementLookUpNode = originalDoc.createElement("elementLookUp");
+				
+				originalDoc.importNode(elementLookUpNode, true);
+				parentNode.appendChild(elementLookUpNode);
 			}
 			
+			for(String valueSetName:result.getUsedCQLArtifacts().getValueSetDataTypeMap().keySet()){
+				List<String> dataTypeList = result.getUsedCQLArtifacts().getValueSetDataTypeMap().get(valueSetName);
+				
+				Document xmlDoc = findXMLProcessor(valueSetName, cqlModel, includedXMLMap);
+				if(xmlDoc == null){
+					xmlDoc = originalDoc;
+				}else{
+					String[] arr = valueSetName.split(Pattern.quote("|"));
+					if(arr.length == 3){
+						valueSetName = arr[2];
+					}
+				}
+				
+				for(String dataType:dataTypeList){
+					
+					String xPathForValueSetNode = "//cqlLookUp/valuesets/valueset[@name='"+ valueSetName +"']";
+					
+					//If valueset used is a code ("Birthdate"/"Dead") lookup "codes/code" tag
+					if("Birthdate".equals(valueSetName) || "Dead".equals(valueSetName)){
+						xPathForValueSetNode = "//cqlLookUp/codes/code[@codeName='"+ valueSetName +"']";
+					}
+					Node valueSetNode = (Node) xPath.evaluate(xPathForValueSetNode, xmlDoc.getDocumentElement(), 
+							XPathConstants.NODE);
+					
+					Node clonedValueSetNode = valueSetNode.cloneNode(true);
+					
+					if(clonedValueSetNode.getNodeName().equals("code")){
+						
+						//rename "codeOID" attribute to "oid"
+						Node codeOID = clonedValueSetNode.getAttributes().getNamedItem("codeOID");
+						if(codeOID != null){
+							((Element)clonedValueSetNode).setAttribute("oid", codeOID.getNodeValue());
+							clonedValueSetNode.getAttributes().removeNamedItem("codeOID");
+						}
+						
+						//rename "codeSystemName" attribute to "taxonomy"
+						Node codeSystemName = clonedValueSetNode.getAttributes().getNamedItem("codeSystemName");
+						if(codeSystemName != null){
+							((Element)clonedValueSetNode).setAttribute("taxonomy", codeSystemName.getNodeValue());
+							clonedValueSetNode.getAttributes().removeNamedItem("codeSystemName");
+						}
+						
+						
+						//rename "codeName" attribute to "name"
+						Node codeName = clonedValueSetNode.getAttributes().getNamedItem("codeName");
+						if(codeName != null){
+							((Element)clonedValueSetNode).setAttribute("name", codeName.getNodeValue());
+							clonedValueSetNode.getAttributes().removeNamedItem("codeName");
+						}
+						
+						//set "suppDataElement" attribute to "false"
+						Node suppDataElement = clonedValueSetNode.getAttributes().getNamedItem("suppDataElement");
+						if(suppDataElement == null){
+							((Element)clonedValueSetNode).setAttribute("suppDataElement", "false");
+						}
+						
+						//set "uuid" attribute to new a UUID
+						Node uuid = clonedValueSetNode.getAttributes().getNamedItem("uuid");
+						if(uuid == null){
+							((Element)clonedValueSetNode).setAttribute("uuid", UUIDUtilClient.uuid());
+						}
+					}
+					
+					//rename node to "qdm"
+					xmlDoc.renameNode(clonedValueSetNode, null, "qdm");
+					
+					//add "datatype" attribute
+					((Element)clonedValueSetNode).setAttribute("datatype", dataType);
+					
+					String oid = clonedValueSetNode.getAttributes().getNamedItem("oid").getNodeValue();
+					String version = "";
+					if(clonedValueSetNode.getAttributes().getNamedItem("version") != null){
+						version = clonedValueSetNode.getAttributes().getNamedItem("version").getNodeValue();
+					}
+					
+					if(valueSetDataTypeUniqueList.contains(valueSetName+"|"+dataType+"|"+oid+"|"+version)){
+						continue;
+					}
+					
+					Node importedNode = elementLookUpNode.getOwnerDocument().importNode(clonedValueSetNode, true);
+					elementLookUpNode.appendChild(importedNode);
+
+					valueSetDataTypeUniqueList.add(valueSetName+"|"+dataType+"|"+oid+"|"+version);
+				}
+			}
+			
+			Set<String> valuesetSet = new HashSet<String>(result.getUsedCQLArtifacts().getValueSetDataTypeMap().keySet());
+			valuesetSet.addAll(result.getUsedCQLArtifacts().getUsedCQLValueSets());
+			System.out.println("used value sets:"+valuesetSet);
+			CQLUtil.removeUnusedValuesets(originalDoc, valuesetSet);			
 		}
 
-		private static List<String> getAllCQLDefnArtifacts(Document originalDoc, CQLFileObject cqlObject){
-			List<String> usedAllCQLArtifacts = new ArrayList<String>();
-			try {
-				NodeList subTreeRefIdsNodeList = (NodeList) xPath.evaluate("/measure//cqldefinition/@displayName",
-						originalDoc.getDocumentElement(), XPathConstants.NODESET);
-				
-				for (int i = 0; i < subTreeRefIdsNodeList.getLength(); i++) {
-					Node cqlDefnNameAttributeNode = subTreeRefIdsNodeList.item(i);
-					
-					if(!usedAllCQLArtifacts.contains(cqlDefnNameAttributeNode.getNodeValue())){
-						usedAllCQLArtifacts.add(cqlDefnNameAttributeNode.getNodeValue());
-					}
-					for ( String key : cqlObject.getDefinitionsMap().keySet() ) {
-					    System.out.println( key );
-					}
-					
-					String cqlName = cqlDefnNameAttributeNode.getNodeValue();
-				    cqlName = "\"" + cqlName + "\""; 
-					List<CQLDefinitionModelObject> referredToDefinitionsModelObjectList = cqlObject.getDefinitionsMap()
-					                      .get(cqlName).getReferredToDefinitions();
-					
-					for(int j=0 ;j<referredToDefinitionsModelObjectList.size();j++){
-						if(!usedAllCQLArtifacts.contains(referredToDefinitionsModelObjectList.get(j).getIdentifier().replaceAll("\"", ""))){
-							usedAllCQLArtifacts.add(referredToDefinitionsModelObjectList.get(j).getIdentifier().replaceAll("\"", ""));
-						}
-					}
-					
-					List<CQLFunctionModelObject> referredToFunctionsModelObjectList = cqlObject.getDefinitionsMap()
-							.get(cqlName).getReferredToFunctions();
-					
-					for(int m=0 ;m<referredToFunctionsModelObjectList.size();m++){
-						if(!usedAllCQLArtifacts.contains(referredToFunctionsModelObjectList.get(m).getIdentifier().replaceAll("\"", ""))){
-							usedAllCQLArtifacts.add(referredToFunctionsModelObjectList.get(m).getIdentifier().replaceAll("\"", ""));
-						}
-					}
-					
-					List<CQLValueSetModelObject> valueSetsReferredByDefinitionsModelObjectList = cqlObject.getDefinitionsMap()
-							.get(cqlName).getReferredByValueSets();
-					
-					for(int k=0 ;k<valueSetsReferredByDefinitionsModelObjectList.size();k++){
-						if(!usedAllCQLArtifacts.contains(valueSetsReferredByDefinitionsModelObjectList.get(k).getIdentifier().replaceAll("\"", ""))){
-							usedAllCQLArtifacts.add(valueSetsReferredByDefinitionsModelObjectList.get(k).getIdentifier().replaceAll("\"", ""));
-						}
-					}
-					
-					List<CQLParameterModelObject> referredByDefinitionsModelObjectList = cqlObject.getDefinitionsMap()
-							.get(cqlName).getReferredByParameters();
-					
-					for(int n=0 ;n<referredByDefinitionsModelObjectList.size();n++){
-						if(!usedAllCQLArtifacts.contains(referredByDefinitionsModelObjectList.get(n).getIdentifier().replaceAll("\"", ""))){
-							usedAllCQLArtifacts.add(referredByDefinitionsModelObjectList.get(n).getIdentifier().replaceAll("\"", ""));
-						}
-					}
+	private static Document findXMLProcessor(String valueSetName,
+				CQLModel cqlModel, Map<String, Document> includedXMLMap) {
+		
+		Document returnDoc = null;
+		System.out.println("valueSetName:"+valueSetName);
+		String[] nameSplitArr = valueSetName.split(Pattern.quote("|"));
+		System.out.println(nameSplitArr.length);
+		for(int i=0;i<nameSplitArr.length;i++){
+			System.out.println("----------------"+nameSplitArr[i]);
+		}
+		if(nameSplitArr.length == 3){
+			String includedLibName = nameSplitArr[0];
+			System.out.println("includedLibName:"+includedLibName);			
+			returnDoc = includedXMLMap.get(includedLibName);
+			if(returnDoc == null){
+				Map<String, mat.shared.LibHolderObject> cqlLibXMLMap = cqlModel.getIncludedCQLLibXMLMap();
+				System.out.println(cqlLibXMLMap.keySet());
+				String xml = cqlLibXMLMap.get(includedLibName + "|" + nameSplitArr[1]).getMeasureXML();
+				if(xml != null){
+					XmlProcessor xmlProcessor = new XmlProcessor(xml);
+					includedXMLMap.put(includedLibName, xmlProcessor.getOriginalDoc());
+					returnDoc = xmlProcessor.getOriginalDoc();
+				}
+			}			
+		}
+		
+		return returnDoc;
+	}
 
-				}
-				
-				
-			} catch (XPathExpressionException e) {
-				e.printStackTrace();
-			}
-			
-			return usedAllCQLArtifacts;
-		}
-		
-		private static List<String> getAllCQLFuncArtifacts(Document originalDoc, CQLFileObject cqlObject){
-			List<String> usedAllCQLArtifacts = new ArrayList<String>();
-			try {
-				NodeList subTreeRefIdsNodeList = (NodeList) xPath.evaluate("/measure//cqlfunction/@displayName",
-						originalDoc.getDocumentElement(), XPathConstants.NODESET);
-				for (int i = 0; i < subTreeRefIdsNodeList.getLength(); i++) {
-					Node cqlfuncNameAttributeNode = subTreeRefIdsNodeList.item(i);
-					
-					if(!usedAllCQLArtifacts.contains(cqlfuncNameAttributeNode.getNodeValue())){
-						usedAllCQLArtifacts.add(cqlfuncNameAttributeNode.getNodeValue());
-					}
-					String cqlName = cqlfuncNameAttributeNode.getNodeValue();
-				    cqlName = "\"" + cqlName + "\""; 
-					List<CQLDefinitionModelObject> referredToDefinitionsModelObjectList = cqlObject.getFunctionsMap()
-							.get(cqlName).getReferredToDefinitions();
-					
-					for(int j=0 ;j<referredToDefinitionsModelObjectList.size();j++){
-						if(!usedAllCQLArtifacts.contains(referredToDefinitionsModelObjectList.get(j).getIdentifier().replaceAll("\"", ""))){
-							usedAllCQLArtifacts.add(referredToDefinitionsModelObjectList.get(j).getIdentifier().replaceAll("\"", ""));
-						}
-					}
-					
-					List<CQLFunctionModelObject> referredToFunctionsModelObjectList = cqlObject.getFunctionsMap()
-							.get(cqlName).getReferredToFunctions();
-					
-					for(int m=0 ;m<referredToFunctionsModelObjectList.size();m++){
-						if(!usedAllCQLArtifacts.contains(referredToFunctionsModelObjectList.get(m).getIdentifier().replaceAll("\"", ""))){
-							usedAllCQLArtifacts.add(referredToFunctionsModelObjectList.get(m).getIdentifier().replaceAll("\"", ""));
-						}
-					}
-					
-					List<CQLValueSetModelObject> valueSetsReferredByDefinitionsModelObjectList = cqlObject.getFunctionsMap()
-							.get(cqlName).getReferredByValueSets();
-					
-					for(int k=0 ;k<valueSetsReferredByDefinitionsModelObjectList.size();k++){
-						if(!usedAllCQLArtifacts.contains(valueSetsReferredByDefinitionsModelObjectList.get(k).getIdentifier().replaceAll("\"", ""))){
-							usedAllCQLArtifacts.add(valueSetsReferredByDefinitionsModelObjectList.get(k).getIdentifier().replaceAll("\"", ""));
-						}
-					}
-					
-					List<CQLParameterModelObject> referredByDefinitionsModelObjectList = cqlObject.getFunctionsMap()
-							.get(cqlName).getReferredByParameters();
-					
-					for(int n=0 ;n<referredByDefinitionsModelObjectList.size();n++){
-						if(!usedAllCQLArtifacts.contains(referredByDefinitionsModelObjectList.get(n).getIdentifier().replaceAll("\"", ""))){
-							usedAllCQLArtifacts.add(referredByDefinitionsModelObjectList.get(n).getIdentifier().replaceAll("\"", ""));
-						}
-					}
-
-				}
-				
-				
-			} catch (XPathExpressionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			return usedAllCQLArtifacts;
-		}
-		
-		/**
-		 * Removes the unwanted CQL definitions, functions, valuesets abd parameters.
-		 *
-		 * @param usedCQLAtrifactsIds the used sub tree ids
-		 * @param originalDoc the original doc
-		 * @throws XPathExpressionException the x path expression exception
-		 */
-		private static void removeUnwantedCQLArtifacts(List<String> usedCQLAtrifactsIds, Document originalDoc) throws XPathExpressionException{
-			if((usedCQLAtrifactsIds !=null) && (usedCQLAtrifactsIds.size()>0)){
-				
-				String uuidXPathString = "";
-				
-				for(String uuidString:usedCQLAtrifactsIds){
-					uuidXPathString += "@name != '"+uuidString + "' and";
-				}
-				uuidXPathString = uuidXPathString.substring(0,uuidXPathString.lastIndexOf(" and"));
-				
-				String xPathForUnunsedDefinitionsTreeNodes = "/measure/cqlLookUp//definition["+uuidXPathString+"]";
-				String xPathForUnunsedFunctionsTreeNodes = "/measure/cqlLookUp//function["+uuidXPathString+"]";
-				String xPathForUnunsedValueSetsTreeNodes = "/measure/cqlLookUp//valueset["+uuidXPathString+"]";
-				String xPathForUnunsedParametersTreeNodes = "/measure/cqlLookUp//parameter["+uuidXPathString+"]";
-				
-				try {
-					NodeList unUnsedDefineNodes = (NodeList) xPath.evaluate(xPathForUnunsedDefinitionsTreeNodes, originalDoc.getDocumentElement(), XPathConstants.NODESET);
-					if(unUnsedDefineNodes.getLength() > 0){
-						Node parentSubTreeNode = unUnsedDefineNodes.item(0).getParentNode();
-						for(int i=0;i<unUnsedDefineNodes.getLength();i++){
-							parentSubTreeNode.removeChild(unUnsedDefineNodes.item(i));
-						}
-					}
-					
-					//to remove functions
-					NodeList unUnsedFunctionNodes = (NodeList) xPath.evaluate(xPathForUnunsedFunctionsTreeNodes, originalDoc.getDocumentElement(), XPathConstants.NODESET);
-					if(unUnsedFunctionNodes.getLength() > 0){
-						Node parentSubTreeNode = unUnsedFunctionNodes.item(0).getParentNode();
-						for(int i=0;i<unUnsedFunctionNodes.getLength();i++){
-							parentSubTreeNode.removeChild(unUnsedFunctionNodes.item(i));
-						}
-					}
-					
-					NodeList unUnsedValueSetNodes = (NodeList) xPath.evaluate(xPathForUnunsedValueSetsTreeNodes, originalDoc.getDocumentElement(), XPathConstants.NODESET);
-					if(unUnsedValueSetNodes.getLength() > 0){
-						Node parentSubTreeNode = unUnsedValueSetNodes.item(0).getParentNode();
-						for(int i=0;i<unUnsedValueSetNodes.getLength();i++){
-							parentSubTreeNode.removeChild(unUnsedValueSetNodes.item(i));
-						}
-					}
-					
-					NodeList unUnsedParameterNodes = (NodeList) xPath.evaluate(xPathForUnunsedParametersTreeNodes, originalDoc.getDocumentElement(), XPathConstants.NODESET);
-					if(unUnsedParameterNodes.getLength() > 0){
-						Node parentSubTreeNode = unUnsedParameterNodes.item(0).getParentNode();
-						for(int i=0;i<unUnsedParameterNodes.getLength();i++){
-							parentSubTreeNode.removeChild(unUnsedParameterNodes.item(i));
-						}
-					}
-					
-				} catch (XPathExpressionException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-				
-		}
-		
-		/**
+	/**
 	 * This method will remove empty comments nodes from clauses which are part of Measure Grouping.
 	 * @param originalDoc - Document
 	 * @throws XPathExpressionException -Exception.
@@ -1416,7 +1212,7 @@ public class ExportSimpleXML {
 	private static List<String> getUsedClauseIds(Document originalDoc) throws XPathExpressionException {
 		List<String> usedClauseIds = new ArrayList<String>();
 		
-		NodeList measureGrpupingNodeList = (NodeList)xPath.evaluate("/measure/measureGrouping/ group/packageClause" +
+		NodeList measureGrpupingNodeList = (NodeList)xPath.evaluate("/measure/measureGrouping/group/packageClause" +
 				"[not(@uuid = preceding:: group/packageClause/@uuid)]",
 				originalDoc.getDocumentElement(), XPathConstants.NODESET);
 		

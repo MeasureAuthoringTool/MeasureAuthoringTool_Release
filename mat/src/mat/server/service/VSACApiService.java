@@ -1,6 +1,9 @@
 package mat.server.service;
 
+import java.util.List;
+
 import mat.client.umls.service.VsacApiResult;
+import mat.model.cql.CQLQualityDataSetDTO;
 
 
 // TODO: Auto-generated Javadoc
@@ -25,4 +28,7 @@ public interface VSACApiService {
 	VsacApiResult updateAllVSACValueSetsAtPackage(String measureId, String sessionId);
 	
 	VsacApiResult getAllExpIdentifierList(String sessionId);
+
+	VsacApiResult updateCQLVSACValueSets(List<CQLQualityDataSetDTO> appliedQDMList, String defaultExpId,
+			String sessionId);
 }

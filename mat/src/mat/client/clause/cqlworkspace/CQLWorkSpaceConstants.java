@@ -13,6 +13,8 @@ public class CQLWorkSpaceConstants {
 	public static String CQL_TIMING_EXPRESSION ="Build CQL Timing Expression";
 	public static String CQL_PRIMARY_TIMING_WITHIN ="within";
 	
+	public static int VALID_INCLUDE_COUNT =10;
+	
 	private static final ArrayList<String> AVAILABLE_ITEM_TO_INSERT = new ArrayList<String>();
 	
 	private static final ArrayList<String> PRIMARY_TIMINGS = new ArrayList<String>();
@@ -137,7 +139,7 @@ public class CQLWorkSpaceConstants {
 		AVAILABLE_ITEM_TO_INSERT.add("Functions");
 		AVAILABLE_ITEM_TO_INSERT.add("Timing");
 		AVAILABLE_ITEM_TO_INSERT.add("Pre-Defined Functions");
-		AVAILABLE_ITEM_TO_INSERT.add("Applied QDM");
+		AVAILABLE_ITEM_TO_INSERT.add("Applied Value Sets/Codes");
 		AVAILABLE_ITEM_TO_INSERT.add("Attributes");
 		return AVAILABLE_ITEM_TO_INSERT;
 	}
@@ -228,8 +230,15 @@ public class CQLWorkSpaceConstants {
 	public final static String CQL_DEFINE_MENU = "define";
 	public final static String CQL_PARAMETER_MENU = "param";
 	public final static String CQL_GENERAL_MENU = "general";
+	public final static String CQL_APPLIED_QDM = "qdm";
 	public final static String CQL_DEFAULT_MEASUREMENTPERIOD_PARAMETER_NAME = "Measurement Period";
 	public final static String CQL_DEFAULT_MEASUREMENTPERIOD_PARAMETER_LOGIC = "Interval<DateTime>";
 	public static final String CQL_DEFAULT_DEFINITON_CONTEXT = "Patient";
+	public static final String CQL_INCLUDES_MENU = "include";
+	public static final String CQL_ATTRIBUTE_RESULT = "result";
+	public static final String CQL_ATTRIBUTE_TARGET_OUTCOME = "targetOutcome";
+	public static final String CQL_INSERT_AS_CODE = " as Code in ";
+	public static final String CQL_INSERT_IN = " in ";
+	
 	
 }

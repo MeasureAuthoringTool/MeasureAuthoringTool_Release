@@ -3,6 +3,20 @@
  */
 package mat.server.util;
 
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+
+import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.exolab.castor.mapping.Mapping;
+import org.exolab.castor.mapping.MappingException;
+import org.exolab.castor.xml.MarshalException;
+import org.exolab.castor.xml.Marshaller;
+import org.exolab.castor.xml.ValidationException;
+
+import mat.model.QualityDataModelWrapper;
+import mat.model.cql.CQLQualityDataModelWrapper;
 import mat.shared.StringUtility;
 
 // TODO: Auto-generated Javadoc
@@ -12,7 +26,8 @@ import mat.shared.StringUtility;
  * @author vandavar
  */
 public class MeasureUtility {
-	
+	/** The Constant logger. */
+	private static final Log LOG = LogFactory.getLog(XmlProcessor.class);
 	/**
 	 * Gets the version text.
 	 * 
@@ -124,6 +139,76 @@ public class MeasureUtility {
 		String minorVersion = su.trimLeadingZeros(versionArr[1]);
 		String modifiedVersion =  majorVersion + "." + minorVersion + "." + revisionNumber;
 		return modifiedVersion;
+	}
+	
+	
+	/**
+	 * Method to create XML from QualityDataModelWrapper object for
+	 * elementLookUp.
+	 * 
+	 * @param qualityDataSetDTO
+	 *            the quality data set dto
+	 * @return the org.apache.commons.io.output. byte array output stream
+	 */
+	public static ByteArrayOutputStream convertQualityDataDTOToXML(
+			CQLQualityDataModelWrapper qualityDataSetDTO) {
+		LOG.info("In MeasureLibraryServiceImpl.convertQualityDataDTOToXML()");
+		Mapping mapping = new Mapping();
+		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+		try {
+			mapping.loadMapping(new ResourceLoader()
+			.getResourceAsURL("ValueSetsMapping.xml"));
+			Marshaller marshaller = new Marshaller(new OutputStreamWriter(
+					stream));
+			marshaller.setMapping(mapping);
+			marshaller.marshal(qualityDataSetDTO);
+			LOG.debug("Marshalling of QualityDataSetDTO is successful.."
+					+ stream.toString());
+		}catch(IOException e) {
+			LOG.info("Failed to load QualityDataModelMapping.xml in convertQualityDataDTOToXML method"
+					+ e, e);
+		}catch(MappingException e) {
+			LOG.info("Mapping Failed in convertQualityDataDTOToXML method"
+					+ e, e);
+		}catch(MarshalException e) {
+			LOG.info("Unmarshalling Failed in convertQualityDataDTOToXML method"
+					+ e, e);
+		}catch(ValidationException e) {
+			LOG.info("Validation Exception in convertQualityDataDTOToXML method"
+					+ e, e);
+		}catch(Exception e) {
+			LOG.info("Other Exception in convertQualityDataDTOToXML method "
+					+ e, e);
+		}
+		LOG.info("Exiting MeasureLibraryServiceImpl.convertQualityDataDTOToXML()");
+		return stream;
+	}
+	
+	/**
+	 * This method will take a String and remove all non-alphabet/non-numeric characters 
+	 * except underscore ("_") characters.
+	 * @param originalString
+	 * @return cleanedString
+	 */
+	public static String cleanString(String originalString) {
+		originalString = originalString.replaceAll(" ", "");
+		
+		String cleanedString = "";	
+		for(int i=0;i<originalString.length();i++){
+			char c = originalString.charAt(i);
+			int intc = (int)c;
+			
+			if(c == '_' || (intc >= 48 && intc <= 57) || (intc >= 65 && intc <= 90) || (intc >= 97 && intc <= 122)){
+				
+				if(!(cleanedString.isEmpty() && Character.isDigit(c))){
+					cleanedString = cleanedString + "" + c;
+				}
+				
+			} 
+
+		}
+		
+		return cleanedString;
 	}
 	
 }

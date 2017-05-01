@@ -1,6 +1,7 @@
 package mat.dao.service;
 
 import mat.dao.AuditLogDAO;
+import mat.dao.CQLLibraryAuditLogDAO;
 import mat.dao.CategoryDAO;
 import mat.dao.CodeDAO;
 import mat.dao.CodeListAuditLogDAO;
@@ -17,6 +18,7 @@ import mat.dao.MeasureValidationLogDAO;
 import mat.dao.ObjectStatusDAO;
 import mat.dao.OrganizationDAO;
 import mat.dao.QualityDataSetDAO;
+import mat.dao.RecentCQLActivityLogDAO;
 import mat.dao.RecentMSRActivityLogDAO;
 import mat.dao.SecurityRoleDAO;
 import mat.dao.StatusDAO;
@@ -25,6 +27,7 @@ import mat.dao.TransactionAuditLogDAO;
 import mat.dao.UnitDAO;
 import mat.dao.UnitTypeDAO;
 import mat.dao.UnitTypeMatrixDAO;
+import mat.dao.UserAuditLogDAO;
 import mat.dao.UserDAO;
 import mat.dao.UserPasswordDAO;
 import mat.dao.UserPasswordHistoryDAO;
@@ -32,6 +35,10 @@ import mat.dao.UserSecurityQuestionDAO;
 import mat.dao.clause.AttributeDetailsDAO;
 import mat.dao.clause.AttributesDAO;
 import mat.dao.clause.CQLDAO;
+import mat.dao.clause.CQLLibraryAssociationDAO;
+import mat.dao.clause.CQLLibraryDAO;
+import mat.dao.clause.CQLLibrarySetDAO;
+import mat.dao.clause.CQLLibraryShareDAO;
 import mat.dao.clause.MeasureDAO;
 import mat.dao.clause.MeasureExportDAO;
 import mat.dao.clause.MeasureSetDAO;
@@ -41,7 +48,7 @@ import mat.dao.clause.ModesDAO;
 import mat.dao.clause.OperatorDAO;
 import mat.dao.clause.QDSAttributeDetailsDAO;
 import mat.dao.clause.QDSAttributesDAO;
-import mat.dao.UserAuditLogDAO;
+import mat.server.service.CQLLibraryAuditService;
 
 
 /**
@@ -89,6 +96,8 @@ public class DAOService {
 	/** The measure audit log dao. */
 	private MeasureAuditLogDAO measureAuditLogDAO;
 	
+	private CQLLibraryAuditLogDAO cqlLibraryAuditLogDAO;
+	
 	/** The measure dao. */
 	private MeasureDAO measureDAO;
 	
@@ -103,6 +112,8 @@ public class DAOService {
 	
 	/** The measure set dao. */
 	private MeasureSetDAO measureSetDAO;
+	
+	private CQLLibrarySetDAO cqlLibrarySetDAO;
 	
 	/** The measure validation log dao. */
 	private MeasureValidationLogDAO measureValidationLogDAO;
@@ -137,6 +148,7 @@ public class DAOService {
 	
 	/** The recent msr activity log dao. */
 	private RecentMSRActivityLogDAO recentMSRActivityLogDAO;
+	private RecentCQLActivityLogDAO recentCQLActivityLogDAO;
 	
 	/** The security role dao. */
 	private SecurityRoleDAO securityRoleDAO;
@@ -172,6 +184,12 @@ public class DAOService {
 	private UserAuditLogDAO userAuditLogDAO;
 	
 	private CQLDAO cqlDAO;
+	
+	private CQLLibraryDAO cqlLibraryDAO;
+	
+	private CQLLibraryAssociationDAO cqlLibraryAssociationDAO;
+	
+	private CQLLibraryShareDAO cqlLibraryShareDAO;
 	
 	/**
 	 * Gets the attribute details dao.
@@ -345,6 +363,7 @@ public class DAOService {
 	public MeasureSetDAO getMeasureSetDAO() {
 		return measureSetDAO;
 	}
+	
 	
 	/**
 	 * Gets the measure validation log dao.
@@ -928,6 +947,24 @@ public class DAOService {
 	public void setCqlDAO(CQLDAO cqlDAO) {
 		this.cqlDAO = cqlDAO;
 	}
+
+	public CQLLibraryDAO getCqlLibraryDAO() {
+		return cqlLibraryDAO;
+	}
+
+	
+	
+	public void setCqlLibraryDAO(CQLLibraryDAO cqlLibraryDAO) {
+		this.cqlLibraryDAO = cqlLibraryDAO;
+	}
+
+	public CQLLibraryAssociationDAO getCqlLibraryAssociationDAO() {
+		return cqlLibraryAssociationDAO;
+	}
+
+	public void setCqlLibraryAssociationDAO(CQLLibraryAssociationDAO cqlLibraryAssociationDAO) {
+		this.cqlLibraryAssociationDAO = cqlLibraryAssociationDAO;
+	}
 	
 	/**
 	 * @return the securityQuestionsDAO
@@ -941,5 +978,40 @@ public class DAOService {
 	public void setSecurityQuestionsDAO(SecurityQuestionsDAO securityQuestionsDAO) {
 		this.securityQuestionsDAO = securityQuestionsDAO;
 	}*/
+	
+/** The measure set dao. */
+	
+	public CQLLibrarySetDAO getCqlLibrarySetDAO() {
+		return cqlLibrarySetDAO;
+	}
+
+	public void setCqlLibrarySetDAO(CQLLibrarySetDAO cqlLibrarySetDAO) {
+		this.cqlLibrarySetDAO = cqlLibrarySetDAO;
+	}
+	
+
+	public RecentCQLActivityLogDAO getRecentCQLActivityLogDAO() {
+		return recentCQLActivityLogDAO;
+	}
+
+	public void setRecentCQLActivityLogDAO(RecentCQLActivityLogDAO recentCQLActivityLogDAO) {
+		this.recentCQLActivityLogDAO = recentCQLActivityLogDAO;
+	}
+
+	public CQLLibraryAuditLogDAO getCqlLibraryAuditLogDAO() {
+		return cqlLibraryAuditLogDAO;
+	}
+
+	public void setCqlLibraryAuditLogDAO(CQLLibraryAuditLogDAO cqlLibraryAuditLogDAO) {
+		this.cqlLibraryAuditLogDAO = cqlLibraryAuditLogDAO;
+	}
+
+	public CQLLibraryShareDAO getCqlLibraryShareDAO() {
+		return cqlLibraryShareDAO;
+	}
+
+	public void setCqlLibraryShareDAO(CQLLibraryShareDAO cqlLibraryShareDAO) {
+		this.cqlLibraryShareDAO = cqlLibraryShareDAO;
+	}
 	
 }

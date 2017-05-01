@@ -82,6 +82,9 @@ var SqlHighlightRules = function() {
     this.$rules = {
         "start" : [ {
             token : "comment",
+            regex : "\\/\\/.*$"
+        },  {
+            token : "comment",
             start : "/\\*",
             end : "\\*/"
         }, {
@@ -134,7 +137,7 @@ oop.inherits(Mode, TextMode);
 (function() {
 
     this.lineCommentStart = "//";
-
+    this.blockComment = {start: "/*", end: "*/"};
     this.$id = "ace/mode/cql";
 }).call(Mode.prototype);
 

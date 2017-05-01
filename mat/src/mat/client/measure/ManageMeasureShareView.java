@@ -13,6 +13,7 @@ import mat.client.shared.MatSimplePager;
 import mat.client.shared.MeasureNameLabel;
 import mat.client.shared.SaveCancelButtonBar;
 import mat.client.shared.SpacerWidget;
+import mat.client.util.CellTableUtility;
 import mat.model.clause.MeasureShareDTO;
 import mat.model.clause.ShareLevel;
 
@@ -47,7 +48,7 @@ public class ManageMeasureShareView implements ShareDisplay {
 	
 	private static final int PAGE_SIZE = 25;
 	/** The button bar. */
-	private SaveCancelButtonBar buttonBar = new SaveCancelButtonBar();
+	private SaveCancelButtonBar buttonBar = new SaveCancelButtonBar("measureVersion");
 	/** The cell table panel. */
 	private VerticalPanel cellTablePanel = new VerticalPanel();
 	/** The content. */
@@ -117,7 +118,9 @@ public class ManageMeasureShareView implements ShareDisplay {
 		Column<MeasureShareDTO, SafeHtml> userNameColumn = new Column<MeasureShareDTO, SafeHtml>(new SafeHtmlCell()) {
 			@Override
 			public SafeHtml getValue(MeasureShareDTO object) {
-				return getColumnValueWithToolTip("User Name", (object.getFirstName() + " " + object.getLastName()));
+				String title = "User Name :" + object.getFirstName() + " " + object.getLastName();
+				String name = object.getFirstName() + " " + object.getLastName();
+				return CellTableUtility.getColumnToolTip(name, title);
 			}
 		};
 		cellTable.addColumn(userNameColumn, SafeHtmlUtils.fromSafeConstant("<span title='User Name'>"
@@ -125,7 +128,9 @@ public class ManageMeasureShareView implements ShareDisplay {
 		Column<MeasureShareDTO, SafeHtml> organizationColumn = new Column<MeasureShareDTO, SafeHtml>(new SafeHtmlCell()) {
 			@Override
 			public SafeHtml getValue(MeasureShareDTO object) {
-				return getColumnValueWithToolTip("Organization", object.getOrganizationName());
+				String title = "Organization :" + object.getOrganizationName();
+				String name = object.getOrganizationName();
+				return CellTableUtility.getColumnToolTip(name, title);
 			}
 		};
 		cellTable.addColumn(organizationColumn, SafeHtmlUtils.fromSafeConstant("<span title='Organization'>"
@@ -199,7 +204,7 @@ public class ManageMeasureShareView implements ShareDisplay {
 			cellTable = addColumnToTable(cellTable);
 			sortProvider.addDataDisplay(cellTable);
 			CustomPager.Resources pagerResources = GWT.create(CustomPager.Resources.class);
-			MatSimplePager spager = new MatSimplePager(CustomPager.TextLocation.CENTER, pagerResources, false, 0, true);
+			MatSimplePager spager = new MatSimplePager(CustomPager.TextLocation.CENTER, pagerResources, false, 0, true,"measureShare");
 			spager.setPageStart(0);
 			spager.setDisplay(cellTable);
 			spager.setPageSize(PAGE_SIZE);
