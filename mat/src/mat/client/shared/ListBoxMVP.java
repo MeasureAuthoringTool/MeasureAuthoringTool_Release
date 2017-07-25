@@ -2,6 +2,8 @@ package mat.client.shared;
 
 import java.util.List;
 
+import org.gwtbootstrap3.client.ui.ListBox;
+
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.OptionElement;
 import com.google.gwt.dom.client.SelectElement;
@@ -11,7 +13,7 @@ import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.HasValue;
-import com.google.gwt.user.client.ui.ListBox;
+
 
 /**
  * The Class ListBoxMVP.
@@ -235,6 +237,15 @@ public class ListBoxMVP extends ListBox implements HasValue<String> {
 		}
 	}
 	
+	public void setDropdownOptions(List<NameValuePair> optionsArg, boolean addPleaseSelect) {
+		clear();
+		if(addPleaseSelect) {
+			addItem("--Select--");
+		}
+		for(NameValuePair p : optionsArg) {
+			addItem(p.getValue(), p.getName());
+		}
+	}
 	/*
  	 * when value and item text are not the same thing (ex. one is a number and one is a String),
 	 * we cannot always rely on the trimmed item text to be the value we want to process

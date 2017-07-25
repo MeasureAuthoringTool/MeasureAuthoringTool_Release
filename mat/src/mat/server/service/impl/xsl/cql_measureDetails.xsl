@@ -18,7 +18,7 @@
          
          </xsl:text>
        <QualityMeasureDocument xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xmlns="urn:hl7-org:v3">
+            xmlns="urn:hl7-org:v3" xmlns:cql-ext="urn:hhs-cql:hqmf-n1-extensions:v1">
             <xsl:apply-templates select="measure" />
         </QualityMeasureDocument>
     </xsl:template>
@@ -38,8 +38,8 @@
         <typeId root="2.16.840.1.113883.1.3" extension="POQM_HD000001UV02" />
         <templateId>
               <xsl:choose>
-              	<xsl:when test="'5.0' = $qdmVersionNumber">
-						<item root="2.16.840.1.113883.10.20.28.1.1" extension="2016-12-01" />
+              	<xsl:when test="'5.0.2' = $qdmVersionNumber">
+						<item root="2.16.840.1.113883.10.20.28.1.2" extension="2017-05-01" />
 	       		</xsl:when>
 	       		<xsl:when test="'4.1.2' = $qdmVersionNumber">
 						<item root="2.16.840.1.113883.10.20.28.1.1" extension="2014-11-24" />
@@ -175,11 +175,55 @@
                 </responsibleParty>
             </verifier>
         </xsl:if>
+
+	<xsl:for-each select="//elementLookUp/qdm[@code !='true']">
+
+		<xsl:if test="not(preceding-sibling::qdm[@name = current()/@name])">
+			<xsl:comment>
+				<xsl:value-of select="@name" />
+			</xsl:comment>
+			<xsl:text>
+     	 </xsl:text>
+			<definition>
+				<valueSet classCode="OBS" moodCode="DEF">
+					<id root="{@oid}" /> <!-- {Value Set OID} -->
+					<title value="{@name}" /> <!-- {Value Set Name} -->
+					<xsl:if test="@version != '1.0' and  @version != '1'">
+						 <cql-ext:version xmlns:cql-ext="urn:hhs-cql:hqmf-n1-extensions:v1" value="{@version}"/> <!-- {Value Set Version} -->
+					</xsl:if>
+					
+				</valueSet>
+			</definition>
+		</xsl:if>
+
+	</xsl:for-each>	
+     
+    
+  	<xsl:for-each select="//elementLookUp/qdm[@code ='true']">
+	<xsl:if test="not(preceding-sibling::qdm[@name = current()/@name])">
+		<xsl:comment>
+			<xsl:value-of select="@name" />
+			-
+			<xsl:value-of select="@codeIdentifier" />
+		</xsl:comment>
+		<xsl:text>
+      </xsl:text>
+		<definition>
+			<cql-ext:code code="{@oid}" codeSystem="{@codeSystemOID}"
+				codeSystemName="{@taxonomy}" codeSystemVersion="{@codeSystemVersion}"
+				xmlns:cql-ext="urn:hhs-cql:hqmf-n1-extensions:v1">
+				<displayName value="{@name}" />
+			</cql-ext:code>
+		</definition>
+	</xsl:if>
+
+</xsl:for-each>
+     
         
 		<relatedDocument typeCode="COMP">
 	      <expressionDocument>
 	         <id root="{cqlUUID}"/>
-	         <text mediaType="application/cql">
+	         <text mediaType="text/cql">
 	            <reference value="{../cqlLookUp/library}-{../cqlLookUp/version}.cql"/>
 	            <translation mediaType="application/elm+xml">
 		               <reference value="{../cqlLookUp/library}-{../cqlLookUp/version}.xml"/>
@@ -192,7 +236,7 @@
 	    	<relatedDocument typeCode="COMP">
 	      		<expressionDocument>
 	         		<id root="{@id}"/>
-	    			 <text mediaType="application/cql">
+	    			 <text mediaType="text/cql">
 	    			 	<reference value="{@name}-{@version}.cql"/>
 			            <translation mediaType="application/elm+xml">
 				               <reference value="{@name}-{@version}.xml"/>

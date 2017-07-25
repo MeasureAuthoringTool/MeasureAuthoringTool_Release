@@ -3,6 +3,8 @@ package mat.client.umls.service;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import mat.model.DirectReferenceCode;
 import mat.model.MatValueSet;
 import mat.model.QualityDataSetDTO;
 import mat.model.VSACExpansionProfile;
@@ -20,11 +22,16 @@ public class VsacApiResult implements IsSerializable {
 	/** The Constant OID_REQUIRED. */
 	public  final static int OID_REQUIRED = 2;
 	
+	/** The Constant OID_REQUIRED. */
+	public  final static int CODE_URL_REQUIRED = 4;
+	
 	/** The Constant UMLS_NOT_LOGGEDIN. */
 	public  final static int UMLS_NOT_LOGGEDIN = 1;
 	
 	/** The Constant VSAC REQUEST TIMED OUT. */
 	public  final static int VSAC_REQUEST_TIMEOUT = 3;
+	
+	public  final static int INVALID_CODE_URL = 5;
 	
 	/** The failure reason. */
 	private int failureReason;
@@ -48,6 +55,8 @@ public class VsacApiResult implements IsSerializable {
 	private List<VSACVersion> vsacVersionResp;
 	
 	private HashMap<CQLQualityDataSetDTO, CQLQualityDataSetDTO> cqlQualityDataSetMap;
+	
+	private DirectReferenceCode directReferenceCode;
 	
 	/**
 	 * Gets the failure reason.
@@ -170,6 +179,14 @@ public class VsacApiResult implements IsSerializable {
 
 	public void setCqlQualityDataSetMap(HashMap<CQLQualityDataSetDTO, CQLQualityDataSetDTO> cqlQualityDataSetMap) {
 		this.cqlQualityDataSetMap = cqlQualityDataSetMap;
+	}
+
+	public DirectReferenceCode getDirectReferenceCode() {
+		return directReferenceCode;
+	}
+
+	public void setDirectReferenceCode(DirectReferenceCode directReferenceCode) {
+		this.directReferenceCode = directReferenceCode;
 	}
 	
 }

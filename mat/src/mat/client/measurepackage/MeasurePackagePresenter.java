@@ -3,6 +3,7 @@ package mat.client.measurepackage;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
 import mat.client.Mat;
 import mat.client.MatPresenter;
 import mat.client.MeasureComposerPresenter;
@@ -13,6 +14,7 @@ import mat.client.measure.service.SaveMeasureResult;
 import mat.client.measure.service.ValidateMeasureResult;
 import mat.client.measurepackage.MeasurePackagerView.Observer;
 import mat.client.measurepackage.service.MeasurePackageSaveResult;
+import mat.client.shared.ErrorMessageAlert;
 import mat.client.shared.ErrorMessageDisplay;
 import mat.client.shared.ErrorMessageDisplayInterface;
 import mat.client.shared.InProgressMessageDisplay;
@@ -28,9 +30,9 @@ import mat.model.MatValueSet;
 import mat.model.QualityDataSetDTO;
 import mat.model.RiskAdjustmentDTO;
 import mat.model.cql.CQLDefinition;
-import mat.server.util.MATPropertiesService;
 import mat.shared.MeasurePackageClauseValidator;
-import org.gwtbootstrap3.client.ui.CheckBox;
+import mat.shared.SaveUpdateCQLResult;
+
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -435,6 +437,8 @@ public class MeasurePackagePresenter implements MatPresenter {
 		 * @param isCQLMeasure the new risk adjust label
 		 */
 		void setRiskAdjustLabel(boolean isCQLMeasure);
+		
+		void setQdmElementsLabel(boolean isCQLMeasure);
 	}
 	
 	/** The vsacapi service async. */
@@ -721,11 +725,39 @@ public class MeasurePackagePresenter implements MatPresenter {
 	public void beforeDisplay() {
 		Mat.hideLoadingMessage();
 		clearMessages();
+		//panel.clear();
 		if ((MatContext.get().getCurrentMeasureId() != null)
 				&& !MatContext.get().getCurrentMeasureId().equals("")) {
-			getMeasure(MatContext.get().getCurrentMeasureId());
-			view.getPackageGroupingWidget().getDisclosurePanelAssociations().setVisible(false);
-			//view.getIncludeVSACData().setValue(false);
+			
+			MatContext.get().getMeasureService().getMeasureCQLFileData(MatContext.get().getCurrentMeasureId(),
+					new AsyncCallback<SaveUpdateCQLResult>() {
+
+						@Override
+						public void onFailure(Throwable caught) {
+							Window.alert(MatContext.get().getMessageDelegate().getGenericErrorMessage());
+						}
+
+						@Override
+						public void onSuccess(SaveUpdateCQLResult result) {
+														
+							if(result.getCqlErrors().size() == 0){
+								//panel.add(view.asWidget());
+								getMeasure(MatContext.get().getCurrentMeasureId());
+								view.getPackageGroupingWidget().getDisclosurePanelAssociations().setVisible(false);
+							}else{
+								panel.clear();
+								ErrorMessageAlert errorMessageAlert = new ErrorMessageAlert();
+								panel.add(errorMessageAlert);
+																
+								errorMessageAlert.createAlert(MatContext.get().getMessageDelegate().getPACKAGER_CQL_ERROR());
+																								
+								view.getPackageGroupingWidget().getDisclosurePanelAssociations().setVisible(false);
+							}							
+						}
+				
+			});
+			
+			
 		} else {
 			displayEmpty();
 		}
@@ -1023,9 +1055,10 @@ public class MeasurePackagePresenter implements MatPresenter {
 		view.setClausesInPackage(packageClauses);
 		view.setClauses(remainingClauses);
 		if(packageOverview.getReleaseVersion() != null 
-				&& isCQLMeasure(packageOverview.getReleaseVersion())){
+				&& MatContext.get().isCQLMeasure(packageOverview.getReleaseVersion())){
 			view.setCQLMeasure(true);
 			view.setRiskAdjustLabel(true);
+			view.setQdmElementsLabel(true);
 			//Set supple data to empty if CQL measure
 			view.setQDMElementsInSuppElements(Collections.<QualityDataSetDTO>emptyList());
 			view.setQDMElements(Collections.<QualityDataSetDTO>emptyList());
@@ -1035,6 +1068,7 @@ public class MeasurePackagePresenter implements MatPresenter {
 		else{
 			view.setCQLMeasure(false);
 			view.setRiskAdjustLabel(false);
+			view.setQdmElementsLabel(false);
 			//Set CQL Suppl data to empty
 			view.setCQLElementsInSuppElements(Collections.<CQLDefinition>emptyList());
 			view.setCQLQDMElements(Collections.<CQLDefinition>emptyList());
@@ -1380,24 +1414,6 @@ public class MeasurePackagePresenter implements MatPresenter {
 		String url = GWT.getModuleBaseURL() + "export?id=" + model.getId()
 				+ "&format=zip";
 		Window.Location.replace(url + "&type=save");
-	}
-	
-	/**
-	 * Checks if is measure is CQL Measure depending 
-	 * on Measure release version.
-	 *
-	 * @param releaseVersion the release version
-	 * @return true, if is CQL measure
-	 */
-	private boolean isCQLMeasure(String releaseVersion) {
-		
-		String str[] = releaseVersion.replace("v", "").split("\\.");
-		int version_int = Integer.parseInt(str[0]);
-		if(version_int<5){
-			return false;
-		}
-		
-		return true;
 	}
 	
 }

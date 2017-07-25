@@ -4,8 +4,11 @@ import java.util.List;
 
 import mat.client.measure.service.SaveCQLLibraryResult;
 import mat.client.umls.service.VsacApiResult;
+import mat.model.CQLLibraryOwnerReportDTO;
 import mat.model.CQLValueSetTransferObject;
+import mat.model.MatCodeTransferObject;
 import mat.model.clause.CQLLibrary;
+import mat.model.cql.CQLCodeWrapper;
 import mat.model.cql.CQLDefinition;
 import mat.model.cql.CQLFunctions;
 import mat.model.cql.CQLIncludeLibrary;
@@ -45,13 +48,10 @@ public interface CQLLibraryServiceInterface {
 
 	String getCQLLookUpXml(String libraryName, String versionText, XmlProcessor xmlProcessor, String mainXPath);
 
-	SaveCQLLibraryResult searchForVersion(String searchText);
 
 	SaveCQLLibraryResult saveFinalizedVersion(String libraryId, boolean isMajor, String version);
 
 	SaveCQLLibraryResult saveDraftFromVersion(String libraryId);
-
-	SaveCQLLibraryResult searchForDraft(String searchText);
 
 	SaveUpdateCQLResult saveAndModifyCQLGeneralInfo(String libraryId, String context);
 
@@ -60,6 +60,8 @@ public interface CQLLibraryServiceInterface {
 	SaveCQLLibraryResult getUserShareInfo(String cqlId, String searchText);
 
 	SaveCQLLibraryResult searchForIncludes(String setId, String searchText);
+	
+	SaveCQLLibraryResult searchForStandaloneIncludes(String setId, String searchText);
 
 	void updateUsersShare(SaveCQLLibraryResult result);
 
@@ -107,4 +109,14 @@ public interface CQLLibraryServiceInterface {
 	CQLKeywords getCQLKeywordsLists();
 
 	List<CQLLibraryAssociation> getAssociations(String Id);
+
+	void transferLibraryOwnerShipToUser(List<String> list, String toEmail);
+
+	List<CQLLibraryOwnerReportDTO> getCQLLibrariesForOwner();
+
+	SaveUpdateCQLResult saveCQLCodestoCQLLibrary(MatCodeTransferObject transferObject);
+
+	SaveUpdateCQLResult deleteCode(String toBeDeletedId, String libraryId);
+
+	void deleteCQLLibrary(String cqllibId, String loginUserId);
 }

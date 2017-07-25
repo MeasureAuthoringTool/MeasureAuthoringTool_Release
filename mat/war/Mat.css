@@ -36,6 +36,11 @@ body#main select, body#main input, body#main textarea {
 .gwt-Anchor:hover {
 	color:#cccc;
 }
+.readonly-highlight{
+    background-color: lightSlateGrey;
+    opacity: 0.2;
+    position: absolute;
+}
 
 .codeListHeader{
 	background: #D3DEF6;
@@ -155,6 +160,13 @@ left:50px;
     width:220px; 
     margin-right:0;
 }
+
+#div3{
+    float:left; 
+    width:490px; 
+    margin-right:0;
+}
+
 
 .textAlign{
  text-align: justify;	
@@ -1237,6 +1249,18 @@ left:50px;
 	margin-left: 20px;
 	font-weight: bold;
 }
+.standAloneLockedLabel {
+	color: #0964A2; 
+	font-size: small; 
+	margin-left: 2px;
+}
+.standAloneLockedWidget{
+	/* right: 230px; */
+	margin-left:520px; 
+	overflow: scroll; 
+	/* margin-top: -12px;  */
+	position: absolute;
+}
 .searchResultsContainer {
     margin-left: 1px;
 	overflow: auto;
@@ -1895,7 +1919,7 @@ padding: 2px;
    /*  margin-top:2px; */
     vertical-align: bottom;
     position: relative;
-    top: -3px;
+    top: -4px;
     overflow: hidden;
 }
 
@@ -1934,7 +1958,13 @@ padding: 2px;
     font-weight: bold;
     padding: 5px;
     text-align:left;
-    color:#777;
+    color:#777; 
+   /*  background-color: #6B97B8; 
+	font-size: small;
+    font-weight: bold;
+    color: white;
+    padding: 5px;
+    text-align: left;*/
 }
 .filterDisclosurePanel{
     margin-left:345px; 
@@ -1963,6 +1993,35 @@ padding: 2px;
     margin-top:8px;
 }
 
+.createNewButton {
+	color: #fff;
+	background-color: transparent;
+	border-color: #2e6da4
+	display: inline-block;
+	padding: 6px 0px;
+	margin-bottom: 0;
+	font-size: 14px;
+	line-height: 1.42857143;
+	text-align: center;
+	white-space: nowrap;
+	vertical-align: middle;
+	-ms-touch-action: manipulation;
+	touch-action: manipulation;
+	cursor: pointer;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	background-image: none;
+	border: 1px solid transparent;
+	border-radius: 4px;
+	font-weight: 600;
+	color: #337ab7;
+	border-radius: 0;
+	position: relative;
+	right: 70px;
+}
+
 .searchFilter{
 	border:1px solid lightgray;
     -moz-box-sizing: border-box;
@@ -1973,11 +2032,13 @@ padding: 2px;
     padding-right: 15px;
     padding-bottom: 8px;
     padding-top: 8px;
+    padding-left:8px;
     font-size:.8em;
     margin-left:85px; 
     margin-right:auto;
     margin-top:8px;
 }
+
 
 .margin-left{
 	margin-left:85px;
@@ -2226,6 +2287,17 @@ padding: 2px;
     padding: 5px;
     text-align: left;
 }
+
+.CqlWorkSpaceTableHeader{
+	background-color: #337ab7;
+	font-size: small;
+    font-weight: bold;
+    color: white;
+    padding: 5px;
+    text-align: left;
+}
+
+
 
 .measureGroupPackageName{
 	font-weight:bold;

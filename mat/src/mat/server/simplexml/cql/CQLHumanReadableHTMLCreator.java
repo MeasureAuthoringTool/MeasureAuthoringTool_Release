@@ -13,13 +13,6 @@ import mat.dao.clause.CQLLibraryDAO;
 import mat.model.cql.CQLDefinition;
 import mat.model.cql.CQLFunctions;
 import mat.model.cql.CQLModel;
-import mat.model.cql.parser.CQLBaseStatementInterface;
-import mat.model.cql.parser.CQLCodeModelObject;
-import mat.model.cql.parser.CQLDefinitionModelObject;
-import mat.model.cql.parser.CQLFunctionModelObject;
-import mat.model.cql.parser.CQLFunctionModelObject.FunctionArgument;
-import mat.model.cql.parser.CQLParameterModelObject;
-import mat.model.cql.parser.CQLValueSetModelObject;
 import mat.server.simplexml.HeaderHumanReadableGenerator;
 import mat.server.util.CQLUtil;
 import mat.server.util.CQLUtil.CQLArtifactHolder;
@@ -32,7 +25,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.DocumentType;
 import org.jsoup.nodes.Element;
 import org.w3c.dom.DOMException;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -213,11 +205,162 @@ public class CQLHumanReadableHTMLCreator {
 		generateTableOfContents(humanReadableHTMLDocument, simpleXMLProcessor);
 		generatePopulationCriteriaHumanReadable(humanReadableHTMLDocument,
 				simpleXMLProcessor, cqlModel,cqlResult);
+		generateTerminology(humanReadableHTMLDocument, simpleXMLProcessor, cqlModel, cqlResult);
 		generateQDMDataElements(humanReadableHTMLDocument, simpleXMLProcessor); 
-		generateSupplementalData(humanReadableHTMLDocument, simpleXMLProcessor);
+		//generateSupplementalData(humanReadableHTMLDocument, simpleXMLProcessor);
+		generateSupplementalDataVariables(humanReadableHTMLDocument, simpleXMLProcessor, cqlModel, cqlResult);
 		generateRiskAdjustmentVariables(humanReadableHTMLDocument, simpleXMLProcessor, cqlModel, cqlResult);
 		HeaderHumanReadableGenerator.addMeasureSet(simpleXMLProcessor,
 				humanReadableHTMLDocument);
+	}
+	
+	/**
+	 * Generates the terminology section of the human readable export. 
+	 * @param humanReadableHTMLDocument the html document
+	 * @param simpleXMLProcessor the simple xml processor
+	 * @param cqlModel the cql model
+	 * @param cqlResult the cql result, which contains information about used artifacts
+	 * @throws XPathExpressionException 
+	 */
+	private static void generateTerminology(Document humanReadableHTMLDocument, XmlProcessor simpleXMLProcessor, CQLModel cqlModel, SaveUpdateCQLResult cqlResult) throws XPathExpressionException {
+		definitionsOrFunctionsAlreadyDisplayed.clear();
+		Element bodyElement = humanReadableHTMLDocument.body(); 
+		bodyElement.append("<h3><a name=\"d1e555\" href=\"#toc\">Terminology</a></h3>");
+		
+		Element mainDivElement = bodyElement.appendElement("div"); 
+		Element mainListElement = mainDivElement.appendElement(HTML_UL); 
+		NodeList elements = simpleXMLProcessor.findNodeList(simpleXMLProcessor.getOriginalDoc(), "/measure/elementLookUp/qdm"); 	
+		if(elements.getLength() > 0) {
+			generateTerminologyCodeAndCodesystem(mainListElement, simpleXMLProcessor);
+			generateTerminologyValuesets(mainListElement, simpleXMLProcessor);
+		}
+		
+		else {
+			mainListElement.appendElement(HTML_LI).appendText("None");
+		}
+	}
+	
+	/**
+	 * Generates the valuesets for the terminology section
+	 * @param mainListElement the list element for the terminology section
+	 * @param simpleXMLProcessor the xml procsesor
+	 * @throws XPathExpressionException
+	 */
+	private static void generateTerminologyValuesets(Element mainListElement, XmlProcessor simpleXMLProcessor) throws XPathExpressionException {
+		NodeList elements = simpleXMLProcessor.findNodeList(simpleXMLProcessor.getOriginalDoc(), "/measure/elementLookUp/qdm[@code=\"false\"]");
+		ArrayList<String> valuesetStringList = new ArrayList<>(); 
+		
+		for(int i = 0; i < elements.getLength(); i++) {
+			Node current = elements.item(i);
+			String name = current.getAttributes().getNamedItem("name").getNodeValue();
+			String oid = current.getAttributes().getNamedItem("oid").getNodeValue();  
+			String version = current.getAttributes().getNamedItem("version").getNodeValue(); 
+			
+			String output = "";
+			if(version != null && !version.isEmpty() && !version.equalsIgnoreCase("1.0")) {
+				output = "valueset \"" + name + "\" using \"" + oid + ", version " + version + "\"";
+			} 
+			
+			else {
+				output = "valueset \"" + name + "\" using \"" + oid + "\"";
+			}
+			
+			// no duplicates should appear
+			if(!valuesetStringList.contains(output)) {
+				valuesetStringList.add(output);
+			}
+		}
+		
+		Collections.sort(valuesetStringList, String.CASE_INSENSITIVE_ORDER);
+		for(String listItem : valuesetStringList) {
+			mainListElement.appendElement(HTML_LI).append(listItem);
+		}
+	}
+	
+	/**
+	 * Generates the the code and codesystem parts of the terminology section
+	 * @param mainListElement the list element for the terminology section
+	 * @param simpleXMLProcessor the xml processor
+	 * @throws XPathExpressionException
+	 */
+	private static void generateTerminologyCodeAndCodesystem(Element mainListElement, XmlProcessor simpleXMLProcessor) throws XPathExpressionException {
+		NodeList elements = simpleXMLProcessor.findNodeList(simpleXMLProcessor.getOriginalDoc(), "/measure/elementLookUp/qdm[@code=\"true\"]");
+
+		ArrayList<String> codeStringList = new ArrayList<>(); 
+		ArrayList<String> codeSystemStringList = new ArrayList<>(); 
+		for(int i = 0; i < elements.getLength(); i++) {
+			Node current = elements.item(i);
+			String codeName = current.getAttributes().getNamedItem("name").getNodeValue(); 
+			String codeOID = current.getAttributes().getNamedItem("oid").getNodeValue();
+			String codeSystemName = current.getAttributes().getNamedItem("taxonomy").getNodeValue(); 
+			
+			String codeSystemOID = "";
+			if(current.getAttributes().getNamedItem("codeSystemOID") != null) {
+				codeSystemOID = current.getAttributes().getNamedItem("codeSystemOID").getNodeValue();
+			}
+			
+			String codeSystemVersion = current.getAttributes().getNamedItem("codeSystemVersion").getNodeValue();
+			String codeOutput = "code \"" + codeName + "\" using \"" + codeSystemName + " version " + codeSystemVersion + " Code (" + codeOID +")\"";
+			String codeSystemOutput = "codesystem \"" + codeSystemName + "\" using \"" + codeSystemOID + " version " + codeSystemVersion + "\"";
+			
+			// no duplicates should appear
+			if(!codeStringList.contains(codeOutput)) {
+				codeStringList.add(codeOutput);
+			}
+			
+			if(!codeSystemStringList.contains(codeSystemOutput)) {
+				codeSystemStringList.add(codeSystemOutput);
+			}
+		}
+		
+		Collections.sort(codeStringList, String.CASE_INSENSITIVE_ORDER);
+		Collections.sort(codeSystemStringList, String.CASE_INSENSITIVE_ORDER);
+		
+		for(String listItem : codeSystemStringList) {
+			Element codeSystemLIelement = mainListElement.appendElement(HTML_LI);
+			codeSystemLIelement.attr("style", "width:80%");		
+			codeSystemLIelement.append(listItem);
+		}
+		
+		for(String listItem : codeStringList) {
+			Element codeLIelement = mainListElement.appendElement(HTML_LI);
+			codeLIelement.attr("style", "width:80%");	
+			codeLIelement.append(listItem);
+		}
+	}
+
+	
+	private static void generateSupplementalDataVariables(
+			Document humanReadableHTMLDocument, XmlProcessor simpleXMLProcessor, CQLModel cqlModel, SaveUpdateCQLResult cqlResult)
+					throws XPathExpressionException {
+		definitionsOrFunctionsAlreadyDisplayed.clear();
+		Element bodyElement = humanReadableHTMLDocument.body();
+		bodyElement
+		.append("<h3><a name=\"d1e879\" href=\"#toc\">Supplemental Data Elements</a></h3>");
+		
+		Element mainDivElement = bodyElement.appendElement("div");
+		Element mainListElement = mainDivElement.appendElement(HTML_UL);
+		mainListElement.attr("style", "list-style:none;padding-left:0px;");
+				
+		NodeList elements = simpleXMLProcessor.findNodeList(
+				simpleXMLProcessor.getOriginalDoc(),
+				"/measure/supplementalDataElements/cqldefinition");
+		
+		if (elements.getLength() > 0) {
+			for(int i=0;i<elements.getLength();i++){
+				Node childNode = elements.item(i);
+				String uuid = childNode.getAttributes().getNamedItem("uuid").getNodeValue();
+				String xpathforSubTree = "/measure/cqlLookUp//definition[@id='"+ uuid +"']";
+				Node defineNode = simpleXMLProcessor.findNode(simpleXMLProcessor.getOriginalDoc(),
+						xpathforSubTree);
+				String defineNodeName = defineNode.getAttributes().getNamedItem("name").getNodeValue();
+				defineNodeName = "\"" + defineNodeName + "\"";
+				generatePopulationCriteria(mainListElement, cqlModel, childNode, defineNodeName, defineNodeName, cqlResult, simpleXMLProcessor);
+				
+			}
+		} else {
+			mainListElement.appendElement(HTML_LI).appendText("None");
+		}
 	}
 	
 	private static void generateRiskAdjustmentVariables(
@@ -230,6 +373,7 @@ public class CQLHumanReadableHTMLCreator {
 		
 		Element mainDivElement = bodyElement.appendElement("div");
 		Element mainListElement = mainDivElement.appendElement(HTML_UL);
+		mainListElement.attr("style", "list-style:none;padding-left:0px;");
 		
 		NodeList elements = simpleXMLProcessor.findNodeList(
 				simpleXMLProcessor.getOriginalDoc(),
@@ -270,6 +414,10 @@ public class CQLHumanReadableHTMLCreator {
 		populationCriteriaLI
 		.append("<a href=\"#d1e405\">Population Criteria</a>");
 		
+		
+		Element terminologyLI = tocULElement.appendElement(HTML_LI); 
+		terminologyLI.append("<a href=\"#d1e555\">Terminology</a>"); 
+		
 		Element dataCriteriaLI = tocULElement.appendElement(HTML_LI);
 		dataCriteriaLI
 		.append("<a href=\"#d1e647\">Data Criteria (QDM Data Elements)</a>");
@@ -305,7 +453,8 @@ public class CQLHumanReadableHTMLCreator {
 		
 		Element mainDivElement = bodyElement.appendElement("div");
 		Element mainListElement = mainDivElement.appendElement(HTML_UL);
-		
+		mainListElement.attr("style","list-style:none;padding-left:0;");
+				
 		NodeList groupNodeList = simpleXMLProcessor.findNodeList(
 				simpleXMLProcessor.getOriginalDoc(),
 				"/measure/measureGrouping/group");
@@ -320,12 +469,35 @@ public class CQLHumanReadableHTMLCreator {
 	
 		for (Integer key : groupMap.keySet()) {
 			if (groupMap.size() > 1) {
-				mainListElement.append("<li style=\"list-style: none;\"><br><b>------ Population Criteria "
-						+ (key.toString()) + " ------</b><br><br></li>");
+				
+				Element mainElement = mainListElement.appendElement("li");
+				mainElement.attr("class", "list-unstyled");
+				mainElement.attr("style","list-style:none;padding-left:0;");
+				
+				Element divElement = mainElement.appendElement("div");
+				divElement.attr("class", "treeview hover p-l-10");
+				
+				Element checkBoxElement = divElement.appendElement("input");
+				checkBoxElement.attr("type", "checkbox");
+				String id = "test-Population Criteria" + (key.toString()) + "_"
+						+ (int) (Math.random() * 1000);
+				checkBoxElement.attr("id", id);
+				
+				Element labelElement = divElement.appendElement("label");
+				labelElement.attr("for", id);
+				labelElement.attr("class", "list-header");
+				labelElement.append("<b>Population Criteria "
+						+ (key.toString()) + "</b> (click to expand/collapse)");
+								
+				NodeList clauseNodeList = groupMap.get(key).getChildNodes();
+				generatePopulationNodes(clauseNodeList, divElement.appendElement(HTML_UL),
+						groupNodeList.getLength(),key, simpleXMLProcessor, cqlModel, cqlResult);
+								
+			}else{
+				NodeList clauseNodeList = groupMap.get(key).getChildNodes();
+				generatePopulationNodes(clauseNodeList, mainListElement,
+						groupNodeList.getLength(),key, simpleXMLProcessor, cqlModel, cqlResult);
 			}
-			NodeList clauseNodeList = groupMap.get(key).getChildNodes();
-			generatePopulationNodes(clauseNodeList, mainListElement,
-					groupNodeList.getLength(),key, simpleXMLProcessor, cqlModel, cqlResult);
 		}
 	}
 	
@@ -344,40 +516,83 @@ public class CQLHumanReadableHTMLCreator {
 		
 		try {
 			
-			NodeList qdmElementList = simpleXMLProcessor.findNodeList(simpleXMLProcessor.getOriginalDoc(), 
-														"/measure/elementLookUp/qdm[@suppDataElement='false']");
+			NodeList qdmValuesetElementList = simpleXMLProcessor.findNodeList(simpleXMLProcessor.getOriginalDoc(), 
+														"/measure/elementLookUp/qdm[@code='false'][@datatype]");
 			
-			if(qdmElementList.getLength() < 1) {
+			NodeList qdmCodeElementList = simpleXMLProcessor.findNodeList(simpleXMLProcessor.getOriginalDoc(), 
+														"/measure/elementLookUp/qdm[@code='true'][@datatype]");
+			
+			if((qdmValuesetElementList.getLength() + qdmCodeElementList.getLength()) == 0) {
 				String output = "None"; 
 				Element qdmElementLI = qdmElementUL.appendElement(HTML_LI);   
+				qdmElementLI.attr("style", "width:80%");
 				qdmElementLI.append(output);
 			}
 			
 			else {
-				ArrayList<String> qdmElementStringList = new ArrayList<String>(); 				
+				ArrayList<String> qdmValueSetElementStringList = new ArrayList<String>();
+				ArrayList<String> qdmCodeElementStringList = new ArrayList<String>();
 
-				// make the output string from the qdm node information and add it to the string list.
-				for(int i = 0; i < qdmElementList.getLength(); i++) {
+				// make HTML output strings for qdm value-set nodes 
+				//Pattern: "{Datatype}: {value set name}" using "{value set name} ({value set OID} version {value set version*})"
+				for(int i = 0; i < qdmValuesetElementList.getLength(); i++) {
 					
-					String dataTypeName = qdmElementList.item(i).getAttributes().getNamedItem("datatype").getNodeValue(); 
+					String dataTypeName = qdmValuesetElementList.item(i).getAttributes().getNamedItem("datatype").getNodeValue(); 
 					if("attribute".equals(dataTypeName)){
 						dataTypeName = "Attribute";
 					}
-					//End Comment
-					String name = qdmElementList.item(i).getAttributes().getNamedItem("name").getNodeValue(); 
-					String oid = qdmElementList.item(i).getAttributes().getNamedItem("oid").getNodeValue(); 
-					String taxonomy = qdmElementList.item(i).getAttributes().getNamedItem("taxonomy").getNodeValue(); 
 					
-					String output = String.format("\"%s: %s\" using \"%s %s Value Set (%s)\"", dataTypeName, name, name, taxonomy, oid); 
+					String name = qdmValuesetElementList.item(i).getAttributes().getNamedItem("name").getNodeValue(); 
+					String oid = qdmValuesetElementList.item(i).getAttributes().getNamedItem("oid").getNodeValue(); 
+
+					String version = null;
+					if(qdmValuesetElementList.item(i).getAttributes().getNamedItem("version") != null){
+						version = qdmValuesetElementList.item(i).getAttributes().getNamedItem("version").getNodeValue();
+					}
+										
+					String output = String.format("\"%s: %s\" using \"%s (%s)\"", dataTypeName, name, name, oid);
+					
+					if(version != null && !version.equals("1.0") && !version.equals("1")){
+						output = String.format("\"%s: %s\" using \"%s (%s, version %s)\"", dataTypeName, name, name, oid, version);
+					}
 								
-					qdmElementStringList.add(output); 
+					qdmValueSetElementStringList.add(output); 
 				}
 				
-				// sort and append the qdm elements
-				Collections.sort(qdmElementStringList);
-				for(int i = 0; i < qdmElementStringList.size(); i++) {
+				// sort and append qdm value-set elements
+				Collections.sort(qdmValueSetElementStringList, String.CASE_INSENSITIVE_ORDER);
+				
+				for(String valueSetString:qdmValueSetElementStringList){
 					Element qdmElemtentLI = qdmElementUL.appendElement(HTML_LI);
-					qdmElemtentLI.append(qdmElementStringList.get(i));
+					qdmElemtentLI.attr("style", "width:80%");
+					qdmElemtentLI.append(valueSetString);
+				}
+				
+				//make HTML output strings for qdm code elements 
+				//Pattern: "{Datatype}: {code name}" using "{code name} ({code system name} version {code system version} Code {code})"
+				for(int i = 0; i < qdmCodeElementList.getLength(); i++) {
+					String dataTypeName = qdmCodeElementList.item(i).getAttributes().getNamedItem("datatype").getNodeValue(); 
+					if("attribute".equals(dataTypeName)){
+						dataTypeName = "Attribute";
+					}
+					
+					String name = qdmCodeElementList.item(i).getAttributes().getNamedItem("name").getNodeValue(); 
+					String oid = qdmCodeElementList.item(i).getAttributes().getNamedItem("oid").getNodeValue(); 
+					String codeSystemVersion = qdmCodeElementList.item(i).getAttributes().getNamedItem("codeSystemVersion").getNodeValue();					
+					String codeSystemName = qdmCodeElementList.item(i).getAttributes().getNamedItem("taxonomy").getNodeValue();
+										
+					String output = String.format("\"%s: %s\" using \"%s (%s version %s Code %s)\"", dataTypeName, name, name, codeSystemName, codeSystemVersion, oid);
+													
+					qdmCodeElementStringList.add(output); 
+				}
+				
+				//sort and append qdm code elements
+				Collections.sort(qdmCodeElementStringList, String.CASE_INSENSITIVE_ORDER);
+				
+				for(String codeString:qdmCodeElementStringList){
+					Element qdmElemtentLI = qdmElementUL.appendElement(HTML_LI);
+					qdmElemtentLI.attr("style", "width:80%");
+					qdmElemtentLI.append(codeString);
 				}
 			}
 			
@@ -440,6 +655,7 @@ public class CQLHumanReadableHTMLCreator {
 			Element populationListElement = mainListElement
 					.appendElement(HTML_LI);
 			populationListElement.attr("class", "list-unstyled");
+			populationListElement.attr("style", "list-style:none;padding-left:0px;");
 			//Element boldNameElement = populationListElement.appendElement("b");
 			//String populationName = getPopulationName(populationType, true);
 			
@@ -478,6 +694,7 @@ public class CQLHumanReadableHTMLCreator {
 			Element populationListElement = mainListElement
 					.appendElement(HTML_LI);
 			populationListElement.attr("class", "list-unstyled");
+			populationListElement.attr("style", "list-style:none;padding-left:0px;");
 			//Element boldNameElement = populationListElement.appendElement("b");
 			String populationName = getPopulationName(populationType);
 			
@@ -590,56 +807,6 @@ public class CQLHumanReadableHTMLCreator {
 		}
 	}
 	
-	/**
-	 * Generate supplemental data.
-	 *
-	 * @param humanReadableHTMLDocument the human readable html document
-	 * @param simpleXMLProcessor the simple xml processor
-	 * @throws XPathExpressionException the x path expression exception
-	 */
-	private static void generateSupplementalData(
-			Document humanReadableHTMLDocument, XmlProcessor simpleXMLProcessor)
-					throws XPathExpressionException {
-		Element bodyElement = humanReadableHTMLDocument.body();
-		bodyElement
-		.append("<h3><a name=\"d1e767\" href=\"#toc\">Supplemental Data Elements</a></h3>");
-		
-		Element mainDivElement = bodyElement.appendElement("div");
-		Element mainListElement = mainDivElement.appendElement(HTML_UL);
-		
-		NodeList supplementalQdmElementList = simpleXMLProcessor.findNodeList(simpleXMLProcessor.getOriginalDoc(), 
-				"/measure/elementLookUp/qdm[@suppDataElement='true']");
-				
-		if(supplementalQdmElementList != null && supplementalQdmElementList.getLength()>0){
-			ArrayList<String> suppQdmStringList = new ArrayList<String>(); 
-			
-			// make output string from sde node and add it to the string list
-			for(int i = 0; i < supplementalQdmElementList.getLength(); i++) {
-				Node suppNode = supplementalQdmElementList.item(i);
-				NamedNodeMap suppNodeAttribMap = suppNode.getAttributes();
-				String output = "\"" + suppNodeAttribMap.getNamedItem("datatype").getNodeValue() + ": "
-						+ suppNodeAttribMap.getNamedItem("name").getNodeValue()
-						+ "\" using \""
-						+ suppNodeAttribMap.getNamedItem("name").getNodeValue() + " "
-						+ suppNodeAttribMap.getNamedItem("taxonomy").getNodeValue()
-						+ " Value Set ("
-						+ suppNodeAttribMap.getNamedItem("oid").getNodeValue() + ")\"";
-				suppQdmStringList.add(output);			
-			}
-			
-			// sort and append sde string
-			Collections.sort(suppQdmStringList);
-			for(int i = 0; i < suppQdmStringList.size(); i++) {
-				Element listItem = mainListElement.appendElement(HTML_LI);
-				listItem.append(suppQdmStringList.get(i));
-			}
-			
-		}
-		else{
-			mainListElement.appendElement(HTML_LI).appendText("None");
-		}
-	}
-		
 	/**
 	 * Gets the item count text.
 	 *
@@ -1159,134 +1326,7 @@ public class CQLHumanReadableHTMLCreator {
 		
 		return logic;
 	}
-
-	/**
-	 * This method will go through definition body and try to format it in
-	 * series of lines for easier reading.
-	 *
-	 * @param cqlBaseStatementObject the cql base statement object
-	 * @return the defn or func line list
-	 */
-	private static List<String> getDefnOrFuncLineList(
-			CQLBaseStatementInterface cqlBaseStatementObject) {
-
-		List<String> lineList = new ArrayList<String>();
-		
-		if(cqlBaseStatementObject instanceof CQLFunctionModelObject){
-			lineList.add("");
-		}
-		
-		int tokenCounter = 0;
-
-		List<String> childTokens = cqlBaseStatementObject.getChildTokens();
-		
-		if(childTokens.size() == 0){
-			return new ArrayList<String>();
-		}
-
-		// find the first line
-		if (childTokens.get(0).trim().equals("["))// Try to check for something
-													// like "["Encounter,
-													// Performed": "Ambulatory/ED
-													// Visit"] E"
-		{
-			String tokenString = "[";
-			// look further until you find ']'
-			for (tokenCounter = 1; tokenCounter < childTokens.size(); tokenCounter++) {
-				if (childTokens.get(tokenCounter).equals("]")) {
-					if (childTokens.size() > (tokenCounter + 1)) {
-						String nextToken = childTokens.get(tokenCounter + 1)
-								.trim();
-						if (nextToken.length() == 1
-								&& Character.isLetter(nextToken.charAt(0))) {
-							lineList.add(tokenString + "] "
-									+ nextToken);
-							tokenCounter += 2;
-						} else { // check for something like " ["Diagnosis,
-									// Active": "Acute
-									// Pharyngitis"] union ["Diagnosis,
-									// Active": "Acute Tonsillitis"]"
-							lineList.add(" ");
-							tokenCounter = 0;
-						}
-					} else {// check for something like " ["Diagnosis,
-							// Active": "Acute Pharyngitis"] union ["Diagnosis,
-							// Active": "Acute Tonsillitis"]"
-						lineList.add(" ");
-						lineList.add(tokenString + "] ");
-						tokenCounter += 1;
-					}
-					break;
-				} else {
-					tokenString += " "
-							+ wrapWithCssClass(childTokens.get(tokenCounter));
-				}
-			}
-		} else if (childTokens.size() > 1
-				&& childTokens.get(1).trim().length() == 1
-				&& Character.isLetter(childTokens.get(1).trim().charAt(0)))// check
-																			// for
-																			// something
-																			// like
-																			// "MeasurementPeriodEncounters E"
-		{
-			tokenCounter = 2;
-			lineList.add(childTokens.get(0) + " "
-					+ wrapWithCssClass(childTokens.get(1)));
-		}
-
-		String tokenString = "";
-		List<String> breakAtKeywords = new ArrayList<String>();
-		breakAtKeywords.add("where");
-		breakAtKeywords.add("with");
-		breakAtKeywords.add("and");
-		// breakAtKeywords.add("such that");
-
-		for (; tokenCounter < childTokens.size(); tokenCounter++) {
-			if (breakAtKeywords.contains(childTokens.get(tokenCounter).trim()
-					.toLowerCase())
-					&& tokenString.length() > 0) {
-				lineList.add(tokenString + " "
-						+ wrapWithCssClass(childTokens.get(tokenCounter)));
-				tokenString = "";
-			} else {
-				String fillerSpace = " ";
-
-				List<String> noSpaceTokens = new ArrayList<String>();
-				noSpaceTokens.add(".");
-				noSpaceTokens.add("(");
-				// noSpaceTokens.add(")");
-				// noSpaceTokens.add("[");
-				// noSpaceTokens.add("]");
-				String token = childTokens.get(tokenCounter);
-				// String lastToken = tokenString.length() > 0 ?
-				// tokenString.charAt(tokenString.length()-1)+"" : "";
-
-				String lastToken = (tokenCounter > 0) ? childTokens
-						.get(tokenCounter - 1) : "";
-				
-				System.out.println("token:"+token);
-				System.out.println("lastToken:"+lastToken);
-				
-				if (noSpaceTokens.contains(token)
-						|| noSpaceTokens.contains(lastToken)) {
-					fillerSpace = "";
-				}
-				System.out.println("filler:"+fillerSpace+"!");
-				tokenString += fillerSpace
-						+ wrapWithCssClass(childTokens.get(tokenCounter));
-				System.out.println("tokenString:" + tokenString);
-				System.out.println();
-			}
-		}
-
-		if (tokenString.length() > 0) {
-			lineList.add(tokenString);
-		}
-
-		return lineList;
-	}
-
+	
 	/**
 	 * Wrap with css class.
 	 *
@@ -1399,123 +1439,5 @@ public class CQLHumanReadableHTMLCreator {
 			cqlObjects.add(cqlFunc.getFunctionName());
 		}
 	}
-	
-	/**
-	 * The Class CQLAggregateFunction.
-	 */
-	class CQLAggregateFunction implements CQLBaseStatementInterface {
-
-		/** The identifier. */
-		private String identifier = "";
-		
-		/** The referred to functions. */
-		private List<CQLFunctionModelObject> referredToFunctions = new ArrayList<CQLFunctionModelObject>();
-		
-		/* (non-Javadoc)
-		 * @see mat.model.cql.parser.CQLBaseStatementInterface#getIdentifier()
-		 */
-		@Override
-		public String getIdentifier() {
-			return identifier;
-		}
-		
-		/**
-		 * Sets the identifier.
-		 *
-		 * @param identifierName the new identifier
-		 */
-		public void setIdentifier(String identifierName) {
-			identifier = identifierName;
-		}
-
-		/* (non-Javadoc)
-		 * @see mat.model.cql.parser.CQLBaseStatementInterface#getChildTokens()
-		 */
-		@Override
-		public List<String> getChildTokens() {
-			return new ArrayList<String>();
-		}
-
-		/* (non-Javadoc)
-		 * @see mat.model.cql.parser.CQLBaseStatementInterface#getArguments()
-		 */
-		@Override
-		public List<FunctionArgument> getArguments() {
-			return new ArrayList<FunctionArgument>();
-		}
-
-		/* (non-Javadoc)
-		 * @see mat.model.cql.parser.CQLBaseStatementInterface#getReferredToDefinitions()
-		 */
-		@Override
-		public List<CQLDefinitionModelObject> getReferredToDefinitions() {
-			return new ArrayList<CQLDefinitionModelObject>();
-		}
-
-		/* (non-Javadoc)
-		 * @see mat.model.cql.parser.CQLBaseStatementInterface#getReferredByDefinitions()
-		 */
-		@Override
-		public List<CQLDefinitionModelObject> getReferredByDefinitions() {
-			return new ArrayList<CQLDefinitionModelObject>();
-		}
-
-		/* (non-Javadoc)
-		 * @see mat.model.cql.parser.CQLBaseStatementInterface#getReferredToFunctions()
-		 */
-		@Override
-		public List<CQLFunctionModelObject> getReferredToFunctions() {
-			return referredToFunctions;
-		}
-		
-		/* (non-Javadoc)
-		 * @see mat.model.cql.parser.CQLBaseStatementInterface#getReferredByFunctions()
-		 */
-		@Override
-		public List<CQLFunctionModelObject> getReferredByFunctions() {
-			return new ArrayList<CQLFunctionModelObject>();
-		}
-
-		/* (non-Javadoc)
-		 * @see mat.model.cql.parser.CQLBaseStatementInterface#getReferredToParameters()
-		 */
-		@Override
-		public List<CQLParameterModelObject> getReferredToParameters() {
-			return new ArrayList<CQLParameterModelObject>();
-		}
-
-		/* (non-Javadoc)
-		 * @see mat.model.cql.parser.CQLBaseStatementInterface#getReferredByParameters()
-		 */
-		@Override
-		public List<CQLParameterModelObject> getReferredByParameters() {
-			return new ArrayList<CQLParameterModelObject>();
-		}
-
-		/* (non-Javadoc)
-		 * @see mat.model.cql.parser.CQLBaseStatementInterface#getReferredToValueSets()
-		 */
-		@Override
-		public List<CQLValueSetModelObject> getReferredToValueSets() {
-			return new ArrayList<CQLValueSetModelObject>();
-		}
-
-		/* (non-Javadoc)
-		 * @see mat.model.cql.parser.CQLBaseStatementInterface#getReferredByValueSets()
-		 */
-		@Override
-		public List<CQLValueSetModelObject> getReferredByValueSets() {
-			return new ArrayList<CQLValueSetModelObject>();
-		}
-
-		@Override
-		public List<CQLCodeModelObject> getReferredToCodes() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-		
-	}
-
-	
 
 }

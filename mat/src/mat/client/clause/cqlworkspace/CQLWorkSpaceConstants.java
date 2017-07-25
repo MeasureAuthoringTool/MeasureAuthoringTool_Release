@@ -142,26 +142,7 @@ public class CQLWorkSpaceConstants {
 		AVAILABLE_ITEM_TO_INSERT.add("Applied Value Sets/Codes");
 		AVAILABLE_ITEM_TO_INSERT.add("Attributes");
 		return AVAILABLE_ITEM_TO_INSERT;
-	}
-	
-	public static ArrayList<String> getPrimaryTimings() {
-		PRIMARY_TIMINGS.clear();
-		PRIMARY_TIMINGS.add("after");
-		PRIMARY_TIMINGS.add("before");
-		PRIMARY_TIMINGS.add("during");
-		PRIMARY_TIMINGS.add("ends");
-		PRIMARY_TIMINGS.add("included in");
-		PRIMARY_TIMINGS.add("includes");
-		PRIMARY_TIMINGS.add("meets");
-		PRIMARY_TIMINGS.add("overlaps");
-		PRIMARY_TIMINGS.add("same as");
-		PRIMARY_TIMINGS.add("same or after");
-		PRIMARY_TIMINGS.add("same or before");
-		PRIMARY_TIMINGS.add("starts");
-		PRIMARY_TIMINGS.add("within");
-		return PRIMARY_TIMINGS;
-	}
-	
+	}	
 	
 	public static ArrayList<String> getTimingPrecisions() {
 		TIMING_PRECISIONS.clear();
@@ -173,15 +154,7 @@ public class CQLWorkSpaceConstants {
 		TIMING_PRECISIONS.add("second");
 		TIMING_PRECISIONS.add("year");
 		return TIMING_PRECISIONS;
-	}
-	
-	public static ArrayList<String> getRelativeQualifiers() {
-		RELATIVE_QUALIFIER.clear();
-		RELATIVE_QUALIFIER.add("or more");
-		RELATIVE_QUALIFIER.add("or less");
-		return RELATIVE_QUALIFIER;
-	}
-	
+	}	
 	
 	public static ArrayList<String> getQuantityOffsetUnits() {
 		QUANTITY_OFFSET_UNITS.clear();
@@ -202,34 +175,13 @@ public class CQLWorkSpaceConstants {
 		return QUANTITY_OFFSET_UNITS;
 	}
 	
-
-	public static ArrayList<String> getWithinTimingExp() {
-		WITHIN_TIMING_EXP.clear();
-		WITHIN_TIMING_EXP.add("within");
-		WITHIN_TIMING_EXP.add("ends within");
-		WITHIN_TIMING_EXP.add("starts within");
-		WITHIN_TIMING_EXP.add("properly within");
-		WITHIN_TIMING_EXP.add("ends properly within");
-		WITHIN_TIMING_EXP.add("starts properly within");
-		WITHIN_TIMING_EXP.add("ends within end");
-		WITHIN_TIMING_EXP.add("ends within start");
-		WITHIN_TIMING_EXP.add("starts within end");
-		WITHIN_TIMING_EXP.add("starts within start");
-		WITHIN_TIMING_EXP.add("properly within end");
-		WITHIN_TIMING_EXP.add("properly within start");
-		WITHIN_TIMING_EXP.add("ends properly within end");
-		WITHIN_TIMING_EXP.add("ends properly within start");
-		WITHIN_TIMING_EXP.add("starts properly within end");
-		WITHIN_TIMING_EXP.add("starts properly within start");
-		return WITHIN_TIMING_EXP;
-	}
-	
 	
 	public final static String CQL_FUNCTION_MENU = "func";
 	public final static String CQL_VIEW_MENU = "view";
 	public final static String CQL_DEFINE_MENU = "define";
 	public final static String CQL_PARAMETER_MENU = "param";
 	public final static String CQL_GENERAL_MENU = "general";
+	public final static String CQL_CODES = "codes";
 	public final static String CQL_APPLIED_QDM = "qdm";
 	public final static String CQL_DEFAULT_MEASUREMENTPERIOD_PARAMETER_NAME = "Measurement Period";
 	public final static String CQL_DEFAULT_MEASUREMENTPERIOD_PARAMETER_LOGIC = "Interval<DateTime>";
@@ -237,8 +189,12 @@ public class CQLWorkSpaceConstants {
 	public static final String CQL_INCLUDES_MENU = "include";
 	public static final String CQL_ATTRIBUTE_RESULT = "result";
 	public static final String CQL_ATTRIBUTE_TARGET_OUTCOME = "targetOutcome";
-	public static final String CQL_INSERT_AS_CODE = " as Code in ";
+	public static final String CQL_INSERT_AS_CODE_IN = " as Code in ";
+	public static final String CQL_INSERT_AS_CODE = " as Code = ";
 	public static final String CQL_INSERT_IN = " in ";
+	public static final String CQL_EQUALS = " = ";
+	public static final String CQL_DRAFT = "Draft";
+	public static final String CQL_CODE = "CODE:";
 	
 	
 }

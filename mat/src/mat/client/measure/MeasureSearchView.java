@@ -1,33 +1,23 @@
 package mat.client.measure;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
-import mat.client.CustomPager;
-import mat.client.measure.ManageMeasureSearchModel.Result;
-import mat.client.measure.metadata.CustomCheckBox;
-import mat.client.resource.CellTableResource;
-import mat.client.shared.LabelBuilder;
-import mat.client.shared.MatButtonCell;
-import mat.client.shared.MatCheckBoxCell;
-import mat.client.shared.MatContext;
-import mat.client.shared.MatSafeHTMLCell;
-import mat.client.shared.MatSimplePager;
-import mat.client.shared.SpacerWidget;
-import mat.client.util.CellTableUtility;
-import mat.client.util.ClientConstants;
-import mat.shared.ClickableSafeHtmlCell;
+import org.gwtbootstrap3.client.ui.constants.ButtonType;
+import org.gwtbootstrap3.client.ui.gwt.ButtonCell;
 
 import com.google.gwt.cell.client.Cell;
+import com.google.gwt.cell.client.Cell.Context;
 import com.google.gwt.cell.client.CompositeCell;
 import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.cell.client.HasCell;
 import com.google.gwt.cell.client.ValueUpdater;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.BrowserEvents;
 import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.dom.client.TableCaptionElement;
 import com.google.gwt.event.logical.shared.HasSelectionHandlers;
@@ -55,6 +45,21 @@ import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.AsyncDataProvider;
 import com.google.gwt.view.client.HasData;
 import com.google.gwt.view.client.MultiSelectionModel;
+
+import mat.client.CustomPager;
+import mat.client.measure.ManageMeasureSearchModel.Result;
+import mat.client.measure.metadata.CustomCheckBox;
+import mat.client.resource.CellTableResource;
+import mat.client.shared.LabelBuilder;
+import mat.client.shared.MatButtonCell;
+import mat.client.shared.MatCheckBoxCell;
+import mat.client.shared.MatContext;
+import mat.client.shared.MatSafeHTMLCell;
+import mat.client.shared.MatSimplePager;
+import mat.client.shared.SpacerWidget;
+import mat.client.util.CellTableUtility;
+import mat.client.util.ClientConstants;
+import mat.shared.ClickableSafeHtmlCell;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -171,6 +176,8 @@ public class MeasureSearchView  implements HasSelectionHandlers<ManageMeasureSea
 		 * On clear all bulk export clicked.
 		 */
 		void onClearAllBulkExportClicked();
+		
+		void onCreateClicked(ManageMeasureSearchModel.Result object);
 	}
 	/**
 	 * Instantiates a new measure search view.
@@ -238,7 +245,56 @@ public class MeasureSearchView  implements HasSelectionHandlers<ManageMeasureSea
 				.fromSafeConstant("<span title='Version'>" + "Version"
 						+ "</span>"));
 		
-		//Finalized Date
+		ButtonCell buttonCell = new ButtonCell(ButtonType.LINK);
+		Column<ManageMeasureSearchModel.Result,String> draftOrVersionCol = new Column<ManageMeasureSearchModel.Result, String>(buttonCell) {
+
+			@Override
+			public String getValue(ManageMeasureSearchModel.Result object) {
+				// TODO Auto-generated method stub
+				return object.getShortName();
+			}
+			
+			@Override
+			public void render(Context context, ManageMeasureSearchModel.Result object, SafeHtmlBuilder sb) {
+				if (object.isDraftable()) {
+					sb.appendHtmlConstant("<button class=\"btn btn-link\" type=\"button\" title =\"Click to create draft\" tabindex=\"0\">");
+					sb.appendHtmlConstant("<i class=\"fa fa-pencil-square-o fa-lg\" style=\"margin-left: 15px;\"></i>");
+					sb.appendHtmlConstant("<span class=\"invisibleButtonText\">Create Draft</span>");
+					sb.appendHtmlConstant("</button>");
+				} else if (object.isVersionable()) {
+					sb.appendHtmlConstant("<button class=\"btn btn-link\" type=\"button\" tabindex=\"0\" title =\"Click to create version\" style=\"color: goldenrod;\" >");
+					sb.appendHtmlConstant("<i class=\"fa fa-star fa-lg\" style=\"margin-left: 15px;\"></i>");
+					sb.appendHtmlConstant("<span class=\"invisibleButtonText\">Create Version</span>");
+					sb.appendHtmlConstant("</button>");
+				}
+				
+			}
+			@Override
+			public void onBrowserEvent(Context context, Element elem, ManageMeasureSearchModel.Result object,
+					NativeEvent event) {
+				// TODO Auto-generated method stub
+				//super.onBrowserEvent(context, elem, object, event);
+				String type = event.getType();
+				if(type.equalsIgnoreCase(BrowserEvents.CLICK)){
+					if(!object.isDraftable() && !object.isVersionable()){
+						event.preventDefault();
+					} else {
+						observer.onCreateClicked(object);
+					}
+				} else {
+					if(!object.isDraftable() && !object.isVersionable()){
+						event.preventDefault();
+					}
+				}
+				
+			}
+			
+		};
+		
+		table.addColumn(draftOrVersionCol,
+				SafeHtmlUtils.fromSafeConstant("<span title='Create Version/Draft'>" + "Create Version/Draft" + "</span>"));
+		
+		/*//Finalized Date
 		Column<ManageMeasureSearchModel.Result, SafeHtml> finalizedDate = new Column<ManageMeasureSearchModel.Result, SafeHtml>(
 				new MatSafeHTMLCell()) {
 			@Override
@@ -251,15 +307,15 @@ public class MeasureSearchView  implements HasSelectionHandlers<ManageMeasureSea
 		};
 		table.addColumn(finalizedDate, SafeHtmlUtils
 				.fromSafeConstant("<span title='Finalized Date'>" + "Finalized Date"
-						+ "</span>"));
+						+ "</span>"));*/
 		
 		//History
-		Cell<String> historyButton = new MatButtonCell("Click to view history", "customClockButton");
+		Cell<String> historyButton = new MatButtonCell("Click to view history", "btn btn-link", "fa fa-clock-o fa-lg" , "History");
 		Column<Result, String> historyColumn = new Column<ManageMeasureSearchModel.Result, 
 				String>(historyButton) {
 			@Override
 			public String getValue(ManageMeasureSearchModel.Result object) {
-				return "History";
+				return "";
 			}
 				};
 				historyColumn.setFieldUpdater(new FieldUpdater<ManageMeasureSearchModel.Result, String>() {
@@ -380,23 +436,31 @@ public class MeasureSearchView  implements HasSelectionHandlers<ManageMeasureSea
 	private SafeHtml getEditColumnToolTip(Result object){
 		SafeHtmlBuilder sb = new SafeHtmlBuilder();
 		String title;
-		String cssClass;
+		String cssClass = "btn btn-link";
+		String iconCss;
 		if (object.isEditable()) {
 			if (object.isMeasureLocked()) {
 				String emailAddress = object.getLockedUserInfo().getEmailAddress();
 				title = "Measure in use by " + emailAddress;
-				cssClass = "customLockedButton";
+				//cssClass = "customLockedButton";
+				iconCss = "fa fa-lock fa-lg";
 			} else {
 				title = "Edit";
-				cssClass = "customEditButton";
+				//cssClass = "customEditButton";
+				iconCss = "fa fa-pencil fa-lg";
+				
 			}
 			sb.appendHtmlConstant("<button type=\"button\" title='"
-					+ title + "' tabindex=\"0\" class=\" " + cssClass + "\">Edit</button>");
+					+ title + "' tabindex=\"0\" class=\" " + cssClass + "\" style=\"color: darkgoldenrod;\" > <i class=\" " + iconCss + "\"></i><span style=\"font-size:0;\">Edit</button>");
+			//<span class=\"invisibleButtonText\">Edit</span>
 		} else {
 			title = "Read-Only";
-			cssClass = "customReadOnlyButton";
+			//cssClass = "customReadOnlyButton";
+			iconCss = "fa fa-newspaper-o fa-lg";
 			sb.appendHtmlConstant("<button type=\"button\" title='"
-					+ title + "' tabindex=\"0\" class=\" " + cssClass + "\" disabled>Read-Only</button>");
+					+ title + "' tabindex=\"0\" class=\" " + cssClass + "\" disabled style=\"color: black;\"><i class=\" "+iconCss + "\"></i> <span style=\"font-size:0;\">Read-Only</span></button>");
+			//<span class=\"invisibleButtonText\">Read-Only</span>
+			//
 		}
 		
 		return sb.toSafeHtml();
@@ -411,17 +475,19 @@ public class MeasureSearchView  implements HasSelectionHandlers<ManageMeasureSea
 	private SafeHtml getShareColumnToolTip(Result object){
 		SafeHtmlBuilder sb = new SafeHtmlBuilder();
 		String title;
-		String cssClass;
+		String cssClass = "btn btn-link";
+		String iconCss = "fa fa-share-square fa-lg";
 		if (object.isSharable()) {
 			title = "Shareable";
-			cssClass = "customShareButton";
+			//cssClass = "customShareButton";
 			sb.appendHtmlConstant("<button type=\"button\" title='"
-				+ title + "' tabindex=\"0\" class=\" " + cssClass + "\">Shareable</button>");
+				+ title + "' tabindex=\"0\" class=\" " + cssClass + "\" style=\"color: darkseagreen;\"><i class=\" " + iconCss + "\"></i> <span style=\"font-size:0;\">Shareable</span></button>");
+			//<span class=\"invisibleButtonText\">Shareable</span>
 		} else {
 			title = "Shareable";
-			cssClass = "customGrayedShareButton";
+			//cssClass = "customGrayedShareButton";
 			sb.appendHtmlConstant("<button type=\"button\" title='"
-					+ title + "' tabindex=\"0\" class=\" " + cssClass + "\" disabled>Shareable</button>");
+					+ title + "' tabindex=\"0\" class=\" " + cssClass + "\" disabled style=\"color: gray;\"><i class=\" " + iconCss + "\"></i><span style=\"font-size:0;\">Shareable</span></button>");
 		}
 		
 		return sb.toSafeHtml();
@@ -436,18 +502,20 @@ public class MeasureSearchView  implements HasSelectionHandlers<ManageMeasureSea
 	private SafeHtml getCloneColumnToolTip(Result object){
 		SafeHtmlBuilder sb = new SafeHtmlBuilder();
 		String title;
-		String cssClass;
-		
+		String cssClass = "btn btn-link";
+		String iconCss = "fa fa-clone fa-lg";
 		if (object.isClonable()) {
 			title = "Clonable";
-			cssClass = "customCloneButton"; 
+			//cssClass = "customCloneButton"; 
 			sb.appendHtmlConstant("<button type=\"button\" title='"
-				+ title + "' tabindex=\"0\" class=\" " + cssClass + "\">Clonable</button>");
+				+ title + "' tabindex=\"0\" class=\" " + cssClass + "\"><i class=\" " + iconCss + "\"></i><span style=\"font-size:0;\">Clonable</span> </button>");
+			//<span class=\"invisibleButtonText\">Clonable</span>
 		} else {
 			title = "Clonable";
-			cssClass = "customGrayedCloneButton";
+			//cssClass = "customGrayedCloneButton";
 			sb.appendHtmlConstant("<button type=\"button\" title='"
-					+ title + "' tabindex=\"0\" class=\" " + cssClass + "\" disabled>Clonable</button>");
+					+ title + "' tabindex=\"0\" class=\" " + cssClass + "\" disabled style=\"color: gray;\"><i class=\" " + iconCss + "\"></i><span style=\"font-size:0;\">Clonable</span></button>");
+			//<span class=\"invisibleButtonText\">Clonable</span>
 		}
 		
 		return sb.toSafeHtml();
@@ -545,18 +613,21 @@ public class MeasureSearchView  implements HasSelectionHandlers<ManageMeasureSea
 			public SafeHtml getValue(Result object) {
 				SafeHtmlBuilder sb = new SafeHtmlBuilder();
 				String title = "";
-				String cssClass = "";
+				String cssClass = "btn btn-link";
+				String iconClass = "fa fa-download fa-lg";
 				if((object != null) && (object.getHqmfReleaseVersion() != null)) {
 					if(object.getHqmfReleaseVersion().equalsIgnoreCase("v3")){
-						cssClass = "customExportButton";
+						//cssClass = "customExportButton";
 						title = "Click to Export MAT v3";
 						sb.appendHtmlConstant("<button type=\"button\" title='" + title 
-								+ "' tabindex=\"0\" class=\" " + cssClass + "\"/>Export MAT v3</button>");		
+								+ "' tabindex=\"0\" class=\" " + cssClass + "\" style=\"color: gray;\"/> <i class=\" " + iconClass  + "\"></i><span style=\"font-size:0;\">Export MAT v3 </span></button>");	
+						//<span class=\"invisibleButtonText\">Export MAT v3</span>
 					} else {
-						cssClass = "customExportButtonRed";
+						//cssClass = "customExportButtonRed";
 						title = "Click to Export MAT " +  object.getHqmfReleaseVersion();
 						sb.appendHtmlConstant("<button  type=\"button\" title='" + title 
-								+ "' tabindex=\"0\" class=\" " + cssClass + "\">Export MAT "+object.getHqmfReleaseVersion()+"</button>");	
+								+ "' tabindex=\"0\" class=\" " + cssClass + "\" ><i class=\" " + iconClass  + "\"></i><span style=\"font-size:0;\">"+"Export MAT "+object.getHqmfReleaseVersion()+"</span></button>");
+						//<span class=\"invisibleButtonText\">Export MAT "+object.getHqmfReleaseVersion()+"</span>
 					}
 				}
 				return sb.toSafeHtml();
@@ -701,16 +772,26 @@ public class MeasureSearchView  implements HasSelectionHandlers<ManageMeasureSea
 			 if(ClientConstants.ADMINISTRATOR.equalsIgnoreCase(MatContext.get()
 						.getLoggedInUserRole())){
 			    	table = addColumnToAdminTable(sortHandler);
+			    	Label invisibleLabel = (Label) LabelBuilder.buildInvisibleLabel("measureSearchSummary",
+							"In the following Measure List table, Measure Name is given in first column,"
+									+ " Version in second column, Finalized Date in third column,"
+									+ "History in fourth column, Edit in fifth column, Share in sixth column"
+									+ "Clone in seventh column and Export in eight column.");
+					table.getElement().setAttribute("id", "MeasureSearchCellTable");
+					table.getElement().setAttribute("aria-describedby", "measureSearchSummary");
+					cellTablePanel.add(invisibleLabel);
 			    }else{
 			    	table = addColumnToTable();
+			    	Label invisibleLabel = (Label) LabelBuilder.buildInvisibleLabel("measureSearchSummary",
+							"In the following Measure List table, Measure Name is given in first column,"
+									+ " Version in second column, Version/Draft in third column for creating version/draft,"
+									+ "History in fourth column, Edit in fifth column, Share in sixth column"
+									+ "Clone in seventh column and Export in eight column.");
+					table.getElement().setAttribute("id", "MeasureSearchCellTable");
+					table.getElement().setAttribute("aria-describedby", "measureSearchSummary");
+					cellTablePanel.add(invisibleLabel);
 			    }
-			Label invisibleLabel = (Label) LabelBuilder.buildInvisibleLabel("measureSearchSummary",
-					"In the following Measure List table, Measure Name is given in first column,"
-							+ " Version in second column, Finalized Date in third column,"
-							+ "History in fourth column, Edit in fifth column, Share in sixth column"
-							+ "Clone in seventh column and Export in eight column.");
-			table.getElement().setAttribute("id", "MeasureSearchCellTable");
-			table.getElement().setAttribute("aria-describedby", "measureSearchSummary");
+			
 			table.setColumnWidth(0, 25.0, Unit.PCT);
 			table.setColumnWidth(1, 20.0, Unit.PCT);
 			table.setColumnWidth(2, 23.0, Unit.PCT);
@@ -720,13 +801,11 @@ public class MeasureSearchView  implements HasSelectionHandlers<ManageMeasureSea
 			table.setColumnWidth(6, 2.0, Unit.PCT);
 			table.setColumnWidth(7, 22.0, Unit.PCT);
 			    
-			cellTablePanel.add(invisibleLabel);
+			
 			cellTablePanel.add(table);
 			cellTablePanel.add(new SpacerWidget());
 			cellTablePanel.add(spager);
-		}
-		
-		else{
+		}	else{
 			Label measureSearchHeader = new Label(getMeasureListLabel());
 			measureSearchHeader.getElement().setId("measureSearchHeader_Label");
 			measureSearchHeader.setStyleName("recentSearchHeader");
@@ -1035,30 +1114,6 @@ public class MeasureSearchView  implements HasSelectionHandlers<ManageMeasureSea
 		this.measureListLabel = measureListLabel;
 	}
 	
-	/**
-	 * Convert timestamp to string.
-	 *
-	 * @param ts - Timestamp.
-	 * @return String.
-	 */
-	private String convertTimestampToString(Timestamp ts) {
-		String tsStr;
-		if (ts == null) {
-			tsStr = "";
-		} else {
-			int hours = ts.getHours();
-			String ap = hours < 12 ? "AM" : "PM";
-			int modhours = hours % 12;
-			String mins = ts.getMinutes() + "";
-			if (mins.length() == 1) {
-				mins = "0" + mins;
-			}
-			String hoursStr = modhours == 0 ? "12" : modhours+"";
-			tsStr = (ts.getMonth() + 1) + "/" + ts.getDate() + "/" + (ts.getYear() + 1900) + " "
-					+ hoursStr + ":" + mins + " "+ap;
-		}
-		return tsStr;
-	}
 	
 	/**
 	 * Sets the admin observer.
@@ -1088,5 +1143,8 @@ public class MeasureSearchView  implements HasSelectionHandlers<ManageMeasureSea
 		getSelectedList().clear();
 		getData().setData(selectedMeasureList);
 		table.redraw();
+	}
+	public VerticalPanel getCellTablePanel() {
+		return cellTablePanel;
 	}
 }

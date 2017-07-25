@@ -1,5 +1,7 @@
 package mat.client.shared;
 
+import java.util.List;
+
 import org.gwtbootstrap3.client.ui.Alert;
 import org.gwtbootstrap3.client.ui.Button;
 import org.gwtbootstrap3.client.ui.Icon;
@@ -68,11 +70,24 @@ public class MessageAlert extends Alert implements MessageAlertInterface {
 		return msgHtml;
 	}
 
+	
+	protected HTML getMsgPanel( String message) {
+		
+		HTML msgHtml = new HTML(" <b>" + message + "</b>");
+		return msgHtml;
+	}
+	
 	public void createAlert() {
 		
 	}
 	
 	public void createAlert(String message) {
+		
+	}
+
+
+	public void createAlert(List<String> errorMessage) {
+		// TODO Auto-generated method stub
 		
 	}
 

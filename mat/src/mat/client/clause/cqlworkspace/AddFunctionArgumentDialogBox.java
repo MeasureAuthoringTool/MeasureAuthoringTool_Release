@@ -14,6 +14,7 @@ import org.gwtbootstrap3.client.ui.ModalBody;
 import org.gwtbootstrap3.client.ui.ModalFooter;
 import org.gwtbootstrap3.client.ui.ModalSize;
 import org.gwtbootstrap3.client.ui.TextArea;
+import org.gwtbootstrap3.client.ui.TextBox;
 import org.gwtbootstrap3.client.ui.constants.ButtonDismiss;
 import org.gwtbootstrap3.client.ui.constants.ButtonSize;
 import org.gwtbootstrap3.client.ui.constants.ButtonType;
@@ -28,7 +29,6 @@ import com.google.gwt.event.dom.client.ClickHandler;
 
 import mat.client.shared.ListBoxMVP;
 import mat.client.shared.MatContext;
-import mat.client.util.MatTextBox;
 import mat.model.cql.CQLFunctionArgument;
 import mat.shared.CQLModelValidator;
 import mat.shared.UUIDUtilClient;
@@ -64,7 +64,7 @@ public class AddFunctionArgumentDialogBox {
 	/**
 	 * Constant - SELECT
 	 */
-	private static final String SELECT = "Select";
+//	private static final String SELECT = "Select";
 	
 	/**
 	 * List of Attributes.
@@ -82,9 +82,9 @@ public class AddFunctionArgumentDialogBox {
 	 */
 	public static  void showArgumentDialogBox(final CQLFunctionArgument functionArg,
 			final boolean isEdit, final CQLFunctionsView cqlFunctionsView, final boolean isEditable) {
-		List<String> allCqlDataType = MatContext.get().getCqlGrammarDataType().getCqlDataTypeList();
-		final List<String> allDataTypes = MatContext.get().getDataTypeList();
-		//final ListBox attributeListBox = new ListBox(false);
+		List<String> allCqlDataType = MatContext.get().getCqlConstantContainer().getCqlKeywordList().getCqlDataTypeList();
+		final List<String> allDataTypes = MatContext.get().getCqlConstantContainer().getCqlDatatypeList();
+		
 		final TextArea otherTypeTextArea = new TextArea();
 		otherTypeTextArea.setEnabled(false);
 		String saveButtonText = "Add";
@@ -139,7 +139,7 @@ public class AddFunctionArgumentDialogBox {
 		argumentNameFormLabel.setTitle("Argument Name");
 		argumentNameFormLabel.setFor("inputArgumentName");
 		argumentNameFormLabel.setId("ArgumentNameLanel");
-		final MatTextBox argumentNameTextArea = new MatTextBox();
+		final TextBox argumentNameTextArea = new TextBox();
 		//argumentNameTextArea.setPlaceholder("Enter Argument Name");
 		argumentNameTextArea.setWidth("290px");
 		argumentNameTextArea.setHeight("38px");
@@ -285,13 +285,13 @@ public class AddFunctionArgumentDialogBox {
 				if (selectedIndex != -1) {
 					itemValue = listSelectItem.getItemText(selectedIndex);
 				}
-				if (!itemValue.contains(SELECT)) {
+				/*if (!itemValue.contains(SELECT)) {
 					//getAttributesForDataType(itemValue, attributeListBox);
 					//attributeListBox.setEnabled(true);
 				} else {
 					//	attributeListBox.setEnabled(false);
 					//attributeListBox.clear();
-				}
+				}*/
 			}
 		});
 		//Argument Text Area click handler
@@ -374,8 +374,8 @@ public class AddFunctionArgumentDialogBox {
 						}
 					}
 					CQLModelValidator validator = new CQLModelValidator();
-					boolean isInValidName = validator.validateForSpecialChar(argumentName);
-					if (!isInValidName && !checkIfDuplicate) {
+					boolean isValidName = validator.validateForAliasNameSpecialChar(argumentName);
+					if (isValidName && !checkIfDuplicate) {
 						//&& !searchDisplay.getFuncNameTxtArea().getText().equalsIgnoreCase(argumentName)){
 						isValid = true;
 						helpBlock.setText("");
@@ -387,8 +387,8 @@ public class AddFunctionArgumentDialogBox {
 						helpBlock.setIconType(IconType.EXCLAMATION_CIRCLE);
 						if(checkIfDuplicate){
 							helpBlock.setText(ARGUMENT_NAME_IS_NOT_UNIQUE);
-						} else if(isInValidName){
-							helpBlock.setText(ARGUMENT_NAME_IS_INVALID);
+						} else if(!isValidName){
+							helpBlock.setText(MatContext.get().getMessageDelegate().getCqlFunctionArgumentNameError());
 						}
 						messageFormgroup.setValidationState(ValidationState.ERROR);
 					}
@@ -440,6 +440,7 @@ public class AddFunctionArgumentDialogBox {
 	 */
 	private static void populateAllDataType(final ListBoxMVP listDataType, List<String> allDataTypeList) {
 		listDataType.clear();
+		listDataType.addItem(MatContext.PLEASE_SELECT);
 		for (String dataType : allDataTypeList) {
 			listDataType.addItem(dataType);
 		}

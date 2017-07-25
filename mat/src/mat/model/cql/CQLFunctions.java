@@ -1,6 +1,7 @@
 package mat.model.cql;
 
 import java.util.List;
+
 import com.google.gwt.user.client.rpc.IsSerializable;
 
 // TODO: Auto-generated Javadoc
@@ -23,6 +24,10 @@ public class CQLFunctions implements IsSerializable {
 	
 	/** The context. */
 	private String context;
+	
+	private String commentString = "";
+	
+	private String returnType;
 	
 	/**
 	 * Gets the function name.
@@ -112,5 +117,21 @@ public class CQLFunctions implements IsSerializable {
 	 */
 	public void setContext(String context) {
 		this.context = context;
+	}
+
+	public String getCommentString() {
+		return commentString;
+	}
+
+	public void setCommentString(String commentString) {
+		this.commentString = commentString;
+	}
+
+	public String getReturnType() {
+		return returnType;
+	}
+
+	public void setReturnType(String returnType) {
+		this.returnType = returnType;
 	}
 }

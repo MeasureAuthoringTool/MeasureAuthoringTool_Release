@@ -6,6 +6,8 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 
 import mat.client.umls.service.VsacApiResult;
 import mat.model.CQLValueSetTransferObject;
+import mat.model.MatCodeTransferObject;
+import mat.model.cql.CQLCodeWrapper;
 import mat.model.cql.CQLDefinition;
 import mat.model.cql.CQLFunctions;
 import mat.model.cql.CQLIncludeLibrary;
@@ -38,12 +40,10 @@ public interface CQLLibraryServiceAsync {
 
 	void isLibraryAvailableAndLogRecentActivity(String libraryid, String userId, AsyncCallback<Void> callback);
 
-	void searchForVersion(String searchText, AsyncCallback<SaveCQLLibraryResult> callback);
 
 	void saveFinalizedVersion(String libraryId, boolean isMajor, String version,
 			AsyncCallback<SaveCQLLibraryResult> callback);
 
-	void searchForDraft(String searchText, AsyncCallback<SaveCQLLibraryResult> callback);
 
 	void saveDraftFromVersion(String libraryId, AsyncCallback<SaveCQLLibraryResult> callback);
 	
@@ -105,4 +105,15 @@ public interface CQLLibraryServiceAsync {
 			AsyncCallback<VsacApiResult> asyncCallback);
 
 	void getCQLKeywordsLists(AsyncCallback<CQLKeywords> callback);
+
+	void transferLibraryOwnerShipToUser(List<String> list, String toEmail, AsyncCallback<Void> callback);
+
+	void saveCQLCodestoCQLLibrary(MatCodeTransferObject transferObject, AsyncCallback<SaveUpdateCQLResult> callback);
+
+	void deleteCode(String toBeDeletedId, String libraryId, AsyncCallback<SaveUpdateCQLResult> callback);
+
+	void deleteCQLLibrary(String cqllibId, String loginUserId, AsyncCallback<Void> callback);
+
+	void searchForStandaloneIncludes(String setId, String searchText,
+			AsyncCallback<SaveCQLLibraryResult> asyncCallback);
 }

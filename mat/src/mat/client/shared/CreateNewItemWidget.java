@@ -100,13 +100,13 @@ public class CreateNewItemWidget extends Composite {
 		if (forView.equalsIgnoreCase("forMeasureLibrary")) {
 			options.addItem(ConstantMessages.DEFAULT_SELECT);
 			options.addItem(ConstantMessages.CREATE_NEW_MEASURE);
-			options.addItem(ConstantMessages.CREATE_NEW_VERSION);
-			options.addItem(ConstantMessages.CREATE_NEW_DRAFT);
+			/*options.addItem(ConstantMessages.CREATE_NEW_VERSION);
+			options.addItem(ConstantMessages.CREATE_NEW_DRAFT);*/
 		} else if (forView.equalsIgnoreCase("forCqlLibrary")) {
 			options.addItem(ConstantMessages.DEFAULT_SELECT);
 			options.addItem(ConstantMessages.CREATE_NEW_CQL);
-			options.addItem(ConstantMessages.CREATE_NEW_CQL_VERSION);
-			options.addItem(ConstantMessages.CREATE_NEW_CQL_DRAFT);
+			/*options.addItem(ConstantMessages.CREATE_NEW_CQL_VERSION);
+			options.addItem(ConstantMessages.CREATE_NEW_CQL_DRAFT);*/
 		}
 	}
 

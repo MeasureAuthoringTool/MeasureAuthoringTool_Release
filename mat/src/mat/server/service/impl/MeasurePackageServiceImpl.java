@@ -7,6 +7,7 @@ import java.util.List;
 import mat.client.clause.clauseworkspace.model.MeasureXmlModel;
 import mat.client.measure.ManageMeasureShareModel;
 import mat.client.measure.service.ValidateMeasureResult;
+import mat.dao.CQLLibraryAuditLogDAO;
 import mat.dao.DataTypeDAO;
 import mat.dao.MeasureAuditLogDAO;
 import mat.dao.OrganizationDAO;
@@ -15,6 +16,7 @@ import mat.dao.QualityDataSetDAO;
 import mat.dao.StewardDAO;
 import mat.dao.UserDAO;
 import mat.dao.clause.CQLLibraryDAO;
+import mat.dao.clause.CQLLibraryShareDAO;
 import mat.dao.clause.MeasureDAO;
 import mat.dao.clause.MeasureExportDAO;
 import mat.dao.clause.MeasureSetDAO;
@@ -29,6 +31,7 @@ import mat.model.MatValueSet;
 import mat.model.MeasureSteward;
 import mat.model.QualityDataSet;
 import mat.model.User;
+import mat.model.clause.CQLLibrary;
 import mat.model.clause.Measure;
 import mat.model.clause.MeasureExport;
 import mat.model.clause.MeasureSet;
@@ -36,6 +39,7 @@ import mat.model.clause.MeasureShare;
 import mat.model.clause.MeasureShareDTO;
 import mat.model.clause.MeasureXML;
 import mat.model.clause.ShareLevel;
+import mat.model.cql.CQLLibraryShare;
 import mat.model.cql.CQLModel;
 import mat.server.CQLUtilityClass;
 import mat.server.LoggedInUserUtil;
@@ -119,11 +123,20 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 	@Autowired
 	private UserDAO userDAO;
 	
+	/** The current release version. */
 	private String currentReleaseVersion;
 	
 	/** The cql library dao. */
 	@Autowired
 	private CQLLibraryDAO cqlLibraryDAO;
+	
+	/** The cql library share DAO. */
+	@Autowired
+	private CQLLibraryShareDAO cqlLibraryShareDAO;
+	
+	/** The cql library audit log DAO. */
+	@Autowired
+	private CQLLibraryAuditLogDAO cqlLibraryAuditLogDAO;
 	
 	//	@Override
 	//	public void clone(Measure measurePackage, String newCloneName) {
@@ -160,24 +173,7 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 		return measurePackageDAO.countMeasureShareInfoForUser(searchText, user);
 	}
 	
-	/* (non-Javadoc)
-	 * @see mat.server.service.MeasurePackageService#countMeasuresForDraft()
-	 */
-	@Override
-	public long countMeasuresForDraft(String searchText) {
-		User user = userDAO.find(LoggedInUserUtil.getLoggedInUser());
-		return measurePackageDAO.countMeasureForDraft(searchText, user);
-	}
-	
-	/* (non-Javadoc)
-	 * @see mat.server.service.MeasurePackageService#countMeasuresForVersion()
-	 */
-	@Override
-	public long countMeasuresForVersion(String searchText) {
-		User user = userDAO.find(LoggedInUserUtil.getLoggedInUser());
-		return measurePackageDAO.countMeasureForVersion(searchText, user);
-	}
-	
+		
 	/* (non-Javadoc)
 	 * @see mat.server.service.MeasurePackageService#countUsersForMeasureShare()
 	 */
@@ -449,39 +445,10 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 	@Override
 	public List<MeasureShareDTO> searchForAdminWithFilter(String searchText,
 			int startIndex, int numResults, int filter) {
-		User user = userDAO.find(LoggedInUserUtil.getLoggedInUser());
+		//User user = userDAO.find(LoggedInUserUtil.getLoggedInUser());
 		return measurePackageDAO.getMeasureShareInfoForUserWithFilter(searchText, startIndex - 1, numResults, filter);
 	}
 	
-	
-	/* (non-Javadoc)
-	 * @see mat.server.service.MeasurePackageService#searchMeasuresForDraft(int, int)
-	 */
-	/*
-	 * @Override public List<MeasureShareDTO> searchMeasuresForDraft(final int startIndex, final int numResults) { User user =
-	 * userDAO.find(LoggedInUserUtil.getLoggedInUser()); return measurePackageDAO.getMeasuresForDraft(user, startIndex, numResults); }
-	 */
-	
-	
-	
-	/* (non-Javadoc)
-	 * @see mat.server.service.MeasurePackageService#searchMeasuresForDraft(java.lang.String)
-	 */
-	@Override
-	public List<MeasureShareDTO> searchMeasuresForDraft(final String searchText) {
-		User user = userDAO.find(LoggedInUserUtil.getLoggedInUser());
-		return measurePackageDAO.getMeasuresForDraft(searchText, user);
-	}
-	
-	
-	/* (non-Javadoc)
-	 * @see mat.server.service.MeasurePackageService#searchMeasuresForVersion(java.lang.String)
-	 */
-	@Override
-	public List<MeasureShareDTO> searchMeasuresForVersion(String searchText) {
-		User user = userDAO.find(LoggedInUserUtil.getLoggedInUser());
-		return measurePackageDAO.getMeasuresForVersion(searchText, user);
-	}
 	
 	/* (non-Javadoc)
 	 * @see mat.server.service.MeasurePackageService#searchWithFilter(java.lang.String, int, int, int)
@@ -526,10 +493,13 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 			for (int j = 0; j < allMeasures.size(); j++) {
 				String additionalInfo = "Measure Owner transferred from "
 						+ allMeasures.get(j).getOwner().getEmailAddress() + " to " + toEmail;
+				transferAssociatedCQLLibraryOnwnerShipToUser(allMeasures.get(j).getId(), userTo, 
+						allMeasures.get(j).getOwner().getEmailAddress());
 				allMeasures.get(j).setOwner(userTo);
 				measureDAO.saveMeasure(allMeasures.get(j));
 				measureAuditLogDAO.recordMeasureEvent(allMeasures.get(j), "Measure Ownership Changed", additionalInfo);
 				additionalInfo = "";
+				
 				
 			}
 			List<MeasureShare> measureShareInfo = measureDAO.getMeasureShareForMeasure(list.get(i));
@@ -538,6 +508,32 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 				measureShareDAO.save(measureShareInfo.get(k));
 			}
 			
+		}
+		
+	}
+	
+	/**
+	 * Transfer associated CQL library onwner ship to user.
+	 *
+	 * @param measureId the measure id
+	 * @param user the user
+	 * @param emailUser the email user
+	 */
+	//Transferring associated CQL Library ownership when the measure owner ship is changed.
+	private void transferAssociatedCQLLibraryOnwnerShipToUser(String measureId, User user, String emailUser){
+		CQLLibrary cqlLibrary = cqlLibraryDAO.getLibraryByMeasureId(measureId);
+		if(cqlLibrary != null){
+			String additionalInfo = "CQL Library Owner transferred from "
+					+ emailUser + " to " + user.getEmailAddress();
+			cqlLibrary.setOwnerId(user);
+			cqlLibraryDAO.save(cqlLibrary);
+			cqlLibraryAuditLogDAO.recordCQLLibraryEvent(cqlLibrary, "CQL Library Ownership Changed", additionalInfo);
+			
+			List<CQLLibraryShare> cqlLibShareInfo = cqlLibraryDAO.getLibraryShareInforForLibrary(cqlLibrary.getId());
+			for (int k = 0; k < cqlLibShareInfo.size(); k++) {
+				cqlLibShareInfo.get(k).setOwner(user);
+				cqlLibraryShareDAO.save(cqlLibShareInfo.get(k));
+			}
 		}
 		
 	}
@@ -671,20 +667,39 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 		return measurePackageDAO.getMeasure(measureId);
 	}
 
+	/**
+	 * Gets the current release version.
+	 *
+	 * @return the current release version
+	 */
 	public String getCurrentReleaseVersion() {
 		return currentReleaseVersion;
 	}
 
+	/**
+	 * Sets the current release version.
+	 *
+	 * @param currentReleaseVersion the new current release version
+	 */
 	public void setCurrentReleaseVersion(String currentReleaseVersion) {
 		this.currentReleaseVersion = currentReleaseVersion;
 	}
 
+	/**
+	 * Gets the cql library DAO.
+	 *
+	 * @return the cql library DAO
+	 */
 	public CQLLibraryDAO getCqlLibraryDAO() {
 		return cqlLibraryDAO;
 	}
 
+	/**
+	 * Sets the cql library DAO.
+	 *
+	 * @param cqlLibraryDAO the new cql library DAO
+	 */
 	public void setCqlLibraryDAO(CQLLibraryDAO cqlLibraryDAO) {
 		this.cqlLibraryDAO = cqlLibraryDAO;
 	}
-	
 }

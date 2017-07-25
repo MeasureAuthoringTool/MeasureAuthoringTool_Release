@@ -7,6 +7,8 @@ import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
 import mat.client.umls.service.VsacApiResult;
 import mat.model.CQLValueSetTransferObject;
+import mat.model.MatCodeTransferObject;
+import mat.model.cql.CQLCodeWrapper;
 import mat.model.cql.CQLDefinition;
 import mat.model.cql.CQLFunctions;
 import mat.model.cql.CQLIncludeLibrary;
@@ -32,11 +34,10 @@ public interface CQLLibraryService extends RemoteService {
 
 	void isLibraryAvailableAndLogRecentActivity(String libraryid, String userId);
 
-	SaveCQLLibraryResult searchForVersion(String searchText);
-
+	
 	SaveCQLLibraryResult saveFinalizedVersion(String libraryId, boolean isMajor, String version);
 
-	SaveCQLLibraryResult searchForDraft(String searchText);
+	
 	public SaveCQLLibraryResult saveDraftFromVersion(String libraryId);
 	
 	SaveUpdateCQLResult getLibraryCQLFileData(String libraryId);
@@ -46,6 +47,8 @@ public interface CQLLibraryService extends RemoteService {
 	SaveCQLLibraryResult getUserShareInfo(String cqlId, String searchText);
 
 	SaveCQLLibraryResult searchForIncludes(String setId, String searchText);
+	
+	SaveCQLLibraryResult searchForStandaloneIncludes(String setId, String searchText);
 	
 	void updateUsersShare(SaveCQLLibraryResult result);
 
@@ -89,4 +92,11 @@ public interface CQLLibraryService extends RemoteService {
 	
 	VsacApiResult updateCQLVSACValueSets(String currentCQLLibraryId, String expansionId);
 	 CQLKeywords getCQLKeywordsLists();
+	 void transferLibraryOwnerShipToUser(List<String> list, String toEmail);
+
+	SaveUpdateCQLResult saveCQLCodestoCQLLibrary(MatCodeTransferObject transferObject);
+
+	SaveUpdateCQLResult deleteCode(String toBeDeletedId, String libraryId);
+
+	void deleteCQLLibrary(String cqllibId, String loginUserId);
 }

@@ -1520,18 +1520,7 @@ var Autocomplete = function() {
             
             var keyString = this.editor.keyString;
           //  alert("keyString:"+keyString);
-            var timingKeywords = ["after","after end","after start","before","before end","before start","during","ends","ends after","ends after end","ends after start",
-                                  "ends before","ends before end","ends before start","ends during","ends properly during","ends properly within","ends properly within end",
-                                  "ends properly within start","ends same as","ends same as end","ends same as start","ends same or after","ends same or after end",
-                                  "ends same or after start","ends same or before","ends same or before end","ends same or before start","ends within","ends within end",
-                                  "ends within start","included in","includes","includes end","includes start","meets","meets after","meets before","overlaps","overlaps after",
-                                  "overlaps after","overlaps before","overlaps before","properly during","properly included in","properly includes","properly includes end",
-                                  "properly includes start","properly within","properly within end","properly within start","same as","same as","same as end","same as start",
-                                  "same or after","same or after end","same or after start","same or before","same or before end","same or before start","starts","starts after",
-                                  "starts after end","starts after start","starts before","starts before end","starts before start","starts during","starts properly during",
-                                  "starts properly within","starts properly within end","starts properly within start","starts same as","starts same as end","starts same as start",
-                                  "starts same or after","starts same or after end","starts same or after start","starts same or before","starts same or before end",
-                                  "starts same or before start","starts within","starts within end","starts within start","within"];
+            var timingKeywords = window.timingList();
             
             var functionKeywords = ["Abs","AgeInDays","AgeInDaysAt","AgeInHours","AgeInHoursAt","AgeInMinutes","AgeInMinutesAt","AgeInMonths","AgeInMonthsAt",
                                     "AgeInSeconds","AgeInSecondsAt","AgeInYears","AgeInYearsAt","AllTrue","AnyTrue","Avg","CalculateAgeInDays","CalculateAgeInDaysAt",
@@ -1540,13 +1529,22 @@ var Autocomplete = function() {
                                     "Coalesce","Count","DateTime","Exp","First","Floor","IndexOf","Last","Length","Ln","Log","Max","Median","Min","Mode",
                                     "Now","PopulationStdDev","PopulationVariance","Round","StdDev","Sum","Time","TimeOfDay","Today","Truncate","Variance"];
             
+            var Keywords = ["after","all","and","as","asc","ascending","before","between","by","called","case","cast","Choice","Code","codesystem","codesystems","collapse",
+                            "Concept","contains","context","convert","date","day","days","default","desc","descending","difference","display","distinct","div","duration",
+                            "during","else","end","ends","except","exists","false","flatten","from","function","hour","hours","if","implies","in","include","includes","included in",
+                            "intersect","Interval","Is","let","library","List","maximum","meets","millisecond","milliseconds","minimum","minute","minutes","mod","month","months",
+                            "not","null","occurs","of","or","or after","or before","or less","or more","overlaps","parameter","predecessor","private","properly","public","return",
+                            "same","singleton","second","seconds","start","starts","sort","successor","such that","then","time","timezone","to","true",
+                            "Tuple","union","using","valueset","version","week","weeks","where","when","width","with","within","without","xor","year","years"];
+            
        	    var defineKeywords = window.definitioList();
         	var funcsKeywords = window.funcsList();
         	var paramKeywords = window.paramList();
         	var attributesKeywords = window.allAttributeList();
         	var dataTypeKeywords = window.dataTypeList(); 
         	var valueSetKeywords = window.valueSetList(); 
-        	var allWords = window.definitioList()+window.funcsList()+window.paramList()+window.allAttributeList()+timingKeywords;
+        	var unitsKeywords = window.unitsList();
+        	//var allWords = window.definitioList()+window.funcsList()+window.paramList()+window.allAttributeList()+timingKeywords + window.unitsList();
             
             if(keyString == "t"){
             	//alert("keyString:"+this.editor.keyString);
@@ -1557,7 +1555,7 @@ var Autocomplete = function() {
             	matches = [];
             	var fk = [];
             	for(var i=0;i<funcsKeywords.length;i++){
-            		fk.push('"'+funcsKeywords[i]+'"()');	
+            		fk.push(funcsKeywords[i]);	
             	}
             	for(var i=0;i<functionKeywords.length;i++){
             		fk.push(functionKeywords[i]+'()');	
@@ -1579,16 +1577,28 @@ var Autocomplete = function() {
             	this.getSpecificKeyWords(dataTypeKeywords, matches, "datatypes");
             } else if(keyString == "v") {
             	matches = []; 
-            	this.getSpecificKeyWords(valueSetKeywords, matches, "valuesets");
+            	this.getSpecificKeyWords(valueSetKeywords, matches, "value sets/codes");
+
+            } else if(keyString == "k") {
+            	/*alert("keyString:"+this.editor.keyString);*/
+            	matches = []; 
+            	this.getSpecificKeyWords(Keywords, matches, "keywords");
+
+            } else if(keyString == "u") {
+            	/*alert("keyString:"+this.editor.keyString);*/
+            	matches = []; 
+            	this.getSpecificKeyWords(unitsKeywords, matches, "units");
 
             } else if(keyString == "space"){
-            	this.getSpecificKeyWords(valueSetKeywords, matches, "valuesets");
-            	this.getSpecificKeyWords(dataTypeKeywords, matches, "datatypes");
+            	
+            	this.getSpecificKeyWords(valueSetKeywords, matches, "value sets/codes");
+                this.getSpecificKeyWords(unitsKeywords, matches, "units")
             	this.getSpecificKeyWords(timingKeywords,matches, "timings");
+            	this.getSpecificKeyWords(paramKeywords,matches, "parameters");
             	
             	var fk1 = [];
             	for(var i=0;i<funcsKeywords.length;i++){
-            		fk1.push('"'+funcsKeywords[i]+'"()');	
+            		fk1.push(funcsKeywords[i]);	
             	}
             	for(var i=0;i<functionKeywords.length;i++){
             		fk1.push(functionKeywords[i]+'()');	
@@ -1596,8 +1606,9 @@ var Autocomplete = function() {
             	//alert(fk1);
             	this.getSpecificKeyWords(fk1,matches, "functions");
             	this.getSpecificKeyWords(defineKeywords,matches, "definitions");
-            	this.getSpecificKeyWords(paramKeywords,matches, "parameters");
+            	this.getSpecificKeyWords(dataTypeKeywords, matches, "datatypes");
             	this.getSpecificKeyWords(attributesKeywords, matches, "attributes");
+    	
             }
             this.completions = new FilteredList(matches);
             this.completions.setFilter(prefix);
@@ -1716,7 +1727,7 @@ Autocomplete.startCommand = {
         editor.completer.showPopup(editor);
         editor.completer.cancelContextMenu();
     },
-    bindKey: "Ctrl-Space|Ctrl-Alt-Space|Alt-Space|Ctrl-Alt-t|Ctrl-Alt-f|Ctrl-Alt-d|Ctrl-Alt-p|Ctrl-Alt-a|Ctrl-Alt-y|Ctrl-Alt-v"
+    bindKey: "Ctrl-Space|Ctrl-Alt-Space|Alt-Space|Ctrl-Alt-t|Ctrl-Alt-f|Ctrl-Alt-d|Ctrl-Alt-p|Ctrl-Alt-a|Ctrl-Alt-y|Ctrl-Alt-v|Ctrl-Alt-k|Ctrl-Alt-u"
 };
 
 var FilteredList = function(array, filterText, mutateData) {

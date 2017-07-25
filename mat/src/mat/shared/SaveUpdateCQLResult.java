@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import mat.client.shared.GenericResult;
+import mat.model.cql.CQLCode;
 import mat.model.cql.CQLDefinition;
 import mat.model.cql.CQLFunctions;
 import mat.model.cql.CQLIncludeLibrary;
@@ -68,15 +69,28 @@ public class SaveUpdateCQLResult extends GenericResult{
 	/** The Constant ALREADY_EXISTS. */
 	public static final int ALREADY_EXISTS = 5;
 	
+	/** The Constant SERVER_SIDE_VALIDATION. */
+	public static final int FUNCTION_ARGUMENT_INVALID = 6;
+	
+	private static final int DUPLICATE_CODE=7;
+	
+	public static final int COMMEENT_INVALID = 8;
+	
 	/** The cql applied QDM list. */
 	List<CQLQualityDataSetDTO> cqlAppliedQDMList ;
 	
 	/** The cql quality data set DTO. */
 	CQLQualityDataSetDTO cqlQualityDataSetDTO;
+	
+	List<CQLCode> cqlCodeList;
+	
+	CQLCode cqlCode;
 
 	private String elmString = "";
 	
 	private boolean isDatatypeUsedCorrectly = true;
+	
+	private boolean isValidCQLWhileSavingExpression = true;
 	
 	/**
 	 * Gets the cql string.
@@ -244,6 +258,22 @@ public class SaveUpdateCQLResult extends GenericResult{
 		this.cqlAppliedQDMList = cqlAppliedQDMList;
 	}
 
+	public List<CQLCode> getCqlCodeList() {
+		return cqlCodeList;
+	}
+
+	public void setCqlCodeList(List<CQLCode> cqlCodeList) {
+		this.cqlCodeList = cqlCodeList;
+	}
+
+	public CQLCode getCqlCode() {
+		return cqlCode;
+	}
+
+	public void setCqlCode(CQLCode cqlCode) {
+		this.cqlCode = cqlCode;
+	}
+
 	/**
 	 * Gets the cql quality data set DTO.
 	 *
@@ -330,6 +360,18 @@ public class SaveUpdateCQLResult extends GenericResult{
 
 	public void setCqlObject(CQLObject cqlObject) {
 		this.cqlObject = cqlObject;
+	}
+
+	public int getDuplicateCode() {
+		return DUPLICATE_CODE;
+	}
+
+	public boolean isValidCQLWhileSavingExpression() {
+		return isValidCQLWhileSavingExpression;
+	}
+
+	public void setValidCQLWhileSavingExpression(boolean isValidCQLWhileSavingExpression) {
+		this.isValidCQLWhileSavingExpression = isValidCQLWhileSavingExpression;
 	}
 	
 }

@@ -117,7 +117,7 @@ public interface Generator extends MatConstants {
 	public static final String CODE = "code";
 	
 	/** The Constant VERSIONID. */
-	public static final String VERSION_5_0_ID = "2016-12-01";
+	public static final String VERSION_5_0_ID = "2017-05-01";
 	
 	/** The Constant VERSIONID. */
 	public static final String VERSION_4_1_2_ID = "2014-11-24";
@@ -125,9 +125,11 @@ public interface Generator extends MatConstants {
 	/** The Constant VERSION_4_3_ID. */
 	public static final String VERSION_4_3_ID = "2015-09-30";
 	
-	public static final String VERSION_PATIENT_CHARACTERISTIC_SEX="2014-11-24";
-	
+	/** The Constant POPULATION_CRITERIA_EXTENSION. */
 	public static final String POPULATION_CRITERIA_EXTENSION = "2015-12-01";
+	
+	/** The Constant POPULATION_CRITERIA_EXTENSION_CQL. */
+	public static final String POPULATION_CRITERIA_EXTENSION_CQL = "2017-05-01";
 	
 	/** The Constant VALUE_SET. */
 	public static final String VALUE_SET = "Value Set";

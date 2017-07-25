@@ -3,7 +3,10 @@ package mat.client.measure.service;
 import java.util.List;
 
 import mat.model.CQLValueSetTransferObject;
+import mat.model.MatCodeTransferObject;
 import mat.model.clause.CQLData;
+import mat.model.cql.CQLCodeSystem;
+import mat.model.cql.CQLCodeWrapper;
 import mat.model.cql.CQLDefinition;
 import mat.model.cql.CQLFunctions;
 import mat.model.cql.CQLIncludeLibrary;
@@ -199,5 +202,15 @@ public interface CQLService {
 	SaveUpdateCQLResult parseCQLLibraryForErrors(CQLModel cqlModel);
 
 	List<CQLLibraryAssociation> getAssociations(String id);
+
+	String getDefaultExpansionIdentifier(String xml);
+
+	SaveUpdateCQLResult saveCQLCodes(String xml , MatCodeTransferObject codeTransferObject);
+
+	CQLCodeWrapper getCQLCodes(String xmlString);
+
+	SaveUpdateCQLResult deleteCode(String xml, String toBeDeletedCodeId);
+
+	SaveUpdateCQLResult saveCQLCodeSystem(String xml, CQLCodeSystem codeSystem);
 
 }

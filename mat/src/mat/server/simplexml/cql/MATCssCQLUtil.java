@@ -197,7 +197,7 @@ public class MATCssCQLUtil {
 			"\r\n" + 
 			".treeview input[type=checkbox] ~ ul {\r\n" + 
 			"  max-height: 100%;\r\n" + 
-			"  max-width: 80%;\r\n" + 
+			"  max-width: 100%;\r\n" + 
 			"  opacity: 1;  \r\n" + 
 			"}\r\n" + 
 			"\r\n" + 
@@ -353,8 +353,9 @@ public class MATCssCQLUtil {
 			"}\r\n" + 
 			"\r\n" + 
 			".cql-definition-body {\r\n" + 
-			"	width:800px;\r\n" + 
+			"	width:950px;\r\n" + 
 			"	display: block;\r\n" + 
+			"	word-wrap: break-word;\r\n" + 
 			//"	text-indent: 20px;\r\n" + 
 			"}" + 
 			"li {"

@@ -12,15 +12,17 @@ import mat.client.measure.ManageMeasureDetailModel;
 import mat.client.measure.ManageMeasureSearchModel;
 import mat.client.measure.ManageMeasureShareModel;
 import mat.client.measure.MeasureNotesModel;
-import mat.client.measure.TransferMeasureOwnerShipModel;
+import mat.client.measure.TransferOwnerShipModel;
 import mat.client.umls.service.VsacApiResult;
 import mat.model.CQLValueSetTransferObject;
+import mat.model.MatCodeTransferObject;
 import mat.model.MatValueSet;
 import mat.model.MeasureType;
 import mat.model.Organization;
 import mat.model.QualityDataModelWrapper;
 import mat.model.QualityDataSetDTO;
 import mat.model.RecentMSRActivityLog;
+import mat.model.cql.CQLCodeWrapper;
 import mat.model.cql.CQLDefinition;
 import mat.model.cql.CQLFunctions;
 import mat.model.cql.CQLIncludeLibrary;
@@ -313,22 +315,6 @@ public interface MeasureServiceAsync {
 	void search(String searchText, int startIndex, int pageSize,int filter, AsyncCallback<ManageMeasureSearchModel> callback);
 	
 	/**
-	 * Search measures for draft.
-	 *
-	 * @param searchText the search text
-	 * @param callback the callback
-	 */
-	void searchMeasuresForDraft(String searchText, AsyncCallback<ManageMeasureSearchModel> callback);
-	
-	/**
-	 * Search measures for version.
-	 *
-	 * @param searchText the search text
-	 * @param callback the callback
-	 */
-	void searchMeasuresForVersion(String searchText, AsyncCallback<ManageMeasureSearchModel> callback);
-	
-	/**
 	 * Search users.
 	 *
 	 * @param searchText the search text
@@ -337,7 +323,7 @@ public interface MeasureServiceAsync {
 	 * @param callback the callback
 	 */
 	void searchUsers(String searchText, int startIndex, int pageSize,
-			AsyncCallback<TransferMeasureOwnerShipModel> callback);
+			AsyncCallback<TransferOwnerShipModel> callback);
 	
 	/**
 	 * Transfer owner ship to user.
@@ -772,6 +758,12 @@ public interface MeasureServiceAsync {
 
 	void updateCQLVSACValueSets(String currentMeasureId, String expansionId,
 			AsyncCallback<VsacApiResult> asyncCallback);
+
+	void saveCQLCodestoMeasure(MatCodeTransferObject transferObject, AsyncCallback<SaveUpdateCQLResult> callback);
+
+	void getCQLCodes(String measureID, AsyncCallback<CQLCodeWrapper> callback);
+
+	void deleteCode(String toBeDeletedId, String measureID, AsyncCallback<SaveUpdateCQLResult> callback);
 
 	
 }

@@ -21,12 +21,11 @@
 package edu.ycp.cs.dh.acegwt.client.ace;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
 
-import mat.client.shared.MatContext;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.core.client.JsArray;
 import com.google.gwt.core.client.JsArrayString;
@@ -40,7 +39,7 @@ import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HasText;
 import com.google.gwt.user.client.ui.RequiresResize;
 
-import java.util.Collections;
+import mat.client.shared.MatContext;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -171,6 +170,113 @@ public class AceEditor extends Composite implements RequiresResize, HasText, Tak
 		editor.setTheme("ace/theme/" + themeName);
 	}-*/;
 	
+	
+	/*public native void lockEditor(int howManyRows, int lastCol)-{
+		var htmEditor = this.@edu.ycp.cs.dh.acegwt.client.ace.AceEditor::editor;
+
+		var session = htmEditor.getSession(), Range = $wnd.ace
+				.require("ace/range").Range, range = new Range(0, 0, 26, 0), markerId = session
+				.addMarker(range, "readonly-highlight");
+
+		//session.setMode("ace/mode/html");    
+
+		range.start = session.doc.createAnchor(range.start);
+		range.end = session.doc.createAnchor(range.end);
+		range.end.$insertRight = true;
+
+		//htmEditor.getSession().setMode("ace/mode/html");
+		//htmEditor.setTheme("ace/theme/merbivore");
+		htmEditor.setOptions({
+			enableBasicAutocompletion : true,
+			enableSnippets : true
+		});
+
+		htmEditor.setShowPrintMargin(false);
+		htmEditor.setDisplayIndentGuides(false);
+		htmEditor.setHighlightActiveLine(false);
+
+		htmEditor.commands.on("afterExec", function(e) {
+			if (e.command.name == "insertstring" && /^[\<.]$/.test(e.args)) {
+				htmEditor.execCommand("startAutocomplete")
+			}
+		});
+		htmEditor.setShowPrintMargin(false);
+		htmEditor.setHighlightActiveLine(false);
+
+		htmEditor.keyBinding.addKeyboardHandler({
+			handleKeyboard : function(data, hash, keyString, keyCode, event) {
+
+				if (hash === -1 || (keyCode <= 40 && keyCode >= 37)) {
+					return false;
+				}
+				if (intersects(range)) {
+					return {
+						command : "null",
+						passEvent : false
+					};
+				}
+			}
+		});
+
+		htmEditor.commands.on("afterExec", function(e) {
+			// activate autocomplete when paren or .(dot) is typed
+			if (e.command.name == "insertstring" && /^[\\.\(.]$/.test(e.args)) {
+				//editor.execCommand("startAutocomplete");
+			}
+			if (e.command.name == "insertstring" && /^[\w\:.]$/.test(e.args)) {
+				//editor.execCommand("startAutocomplete");
+			}
+			if (e.command.name == "insertstring" && /^[\<.]$/.test(e.args)) {
+				//htmEditor.execCommand("startAutocomplete");
+			}
+		});
+
+		htmEditor.container.addEventListener("contextmenu", function(e) {
+			e.preventDefault();
+			return false;
+		}, false);
+
+		//To disable Cut Copy Paster on editor found this solution on Google Group.
+		//stop = function(e) {
+		//	e.stopPropagation();
+		//	e.preventDefault();
+		//	console.log(e)
+	//	}
+	//	document.querySelector(".ace_editor").addEventListener("copy", stop,
+	//			true)
+	//	document.querySelector(".ace_editor").addEventListener("cut", stop,
+	//			true)
+	//	document.querySelector(".ace_editor").addEventListener("paste", stop,
+	//			true)
+	//	// or
+	//	htmEditor.onCopy = htmEditor.onCut = htmEditor.onPaste = htmEditor.getCopyText = function() {
+	//		return ""
+	//	}
+
+		function before(obj, method, wrapper) {
+			var orig = obj[method];
+			obj[method] = function() {
+				var args = Array.prototype.slice.call(arguments);
+				return wrapper.apply(this, function() {
+					return orig.apply(obj, orig);
+				}, args);
+			}
+
+			return obj[method];
+		}
+
+		function intersects(range) {
+			//alert(htmEditor.getSelectionRange().intersects(range));
+			return htmEditor.getSelectionRange().intersects(range);
+		}
+
+		function preventReadonly(next) {
+			if (intersects(range))
+				return;
+			next();
+		}
+
+	}-;*/
 	/**
 	 * Set the mode.
 	 *
@@ -897,15 +1003,38 @@ public class AceEditor extends Composite implements RequiresResize, HasText, Tak
 	  
 	  $wnd.valueSetList = @edu.ycp.cs.dh.acegwt.client.ace.AceEditor::createValueSetJsArrayString();
 	  
+	  $wnd.timingList = @edu.ycp.cs.dh.acegwt.client.ace.AceEditor::createTimingJsArrayString(); 
+	  
+	  $wnd.unitsList = @edu.ycp.cs.dh.acegwt.client.ace.AceEditor::createUnitsJsArrayString();
+	  
 	}-*/;
 	
+	/**
+	 * Creates the timing js array string.
+	 *
+	 * @return the js array string
+	 */
+	private static JsArrayString createTimingJsArrayString() {
+		List<String> timingList = MatContext.get().getCqlConstantContainer().getCqlTimingList();
+		
+		JsArrayString jsArray = (JsArrayString) JsArrayString.createArray(); 
+		for (String string : timingList) {
+			jsArray.push(string);
+		}
+		
+		return jsArray; 
+	}
+	
+	/**
+	 * Creates the value set js array string.
+	 *
+	 * @return the js array string
+	 */
 	@SuppressWarnings("unchecked")
 	private static JsArrayString createValueSetJsArrayString() {
-		List<String> valueSetList = MatContext.get().getValuesets();
-		valueSetList.add("SDE Ethnicity");
-		valueSetList.add("SDE Race");
-		valueSetList.add("SDE Sex");
-		valueSetList.add("SDE Payer");
+		List<String> valueSetList = new ArrayList<String>();
+		valueSetList.addAll(MatContext.get().getValuesets());
+		valueSetList.addAll(MatContext.get().getIncludedValueSetNames());
 		
 		Collections.sort(valueSetList, new Comparator() {
 
@@ -919,8 +1048,14 @@ public class AceEditor extends Composite implements RequiresResize, HasText, Tak
 		});
 		
 		JsArrayString jsArray = (JsArrayString) JsArrayString.createArray(); 
-		for(String string : valueSetList) {
-			jsArray.push("\"" + string + "\"");
+		for (String string : valueSetList) {
+			String str[] = string.split("\\.");
+			if(str.length>1){
+				string = str[0] + "." + "\"" + str[1] + "\"";
+			} else {
+				string = '"'+string+'"';
+			}
+			jsArray.push(string);
 		}
 
 		
@@ -928,13 +1063,12 @@ public class AceEditor extends Composite implements RequiresResize, HasText, Tak
 	}
 	
 	/**
-	 * Creates the datatypes js array string
-	 * 
-	 * 
+	 * Creates the datatypes js array string.
+	 *
 	 * @return the js array string
 	 */
 	private static JsArrayString createDatatypesJsArrayString() {
-		List<String> dataTypeList = MatContext.get().dataTypeList;
+		List<String> dataTypeList = MatContext.get().getCqlConstantContainer().getCqlDatatypeList();
 		JsArrayString jsArray = (JsArrayString) JsArrayString.createArray();
 		
 		for(String string: dataTypeList) {
@@ -953,11 +1087,21 @@ public class AceEditor extends Composite implements RequiresResize, HasText, Tak
 	 * @return the js array string
 	 */
 	private static JsArrayString createDefinitionsJsArrayString() {
-		List<String> defineList = MatContext.get().definitions;
+		List<String> defineList = new ArrayList<String>();
+		defineList.addAll(MatContext.get().getDefinitions());
+		defineList.addAll(MatContext.get().getIncludedDefNames());
 		JsArrayString jsArray = (JsArrayString) JsArrayString.createArray();
+		
 		for (String string : defineList) {
-			jsArray.push('"'+string+'"');
+			String str[] = string.split("\\.");
+			if(str.length>1){
+				string = str[0] + "." + "\"" + str[1] + "\"";
+			} else {
+				string = '"'+string+'"';
+			}
+			jsArray.push(string);
 		}
+		
 		return jsArray;
 	}
 	
@@ -967,10 +1111,18 @@ public class AceEditor extends Composite implements RequiresResize, HasText, Tak
 	 * @return the js array string
 	 */
 	private static JsArrayString createParamsJsArrayString() {
-		List<String> paramList = MatContext.get().parameters;
+		List<String> paramList = new ArrayList<String>();
+		paramList.addAll(MatContext.get().getParameters());
+		paramList.addAll(MatContext.get().getIncludedParamNames());
 		JsArrayString jsArray = (JsArrayString) JsArrayString.createArray();
 		for (String string : paramList) {
-			jsArray.push('"'+string+'"');
+			String str[] = string.split("\\.");
+			if(str.length>1){
+				string = str[0] + "." + "\"" + str[1] + "\"";
+			} else {
+				string = '"'+string+'"';
+			}
+			jsArray.push(string);
 		}
 		return jsArray;
 	}
@@ -981,16 +1133,29 @@ public class AceEditor extends Composite implements RequiresResize, HasText, Tak
 	 * @return the js array string
 	 */
 	private static JsArrayString createfuncsJsArrayString() {
-		List<String> funcsList = MatContext.get().funcs;
+		List<String> funcsList = new ArrayList<String>();
+		funcsList.addAll(MatContext.get().getFuncs());
+		funcsList.addAll(MatContext.get().getIncludedFuncNames());
 		JsArrayString jsArray = (JsArrayString) JsArrayString.createArray();
 		for (String string : funcsList) {
+			String str[] = string.split("\\.");
+			if(str.length>1){
+				string = str[0] + "." + "\"" + str[1] + "\"" + "()";
+			} else {
+				string = '"'+string+'"' +"()";
+			}
 			jsArray.push(string);
 		}
 		return jsArray;
 	}
 	
+	/**
+	 * Creates the attributes js array string.
+	 *
+	 * @return the js array string
+	 */
 	private static JsArrayString createAttributesJsArrayString() {
-		List<String> funcsList = MatContext.get().allAttributeList;
+		List<String> funcsList = MatContext.get().getCqlConstantContainer().getCqlAttributeList();
 		JsArrayString jsArray = (JsArrayString) JsArrayString.createArray();
 		for (String string : funcsList) {
 			jsArray.push(convertToCamelCase(string));
@@ -998,6 +1163,12 @@ public class AceEditor extends Composite implements RequiresResize, HasText, Tak
 		return jsArray;
 	}
 	
+	/**
+	 * Convert to camel case.
+	 *
+	 * @param str the str
+	 * @return the string
+	 */
 	private static String convertToCamelCase(String str){
         String result = "";
         char firstChar = str.charAt(0);
@@ -1013,5 +1184,20 @@ public class AceEditor extends Composite implements RequiresResize, HasText, Tak
         }
         return result.replaceAll(" ", "");
 	}
+	
+	/**
+	 * Creates the units js array string.
+	 *
+	 * @return the js array string
+	 */
+	private static JsArrayString createUnitsJsArrayString(){
+		List<String> unitsList = MatContext.get().getShorcutKeyUnits();
+		JsArrayString jsArray = (JsArrayString) JsArrayString.createArray();
+		for (String string : unitsList) {
+			jsArray.push(string);
+		}
+		return jsArray;
+	}
+	
 	
 }

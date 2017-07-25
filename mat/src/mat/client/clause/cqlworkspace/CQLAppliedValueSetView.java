@@ -64,7 +64,6 @@ import mat.client.shared.MatContext;
 import mat.client.shared.MatSimplePager;
 import mat.client.shared.SearchWidgetBootStrap;
 import mat.client.shared.SpacerWidget;
-import mat.client.umls.service.VSACAPIServiceAsync;
 import mat.client.umls.service.VsacApiResult;
 import mat.client.util.CellTableUtility;
 import mat.client.util.MatTextBox;
@@ -120,11 +119,7 @@ public class CQLAppliedValueSetView implements HasSelectionHandlers<Boolean>{
 	/** The container panel. */
 	private SimplePanel containerPanel = new SimplePanel();
 	
-	/** The vsacapi service async. */
-	VSACAPIServiceAsync vsacapiServiceAsync = MatContext.get()
-			.getVsacapiServiceAsync();
-	
-	
+		
 	/** The handler manager. */
 	private HandlerManager handlerManager = new HandlerManager(this);
 	
@@ -300,7 +295,7 @@ public class CQLAppliedValueSetView implements HasSelectionHandlers<Boolean>{
 		
 		PanelHeader expProfileHeader = new PanelHeader();//new Label("QDM Elements");
 		expProfileHeader.getElement().setId("searchHeader_Label");
-		expProfileHeader.setStyleName("measureGroupingTableHeader");
+		expProfileHeader.setStyleName("CqlWorkSpaceTableHeader");
 		expProfileHeader.getElement().setAttribute("tabIndex", "0");
 		
 		HTML searchHeaderText = new HTML("<strong>Apply Expansion Profile</strong>");
@@ -375,7 +370,7 @@ public class CQLAppliedValueSetView implements HasSelectionHandlers<Boolean>{
 		searchPanel.getElement().setId("searchPanel_VerticalPanel");
 		searchPanel.setStyleName("cqlvalueSetSearchPanel");
 		
-		searchHeader.setStyleName("measureGroupingTableHeader");
+		searchHeader.setStyleName("CqlWorkSpaceTableHeader");
 		
 		
 		searchPanel.add(searchHeader);
@@ -418,48 +413,49 @@ public class CQLAppliedValueSetView implements HasSelectionHandlers<Boolean>{
 		
 		
 		VerticalPanel searchWidgetFormGroup = new VerticalPanel();
-		 searchWidgetFormGroup.add(sWidget.getSearchWidget());
-		 searchWidgetFormGroup.add(new SpacerWidget());
+		sWidget.setSearchBoxWidth("200px");
+		searchWidgetFormGroup.add(sWidget.getSearchWidget());
+		searchWidgetFormGroup.add(new SpacerWidget());
 
-		 VerticalPanel namePanel = new VerticalPanel();
-		 FormLabel nameLabel = new FormLabel();
-		 nameLabel.setText("Name");
-		 nameLabel.setTitle("Name");
-		 namePanel.add(nameLabel);
-		 namePanel.add(nameInput);
-		 namePanel.add(new SpacerWidget());
-		 
-		 VerticalPanel expansionIdFormGroup = new VerticalPanel();
-		 FormLabel expLabelPanel = new FormLabel();
-		 expLabelPanel.setText("Expansion Profile");
-		 expLabelPanel.setTitle("Expansion Profile");
-		 expansionIdFormGroup.add(expLabelPanel);
-		 expansionIdFormGroup.add(qdmExpProfileListBox);
-		 expansionIdFormGroup.add(new SpacerWidget());
-		 
-		 VerticalPanel versionFormGroup = new VerticalPanel();
-		 FormLabel verLabel = new FormLabel();
-		 verLabel.setText("Version");
-		 verLabel.setTitle("Version");
-		 versionFormGroup.add(verLabel);
-		 versionFormGroup.add(versionListBox);
-		 versionFormGroup.add(new SpacerWidget());
-		 
-		 VerticalPanel buttonFormGroup = new VerticalPanel();
-		 buttonFormGroup.add(buttonToolBar);
-		 buttonFormGroup.add(new SpacerWidget());
-		 
-		
+		VerticalPanel namePanel = new VerticalPanel();
+		FormLabel nameLabel = new FormLabel();
+		nameLabel.setText("Name");
+		nameLabel.setTitle("Name");
+		namePanel.add(nameLabel);
+		namePanel.add(nameInput);
+		namePanel.add(new SpacerWidget());
+
+		VerticalPanel expansionIdFormGroup = new VerticalPanel();
+		FormLabel expLabelPanel = new FormLabel();
+		expLabelPanel.setText("Expansion Profile");
+		expLabelPanel.setTitle("Expansion Profile");
+		expansionIdFormGroup.add(expLabelPanel);
+		expansionIdFormGroup.add(qdmExpProfileListBox);
+		expansionIdFormGroup.add(new SpacerWidget());
+
+		VerticalPanel versionFormGroup = new VerticalPanel();
+		FormLabel verLabel = new FormLabel();
+		verLabel.setText("Version");
+		verLabel.setTitle("Version");
+		versionFormGroup.add(verLabel);
+		versionFormGroup.add(versionListBox);
+		versionFormGroup.add(new SpacerWidget());
+
+		VerticalPanel buttonFormGroup = new VerticalPanel();
+		buttonFormGroup.add(buttonToolBar);
+		buttonFormGroup.add(new SpacerWidget());
+
+
 		queryGrid.setWidget(0, 0, searchWidgetFormGroup);
 		queryGrid.setWidget(1, 0, namePanel);
 		queryGrid.setWidget(2, 0, expansionIdFormGroup);
 		queryGrid.setWidget(3, 0, versionFormGroup);
 		queryGrid.setWidget(4, 0, buttonFormGroup);
 		queryGrid.setStyleName("secondLabel");
-		
-		 
+
+
 		searchPanelBody.add(queryGrid);
-			
+
 		searchPanel.add(searchPanelBody);
 		return searchPanel;
 	}
@@ -476,10 +472,10 @@ public class CQLAppliedValueSetView implements HasSelectionHandlers<Boolean>{
 		cellTablePanel.setStyleName("cellTablePanel");
 		PanelHeader qdmElementsHeader = new PanelHeader();//new Label("QDM Elements");
 		qdmElementsHeader.getElement().setId("searchHeader_Label");
-		qdmElementsHeader.setStyleName("measureGroupingTableHeader");
+		qdmElementsHeader.setStyleName("CqlWorkSpaceTableHeader");
 		qdmElementsHeader.getElement().setAttribute("tabIndex", "0");
 		
-		HTML searchHeaderText = new HTML("<strong>Applied Value Sets/Codes</strong>");
+		HTML searchHeaderText = new HTML("<strong>Applied Value Sets</strong>");
 		qdmElementsHeader.add(searchHeaderText);
 		cellTablePanel.add(qdmElementsHeader);
 		if ((appliedValueSetList != null)
@@ -509,19 +505,19 @@ public class CQLAppliedValueSetView implements HasSelectionHandlers<Boolean>{
 				invisibleLabel = (com.google.gwt.user.client.ui.Label) LabelBuilder
 						.buildInvisibleLabel(
 								"appliedQDMTableSummary",
-								"In the Following Applied Value Sets/Codes table Name in First Column"
+								"In the Following Applied Value Sets table Name in First Column"
 										+ "OID in Second Column, TableCaptionElement in Third Column, Version in Fourth Column,"
 										+ "And Modify in Fifth Column where the user can Edit and Delete "
-										+ "the existing Value set. The Applied Value Sets/Codes are listed alphabetically in a table.");
+										+ "the existing Value set. The Applied Value Sets are listed alphabetically in a table.");
 				
 				
 			} else {
 				invisibleLabel = (com.google.gwt.user.client.ui.Label) LabelBuilder
 						.buildInvisibleLabel(
 								"appliedQDMTableSummary",
-								"In the Following Applied Value Sets/Codes table Name in First Column"
+								"In the Following Applied Value Sets table Name in First Column"
 										+ "OID in Second Column, Expansion Profile in Third Column, Version in Fourth Column,"
-										+ "and Select in Fifth Column. The Applied Value Sets/Codes are listed alphabetically in a table.");
+										+ "and Select in Fifth Column. The Applied Value Sets are listed alphabetically in a table.");
 			}
 			table.getElement().setAttribute("id", "AppliedQDMTable");
 			table.getElement().setAttribute("aria-describedby",
@@ -533,7 +529,7 @@ public class CQLAppliedValueSetView implements HasSelectionHandlers<Boolean>{
 			cellTablePanel.add(cellTablePanelBody);
 			
 		} else {
-			HTML desc = new HTML("<p> No Value Sets/Codes.</p>");
+			HTML desc = new HTML("<p> No value sets.</p>");
 			cellTablePanelBody.add(desc);
 			cellTablePanel.add(desc);
 		}
@@ -551,7 +547,7 @@ public class CQLAppliedValueSetView implements HasSelectionHandlers<Boolean>{
 			final CellTable<CQLQualityDataSetDTO> table,
 			ListHandler<CQLQualityDataSetDTO> sortHandler, boolean isEditable) {
 		if (table.getColumnCount() != TABLE_ROW_COUNT ) {
-			Label searchHeader = new Label("Value Sets/Codes");
+			Label searchHeader = new Label("Value Sets");
 			searchHeader.getElement().setId("searchHeader_Label");
 			searchHeader.getElement().setAttribute("tabIndex", "0");
 			com.google.gwt.dom.client.TableElement elem = table.getElement().cast();
@@ -1031,7 +1027,7 @@ public class CQLAppliedValueSetView implements HasSelectionHandlers<Boolean>{
 			@Override
 			public SafeHtml getValue(CQLQualityDataSetDTO object) {
 				SafeHtmlBuilder sb = new SafeHtmlBuilder();
-				String title = "Click to Modify QDM";
+				String title = "Click to modify value set";
 				String cssClass = "customEditButton";
 				if(isEditable){
 					sb.appendHtmlConstant("<button tabindex=\"0\" type=\"button\" title='" + title
@@ -1082,7 +1078,7 @@ public class CQLAppliedValueSetView implements HasSelectionHandlers<Boolean>{
 			@Override
 			public SafeHtml getValue(CQLQualityDataSetDTO object) {
 				SafeHtmlBuilder sb = new SafeHtmlBuilder();
-				String title = "Click to Delete QDM";
+				String title = "Click to delete value set";
 				String cssClass;
 				if (object.isUsed()) {
 					cssClass = "customDeleteDisableButton";
@@ -1120,8 +1116,8 @@ public class CQLAppliedValueSetView implements HasSelectionHandlers<Boolean>{
 			StringBuilder title, boolean hasImage, boolean isUserDefined) {
 		if (hasImage && !isUserDefined) {
 			String htmlConstant = "<html>"
-					+ "<head> </head> <Body><img src =\"images/bullet_tick.png\" alt=\"QDM Updated From VSAC.\""
-					+ "title = \"QDM Updated From VSAC.\"/>"
+					+ "<head> </head> <Body><img src =\"images/bullet_tick.png\" alt=\"Value set is updated from VSAC.\""
+					+ "title = \"Value set is updated from VSAC.\"/>"
 					+ "<span tabIndex = \"0\" title='" + title + "'>"
 					+ columnText + "</span></body>" + "</html>";
 			return new SafeHtmlBuilder().appendHtmlConstant(htmlConstant)
@@ -1129,8 +1125,8 @@ public class CQLAppliedValueSetView implements HasSelectionHandlers<Boolean>{
 		} else if (hasImage && isUserDefined) {
 			String htmlConstant = "<html>"
 					+ "<head> </head> <Body><img src =\"images/userDefinedWarning.png\""
-					+ "alt=\"Warning : QDM not available in VSAC.\""
-					+ " title=\"QDM not available in VSAC.\"/>"
+					+ "alt=\"Warning : Value set is not available in VSAC.\""
+					+ " title=\"Value set is not available in VSAC.\"/>"
 					+ "<span tabIndex = \"0\" title='" + title + "'>"
 					+ columnText + "</span></body>" + "</html>";
 			return new SafeHtmlBuilder().appendHtmlConstant(htmlConstant)

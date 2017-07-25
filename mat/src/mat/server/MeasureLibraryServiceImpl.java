@@ -26,93 +26,6 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import mat.DTO.MeasureNoteDTO;
-import mat.DTO.MeasureTypeDTO;
-import mat.DTO.OperatorDTO;
-import mat.client.clause.clauseworkspace.model.MeasureDetailResult;
-import mat.client.clause.clauseworkspace.model.MeasureXmlModel;
-import mat.client.clause.clauseworkspace.model.SortedClauseMapResult;
-import mat.client.clause.cqlworkspace.CQLWorkSpaceConstants;
-import mat.client.measure.ManageMeasureDetailModel;
-import mat.client.measure.ManageMeasureSearchModel;
-import mat.client.measure.ManageMeasureShareModel;
-import mat.client.measure.MeasureNotesModel;
-import mat.client.measure.NqfModel;
-import mat.client.measure.PeriodModel;
-import mat.client.measure.TransferMeasureOwnerShipModel;
-import mat.client.measure.service.CQLService;
-import mat.client.measure.service.SaveMeasureNotesResult;
-import mat.client.measure.service.SaveMeasureResult;
-import mat.client.measure.service.ValidateMeasureResult;
-import mat.client.shared.ManageMeasureModelValidator;
-import mat.client.shared.ManageMeasureNotesModelValidator;
-import mat.client.shared.MatContext;
-import mat.client.shared.MatException;
-import mat.client.umls.service.VsacApiResult;
-import mat.dao.AuthorDAO;
-import mat.dao.DataTypeDAO;
-import mat.dao.MeasureNotesDAO;
-import mat.dao.MeasureTypeDAO;
-import mat.dao.OrganizationDAO;
-import mat.dao.RecentMSRActivityLogDAO;
-import mat.dao.clause.CQLLibraryDAO;
-import mat.dao.clause.MeasureDAO;
-import mat.dao.clause.MeasureXMLDAO;
-import mat.dao.clause.OperatorDAO;
-import mat.dao.clause.QDSAttributesDAO;
-import mat.model.Author;
-import mat.model.CQLValueSetTransferObject;
-import mat.model.DataType;
-import mat.model.LockedUserInfo;
-import mat.model.MatValueSet;
-import mat.model.MeasureNotes;
-import mat.model.MeasureOwnerReportDTO;
-import mat.model.MeasureSteward;
-import mat.model.MeasureType;
-import mat.model.Organization;
-import mat.model.QualityDataModelWrapper;
-import mat.model.QualityDataSetDTO;
-import mat.model.RecentMSRActivityLog;
-import mat.model.SecurityRole;
-import mat.model.User;
-import mat.model.clause.CQLLibrary;
-import mat.model.clause.Measure;
-import mat.model.clause.MeasureSet;
-import mat.model.clause.MeasureShareDTO;
-import mat.model.clause.MeasureXML;
-import mat.model.clause.QDSAttributes;
-import mat.model.clause.ShareLevel;
-import mat.model.cql.CQLDefinition;
-import mat.model.cql.CQLFunctions;
-import mat.model.cql.CQLIncludeLibrary;
-import mat.model.cql.CQLKeywords;
-import mat.model.cql.CQLModel;
-import mat.model.cql.CQLParameter;
-import mat.model.cql.CQLQualityDataModelWrapper;
-import mat.model.cql.CQLQualityDataSetDTO;
-import mat.server.model.MatUserDetails;
-import mat.server.service.InvalidValueSetDateException;
-import mat.server.service.MeasureLibraryService;
-import mat.server.service.MeasureNotesService;
-import mat.server.service.MeasurePackageService;
-import mat.server.service.UserService;
-import mat.server.service.impl.MatContextServiceUtil;
-import mat.server.util.CQLUtil;
-import mat.server.util.ExportSimpleXML;
-import mat.server.util.MATPropertiesService;
-import mat.server.util.MeasureUtility;
-import mat.server.util.ResourceLoader;
-import mat.server.util.UuidUtility;
-import mat.server.util.XmlProcessor;
-import mat.shared.CQLValidationResult;
-import mat.shared.ConstantMessages;
-import mat.shared.DateStringValidator;
-import mat.shared.DateUtility;
-import mat.shared.GetUsedCQLArtifactsResult;
-import mat.shared.SaveUpdateCQLResult;
-import mat.shared.UUIDUtilClient;
-import mat.shared.model.util.MeasureDetailsUtil;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang.StringUtils;
@@ -131,16 +44,108 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import mat.DTO.MeasureNoteDTO;
+import mat.DTO.MeasureTypeDTO;
+import mat.DTO.OperatorDTO;
+import mat.client.clause.clauseworkspace.model.MeasureDetailResult;
+import mat.client.clause.clauseworkspace.model.MeasureXmlModel;
+import mat.client.clause.clauseworkspace.model.SortedClauseMapResult;
+import mat.client.clause.clauseworkspace.presenter.PopulationWorkSpaceConstants;
+import mat.client.clause.cqlworkspace.CQLWorkSpaceConstants;
+import mat.client.measure.ManageMeasureDetailModel;
+import mat.client.measure.ManageMeasureSearchModel;
+import mat.client.measure.ManageMeasureShareModel;
+import mat.client.measure.MeasureNotesModel;
+import mat.client.measure.NqfModel;
+import mat.client.measure.PeriodModel;
+import mat.client.measure.TransferOwnerShipModel;
+import mat.client.measure.service.CQLService;
+import mat.client.measure.service.SaveMeasureNotesResult;
+import mat.client.measure.service.SaveMeasureResult;
+import mat.client.measure.service.ValidateMeasureResult;
+import mat.client.measurepackage.MeasurePackageClauseDetail;
+import mat.client.measurepackage.MeasurePackageDetail;
+import mat.client.shared.ManageMeasureModelValidator;
+import mat.client.shared.ManageMeasureNotesModelValidator;
+import mat.client.shared.MatContext;
+import mat.client.shared.MatException;
+import mat.client.umls.service.VsacApiResult;
+import mat.dao.DataTypeDAO;
+import mat.dao.MeasureNotesDAO;
+import mat.dao.MeasureTypeDAO;
+import mat.dao.OrganizationDAO;
+import mat.dao.RecentMSRActivityLogDAO;
+import mat.dao.clause.CQLLibraryDAO;
+import mat.dao.clause.MeasureDAO;
+import mat.dao.clause.MeasureXMLDAO;
+import mat.dao.clause.OperatorDAO;
+import mat.dao.clause.QDSAttributesDAO;
+import mat.model.Author;
+import mat.model.CQLValueSetTransferObject;
+import mat.model.DataType;
+import mat.model.LockedUserInfo;
+import mat.model.MatCodeTransferObject;
+import mat.model.MatValueSet;
+import mat.model.MeasureNotes;
+import mat.model.MeasureOwnerReportDTO;
+import mat.model.MeasureSteward;
+import mat.model.MeasureType;
+import mat.model.Organization;
+import mat.model.QualityDataModelWrapper;
+import mat.model.QualityDataSetDTO;
+import mat.model.RecentMSRActivityLog;
+import mat.model.SecurityRole;
+import mat.model.User;
+import mat.model.clause.CQLLibrary;
+import mat.model.clause.Measure;
+import mat.model.clause.MeasureSet;
+import mat.model.clause.MeasureShareDTO;
+import mat.model.clause.MeasureXML;
+import mat.model.clause.QDSAttributes;
+import mat.model.cql.CQLCodeSystem;
+import mat.model.cql.CQLCodeWrapper;
+import mat.model.cql.CQLDefinition;
+import mat.model.cql.CQLFunctions;
+import mat.model.cql.CQLIncludeLibrary;
+import mat.model.cql.CQLKeywords;
+import mat.model.cql.CQLModel;
+import mat.model.cql.CQLParameter;
+import mat.model.cql.CQLQualityDataModelWrapper;
+import mat.model.cql.CQLQualityDataSetDTO;
+import mat.server.model.MatUserDetails;
+import mat.server.service.InvalidValueSetDateException;
+import mat.server.service.MeasureLibraryService;
+import mat.server.service.MeasureNotesService;
+import mat.server.service.MeasurePackageService;
+import mat.server.service.UserService;
+import mat.server.service.impl.MatContextServiceUtil;
+import mat.server.service.impl.PatientBasedValidator;
+import mat.server.util.CQLUtil;
+import mat.server.util.ExportSimpleXML;
+import mat.server.util.MATPropertiesService;
+import mat.server.util.MeasureUtility;
+import mat.server.util.ResourceLoader;
+import mat.server.util.UuidUtility;
+import mat.server.util.XmlProcessor;
+import mat.shared.CQLValidationResult;
+import mat.shared.ConstantMessages;
+import mat.shared.DateStringValidator;
+import mat.shared.DateUtility;
+import mat.shared.GetUsedCQLArtifactsResult;
+import mat.shared.SaveUpdateCQLResult;
+import mat.shared.UUIDUtilClient;
+import mat.shared.model.util.MeasureDetailsUtil;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Class MeasureLibraryServiceImpl.
  */
-@SuppressWarnings("serial")
 public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 
 	/**
@@ -190,33 +195,17 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 	@Autowired
 	private ApplicationContext context;
 
-	/** The measure package service. */
-	@Autowired
-	private MeasurePackageService measurePackageService;
-
 	/** The measure dao. */
 	@Autowired
 	private MeasureDAO measureDAO;
-
-	/** The qds attributes dao. */
-	@Autowired
-	private QDSAttributesDAO qDSAttributesDAO;
 
 	/** The recent msr activity log dao. */
 	@Autowired
 	private RecentMSRActivityLogDAO recentMSRActivityLogDAO;
 
-	/** The user service. */
-	@Autowired
-	private UserService userService;
-
 	/** The measure type dao. */
 	@Autowired
 	private MeasureTypeDAO measureTypeDAO;
-
-	/** The author dao. */
-	@Autowired
-	private AuthorDAO authorDAO;
 
 	/** The operator dao. */
 	@Autowired
@@ -249,16 +238,17 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 	 * clause.clauseworkspace.model.MeasureXmlModel, java.lang.String)
 	 */
 	@Override
-	public final void appendAndSaveNode(final MeasureXmlModel measureXmlModel, final String nodeName) {
+	public final String appendAndSaveNode(final MeasureXmlModel measureXmlModel, final String nodeName) {
+		String result = new String();
 		MeasureXmlModel xmlModel = getService().getMeasureXmlForMeasure(measureXmlModel.getMeasureId());
 		if ((xmlModel != null && StringUtils.isNotBlank(xmlModel.getXml()))
 				&& (nodeName != null && StringUtils.isNotBlank(nodeName))) {
-			String result = callAppendNode(xmlModel, measureXmlModel.getXml(), nodeName,
+			 result = callAppendNode(xmlModel, measureXmlModel.getXml(), nodeName,
 					measureXmlModel.getParentNode());
 			xmlModel.setXml(result);
 			getService().saveMeasureXml(xmlModel);
 		}
-
+		return result;
 	}
 
 	/*
@@ -1340,6 +1330,8 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		detail.setVersion(formattedVersion);
 		detail.setFinalizedDate(dto.getFinalizedDate());
 		detail.setMeasureSetId(dto.getMeasureSetId());
+		detail.setDraftable(dto.isDraftable());
+		detail.setVersionable(dto.isVersionable());
 		return detail;
 	}
 
@@ -1550,9 +1542,7 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		ManageMeasureSearchModel manageMeasureSearchModel = new ManageMeasureSearchModel();
 		List<ManageMeasureSearchModel.Result> detailModelList = new ArrayList<ManageMeasureSearchModel.Result>();
 		manageMeasureSearchModel.setData(detailModelList);
-		String currentUserId = LoggedInUserUtil.getLoggedInUser();
-		String userRole = LoggedInUserUtil.getLoggedInUserRole();
-		boolean isSuperUser = SecurityRole.SUPER_USER_ROLE.equals(userRole);
+		
 		for (RecentMSRActivityLog activityLog : recentMeasureActivityList) {
 			Measure measure = getMeasureDAO().find(activityLog.getMeasureId());
 			ManageMeasureSearchModel.Result detail = new ManageMeasureSearchModel.Result();
@@ -1578,15 +1568,14 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 			detail.setMeasureLocked(isLocked);
 			// Prod issue fixed - Measure Shared with Regular users not loaded
 			// as editable measures.
-			List<MeasureShareDTO> measureShare = getMeasureDAO().getMeasureShareInfoForMeasureAndUser(currentUserId,
-					measure.getId());
-			if (measureShare.size() > 0) {
+			/*List<MeasureShareDTO> measureShare = getMeasureDAO().getMeasureShareInfoForMeasureAndUser(currentUserId,
+					measure.getId());*/
+			/*if (measureShare.size() > 0) {
 				detail.setEditable(((currentUserId.equals(measure.getOwner().getId()) || isSuperUser
 						|| ShareLevel.MODIFY_ID.equals(measureShare.get(0).getShareLevel()))) && measure.isDraft());
 			} else {
-				detail.setEditable(
-						(currentUserId.equals(measure.getOwner().getId()) || isSuperUser) && measure.isDraft());
-			}
+			*/	detail.setEditable(MatContextServiceUtil.get().isCurrentMeasureEditable(measureDAO, measure.getId()));
+			//}
 			if (isLocked && (measure.getLockedUser() != null)) {
 				LockedUserInfo lockedUserInfo = new LockedUserInfo();
 				lockedUserInfo.setUserId(measure.getLockedUser().getId());
@@ -1619,57 +1608,7 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * mat.server.service.MeasureLibraryService#getAppliedQDMFromMeasureXml(java
-	 * .lang.String, boolean)
-	 */
-	// @Override
-	// public final ArrayList<QualityDataSetDTO>
-	// getAppliedQDMFromMeasureXml(final String measureId,
-	// final boolean checkForSupplementData) {
-	// MeasureXmlModel measureXmlModel = getMeasureXmlForMeasure(measureId);
-	// QualityDataModelWrapper details =
-	// convertXmltoQualityDataDTOModel(measureXmlModel);
-	// ArrayList<QualityDataSetDTO> finalList = new
-	// ArrayList<QualityDataSetDTO>();
-	// if (details != null) {
-	// if ((details.getQualityDataDTO() != null) &&
-	// (details.getQualityDataDTO().size() != 0)) {
-	// logger.info(" details.getQualityDataDTO().size() :" +
-	// details.getQualityDataDTO().size());
-	// for (QualityDataSetDTO dataSetDTO : details.getQualityDataDTO()) {
-	// if ((dataSetDTO.getOccurrenceText() != null)
-	// && StringUtils.isNotBlank(dataSetDTO.getOccurrenceText())
-	// && StringUtils.isNotEmpty(dataSetDTO.getOccurrenceText())) {
-	// dataSetDTO.setSpecificOccurrence(true);
-	// }
-	// if (dataSetDTO.getCodeListName() != null) {
-	// if ((checkForSupplementData && dataSetDTO.isSuppDataElement())) {
-	// continue;
-	// } else {
-	// finalList.add(dataSetDTO);
-	// }
-	// }
-	// }
-	// }
-	// Collections.sort(finalList, new Comparator<QualityDataSetDTO>() {
-	// @Override
-	// public int compare(final QualityDataSetDTO o1, final QualityDataSetDTO
-	// o2) {
-	// return o1.getCodeListName().compareToIgnoreCase(o2.getCodeListName());
-	// }
-	// });
-	// }
-	//
-	// finalList = findUsedQDMs(finalList, measureXmlModel);
-	// logger.info("finalList()of QualityDataSetDTO ::" + finalList.size());
-	// return finalList;
-	//
-	// }
-
+	
 	@Override
 	public final QualityDataModelWrapper getAppliedQDMFromMeasureXml(final String measureId,
 			final boolean checkForSupplementData) {
@@ -1839,7 +1778,15 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		logger.info("Loading Measure for MeasueId: " + key);
 		Measure measure = getService().getById(key);
 		MeasureXmlModel xml = getMeasureXmlForMeasure(key);
-		return convertXmltoModel(xml, measure);
+		MeasureDetailResult measureDetailResult = getUsedStewardAndDevelopersList(measure.getId());
+		
+		ManageMeasureDetailModel manageMeasureDetailModel = convertXmltoModel(xml, measure);
+		manageMeasureDetailModel.setMeasureDetailResult(measureDetailResult);
+		
+		System.out.println(measureDetailResult.getAllAuthorList());
+		System.out.println(measureDetailResult.getUsedSteward().getOrgName());
+		System.out.println(manageMeasureDetailModel.getName());
+		return manageMeasureDetailModel;
 
 	}
 
@@ -2116,21 +2063,7 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		return sortedMainClauseMap;
 	}
 
-	/**
-	 * Gets the page count.
-	 * 
-	 * @param userId
-	 *            the user id
-	 * @return {@link Integer}. *
-	 */
-	/*
-	 * private int getPageCount(final long totalRows, final int numberOfRows) {
-	 * int pageCount = 0; int mod = (int) (totalRows % numberOfRows); pageCount
-	 * = (int) (totalRows / numberOfRows); pageCount = (mod > 0) ? (pageCount +
-	 * 1) : pageCount; return pageCount; }
-	 */
-
-	/*
+		/*
 	 * (non-Javadoc)
 	 * 
 	 * @see
@@ -3081,60 +3014,14 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * mat.server.service.MeasureLibraryService#searchMeasuresForDraft(java.lang
-	 * .String)
-	 */
-	@Override
-	public final ManageMeasureSearchModel searchMeasuresForDraft(final String searchText) {
-		String currentUserId = LoggedInUserUtil.getLoggedInUser();
-		String userRole = LoggedInUserUtil.getLoggedInUserRole();
-		boolean isSuperUser = SecurityRole.SUPER_USER_ROLE.equals(userRole);
-		ManageMeasureSearchModel searchModel = new ManageMeasureSearchModel();
-		List<MeasureShareDTO> measureList = getService().searchMeasuresForDraft(searchText);
-		searchModel.setResultsTotal((int) getService().countMeasuresForDraft(searchText));
-		List<ManageMeasureSearchModel.Result> detailModelList = new ArrayList<ManageMeasureSearchModel.Result>();
-		searchModel.setData(detailModelList);
-		for (MeasureShareDTO dto : measureList) {
-			setDTOtoModel(detailModelList, dto, currentUserId, isSuperUser);
-		}
-		return searchModel;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * mat.server.service.MeasureLibraryService#searchMeasuresForVersion(java.
-	 * lang.String)
-	 */
-	@Override
-	public final ManageMeasureSearchModel searchMeasuresForVersion(final String searchText) {
-		String currentUserId = LoggedInUserUtil.getLoggedInUser();
-		String userRole = LoggedInUserUtil.getLoggedInUserRole();
-		boolean isSuperUser = SecurityRole.SUPER_USER_ROLE.equals(userRole);
-		ManageMeasureSearchModel searchModel = new ManageMeasureSearchModel();
-		List<MeasureShareDTO> measureList = getService().searchMeasuresForVersion(searchText);
-		searchModel.setResultsTotal((int) getService().countMeasuresForVersion(searchText));
-		List<ManageMeasureSearchModel.Result> detailModelList = new ArrayList<ManageMeasureSearchModel.Result>();
-		searchModel.setData(detailModelList);
-
-		for (MeasureShareDTO dto : measureList) {
-			setDTOtoModel(detailModelList, dto, currentUserId, isSuperUser);
-		}
-		return searchModel;
-	}
-
+	
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see mat.server.service.MeasureLibraryService#searchUsers(int, int)
 	 */
 	@Override
-	public final TransferMeasureOwnerShipModel searchUsers(final String searchText, final int startIndex,
+	public final TransferOwnerShipModel searchUsers(final String searchText, final int startIndex,
 			final int pageSize) {
 		UserService usersService = getUserService();
 		List<User> searchResults;
@@ -3145,10 +3032,10 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		}
 		logger.info("User search returned " + searchResults.size());
 
-		TransferMeasureOwnerShipModel result = new TransferMeasureOwnerShipModel();
-		List<TransferMeasureOwnerShipModel.Result> detailList = new ArrayList<TransferMeasureOwnerShipModel.Result>();
+		TransferOwnerShipModel result = new TransferOwnerShipModel();
+		List<TransferOwnerShipModel.Result> detailList = new ArrayList<TransferOwnerShipModel.Result>();
 		for (User user : searchResults) {
-			TransferMeasureOwnerShipModel.Result r = new TransferMeasureOwnerShipModel.Result();
+			TransferOwnerShipModel.Result r = new TransferOwnerShipModel.Result();
 			r.setFirstName(user.getFirstName());
 			r.setLastName(user.getLastName());
 			r.setEmailId(user.getEmailAddress());
@@ -3252,50 +3139,12 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 	}
 
 	/**
-	 * Sets the dt oto model.
-	 * 
-	 * @param detailModelList
-	 *            - {@link ManageMeasureSearchModel.Result}.
-	 * @param dto
-	 *            - {@link MeasureShareDTO}.
-	 * @param currentUserId
-	 *            - {@link String}.
-	 * @param isSuperUser
-	 *            - {@link Boolean}. *
-	 */
-	private void setDTOtoModel(final List<ManageMeasureSearchModel.Result> detailModelList, final MeasureShareDTO dto,
-			final String currentUserId, final boolean isSuperUser) {
-		boolean isOwner = currentUserId.equals(dto.getOwnerUserId());
-		ManageMeasureSearchModel.Result detail = new ManageMeasureSearchModel.Result();
-		detail.setName(dto.getMeasureName());
-		detail.setShortName(dto.getShortName());
-		detail.setStatus(dto.getStatus());
-		detail.setId(dto.getMeasureId());
-		detail.setStatus(dto.getStatus());
-		detail.setClonable(isOwner || isSuperUser);
-		detail.setEditable(
-				(isOwner || isSuperUser || ShareLevel.MODIFY_ID.equals(dto.getShareLevel())) && dto.isDraft());
-		detail.setMeasureLocked(dto.isLocked());
-		detail.setExportable(dto.isPackaged());
-		detail.setSharable(isOwner || isSuperUser);
-		detail.setLockedUserInfo(dto.getLockedUserInfo());
-		detail.setDraft(dto.isDraft());
-		String formattedVersion = MeasureUtility.getVersionTextWithRevisionNumber(dto.getVersion(),
-				dto.getRevisionNumber(), dto.isDraft());
-		detail.setVersion(formattedVersion);
-		detail.setScoringType(dto.getScoringType());
-		detail.setMeasureSetId(dto.getMeasureSetId());
-		detailModelList.add(detail);
-	}
-
-	/**
 	 * Sets the measure package service.
 	 * 
 	 * @param measurePackagerService
 	 *            the new measure package service
 	 */
 	public final void setMeasurePackageService(final MeasurePackageService measurePackagerService) {
-		measurePackageService = measurePackagerService;
 	}
 
 	/**
@@ -3330,7 +3179,6 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 	 *            the new user service
 	 */
 	public final void setUserService(final UserService usersService) {
-		userService = usersService;
 	}
 
 	/**
@@ -4262,6 +4110,35 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 					if (isInvalid) {
 						result.setValid(false);
 						result.setValidationMessages(message);
+					} else {
+						Map<Integer, MeasurePackageDetail> seqDetailMap = checkTypeCheckValidationInGroupings(
+								measureXmlModel, xmlProcessor);
+						if(!seqDetailMap.isEmpty()){
+							List<String> typeCheckErrorMessage = new ArrayList<String>();
+							typeCheckErrorMessage.add(MatContext.get().getMessageDelegate().getCreatePackageTypeCheckError());
+							String allMessages = new String("");
+							boolean isTypeCheckInValid = false;
+							try {
+								for (Map.Entry<Integer, MeasurePackageDetail> entry : seqDetailMap.entrySet()) {
+									List<String> messages = PatientBasedValidator.checkPatientBasedValidations(xmlModel.getXml(), entry.getValue(), cqlLibraryDAO);
+									if(messages.size() >0){
+										allMessages = allMessages +"Grouping " + entry.getKey()+ ", ";
+										isTypeCheckInValid = true;
+									}
+								}
+								if(isTypeCheckInValid){
+									result.setValid(false);
+									int position = allMessages.lastIndexOf(",");
+									if (position!=-1)
+										allMessages = allMessages.substring(0, position);
+									typeCheckErrorMessage.add(allMessages+". Please re-save your measure grouping(s) for additional information.");
+									result.setValidationMessages(typeCheckErrorMessage);
+								}
+								
+							} catch (XPathExpressionException e) {
+								typeCheckErrorMessage.add("Unexpected error encountered while doing Group Validations. Please contact HelpDesk.");
+							}
+						}
 					}
 				}
 			} catch (XPathExpressionException e) {
@@ -4270,6 +4147,75 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		}
 
 		return result;
+	}
+
+	/**
+	 * @param measureXmlModel
+	 * @param xmlProcessor
+	 * @return
+	 * @throws XPathExpressionException
+	 */
+	public Map<Integer, MeasurePackageDetail> checkTypeCheckValidationInGroupings(MeasureXmlModel measureXmlModel,
+			XmlProcessor xmlProcessor) throws XPathExpressionException {
+		// XPath to get all measure Groupings
+		NodeList measureGroups = xmlProcessor.findNodeList(xmlProcessor.getOriginalDoc(),
+				XmlProcessor.XPATH_MEASURE_GROUPING_GROUP); 
+		Map<Integer, MeasurePackageDetail> seqDetailMap = new HashMap<Integer, MeasurePackageDetail>();
+		// iterate through the measure groupings and get the sequence number
+		// attribute and insert in a map with sequence as key and
+		// MeasurePackageDetail as value.
+		if ((measureGroups != null) && (measureGroups.getLength() > 0)) {
+			for (int i = 0; i < measureGroups.getLength(); i++) {
+				NamedNodeMap groupAttrs = measureGroups.item(i).getAttributes();
+				Integer seq = Integer.parseInt(groupAttrs.getNamedItem("sequence").getNodeValue());
+				MeasurePackageDetail detail = seqDetailMap.get(seq);
+				if (detail == null) {
+					detail = new MeasurePackageDetail();
+					detail.setSequence(Integer.toString(seq));
+					detail.setMeasureId(measureXmlModel.getMeasureId());
+					seqDetailMap.put(seq, detail);
+				}
+				NodeList pkgClauses = measureGroups.item(i).getChildNodes();
+				// Iterate through the PACKAGECLAUSE nodes and
+				// convert it into MeasurePackageClauseDetail add it to the list
+				// in MeasurePackageDetail
+				for (int j = 0; j < pkgClauses.getLength(); j++) {
+
+					if (!PopulationWorkSpaceConstants.PACKAGE_CLAUSE_NODE
+							.equals(pkgClauses.item(j).getNodeName())) {
+						// group node can contain tab or new
+						// lines
+						// which can be counted as it's
+						// child.Those should
+						// be filtered.
+						continue;
+					}
+
+					NamedNodeMap pkgClauseMap = pkgClauses.item(j).getAttributes();
+					Node associatedClauseNode = pkgClauseMap.getNamedItem("associatedPopulationUUID");
+					String associatedClauseNodeUuid = null;
+					if (associatedClauseNode != null) {
+						associatedClauseNodeUuid = associatedClauseNode.getNodeValue();
+					}
+					detail.getPackageClauses().add(createMeasurePackageClauseDetail(
+							pkgClauseMap.getNamedItem(PopulationWorkSpaceConstants.UUID).getNodeValue(),
+							pkgClauseMap.getNamedItem("name").getNodeValue(),
+							pkgClauseMap.getNamedItem(PopulationWorkSpaceConstants.TYPE).getNodeValue(),
+							associatedClauseNodeUuid));
+				}
+			}
+		}
+		return seqDetailMap;
+	}
+	
+	private MeasurePackageClauseDetail createMeasurePackageClauseDetail(String id, String name, String type,
+			String associatedPopulationUUID) {
+		MeasurePackageClauseDetail detail = new MeasurePackageClauseDetail();
+		detail.setId(id);
+		detail.setName(name);
+		detail.setType(type);
+		detail.setAssociatedPopulationUUID(associatedPopulationUUID);
+		return detail;
 	}
 
 	/**
@@ -5682,27 +5628,30 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 				if (measureXML != null) {
 					String measureXmlString = measureXML.getMeasureXMLAsString();
 					if (measureXmlString != null) {
-						MeasureOwnerReportDTO ownerReportDTO = new MeasureOwnerReportDTO();
-						ownerReportDTO.setFirstName(user.getFirstName());
-						ownerReportDTO.setLastName(user.getLastName());
-						ownerReportDTO.setOrganizationName(user.getOrganizationName());
-						ownerReportDTO.setMeasureDescription(measure.getDescription());
-						ownerReportDTO.setCmsNumber(measure.geteMeasureId());
+						String firstName = user.getFirstName();
+						String lastName = user.getLastName();
+						String organizationName = user.getOrganizationName();
+						String measureDescription = measure.getDescription();
+						int cmsNumber = measure.geteMeasureId();
 						XmlProcessor processor = new XmlProcessor(measureXmlString);
 						String xpathNqfId = "/measure/measureDetails/nqfid";
 						String xpathGuid = "/measure/measureDetails/guid";
 						Node nqfNode = processor.findNode(processor.getOriginalDoc(), xpathNqfId);
+						String nqfId = "";
 						if (nqfNode != null) {
 							if (nqfNode.getAttributes().getNamedItem("extension") != null) {
 								String nqfNumber = nqfNode.getAttributes().getNamedItem("extension").getNodeValue();
-								ownerReportDTO.setNqfId(nqfNumber);
+								nqfId = nqfNumber;
 							}
 						}
 						Node guidNode = processor.findNode(processor.getOriginalDoc(), xpathGuid);
+						String guid = "";
 						if (guidNode != null) {
 							String guidNumber = guidNode.getTextContent();
-							ownerReportDTO.setGuid(guidNumber);
+							guid = guidNumber;
 						}
+						
+						MeasureOwnerReportDTO ownerReportDTO = new MeasureOwnerReportDTO(firstName, lastName, organizationName, measureDescription, cmsNumber, nqfId, guid);
 						measureOwnerReportDTOs.add(ownerReportDTO);
 					}
 				} else {
@@ -5892,6 +5841,7 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		if (MatContextServiceUtil.get().isCurrentMeasureEditable(measureDAO, measureId)) {
 			MeasureXmlModel measureXMLModel = getService().getMeasureXmlForMeasure(measureId);
 			if (measureXMLModel != null) {
+				MatContextServiceUtil.get().setMeasure(true);
 				result = getCqlService().saveAndModifyDefinitions(measureXMLModel.getXml(), toBeModifiedObj, currentObj,
 						definitionList);
 				if (result.isSuccess()) {
@@ -5900,6 +5850,7 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 				}
 			}
 		}
+		MatContextServiceUtil.get().setMeasure(false);
 		return result;
 	}
 
@@ -5948,6 +5899,7 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		if (MatContextServiceUtil.get().isCurrentMeasureEditable(measureDAO, measureId)) {
 			MeasureXmlModel measureXMLModel = getService().getMeasureXmlForMeasure(measureId);
 			if (measureXMLModel != null) {
+				MatContextServiceUtil.get().setMeasure(true);
 				result = getCqlService().saveAndModifyFunctions(measureXMLModel.getXml(), toBeModifiedObj,
 						currentObj, functionsList);
 				if (result.isSuccess()) {
@@ -5956,6 +5908,7 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 				}
 			}
 		}
+		MatContextServiceUtil.get().setMeasure(false);
 		return result;
 
 	}
@@ -6082,6 +6035,25 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		}
 		return cqlResult;
 	}
+	
+	
+	@Override
+	public SaveUpdateCQLResult deleteCode(String toBeDeletedId, String measureID) {
+		
+		SaveUpdateCQLResult cqlResult = new SaveUpdateCQLResult();
+		if (MatContextServiceUtil.get().isCurrentMeasureEditable(measureDAO, measureID)) {
+			MeasureXmlModel model = getService().getMeasureXmlForMeasure(measureID);
+			if(model != null && model.getXml() != null){
+				cqlResult = getCqlService().deleteCode(model.getXml(), toBeDeletedId);
+				if(cqlResult != null && cqlResult.isSuccess()){
+					model.setXml(cqlResult.getXml());
+					getService().saveMeasureXml(model);
+					cqlResult.setCqlCodeList(getCQLCodes(measureID).getCqlCodeList());
+				}
+			}
+		}
+		return cqlResult;
+	}
 
 	@Override
 	public SaveUpdateCQLResult parseCQLStringForError(String cqlFileString) {
@@ -6168,6 +6140,85 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 		}
 		return result;
 	}
+	
+	@Override
+	public SaveUpdateCQLResult saveCQLCodestoMeasure(MatCodeTransferObject transferObject) {
+		
+		SaveUpdateCQLResult result = new SaveUpdateCQLResult();
+		if (MatContextServiceUtil.get().isCurrentMeasureEditable(measureDAO, transferObject.getId())) {
+			MeasureXmlModel xmlModel = getService().getMeasureXmlForMeasure(transferObject.getId());
+			if (xmlModel != null && !xmlModel.getXml().isEmpty()) {
+				result = getCqlService().saveCQLCodes(xmlModel.getXml(), transferObject);
+				if (result != null && result.isSuccess()) {
+					String newSavedXml = saveCQLCodesInMeasureXml(result, transferObject.getId());
+					if(!newSavedXml.isEmpty()){
+						CQLCodeWrapper wrapper = getCqlService().getCQLCodes(newSavedXml);
+						if(wrapper!= null && !wrapper.getCqlCodeList().isEmpty()){
+							result.setCqlCodeList(wrapper.getCqlCodeList());
+						}
+						CQLCodeSystem codeSystem = new CQLCodeSystem();
+						codeSystem.setCodeSystem(transferObject.getCqlCode().getCodeSystemOID());
+						codeSystem.setCodeSystemName(transferObject.getCqlCode().getCodeSystemName());
+						codeSystem.setCodeSystemVersion(transferObject.getCqlCode().getCodeSystemVersion());
+						SaveUpdateCQLResult updatedResult = getCqlService().saveCQLCodeSystem(newSavedXml, codeSystem);
+						if(updatedResult.isSuccess()) {
+							 saveCQLCodeSystemInMeasureXml(updatedResult, transferObject.getId());
+						}
+						
+						
+						
+					}
+				}
+
+			}
+		}
+		return result;
+	}
+	
+	@Override
+	public CQLCodeWrapper getCQLCodes(String measureID) {
+		CQLCodeWrapper cqlCodeWrapper = new CQLCodeWrapper();
+		MeasureXmlModel model = getService().getMeasureXmlForMeasure(measureID);
+		if(model != null){
+			String xmlString = model.getXml();
+			cqlCodeWrapper = getCqlService().getCQLCodes(xmlString);
+		}
+		
+		return cqlCodeWrapper;
+	}
+	
+	/**
+	 * Save CQL valueset in measure xml.
+	 *
+	 * @param result
+	 *            the result
+	 */
+	private String saveCQLCodesInMeasureXml(SaveUpdateCQLResult result, String measureId) {
+		final String nodeName = "code";
+		MeasureXmlModel xmlModal = new MeasureXmlModel();
+		xmlModal.setMeasureId(measureId);
+		xmlModal.setParentNode("//cqlLookUp/codes");
+		xmlModal.setToReplaceNode(nodeName);
+		System.out.println("CODE NEW XML " + result.getXml());
+		xmlModal.setXml(result.getXml());
+
+		return appendAndSaveNode(xmlModal, nodeName);
+		
+	}
+
+	
+	private String saveCQLCodeSystemInMeasureXml(SaveUpdateCQLResult result, String measureId) {
+		final String nodeName = "codeSystem";
+		MeasureXmlModel xmlModal = new MeasureXmlModel();
+		xmlModal.setMeasureId(measureId);
+		xmlModal.setParentNode("//cqlLookUp/codeSystems");
+		xmlModal.setToReplaceNode(nodeName);
+		System.out.println("codeSystems NEW XML " + result.getXml());
+		xmlModal.setXml(result.getXml());
+
+		return appendAndSaveNode(xmlModal, nodeName);
+		
+	}
 
 	/**
 	 * Save CQL valueset in measure xml.
@@ -6224,7 +6275,11 @@ public class MeasureLibraryServiceImpl implements MeasureLibraryService {
 
 		if (model != null && !StringUtils.isEmpty(model.getXml())) {
 			String xmlString = model.getXml();
+			/*CQLModel cqlModel = new CQLModel();
+			cqlModel = CQLUtilityClass.getCQLStringFromXML(xmlString);
+			result.setCqlModel(cqlModel);*/
 			result = cqlService.getCQLData(xmlString);
+			result.setExpIdentifier(cqlService.getDefaultExpansionIdentifier(xmlString));
 			result.setSetId(measure.getMeasureSet().getId());
 			result.setSuccess(true);
 		} else {

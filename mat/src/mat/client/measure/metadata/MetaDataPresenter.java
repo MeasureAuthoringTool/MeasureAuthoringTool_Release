@@ -746,6 +746,11 @@ public class MetaDataPresenter  implements MatPresenter {
 		void addRow(FlexTable reference);
 		
 		FlexTable getReferenceTable();
+
+		/**
+		 * Gets the patient based input label
+		 */
+		Label getPatientBasedInput();
 	}
 	
 	/**
@@ -1574,6 +1579,18 @@ public class MetaDataPresenter  implements MatPresenter {
 		metaDataDisplay.getShortName().setTitle(currentMeasureDetail.getShortName());
 		metaDataDisplay.getMeasureScoring().setText(currentMeasureDetail.getMeasScoring());
 		metaDataDisplay.getMeasureScoring().setTitle(currentMeasureDetail.getMeasScoring());
+		
+		// set the patient based input label
+		if(currentMeasureDetail.isPatientBased()) {
+			metaDataDisplay.getPatientBasedInput().setText("Yes");
+			metaDataDisplay.getPatientBasedInput().setTitle("Yes");			
+		} else {
+			metaDataDisplay.getPatientBasedInput().setText("No");
+			metaDataDisplay.getPatientBasedInput().setTitle("No");		
+		}
+		
+		
+		
 		metaDataDisplay.getClinicalRecommendation().setValue(currentMeasureDetail.getClinicalRecomms());
 		metaDataDisplay.getDefinitions().setValue(currentMeasureDetail.getDefinitions());
 		metaDataDisplay.getDescription().setValue(currentMeasureDetail.getDescription());
@@ -1617,7 +1634,29 @@ public class MetaDataPresenter  implements MatPresenter {
 		metaDataDisplay.getRationale().setValue(currentMeasureDetail.getRationale());
 		metaDataDisplay.getStratification().setValue(currentMeasureDetail.getStratification());
 		metaDataDisplay.getRiskAdjustment().setValue(currentMeasureDetail.getRiskAdjustment());
-		setStewardAndMeasureDevelopers();
+		
+//		// steward list
+		if(currentMeasureDetail.getMeasureDetailResult().getUsedSteward() != null) {
+			metaDataDisplay.setStewardId(currentMeasureDetail.getMeasureDetailResult().getUsedSteward().getId());
+			metaDataDisplay.setStewardValue((currentMeasureDetail.getMeasureDetailResult().getUsedSteward().getOrgName()));
+		} else {
+			metaDataDisplay.setStewardId(null);
+			metaDataDisplay.setStewardValue(null);
+		}
+		
+		// author list
+		if(currentMeasureDetail.getAuthorSelectedList() != null) {
+			metaDataDisplay.setAuthorsSelectedList(currentMeasureDetail.getMeasureDetailResult().getUsedAuthorList());
+		} else {
+			List<Author> authorList = new ArrayList<Author>();
+			metaDataDisplay.setAuthorsSelectedList(authorList);
+			currentMeasureDetail.setAuthorSelectedList(authorList);
+		}
+		dbAuthorList.clear();
+		dbAuthorList.addAll(currentMeasureDetail.getAuthorSelectedList());
+		metaDataDisplay.buildStewardCellTable(currentMeasureDetail.getMeasureDetailResult().getAllStewardList(), editable);
+		metaDataDisplay.buildAuthorCellTable(currentMeasureDetail.getMeasureDetailResult().getAllAuthorList(), editable);
+//		setStewardAndMeasureDevelopers();
 		
 		//measureTypeSelectList
 		if (currentMeasureDetail.getMeasureTypeSelectedList() != null) {

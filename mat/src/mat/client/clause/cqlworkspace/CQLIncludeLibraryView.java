@@ -5,11 +5,15 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.gwtbootstrap3.client.ui.Button;
+import org.gwtbootstrap3.client.ui.FormGroup;
+import org.gwtbootstrap3.client.ui.FormLabel;
 import org.gwtbootstrap3.client.ui.Label;
 import org.gwtbootstrap3.client.ui.Panel;
 import org.gwtbootstrap3.client.ui.PanelBody;
 import org.gwtbootstrap3.client.ui.PanelHeader;
 import org.gwtbootstrap3.client.ui.constants.LabelType;
+import org.gwtbootstrap3.client.ui.constants.PanelType;
+import org.gwtbootstrap3.client.ui.constants.ValidationState;
 
 import com.google.gwt.cell.client.Cell;
 import com.google.gwt.cell.client.CompositeCell;
@@ -54,11 +58,16 @@ import mat.client.util.CellTableUtility;
 import mat.client.util.MatTextBox;
 import mat.model.cql.CQLLibraryDataSetObject;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class CQLIncludeLibraryView.
+ */
 public class CQLIncludeLibraryView {
 	
 	/** The container panel. */
 	private SimplePanel containerPanel = new SimplePanel();
 	
+	/** The search widget focus panel. */
 	private FocusPanel searchWidgetFocusPanel = new FocusPanel();
 	
 	/** The cell table panel. */
@@ -101,6 +110,7 @@ public class CQLIncludeLibraryView {
 	/** The owner name text box. */
 	private MatTextBox ownerNameTextBox = new MatTextBox();
 	
+	/** The cql library name text box. */
 	private MatTextBox cqlLibraryNameTextBox = new MatTextBox();
 	
 	/** The selected list. */
@@ -118,8 +128,15 @@ public class CQLIncludeLibraryView {
 	/** The owner textbox panel. */
 	private VerticalPanel ownerTextboxPanel = new VerticalPanel();
 	
+	/** The observer. */
 	private Observer observer;
 	
+	/** The alias name group. */
+	private FormGroup aliasNameGroup = new FormGroup();
+	
+	/**
+	 * The Interface Observer.
+	 */
 	public static interface Observer {
 		/**
 		 * On edit clicked.
@@ -136,6 +153,7 @@ public class CQLIncludeLibraryView {
 	 */
 	public CQLIncludeLibraryView(){
 	
+		aliasNameGroup.clear();
 		getIncludesButtonBar().setStylePrimaryName("floatRightButtonPanel");
 		
 		VerticalPanel verticalPanel = new VerticalPanel();
@@ -144,19 +162,31 @@ public class CQLIncludeLibraryView {
 		
 		VerticalPanel aliasNameVP = new VerticalPanel();
 		HorizontalPanel aliasLabelHP = new HorizontalPanel();
-		Label aliasLabel = new Label(LabelType.INFO, "Alias Name");
+		
+		//Label aliasLabel = new Label(LabelType.INFO, "Alias Name");
+		FormLabel aliasLabel = new FormLabel();
 		aliasLabel.setMarginTop(5);
 		aliasLabel.setId("Alias_Label");
+		//aliasLabel.setText("Alias Name");
+		aliasLabel.setTitle("Alias Name");
+		aliasLabel.setText("Library Alias");
+		
 		aliasNameTxtBox.setText("");
 		aliasNameTxtBox.setSize("260px", "25px");
 		aliasNameTxtBox.getElement().setId("aliasNameField_IncludeSection");
 		aliasNameTxtBox.setName("aliasName");
-		aliasLabel.setText("Library Alias");
+		
+		aliasNameGroup.add(aliasLabel);
+		aliasNameGroup.add(new SpacerWidget());
+		aliasNameGroup.add(aliasNameTxtBox);
+		
+		setMarginInButtonBar();
 		
 		VerticalPanel aliasLabelVP = new VerticalPanel();
-		aliasLabelVP.add(aliasLabel);
-		aliasLabelVP.add(new SpacerWidget());
-		aliasLabelVP.add(aliasNameTxtBox);
+		//aliasLabelVP.add(aliasLabel);
+		//aliasLabelVP.add(new SpacerWidget());
+		//aliasLabelVP.add(aliasNameTxtBox);
+		aliasLabelVP.add(aliasNameGroup);
 		aliasLabelVP.setWidth("580px");
 		aliasLabelVP.setStylePrimaryName("margintop20px");
 		
@@ -178,26 +208,41 @@ public class CQLIncludeLibraryView {
 		cqlAceEditor.setUseWrapMode(true);
 		cqlAceEditor.clearAnnotations();
 		cqlAceEditor.redisplay();
+		
 		Label viewCQlFileLabel = new Label(LabelType.INFO);
 		viewCQlFileLabel.setText("View CQL file here");
 		viewCQlFileLabel.setTitle("View CQL file here");
 		
-		VerticalPanel viewCQLVP = new VerticalPanel();
+		Panel viewCQLPanel = new Panel(PanelType.PRIMARY);	
+		viewCQLPanel.setMarginTop(20);
+		viewCQLPanel.setId("IncludeCQLViewPanel_Id");
+		
+		PanelHeader viewCQLHeader = new PanelHeader();
+		viewCQLHeader.setText("View CQL file here");
+		viewCQLHeader.setTitle("View CQL file here");
+		viewCQLHeader.setId("IncludeCQLViewPanelHeader_id");
+		
+		PanelBody viewCQLBody = new PanelBody();
+		viewCQLBody.setId("IncludeCQLViewBody_Id");
+		viewCQLBody.add(cqlAceEditor);
+		
+		viewCQLPanel.add(viewCQLHeader);
+		viewCQLPanel.add(viewCQLBody);
+		
+		/*VerticalPanel viewCQLVP = new VerticalPanel();
 		viewCQLVP.add(new SpacerWidget());
 		viewCQLVP.add(new SpacerWidget());
 		
 		viewCQLVP.add(viewCQlFileLabel);
 		viewCQLVP.add(new SpacerWidget());
 		viewCQLVP.add(cqlAceEditor);
-		
+		*/
 		verticalPanel.add(aliasNameVP);
-		verticalPanel.add(new SpacerWidget());
-		verticalPanel.add(new SpacerWidget());
 		verticalPanel.add(ownerTextboxPanel);
 		verticalPanel.add(searchCellTablePanel);
 		
 		verticalPanel.add(new SpacerWidget());
-		verticalPanel.add(viewCQLVP);
+		verticalPanel.add(viewCQLPanel);
 		verticalPanel.add(new SpacerWidget());
 		verticalPanel.setWidth("700px");
 		containerPanel.getElement().setAttribute("id",
@@ -210,6 +255,13 @@ public class CQLIncludeLibraryView {
 	}
 	
 	
+	private void setMarginInButtonBar() {
+
+		includesButtonBar.getSaveButton().setMarginLeft(-30.00);
+		includesButtonBar.getEraseButton().setMarginLeft(-10.00);
+
+	}
+
 	/**
 	 * Builds the owner text box widget.
 	 */
@@ -218,20 +270,24 @@ public class CQLIncludeLibraryView {
 		searchCellTablePanel.clear();
 		aliasNameTxtBox.setEnabled(false);
 		
-		Label ownerLabel = new Label(LabelType.INFO, "Owner Name");
+		//Label ownerLabel = new Label(LabelType.INFO, "Owner Name");
+		FormLabel ownerLabel = new FormLabel();
 		ownerLabel.setMarginTop(5);
 		ownerLabel.setId("ownerName_Label");
 		ownerLabel.setText("Owner Name");
+		ownerLabel.setTitle("Owner Name");
 		ownerNameTextBox.setText("");
 		ownerNameTextBox.setSize("260px", "25px");
 		ownerNameTextBox.getElement().setId("ownerNameField_IncludeSection");
 		ownerNameTextBox.setName("aliasName");
 		ownerNameTextBox.setEnabled(false);
 		
-		Label cqlLibNameLabel = new Label(LabelType.INFO, "CQL Library Name");
+		//Label cqlLibNameLabel = new Label(LabelType.INFO, "CQL Library Name");
+		FormLabel cqlLibNameLabel = new FormLabel();
 		cqlLibNameLabel.setMarginTop(5);
 		cqlLibNameLabel.setId("cqlLibraryName_Label");
 		cqlLibNameLabel.setText("CQL Library Name");
+		cqlLibNameLabel.setTitle("CQL Library Name");
 		cqlLibraryNameTextBox.setText("");
 		cqlLibraryNameTextBox.setSize("260px", "25px");
 		cqlLibraryNameTextBox.getElement().setId("cqlLibraryNameField_IncludeSection");
@@ -334,8 +390,14 @@ public class CQLIncludeLibraryView {
 		return includesButtonBar;
 	}
 	
+	/**
+	 * Creates the read only view includes button bar.
+	 *
+	 * @return the CQL button tool bar
+	 */
 	private CQLButtonToolBar createReadOnlyViewIncludesButtonBar() {
 		includesButtonBar.getDeleteButton().setVisible(true);
+		includesButtonBar.getDeleteButton().setMarginLeft(-40.00);
 		includesButtonBar.getDeleteButton().setEnabled(false);
 		includesButtonBar.getCloseButton().setVisible(true);;
 		includesButtonBar.getSaveButton().setVisible(false);
@@ -600,6 +662,7 @@ public class CQLIncludeLibraryView {
 	/**
 	 * Gets the check box cell.
 	 *
+	 * @param isUsed the is used
 	 * @return the check box cell
 	 */
 	private HasCell<CQLLibraryDataSetObject, Boolean> getCheckBoxCell(final boolean isUsed){
@@ -703,6 +766,9 @@ public class CQLIncludeLibraryView {
 		return this.includesButtonBar;
 	}
 	
+	/**
+	 * Reset to default.
+	 */
 	public void resetToDefault(){
 		cellTablePanel.clear();
 		//aliasNameTxtBox.setText("");
@@ -711,6 +777,9 @@ public class CQLIncludeLibraryView {
 		//warningMessageAlert.clearAlert();
 	}
 
+	/**
+	 * Reset ace editor.
+	 */
 	private void resetAceEditor() {
 		cqlAceEditor.clearAnnotations();
 		cqlAceEditor.removeAllMarkers();
@@ -718,7 +787,19 @@ public class CQLIncludeLibraryView {
 		cqlAceEditor.setText("");
 	}
 	
+	/**
+	 * Reset from group.
+	 */
+	public void resetFromGroup(){
+		getAliasNameGroup().setValidationState(ValidationState.NONE);
+	}
+	
 
+	/**
+	 * Sets the includes button bar.
+	 *
+	 * @param includesButtonBar the new includes button bar
+	 */
 	public void setIncludesButtonBar(CQLButtonToolBar includesButtonBar) {
 		this.includesButtonBar = includesButtonBar;
 	}
@@ -751,6 +832,11 @@ public class CQLIncludeLibraryView {
 	}
 	
 	
+	/**
+	 * Gets the close button.
+	 *
+	 * @return the close button
+	 */
 	public Button getCloseButton(){
 		return getIncludesButtonBar().getCloseButton();
 	}
@@ -848,7 +934,7 @@ public class CQLIncludeLibraryView {
 	 * This method enable/disable's search button
 	 * and hide/show loading please wait message.
 	 *
-	 * @param busy the busy
+	 * @return the search cell table panel
 	 */
 	/*public void showSearchingBusy(final boolean busy) {
 		if (busy) {
@@ -879,18 +965,38 @@ public class CQLIncludeLibraryView {
 		return ownerTextboxPanel;
 	}
 
+	/**
+	 * Gets the owner name text box.
+	 *
+	 * @return the owner name text box
+	 */
 	public MatTextBox getOwnerNameTextBox() {
 		return ownerNameTextBox;
 	}
 
+	/**
+	 * Gets the cql library name text box.
+	 *
+	 * @return the cql library name text box
+	 */
 	public MatTextBox getCqlLibraryNameTextBox() {
 		return cqlLibraryNameTextBox;
 	}
 
+	/**
+	 * Gets the observer.
+	 *
+	 * @return the observer
+	 */
 	public Observer getObserver() {
 		return observer;
 	}
 
+	/**
+	 * Sets the observer.
+	 *
+	 * @param observer the new observer
+	 */
 	public void setObserver(Observer observer) {
 		this.observer = observer;
 	}
@@ -905,6 +1011,26 @@ public class CQLIncludeLibraryView {
 		getAliasNameTxtArea().setEnabled(isEditable);
 		getIncludesButtonBar().getSaveButton().setEnabled(isEditable);
 		getIncludesButtonBar().getEraseButton().setEnabled(isEditable);
+	}
+
+
+	/**
+	 * Gets the alias name group.
+	 *
+	 * @return the alias name group
+	 */
+	public FormGroup getAliasNameGroup() {
+		return aliasNameGroup;
+	}
+
+
+	/**
+	 * Sets the alias name group.
+	 *
+	 * @param aliasNameGroup the new alias name group
+	 */
+	public void setAliasNameGroup(FormGroup aliasNameGroup) {
+		this.aliasNameGroup = aliasNameGroup;
 	}
 	
 	

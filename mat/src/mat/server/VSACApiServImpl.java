@@ -8,22 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import mat.client.umls.service.VsacApiResult;
-import mat.dao.DataTypeDAO;
-import mat.model.DataType;
-import mat.model.MatValueSet;
-import mat.model.QualityDataModelWrapper;
-import mat.model.QualityDataSetDTO;
-import mat.model.VSACExpansionProfileWrapper;
-import mat.model.VSACValueSetWrapper;
-import mat.model.VSACVersionWrapper;
-import mat.model.cql.CQLQualityDataModelWrapper;
-import mat.model.cql.CQLQualityDataSetDTO;
-import mat.server.service.MeasureLibraryService;
-import mat.server.service.VSACApiService;
-import mat.server.util.ResourceLoader;
-import mat.server.util.UMLSSessionTicket;
-import mat.shared.ConstantMessages;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -36,6 +21,24 @@ import org.springframework.context.ApplicationContext;
 import org.vsac.VSACGroovyClient;
 import org.vsac.VSACResponseResult;
 import org.xml.sax.InputSource;
+
+import mat.client.umls.service.VsacApiResult;
+import mat.dao.DataTypeDAO;
+import mat.model.DataType;
+import mat.model.DirectReferenceCode;
+import mat.model.MatValueSet;
+import mat.model.QualityDataModelWrapper;
+import mat.model.QualityDataSetDTO;
+import mat.model.VSACExpansionProfileWrapper;
+import mat.model.VSACValueSetWrapper;
+import mat.model.VSACVersionWrapper;
+import mat.model.cql.CQLQualityDataSetDTO;
+import mat.server.service.MeasureLibraryService;
+import mat.server.service.VSACApiService;
+import mat.server.util.ResourceLoader;
+import mat.server.util.UMLSSessionTicket;
+import mat.shared.CQLModelValidator;
+import mat.shared.ConstantMessages;
 
 
 public class VSACApiServImpl implements VSACApiService{
@@ -59,8 +62,7 @@ public class VSACApiServImpl implements VSACApiService{
 	
 	/** The profile service. */
 	private String profileService;
-	/** serialVersionUID for VSACAPIServiceImpl class. **/
-	private static final long serialVersionUID = -6645961609626183169L;
+	
 	/** The Constant REQUEST_FAILURE_CODE. */
 	private static final int VSAC_REQUEST_FAILURE_CODE = 4;
 	/** The Constant TIME_OUT_FAILURE_CODE. */
@@ -80,6 +82,9 @@ public class VSACApiServImpl implements VSACApiService{
 	
 	/** The default exp id. */
 	private String defaultExpId;
+	
+	private String vsacServerDRCUrl;
+	
 	public VSACApiServImpl(){
 		PROXY_HOST = System.getProperty("vsac_proxy_host");
 		if(PROXY_HOST !=null) {
@@ -90,7 +95,14 @@ public class VSACApiServImpl implements VSACApiService{
 		retieriveMultiOIDSService = System.getProperty("SERVER_MULTIPLE_VALUESET_URL_NEW");
 		profileService = System.getProperty("PROFILE_SERVICE");
 		versionService = System.getProperty("VERSION_SERVICE");
-		vGroovyClient = new VSACGroovyClient(PROXY_HOST, PROXY_PORT, server,service,retieriveMultiOIDSService,profileService,versionService);
+		vsacServerDRCUrl = System.getProperty("VSAC_DRC_URL");
+		
+		/*if(vsacServerDRCUrl == null || vsacServerDRCUrl.isEmpty()){
+			LOGGER.info("DRC URL is null and is not set in system properties....");
+			vsacServerDRCUrl ="https://vsac.nlm.nih.gov/vsac";
+		}*/
+		vGroovyClient = new VSACGroovyClient(PROXY_HOST, PROXY_PORT, server,service,retieriveMultiOIDSService,profileService,versionService,vsacServerDRCUrl);
+		
 		//defaultExpId = getDefaultExpansionId();
 	}
 	
@@ -214,6 +226,44 @@ public class VSACApiServImpl implements VSACApiService{
 		LOGGER.info("End VSACAPIServiceImpl convertXmlToVersionList");
 		return versionDetails;
 	}
+	
+	
+	private DirectReferenceCode convertXmltoDirectCodeRef(final String xmlPayLoad) {
+		LOGGER.info("Start VSACAPIServiceImpl convertXmltoValueSet");		
+		DirectReferenceCode details = null;
+		int firstIndex = xmlPayLoad.indexOf("<csCode>");
+		int lastIndex = xmlPayLoad.lastIndexOf("</csCode>");
+		
+		String xml = xmlPayLoad.substring(firstIndex, lastIndex).concat("</csCode>");
+		if ((xml != null) && StringUtils.isNotBlank(xml)) {
+			LOGGER.info("xml To reterive csCode tag is not null ");
+		}
+		try {
+			Mapping mapping = new Mapping();
+			mapping.loadMapping(new ResourceLoader().getResourceAsURL("DirectCodeReferenceMapping.xml"));
+			Unmarshaller unmar = new Unmarshaller(mapping);
+			unmar.setClass(DirectReferenceCode.class);
+			unmar.setWhitespacePreserve(true);
+			details = (DirectReferenceCode) unmar.unmarshal(new InputSource(new StringReader(xml)));
+			LOGGER.info("unmarshalling complete..csCode"
+					+ details.getCodeDescriptor());
+			
+		} catch (Exception e) {
+			if (e instanceof IOException) {
+				LOGGER.info("Failed to load DirectCodeReferenceMapping.xml" + e);
+			} else if (e instanceof MappingException) {
+				LOGGER.info("Mapping Failed" + e);
+			} else if (e instanceof MarshalException) {
+				LOGGER.info("Unmarshalling Failed" + e);
+			} else {
+				LOGGER.info("Other Exception" + e);
+			}
+		}
+		LOGGER.info("End VSACAPIServiceImpl convertXmltoDirectCodeRef");
+		return details;
+	}
+	
+	
 	@Override
 	public final void inValidateVsacUser(String sessionId) {
 		LOGGER.info("Start VSACAPIServiceImpl inValidateVsacUser");
@@ -252,7 +302,7 @@ public class VSACApiServImpl implements VSACApiService{
 	/** Method to Iterate through Map of Quality Data set DTO(modify With) as key and Quality Data Set DTO (modifiable) as Value and update
 	 * Measure XML by calling {@link MeasureLibraryServiceImpl} method 'updateMeasureXML'.
 	 * @param map - HaspMap
-	 * @param measureId - String */
+	 * @param id - String */
 	private void updateAllCQLInLibraryXml(HashMap<CQLQualityDataSetDTO, CQLQualityDataSetDTO> map, String libraryId) {
 		LOGGER.info("Start VSACAPIServiceImpl updateAllInMeasureXml :");
 		Iterator<Entry<CQLQualityDataSetDTO, CQLQualityDataSetDTO>> it = map.entrySet().iterator();
@@ -608,7 +658,7 @@ public class VSACApiServImpl implements VSACApiService{
 	 * Method to update valueset's without versions from VSAC in Measure XML.
 	 * Skip supplemental Data Elements and Timing elements, Expired, Birth date and User defined QDM.
 	 *
-	 * @param measureId            - Selected Measure Id.
+	 * @param id            - Selected Measure Id.
 	 * @param defaultExpId the default exp id
 	 * @return VsacApiResult - Result.
 	 */
@@ -809,6 +859,53 @@ public class VSACApiServImpl implements VSACApiService{
 		return result;
 	}
 	
+	@Override
+	public final VsacApiResult getDirectReferenceCode (String url, String sessionId) {
+		LOGGER.info("Start VSACAPIServiceImpl getDirectReferenceCode method : url entered :" + url);
+		VsacApiResult result = new VsacApiResult();
+		CQLModelValidator validator = new CQLModelValidator();
+		
+		if(validator.validateForCodeIdentifier(url)){
+			result.setSuccess(false);
+			result.setFailureReason(result.INVALID_CODE_URL);
+			return result;
+		}  
+		
+		String eightHourTicket = UMLSSessionTicket.getTicket(sessionId);
+		if (eightHourTicket != null) {
+			if ((url != null) && StringUtils.isNotEmpty(url) && StringUtils.isNotBlank(url)) {
+				LOGGER.info(" VSACAPIServiceImpl getDirectReferenceCode method Using Proxy:" + PROXY_HOST + ":" + PROXY_PORT);
+				String fiveMinServiceTicket = vGroovyClient.getServiceTicket(eightHourTicket);
+				if(url.contains(":")){
+					String[] arg = url.split(":");
+					if(arg.length >0 && arg[1] != null) {
+						url = arg[1];
+						LOGGER.info("VSACAPIServiceImpl getDirectReferenceCode method : URL after dropping text before : is :: "+ url);
+					}
+				}
+				VSACResponseResult vsacResponseResult = vGroovyClient.getDirectReferenceCode(url, fiveMinServiceTicket);	
+				
+				if((vsacResponseResult != null) && (vsacResponseResult.getXmlPayLoad() != null)
+						&& (!StringUtils.isEmpty(vsacResponseResult.getXmlPayLoad()))) {
+					DirectReferenceCode referenceCode = convertXmltoDirectCodeRef(vsacResponseResult.getXmlPayLoad());
+					result.setDirectReferenceCode(referenceCode);
+					result.setSuccess(true);
+				}
+			}  else {
+				result.setSuccess(false);
+				result.setFailureReason(result.CODE_URL_REQUIRED);
+				LOGGER.info("URL is required");
+			}
+		} else {
+			result.setSuccess(false);
+			result.setFailureReason(result.UMLS_NOT_LOGGEDIN);
+			LOGGER.info("UMLS Login is required");
+		}
+		
+		LOGGER.info("End VSACAPIServiceImpl getDirectReferenceCode method : url entered :" + url);
+		return result;
+	}
+	
 	/* (non-Javadoc)
 	 * @see mat.client.umls.service.VSACAPIService#getMostRecentValueSetByOID(java.lang.String, java.lang.String)
 	 */
@@ -970,6 +1067,14 @@ public class VSACApiServImpl implements VSACApiService{
 		this.defaultExpId = defaultExpId;
 	}
 	
+	public String getVsacServerUrl() {
+		return vsacServerDRCUrl;
+	}
+
+	public void setVsacServerUrl(String vsacServerUrl) {
+		this.vsacServerDRCUrl = vsacServerUrl;
+	}
+
 	/**
 	 * Gets the default expansion id from Mat.properties file
 	 *

@@ -1,7 +1,5 @@
 package mat.client.login;
 
-import mat.client.shared.ErrorMessageDisplay;
-import mat.client.shared.RequiredIndicator;
 import org.gwtbootstrap3.client.ui.Button;
 import org.gwtbootstrap3.client.ui.ButtonToolBar;
 import org.gwtbootstrap3.client.ui.Column;
@@ -20,11 +18,14 @@ import org.gwtbootstrap3.client.ui.constants.ButtonType;
 import org.gwtbootstrap3.client.ui.constants.ColumnOffset;
 import org.gwtbootstrap3.client.ui.constants.ColumnSize;
 import org.gwtbootstrap3.client.ui.constants.InputType;
+
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+
+import mat.client.shared.RequiredIndicator;
 
 /**
  * The Class ForgottenLoginIdView.
@@ -37,7 +38,6 @@ public class ForgottenLoginIdNewView  implements ForgottenLoginIdNewPresenter.Di
 	
 	
 	/** The error messages. */
-	private ErrorMessageDisplay errorMessages = new ErrorMessageDisplay();
 	private FormGroup messageFormGrp = new FormGroup();
 	private HelpBlock helpBlock = new HelpBlock();
 	private Button submitButton = new Button("Submit");
@@ -93,10 +93,10 @@ public class ForgottenLoginIdNewView  implements ForgottenLoginIdNewPresenter.Di
 		
 		FormGroup buttonFormGroup = new FormGroup();
 		ButtonToolBar buttonToolBar = new ButtonToolBar();
-		submitButton.setType(ButtonType.SUCCESS);
+		submitButton.setType(ButtonType.PRIMARY);
 		submitButton.setTitle("Submit");
 		
-		resetButton.setType(ButtonType.PRIMARY);
+		resetButton.setType(ButtonType.DANGER);
 		resetButton.setTitle("Cancel");
 		buttonToolBar.add(submitButton);
 		buttonToolBar.add(resetButton);

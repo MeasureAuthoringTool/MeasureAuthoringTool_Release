@@ -3,6 +3,7 @@ package mat.client.clause.clauseworkspace.presenter;
 import mat.client.MatPresenter;
 import mat.client.measure.service.MeasureServiceAsync;
 import mat.client.shared.MatContext;
+import java.util.Map;
 import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.Widget;
 
@@ -20,6 +21,7 @@ public class MeasureObsClausePresenter extends XmlTreePresenter implements MatPr
 	 * Panel Instance.
 	 */
 	private SimplePanel panel = new SimplePanel();
+	
 	/**
 	 * MeasureService Instance.
 	 */
@@ -53,4 +55,5 @@ public class MeasureObsClausePresenter extends XmlTreePresenter implements MatPr
 	public Widget getWidget() {
 		return panel;
 	}
+	
 }

@@ -52,6 +52,7 @@ import mat.client.shared.SuccessMessageAlert;
 import mat.client.shared.WarningConfirmationMessageAlert;
 import mat.client.shared.WarningMessageAlert;
 import mat.model.clause.QDSAttributes;
+import mat.model.cql.CQLCode;
 import mat.model.cql.CQLDefinition;
 import mat.model.cql.CQLFunctions;
 import mat.model.cql.CQLIncludeLibrary;
@@ -98,6 +99,9 @@ public class CQLLeftNavBarPanelView {
 	
 	/** The valuesets badge. */
 	private Badge valueSetBadge = new Badge();
+	
+	/** The codes badge. */
+	private Badge codesBadge = new Badge();
 
 	/** The param badge. */
 	private Badge paramBadge = new Badge();
@@ -113,6 +117,9 @@ public class CQLLeftNavBarPanelView {
 	
 	/** The value Set label. */
 	private Label valueSetLabel = new Label("Value Sets");
+	
+	/** The codes label. */
+	private Label codesLabel = new Label("Codes");
 
 	/** The param label. */
 	private Label paramLabel = new Label("Parameter");
@@ -135,6 +142,9 @@ public class CQLLeftNavBarPanelView {
 	/** The Includes Collapse. */
 	PanelCollapse includesCollapse = new PanelCollapse();
 	
+	/** The codes Collapse. */
+	PanelCollapse codesCollapse = new PanelCollapse();
+	
 	/** The ValueSets Collapse. */
 	PanelCollapse valueSetCollapse = new PanelCollapse();
 	
@@ -143,6 +153,9 @@ public class CQLLeftNavBarPanelView {
 
 	/** The applied QDM Element anchorItem. */
 	private AnchorListItem appliedQDM;
+	
+	/** The codes anchorItem. */
+	private AnchorListItem codesLibrary;
 
 	/** The general information. */
 	private AnchorListItem generalInformation;
@@ -171,8 +184,13 @@ public class CQLLeftNavBarPanelView {
 	/** The applied qdm list. */
 	private List<CQLQualityDataSetDTO> appliedQdmList = new ArrayList<CQLQualityDataSetDTO>();
 
+	/** The codes list. */
+	private List<CQLCode> codesList = new ArrayList<CQLCode>();
+	
 	/** The applied qdm to show in Table list. */
 	private List<CQLQualityDataSetDTO> appliedQdmTableList = new ArrayList<CQLQualityDataSetDTO>();
+	
+	private List<CQLCode> appliedCodeTableList = new ArrayList<CQLCode>();
 
 	/** The include library list. */
 	private List<CQLLibraryDataSetObject> includeLibraryList = new ArrayList<CQLLibraryDataSetObject>();
@@ -252,7 +270,7 @@ public class CQLLeftNavBarPanelView {
 	private WarningConfirmationMessageAlert globalWarningConfirmationMessageAlert;// = new WarningConfirmationMessageAlert();
 	
 	/** The delete confirmation messge alert. */
-	private DeleteConfirmationMessageAlert deleteConfirmationMessgeAlert = new DeleteConfirmationMessageAlert();
+	//private DeleteConfirmationMessageAlert deleteConfirmationMessgeAlert = new DeleteConfirmationMessageAlert();
 	
 	/** The dirty flag for page. */
 	private Boolean isPageDirty = false;
@@ -274,9 +292,21 @@ public class CQLLeftNavBarPanelView {
 
 	/** The current selected function obj id. */
 	private String currentSelectedFunctionObjId = null;
+	
+	/** The current selected function argument obj id. */
+	private String currentSelectedFunctionArgumentObjId = null;
+	
+	/** The current selected function argument name. */
+	private String currentSelectedFunctionArgumentName = null;
 
 	/** The current selected inc library obj id. */
 	private String currentSelectedIncLibraryObjId = null;
+	
+	/** The current selected valueset obj id. */
+	private String currentSelectedValueSetObjId = null;
+	
+	/** The current selected codes obj id. */
+	private String currentSelectedCodesObjId = null;
 	
 	/** The available QDS attribute list. */
 	private List<QDSAttributes> availableQDSAttributeList;
@@ -290,7 +320,6 @@ public class CQLLeftNavBarPanelView {
 	 */
 	public VerticalPanel buildMeasureLibCQLView(){
 		globalWarningConfirmationMessageAlert = new WarningConfirmationMessageAlert();
-		valueSetCollapse = createValuesetCollapsablePanel();
 		includesCollapse = createIncludesCollapsablePanel();
 		paramCollapse = createParameterCollapsablePanel();
 		defineCollapse = createDefineCollapsablePanel();
@@ -300,20 +329,6 @@ public class CQLLeftNavBarPanelView {
 	}
 	
 
-	/**
-	 * Builds the measure lib CQL view.
-	 *
-	 * @return the vertical panel
-	 *//*
-	public VerticalPanel buildCQLStandCQLView(){
-		includesCollapse = createIncludesCollapsablePanel();
-		paramCollapse = createParameterCollapsablePanel();
-		defineCollapse = createDefineCollapsablePanel();
-		functionCollapse = createFunctionCollapsablePanel();
-		buildLeftHandNavBar();
-		return rightHandNavPanel;
-	}*/
-	
 	/**
 	 * Builds the left hand nav nar.
 	 */
@@ -326,6 +341,7 @@ public class CQLLeftNavBarPanelView {
 		generalInformation = new AnchorListItem();
 		includesLibrary = new AnchorListItem();
 		appliedQDM = new AnchorListItem();
+		codesLibrary = new AnchorListItem();
 		parameterLibrary = new AnchorListItem();
 		definitionLibrary = new AnchorListItem();
 		functionLibrary = new AnchorListItem();
@@ -363,7 +379,7 @@ public class CQLLeftNavBarPanelView {
 		includesLibrary.add(includesCollapse);
 
 		appliedQDM.setIcon(IconType.PENCIL);
-		appliedQDM.setTitle("ValueSets/Codes");
+		appliedQDM.setTitle("Value Sets");
 		valueSetBadge.setText("0" + appliedQdmTableList.size());
 		Anchor valueSetAnchor = (Anchor) (appliedQDM.getWidget(0));
 		// Double Click causing issues.So Event is not propogated
@@ -382,10 +398,27 @@ public class CQLLeftNavBarPanelView {
 		valueSetBadge.setId("valueSetBadge_Badge");
 		valueSetAnchor.add(valueSetBadge);
 		valueSetAnchor.setDataParent("#navGroup");
-		appliedQDM.setDataToggle(Toggle.COLLAPSE);
-		appliedQDM.setHref("#collapseValueSets");
-		appliedQDM.setId("valueSet_Anchor");
-		appliedQDM.add(valueSetCollapse);
+		
+		codesLibrary.setIcon(IconType.PENCIL);
+		codesLibrary.setTitle("Codes");
+		codesBadge.setText("0" + codesList.size());
+		Anchor codesAnchor = (Anchor) (codesLibrary.getWidget(0));
+		// Double Click causing issues.So Event is not propogated
+		codesAnchor.addDoubleClickHandler(new DoubleClickHandler() {
+			@Override
+			public void onDoubleClick(DoubleClickEvent event) {
+				// TODO Auto-generated method stub
+				event.stopPropagation();
+			}
+		});
+		codesLabel.setStyleName("transparentLabel");
+		codesLabel.setId("codesLabel_Label");
+		codesAnchor.add(codesLabel);
+		codesBadge.setPull(Pull.RIGHT);
+		codesBadge.setMarginLeft(52);
+		codesBadge.setId("codesBadge_Badge");
+		codesAnchor.add(codesBadge);
+		codesAnchor.setDataParent("#navGroup");
 
 		parameterLibrary.setIcon(IconType.PENCIL);
 		parameterLibrary.setTitle("Parameter");
@@ -473,6 +506,7 @@ public class CQLLeftNavBarPanelView {
 		navPills.add(generalInformation);
 		navPills.add(includesLibrary);
 		navPills.add(appliedQDM);
+		navPills.add(codesLibrary);
 		navPills.add(parameterLibrary);
 
 		navPills.add(definitionLibrary);
@@ -486,42 +520,13 @@ public class CQLLeftNavBarPanelView {
 		messagePanel.add(errorMessageAlert);
 		messagePanel.add(warningConfirmationMessageAlert);
 		messagePanel.add(globalWarningConfirmationMessageAlert);
-		messagePanel.add(deleteConfirmationMessgeAlert);
+		//messagePanel.add(deleteConfirmationMessgeAlert);
 		messagePanel.setStyleName("marginLeft15px");
 
 		// rightHandNavPanel.add(messagePanel);
 		rightHandNavPanel.add(navPills);
 	}
 
-	/**
-	 * Creates the valueSet collapsable panel.
-	 *
-	 * @return the panel collapse
-	 */
-	private PanelCollapse createValuesetCollapsablePanel() {
-
-		includesCollapse.setId("collapseValueSets");
-
-		PanelBody valueSetCollapseBody = new PanelBody();
-
-		HorizontalPanel valueSetFP = new HorizontalPanel();
-
-		VerticalPanel rightVerticalPanel = new VerticalPanel();
-		rightVerticalPanel.setSpacing(10);
-
-		rightVerticalPanel.getElement().setId("rhsVerticalPanel_VerticalPanelValueSet");
-		rightVerticalPanel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
-		Label includesLibraryLabel = new Label("Value Sets");
-		rightVerticalPanel.setCellHorizontalAlignment(includesLibraryLabel, HasHorizontalAlignment.ALIGN_LEFT);
-		valueSetFP.add(rightVerticalPanel);
-		valueSetCollapseBody.add(valueSetFP);
-
-		valueSetCollapse.add(valueSetCollapseBody);
-		return valueSetCollapse;
-
-	}
-	
-	
 	/**
 	 * Creates the includes collapsable panel.
 	 *
@@ -988,6 +993,21 @@ public class CQLLeftNavBarPanelView {
 
 	}
 	
+	
+	/**
+	 * Update valueset values.
+	 * @param appliedValueSetTableList 
+	 */
+	public void setCodeBadgeValue(List<CQLCode> appliedCodeTableList) {
+		if (appliedCodeTableList.size() < 10) {
+			getCodesBadge().setText("0" + appliedCodeTableList.size());
+		} else {
+			getCodesBadge().setText("" + appliedCodeTableList.size());
+		}
+
+	}
+	
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -1426,6 +1446,22 @@ public class CQLLeftNavBarPanelView {
 
 
 	/**
+	 * @return the codesBadge
+	 */
+	public Badge getCodesBadge() {
+		return codesBadge;
+	}
+
+
+	/**
+	 * @param codesBadge the codesBadge to set
+	 */
+	public void setCodesBadge(Badge codesBadge) {
+		this.codesBadge = codesBadge;
+	}
+
+
+	/**
 	 * Gets the includes badge.
 	 *
 	 * @return the includes badge
@@ -1796,6 +1832,22 @@ public class CQLLeftNavBarPanelView {
 
 
 	/**
+	 * @return the codesLibrary
+	 */
+	public AnchorListItem getCodesLibrary() {
+		return codesLibrary;
+	}
+
+
+	/**
+	 * @param codesLibrary the codesLibrary to set
+	 */
+	public void setCodesLibrary(AnchorListItem codesLibrary) {
+		this.codesLibrary = codesLibrary;
+	}
+
+
+	/**
 	 * Gets the param collapse.
 	 *
 	 * @return the param collapse
@@ -1834,7 +1886,7 @@ public class CQLLeftNavBarPanelView {
 		return includesCollapse;
 	}
 
-
+	
 	/**
 	 * Gets the search suggest define text box.
 	 *
@@ -2168,7 +2220,7 @@ public class CQLLeftNavBarPanelView {
 		getErrorMessageAlert().clearAlert();
 		getSuccessMessageAlert().clearAlert();
 		getGlobalWarningConfirmationMessageAlert().clearAlert();
-		getDeleteConfirmationMessgeAlert().clearAlert();
+		//getDeleteConfirmationMessgeAlert().clearAlert();
 		getWarningConfirmationMessageAlert().createAlert();
 		getWarningConfirmationMessageAlert().getWarningConfirmationYesButton().setFocus(true);
 	}
@@ -2187,7 +2239,7 @@ public class CQLLeftNavBarPanelView {
 		getErrorMessageAlert().clearAlert();
 		getSuccessMessageAlert().clearAlert();
 		getWarningConfirmationMessageAlert().clearAlert();
-		getDeleteConfirmationMessgeAlert().clearAlert();
+		//getDeleteConfirmationMessgeAlert().clearAlert();
 		getGlobalWarningConfirmationMessageAlert().createAlert();
 		getGlobalWarningConfirmationMessageAlert().getWarningConfirmationYesButton().setFocus(true);
 	}
@@ -2203,8 +2255,8 @@ public class CQLLeftNavBarPanelView {
 		getErrorMessageAlert().clearAlert();
 		getSuccessMessageAlert().clearAlert();
 		getWarningConfirmationMessageAlert().clearAlert();
-		getDeleteConfirmationMessgeAlert().createWarningAlert(message);
-		getDeleteConfirmationMessgeAlert().getWarningConfirmationYesButton().setFocus(true);
+		//getDeleteConfirmationMessgeAlert().createWarningAlert(message);
+		//getDeleteConfirmationMessgeAlert().getWarningConfirmationYesButton().setFocus(true);
 	}
 	
 	
@@ -2237,6 +2289,38 @@ public class CQLLeftNavBarPanelView {
 	 */
 	public void setCurrentSelectedFunctionObjId(String currentSelectedFunctionObjId) {
 		this.currentSelectedFunctionObjId = currentSelectedFunctionObjId;
+	}
+
+
+	/**
+	 * @return the currentSelectedFunctionArgumentObjId
+	 */
+	public String getCurrentSelectedFunctionArgumentObjId() {
+		return currentSelectedFunctionArgumentObjId;
+	}
+
+
+	/**
+	 * @param currentSelectedFunctionArgumentObjId the currentSelectedFunctionArgumentObjId to set
+	 */
+	public void setCurrentSelectedFunctionArgumentObjId(String currentSelectedFunctionArgumentObjId) {
+		this.currentSelectedFunctionArgumentObjId = currentSelectedFunctionArgumentObjId;
+	}
+
+
+	/**
+	 * @return the currentSelectedFunctionArgumentName
+	 */
+	public String getCurrentSelectedFunctionArgumentName() {
+		return currentSelectedFunctionArgumentName;
+	}
+
+
+	/**
+	 * @param currentSelectedFunctionArgumentName the currentSelectedFunctionArgumentName to set
+	 */
+	public void setCurrentSelectedFunctionArgumentName(String currentSelectedFunctionArgumentName) {
+		this.currentSelectedFunctionArgumentName = currentSelectedFunctionArgumentName;
 	}
 
 
@@ -2275,9 +2359,9 @@ public class CQLLeftNavBarPanelView {
 	 *
 	 * @return the delete confirmation messge alert
 	 */
-	public DeleteConfirmationMessageAlert getDeleteConfirmationMessgeAlert() {
+	/*public DeleteConfirmationMessageAlert getDeleteConfirmationMessgeAlert() {
 		return deleteConfirmationMessgeAlert;
-	}
+	}*/
 
 
 	/**
@@ -2285,9 +2369,9 @@ public class CQLLeftNavBarPanelView {
 	 *
 	 * @param deleteConfirmationMessgeAlert the new delete confirmation messge alert
 	 */
-	public void setDeleteConfirmationMessgeAlert(DeleteConfirmationMessageAlert deleteConfirmationMessgeAlert) {
+	/*public void setDeleteConfirmationMessgeAlert(DeleteConfirmationMessageAlert deleteConfirmationMessgeAlert) {
 		this.deleteConfirmationMessgeAlert = deleteConfirmationMessgeAlert;
-	}
+	}*/
 	
 	
 	/**
@@ -2363,18 +2447,18 @@ public class CQLLeftNavBarPanelView {
 	 *
 	 * @return the delete confirmation yes button
 	 */
-	public Button getDeleteConfirmationYesButton() {
+	/*public Button getDeleteConfirmationYesButton() {
 		return deleteConfirmationMessgeAlert.getWarningConfirmationYesButton();
-	}
+	}*/
 
 	/**
 	 * Gets the delete confirmation no button.
 	 *
 	 * @return the delete confirmation no button
 	 */
-	public Button getDeleteConfirmationNoButton() {
+	/*public Button getDeleteConfirmationNoButton() {
 		return deleteConfirmationMessgeAlert.getWarningConfirmationNoButton();
-	}
+	}*/
 
 	/**
 	 * Sets the available QDS attribute list.
@@ -2400,6 +2484,11 @@ public class CQLLeftNavBarPanelView {
 		MatContext.get().getFuncs().clear();
 		MatContext.get().getValuesets().clear();
 		MatContext.get().getIncludes().clear();
+		MatContext.get().getIncludedValueSetNames().clear();
+		MatContext.get().getIncludedParamNames().clear();
+		MatContext.get().getIncludedDefNames().clear();
+		MatContext.get().getIncludedFuncNames().clear();
+		
 	}
 	
 	public void buildInfoPanel(Widget sourceWidget) {
@@ -2415,10 +2504,12 @@ public class CQLLeftNavBarPanelView {
 		HTML html2 = new HTML("Ctrl-Alt-y: datatypes");
 		HTML html3 = new HTML("Ctrl-Alt-d: definitions");
 		HTML html4 = new HTML("Ctrl-Alt-f: functions");
-		HTML html5 = new HTML("Ctrl-Alt-p: parameters");
-		HTML html6 = new HTML("Ctrl-Alt-t: timings");
-		HTML html7 = new HTML("Ctrl-Alt-v: value sets");
-		HTML html8 = new HTML("Ctrl-Space: all");
+		HTML html5 = new HTML("Ctrl-Alt-k: keywords");
+		HTML html6 = new HTML("Ctrl-Alt-p: parameters");
+		HTML html7 = new HTML("Ctrl-Alt-t: timings");
+		HTML html8 = new HTML("Ctrl-Alt-u: units");
+		HTML html9 = new HTML("Ctrl-Alt-v: value sets & codes");
+		HTML html10 = new HTML("Ctrl-Space: all");
 
 		dialogContents.add(html1);
 		dialogContents.add(html2);
@@ -2428,6 +2519,8 @@ public class CQLLeftNavBarPanelView {
 		dialogContents.add(html6);
 		dialogContents.add(html7);
 		dialogContents.add(html8);
+		dialogContents.add(html9);
+		dialogContents.add(html10);
 		panel.show();
 	}
 
@@ -2439,5 +2532,52 @@ public class CQLLeftNavBarPanelView {
 
 	public void setIsLoading(Boolean isLoading) {
 		this.isLoading = isLoading;
+	}
+
+
+	public List<CQLCode> getCodesTableList() {
+		return codesList;
+	}
+
+
+	public List<CQLCode> getAppliedCodeTableList() {
+		return appliedCodeTableList;
+	}
+
+
+	public void setAppliedCodeTableList(List<CQLCode> appliedCodeTableList) {
+		this.appliedCodeTableList = appliedCodeTableList;
+	}
+
+
+	/**
+	 * @return the currentSelectedCodesObjId
+	 */
+	public String getCurrentSelectedCodesObjId() {
+		return currentSelectedCodesObjId;
+	}
+
+
+	/**
+	 * @param currentSelectedCodesObjId the currentSelectedCodesObjId to set
+	 */
+	public void setCurrentSelectedCodesObjId(String currentSelectedCodesObjId) {
+		this.currentSelectedCodesObjId = currentSelectedCodesObjId;
+	}
+
+
+	/**
+	 * @return the currentSelectedValueSetObjId
+	 */
+	public String getCurrentSelectedValueSetObjId() {
+		return currentSelectedValueSetObjId;
+	}
+
+
+	/**
+	 * @param currentSelectedValueSetObjId the currentSelectedValueSetObjId to set
+	 */
+	public void setCurrentSelectedValueSetObjId(String currentSelectedValueSetObjId) {
+		this.currentSelectedValueSetObjId = currentSelectedValueSetObjId;
 	}
 }

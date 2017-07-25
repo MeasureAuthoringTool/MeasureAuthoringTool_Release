@@ -14,8 +14,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.Map.Entry;
+import java.util.UUID;
 
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -26,16 +26,20 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import mat.client.clause.clauseworkspace.model.MeasureXmlModel;
 import mat.client.clause.cqlworkspace.CQLWorkSpaceConstants;
 import mat.client.measure.service.CQLService;
 import mat.client.measure.service.SaveCQLLibraryResult;
 import mat.client.shared.MatContext;
 import mat.client.umls.service.VsacApiResult;
+import mat.client.util.ClientConstants;
 import mat.dao.CQLLibraryAuditLogDAO;
 import mat.dao.RecentCQLActivityLogDAO;
 import mat.dao.UserDAO;
@@ -44,14 +48,19 @@ import mat.dao.clause.CQLLibrarySetDAO;
 import mat.dao.clause.CQLLibraryShareDAO;
 import mat.dao.clause.MeasureDAO;
 import mat.dao.clause.ShareLevelDAO;
+import mat.model.CQLLibraryOwnerReportDTO;
 import mat.model.CQLValueSetTransferObject;
 import mat.model.LockedUserInfo;
+import mat.model.MatCodeTransferObject;
 import mat.model.RecentCQLActivityLog;
 import mat.model.SecurityRole;
 import mat.model.User;
 import mat.model.clause.CQLLibrary;
 import mat.model.clause.CQLLibrarySet;
+import mat.model.clause.Measure;
 import mat.model.clause.ShareLevel;
+import mat.model.cql.CQLCodeSystem;
+import mat.model.cql.CQLCodeWrapper;
 import mat.model.cql.CQLDefinition;
 import mat.model.cql.CQLFunctions;
 import mat.model.cql.CQLIncludeLibrary;
@@ -63,6 +72,7 @@ import mat.model.cql.CQLLibraryShareDTO;
 import mat.model.cql.CQLModel;
 import mat.model.cql.CQLParameter;
 import mat.model.cql.CQLQualityDataSetDTO;
+import mat.server.model.MatUserDetails;
 import mat.server.service.CQLLibraryServiceInterface;
 import mat.server.service.UserService;
 import mat.server.service.impl.MatContextServiceUtil;
@@ -180,7 +190,11 @@ public class CQLLibraryService extends SpringRemoteServiceServlet implements CQL
 		}
 		
 		for(CQLLibraryShareDTO dto : list){
-			CQLLibraryDataSetObject object = extractCQLLibraryDataObjectFromShareDTO(user, dto  );
+			User userForShare = user;
+			if(LoggedInUserUtil.getLoggedInUserRole().equalsIgnoreCase(ClientConstants.ADMINISTRATOR)){
+				userForShare = userDAO.find(dto.getOwnerUserId());
+			}
+			CQLLibraryDataSetObject object = extractCQLLibraryDataObjectFromShareDTO(userForShare, dto  );
 			allLibraries.add(object);
 		}
 	
@@ -190,101 +204,6 @@ public class CQLLibraryService extends SpringRemoteServiceServlet implements CQL
 		return searchModel;
 	}
 	
-	/* (non-Javadoc)
-	 * @see mat.server.service.CQLLibraryServiceInterface#searchForVersion(java.lang.String)
-	 */
-	@Override
-	public SaveCQLLibraryResult searchForVersion(String searchText){
-		SaveCQLLibraryResult result = new SaveCQLLibraryResult();
-		
-		ArrayList<CQLLibraryDataSetObject> cqList = new ArrayList<CQLLibraryDataSetObject>();
-		User user = userDAO.find(LoggedInUserUtil.getLoggedInUser());
-		// To reuse existing search, filter is passed as -1 which otherwise has value 0 or 1
-		List<CQLLibraryShareDTO> list = cqlLibraryDAO.search(searchText,Integer.MAX_VALUE, user,-1);
-		
-		for(CQLLibraryShareDTO shareDTO : list){
-			CQLLibraryDataSetObject cqlLibraryDataSetObject = extractCQLLibraryDataObjectFromShareDTO(user, shareDTO);
-			
-			if(cqlLibraryDataSetObject != null) {
-				boolean canVersion = false;
-				if(!cqlLibraryDataSetObject.isDraft()){
-					canVersion = false;
-				} else {
-					if(cqlLibraryDataSetObject.isLocked()){
-						canVersion = false;
-					} else {
-						if(MatContextServiceUtil.get().isCurrentCQLLibraryEditable(
-								cqlLibraryDAO, cqlLibraryDataSetObject.getId())){
-							canVersion = true;
-						} else {
-							canVersion = false;
-						}
-					}
-				}
-				if(canVersion){
-					cqList.add(cqlLibraryDataSetObject);
-				}
-			}
-		}
-		result.setResultsTotal(cqList.size());
-		result.setCqlLibraryDataSetObjects(cqList);
-		return result;
-		
-	}
-	
-	/* (non-Javadoc)
-	 * @see mat.server.service.CQLLibraryServiceInterface#searchForDraft(java.lang.String)
-	 */
-	@Override
-	public SaveCQLLibraryResult searchForDraft(String searchText) {
-		SaveCQLLibraryResult result = new SaveCQLLibraryResult();
-
-		ArrayList<CQLLibraryDataSetObject> cqList = new ArrayList<CQLLibraryDataSetObject>();
-		User user = userDAO.find(LoggedInUserUtil.getLoggedInUser());
-		// To reuse existing search, filter is passed as -1 which otherwise has value 0 or 1
-		List<CQLLibraryShareDTO> list = cqlLibraryDAO.search(searchText, Integer.MAX_VALUE, user, -1);
-		HashSet<String> hasDraft = new HashSet<String>();
-		for (CQLLibraryShareDTO library : list) {
-			if (library.isDraft()) {
-				String setId = library.getCqlLibrarySetId();
-				hasDraft.add(setId);
-			}
-		}
-		
-		for (CQLLibraryShareDTO shareDTO : list) {
-			CQLLibraryDataSetObject cqlLibraryDataSetObject = extractCQLLibraryDataObjectFromShareDTO(user, shareDTO);
-
-			if (cqlLibraryDataSetObject != null) {
-				boolean canDraft = false;
-				if (cqlLibraryDataSetObject.isDraft()) {
-					canDraft = false;
-				} else {
-						if(hasDraft.contains(shareDTO.getCqlLibrarySetId())){
-							canDraft = false;
-						} else {
-							if (cqlLibraryDataSetObject.isLocked()) {
-								canDraft = false;
-							} else {
-								if(MatContextServiceUtil.get().isCurrentCQLLibraryDraftable(
-										cqlLibraryDAO, cqlLibraryDataSetObject.getId())){
-									canDraft = true;
-								} else {
-									canDraft = false;
-								}
-							}
-						}
-					}
-				if (canDraft) {
-					cqList.add(cqlLibraryDataSetObject);
-				}
-			}
-		}
-		result.setResultsTotal(cqList.size());
-		result.setCqlLibraryDataSetObjects(cqList);
-		return result;
-	}
-	
-	
 	
 	/* (non-Javadoc)
 	 * @see mat.server.service.CQLLibraryServiceInterface#save(mat.model.clause.CQLLibrary)
@@ -292,6 +211,8 @@ public class CQLLibraryService extends SpringRemoteServiceServlet implements CQL
 	@Override
 	public void save(CQLLibrary library) {
 		this.cqlLibraryDAO.save(library);
+		
+		
 	}
 	
 	/**
@@ -315,19 +236,21 @@ public class CQLLibraryService extends SpringRemoteServiceServlet implements CQL
 		dataSetObject.setFinalizedDate(cqlLibrary.getFinalizedDate());
 		dataSetObject.setMeasureId(cqlLibrary.getMeasureId());
 		boolean isLocked =isLocked(cqlLibrary.getLockedOutDate());
-		
+		dataSetObject.setLocked(isLocked);
 		if (isLocked && (cqlLibrary.getLockedUserId() != null)) {
 			LockedUserInfo lockedUserInfo = new LockedUserInfo();
-			lockedUserInfo.setUserId(cqlLibrary.getLockedUserId().getUserId());
+			lockedUserInfo.setUserId(cqlLibrary.getLockedUserId().getId());
 			lockedUserInfo.setEmailAddress(cqlLibrary.getLockedUserId()
 					.getEmailAddress());
 			lockedUserInfo.setFirstName(cqlLibrary.getLockedUserId().getFirstName());
 			lockedUserInfo.setLastName(cqlLibrary.getLockedUserId().getLastName());
 			dataSetObject.setLockedUserInfo(lockedUserInfo);
+		} else {
+			LockedUserInfo lockedUserInfo = new LockedUserInfo();
+			dataSetObject.setLockedUserInfo(lockedUserInfo);
 		}
 		
-		dataSetObject.setLocked(isLocked);
-		dataSetObject.setLockedUserInfo(cqlLibrary.getLockedUserId());
+		
 		User user = getUserService().getById(cqlLibrary.getOwnerId().getId());
 		dataSetObject.setOwnerFirstName(user.getFirstName());
 		dataSetObject.setOwnerLastName(user.getLastName());
@@ -825,7 +748,7 @@ public class CQLLibraryService extends SpringRemoteServiceServlet implements CQL
 		
 		if(str != null) {
 			cqlResult = cqlService.getCQLData(str);
-			cqlResult.setExpIdentifier(getDefaultExpansionIdentifier(str));
+			cqlResult.setExpIdentifier(cqlService.getDefaultExpansionIdentifier(str));
 			cqlResult.setSetId(cqlLibrary.getSet_id());
 			cqlResult.setSuccess(true);
 		}
@@ -855,30 +778,6 @@ public class CQLLibraryService extends SpringRemoteServiceServlet implements CQL
 		return xmlString;
 	}
 	
-	public String getDefaultExpansionIdentifier(String xml) {
-		String defaultExpId = null;
-		if (xml != null) {
-			XmlProcessor processor = new XmlProcessor(xml);
-
-			String XPATH_VSAC_EXPANSION_IDENTIFIER = "//cqlLookUp/valuesets/@vsacExpIdentifier";
-
-			try {
-				Node vsacExpIdAttr = (Node) XPathFactory.newInstance().newXPath().evaluate(XPATH_VSAC_EXPANSION_IDENTIFIER, processor.getOriginalDoc(),
-						XPathConstants.NODE);
-				if (vsacExpIdAttr != null) {
-					defaultExpId = vsacExpIdAttr.getNodeValue();
-				}
-			} catch (XPathExpressionException e) {
-				e.printStackTrace();
-			}
-		}
-		if(defaultExpId != null){
-			return defaultExpId;
-		} else{
-			return "";
-		}
-	}
-	
 	/* (non-Javadoc)
 	 * @see mat.server.service.CQLLibraryServiceInterface#isLibraryLocked(java.lang.String)
 	 */
@@ -898,7 +797,7 @@ public class CQLLibraryService extends SpringRemoteServiceServlet implements CQL
 		if ((currentLibraryId != null) && (userId != null) && !currentLibraryId.isEmpty()) {
 			existingLibrary = cqlLibraryDAO.find(currentLibraryId);
 			if (existingLibrary != null) {
-				if ((existingLibrary.getLockedUserId() != null) && existingLibrary.getLockedUserId().toString().equalsIgnoreCase(userId)) {
+				if ((existingLibrary.getLockedUserId() != null) && existingLibrary.getLockedUserId().getId().equalsIgnoreCase(userId)) {
 					// Only if the lockedUser and loggedIn User are same we can
 					// allow the user to unlock the measure.
 					if (existingLibrary.getLockedOutDate() != null) {
@@ -921,23 +820,24 @@ public class CQLLibraryService extends SpringRemoteServiceServlet implements CQL
 	 */
 	@Override
 	public SaveCQLLibraryResult updateLockedDate(String currentLibraryId, String userId) {
-		CQLLibrary existingmeasure = null;
-		LockedUserInfo lockedUserInfo = new LockedUserInfo();
+		CQLLibrary cqlLib = null;
+		User user = null;
+		
 		SaveCQLLibraryResult result = new SaveCQLLibraryResult();
 		if ((currentLibraryId != null) && (userId != null)) {
-			existingmeasure = cqlLibraryDAO.find(currentLibraryId);
-			if (existingmeasure != null) {
-				if (!cqlLibraryDAO.isLibraryLocked(existingmeasure.getId())) {
-					lockedUserInfo.setUserId(userId);
-					existingmeasure.setLockedUserId(lockedUserInfo);
-					existingmeasure.setLockedOutDate(new Timestamp(new Date().getTime()));
-					cqlLibraryDAO.save(existingmeasure);
+			cqlLib = cqlLibraryDAO.find(currentLibraryId);
+			if (cqlLib != null) {
+				if (!cqlLibraryDAO.isLibraryLocked(cqlLib.getId())) {
+					user = getUserService().getById(userId);
+					cqlLib.setLockedUserId(user);
+					cqlLib.setLockedOutDate(new Timestamp(new Date().getTime()));
+					cqlLibraryDAO.save(cqlLib);
 					result.setSuccess(true);
 				}
 			}
 		}
 		
-		result.setId(existingmeasure.getId());
+		result.setId(cqlLib.getId());
 		return result;
 	}
 	
@@ -952,8 +852,8 @@ public class CQLLibraryService extends SpringRemoteServiceServlet implements CQL
 		SaveCQLLibraryResult result = new SaveCQLLibraryResult();
 		List<CQLLibraryDataSetObject> cqlLibraryDataSetObjects = new ArrayList<CQLLibraryDataSetObject> ();
 		for (RecentCQLActivityLog activityLog : recentLibActivityList) {
-			CQLLibrary library = cqlLibraryDAO.find(activityLog.getCqlId());
-			CQLLibraryDataSetObject object = extractCQLLibraryDataObject(library);
+			CQLLibraryDataSetObject object = findCQLLibraryByID(activityLog.getCqlId());
+			//CQLLibraryDataSetObject object = extractCQLLibraryDataObject(library);
 			cqlLibraryDataSetObjects.add(object);
 		}
 		result.setCqlLibraryDataSetObjects(cqlLibraryDataSetObjects);
@@ -1352,7 +1252,7 @@ public class CQLLibraryService extends SpringRemoteServiceServlet implements CQL
 	@Override
 	public SaveUpdateCQLResult saveCQLValueset(CQLValueSetTransferObject valueSetTransferObject) {
 		
-		SaveUpdateCQLResult result = null;
+		SaveUpdateCQLResult result = new SaveUpdateCQLResult();
 		if (MatContextServiceUtil.get().isCurrentCQLLibraryEditable(cqlLibraryDAO, valueSetTransferObject.getCqlLibraryId())) {
 			CQLLibrary library = cqlLibraryDAO.find(valueSetTransferObject.getCqlLibraryId());
 			if (library != null) {
@@ -1365,6 +1265,62 @@ public class CQLLibraryService extends SpringRemoteServiceServlet implements CQL
 			}
 		}
 		return result;
+	}
+	
+	@Override
+	public SaveUpdateCQLResult saveCQLCodestoCQLLibrary(MatCodeTransferObject transferObject) {
+		
+		SaveUpdateCQLResult result = new SaveUpdateCQLResult();
+		if (MatContextServiceUtil.get().isCurrentCQLLibraryEditable(cqlLibraryDAO, transferObject.getId())) {
+			
+			CQLLibrary cqlLibrary = cqlLibraryDAO.find(transferObject.getId());
+			if (cqlLibrary != null) {
+				String cqlXml = getCQLLibraryXml(cqlLibrary);
+				if(!cqlXml.isEmpty()){
+					result = cqlService.saveCQLCodes(cqlXml,transferObject);
+					if(result != null && result.isSuccess()) {
+						String nodeName = "code";
+						String parentNode = "//cqlLookUp/codes";
+						String newXml= appendAndSaveNode(cqlLibrary, nodeName, result.getXml(), parentNode);
+						cqlLibraryDAO.refresh(cqlLibrary);
+						System.out.println("newXml ::: " + newXml);
+						
+						
+						CQLCodeSystem codeSystem = new CQLCodeSystem();
+						codeSystem.setCodeSystem(transferObject.getCqlCode().getCodeSystemOID());
+						codeSystem.setCodeSystemName(transferObject.getCqlCode().getCodeSystemName());
+						codeSystem.setCodeSystemVersion(transferObject.getCqlCode().getCodeSystemVersion());
+						SaveUpdateCQLResult updatedResult = cqlService.saveCQLCodeSystem(newXml, codeSystem);
+						if(updatedResult.isSuccess()) {
+							newXml = saveCQLCodeSystemInLibrary(cqlLibrary, updatedResult);
+							System.out.println("Updated newXml ::: " + newXml);
+						}
+						result.setCqlCodeList(getSortedCQLCodes(newXml).getCqlCodeList());
+					}
+				}
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * @param cqlLibrary
+	 * @param updatedResult
+	 */
+	private String saveCQLCodeSystemInLibrary(CQLLibrary cqlLibrary, SaveUpdateCQLResult updatedResult) {
+		String nodeName = "codeSystem";
+		String parentNode = "//cqlLookUp/codeSystems";
+		 return appendAndSaveNode(cqlLibrary, nodeName, updatedResult.getXml(), parentNode);
+	}
+	
+	
+	private CQLCodeWrapper getSortedCQLCodes(String newXml) {
+		CQLCodeWrapper cqlCodeWrapper = new CQLCodeWrapper();
+		if(newXml != null && !newXml.isEmpty()){
+			cqlCodeWrapper = cqlService.getCQLCodes(newXml);
+		}
+		
+		return cqlCodeWrapper;
 	}
 	
 	/**
@@ -1445,6 +1401,26 @@ public class CQLLibraryService extends SpringRemoteServiceServlet implements CQL
 		return cqlResult;
 	}
 	
+	
+	@Override
+	public SaveUpdateCQLResult deleteCode(String toBeDeletedId, String libraryId) {
+		
+		SaveUpdateCQLResult cqlResult = new SaveUpdateCQLResult();
+		if (MatContextServiceUtil.get().isCurrentCQLLibraryEditable(cqlLibraryDAO, libraryId)) {
+			CQLLibrary library = cqlLibraryDAO.find(libraryId);
+			if (library != null) {
+				cqlResult = cqlService.deleteCode(getCQLLibraryXml(library), toBeDeletedId);
+				if (cqlResult != null && cqlResult.isSuccess()) {
+					library.setCQLByteArray(cqlResult.getXml().getBytes());
+					save(library);
+					cqlResult.setCqlCodeList(getSortedCQLCodes(cqlResult.getXml()).getCqlCodeList());
+					
+				}
+			}
+		}
+		return cqlResult;
+	}
+	
 	/**
 	 * Append and save node.
 	 *
@@ -1453,15 +1429,16 @@ public class CQLLibraryService extends SpringRemoteServiceServlet implements CQL
 	 * @param newXml the new xml
 	 * @param parentNode the parent node
 	 */
-	public final void appendAndSaveNode(CQLLibrary library, final String nodeName, String newXml, String parentNode) {
-		
+	public final String appendAndSaveNode(CQLLibrary library, final String nodeName, String newXml, String parentNode) {
+		String result = new String();
 		if ((library != null && !StringUtils.isEmpty(getCQLLibraryXml(library)))
 				&& (nodeName != null && StringUtils.isNotBlank(nodeName))) {
-			String result = callAppendNode(getCQLLibraryXml(library), newXml, nodeName,
+			 result = callAppendNode(getCQLLibraryXml(library), newXml, nodeName,
 					parentNode);
 			library.setCQLByteArray(result.getBytes());
 			save(library);
 		}
+		return result;
 
 	}
 	
@@ -1517,9 +1494,12 @@ public class CQLLibraryService extends SpringRemoteServiceServlet implements CQL
 		dataObject.setOwnerFirstName(user.getFirstName());
 		dataObject.setOwnerLastName(user.getLastName());
 		dataObject.setSharable(isOwner || isSuperUser);
+		dataObject.setDeletable(isOwner && dto.isDraft());
 		dataObject.setCqlSetId(dto.getCqlLibrarySetId());
 		dataObject.setEditable(MatContextServiceUtil.get().isCurrentCQLLibraryEditable(
 				cqlLibraryDAO, dto.getCqlLibraryId()));
+		dataObject.setDraftable(dto.isDraftable());
+		dataObject.setVersionable(dto.isVersionable());
 		return dataObject;
 	}
 	
@@ -1710,4 +1690,122 @@ public class CQLLibraryService extends SpringRemoteServiceServlet implements CQL
 		logger.info("End VSACAPIServiceImpl updateAllInLibraryXml :");
 	}
 	
+	
+	@Override
+	public void transferLibraryOwnerShipToUser(final List<String> list, final String toEmail) {
+		User userTo = userDAO.findByEmail(toEmail);
+		
+		for (int i = 0; i < list.size(); i++) {
+			CQLLibrary library = cqlLibraryDAO.find(list.get(i));
+			List<CQLLibrary> libraries = new ArrayList <CQLLibrary>();
+			libraries.add(library);
+			//Get All Family Libraries for each CQL Library
+			List<CQLLibrary> allLibrariesInFamily = cqlLibraryDAO.getAllLibrariesInSet(libraries);
+			for (int j = 0; j < allLibrariesInFamily.size(); j++) {
+				String additionalInfo = "CQL Library Owner transferred from "
+						+ allLibrariesInFamily.get(j).getOwnerId().getEmailAddress() + " to " + toEmail;
+				allLibrariesInFamily.get(j).setOwnerId(userTo);
+				this.save(allLibrariesInFamily.get(j));
+				cqlLibraryAuditLogDAO.recordCQLLibraryEvent(allLibrariesInFamily.get(j), "CQL Library Ownership Changed", additionalInfo);
+				additionalInfo = "";
+				
+			}
+			List<CQLLibraryShare> cqlLibShareInfo = cqlLibraryDAO.getLibraryShareInforForLibrary(list.get(i));
+			for (int k = 0; k < cqlLibShareInfo.size(); k++) {
+				cqlLibShareInfo.get(k).setOwner(userTo);
+				cqlLibraryShareDAO.save(cqlLibShareInfo.get(k));
+			}
+			
+		}
+		
+	}
+	
+	@Override
+    public List<CQLLibraryOwnerReportDTO> getCQLLibrariesForOwner() {
+        Map<User, List<CQLLibrary>> map = new HashMap<>();
+        List<User> nonAdminUserList = getUserService().getAllNonAdminActiveUsers();
+        for(User user : nonAdminUserList) {
+            List<CQLLibrary> libraryList = cqlLibraryDAO.getLibraryListForLibraryOwner(user);
+            if((libraryList != null && libraryList.size() > 0)) {
+                map.put(user,  libraryList);
+            }
+        }
+ 
+        List<CQLLibraryOwnerReportDTO> cqlLibraryOwnerReports = populateCQLLibraryOwnerReport(map); 
+        return cqlLibraryOwnerReports;
+ 
+    }
+	
+	 /**
+     * Populates the cql library ownership dto list
+     * @param map the map of users and cql libraries
+     * @return the cql library ownership report list
+     */
+ 
+    private List<CQLLibraryOwnerReportDTO> populateCQLLibraryOwnerReport(Map<User, List<CQLLibrary>> map) {
+        List<CQLLibraryOwnerReportDTO> cqlLibraryOwnerReports = new ArrayList<CQLLibraryOwnerReportDTO>();
+        for(Entry<User, List<CQLLibrary>> entry : map.entrySet()) {
+            User user = entry.getKey();
+            List<CQLLibrary> libraries = entry.getValue();
+            for(CQLLibrary cqlLibrary : libraries) {
+                String cqlLibraryName = cqlLibrary.getName();
+                String type = ""; 
+                if(cqlLibrary.getMeasureId() == null) {
+                    type = "Stand Alone"; 
+                } else {
+                    type = "Measure"; 
+                }
+                String status = ""; 
+                if(cqlLibrary.isDraft()) {
+                    status = "Draft";
+                } else {
+                    status = "Versioned"; 
+                }
+                String versionNumber = "v" + cqlLibrary.getVersionNumber(); 
+                String id = cqlLibrary.getId();
+                String setId = cqlLibrary.getSet_id();
+                String firstName = user.getFirstName();
+                String lastName = user.getLastName(); 
+                String organization = user.getOrganization().getOrganizationName();
+                CQLLibraryOwnerReportDTO cqlLibraryOwnerReportDTO = new CQLLibraryOwnerReportDTO(cqlLibraryName, type, status, versionNumber, id, setId, firstName, lastName, organization);
+                cqlLibraryOwnerReports.add(cqlLibraryOwnerReportDTO);
+            }
+        }
+        return cqlLibraryOwnerReports; 
+ 
+    }
+    
+    @Override
+    public final void deleteCQLLibrary(final String cqllibId, String loginUserId) {
+		logger.info("CQLLibraryService: DeleteCQLLibrary start : cqlLibId:: " + cqllibId);
+		CQLLibrary cqlLib = cqlLibraryDAO.find(cqllibId);
+		SecurityContext sc = SecurityContextHolder.getContext();
+		MatUserDetails details = (MatUserDetails) sc.getAuthentication().getDetails();
+		if (cqlLib.getOwnerId().getId().equalsIgnoreCase(details.getId())) {
+			logger.info("CQL Library Deletion Started for cql library Id :: " + cqllibId);
+			try {
+				cqlLibraryDAO.delete(cqlLib);
+				logger.info("CQL Library Deleted Successfully :: " + cqllibId);
+			} catch (Exception e) {
+				logger.info("CQL Libraray not deleted.Something went wrong for cql Library Id :: " + cqllibId);
+			}
+		}
+
+		logger.info("CQLLibraryService: DeleteCQLLibrary End : cqlLibraryId:: " + cqllibId);
+	}
+
+	@Override
+	public SaveCQLLibraryResult searchForStandaloneIncludes(String setId, String searchText) {
+		SaveCQLLibraryResult saveCQLLibraryResult = new SaveCQLLibraryResult();
+        List<CQLLibraryDataSetObject> allLibraries = new ArrayList<CQLLibraryDataSetObject>();
+        List<CQLLibrary> list = cqlLibraryDAO.searchForStandaloneIncludes(setId, searchText);
+        saveCQLLibraryResult.setResultsTotal(list.size());
+        for(CQLLibrary cqlLibrary : list){
+               CQLLibraryDataSetObject object = extractCQLLibraryDataObject(cqlLibrary);
+               allLibraries.add(object);
+        }
+        saveCQLLibraryResult.setCqlLibraryDataSetObjects(allLibraries);
+        return saveCQLLibraryResult;
+	}
+
 }

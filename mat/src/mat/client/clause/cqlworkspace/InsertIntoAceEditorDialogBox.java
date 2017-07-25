@@ -3,12 +3,10 @@ package mat.client.clause.cqlworkspace;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import org.aspectj.weaver.tools.MatchingContext;
 import org.gwtbootstrap3.client.ui.Button;
 import org.gwtbootstrap3.client.ui.ButtonToolBar;
 import org.gwtbootstrap3.client.ui.FieldSet;
@@ -44,12 +42,13 @@ import com.google.gwt.user.client.ui.ListBox;
 import edu.ycp.cs.dh.acegwt.client.ace.AceEditor;
 import mat.client.clause.QDSAttributesService;
 import mat.client.clause.QDSAttributesServiceAsync;
-import mat.client.clause.cqlworkspace.CQLWorkSpacePresenter.ViewDisplay;
 import mat.client.shared.CustomDateTimeTextBox;
 import mat.client.shared.CustomQuantityTextBox;
 import mat.client.shared.JSONAttributeModeUtility;
 import mat.client.shared.ListBoxMVP;
 import mat.client.shared.MatContext;
+import mat.client.shared.NameValuePair;
+import mat.model.ModeDetailModel;
 import mat.model.clause.QDSAttributes;
 import mat.model.cql.CQLFunctionArgument;
 import mat.model.cql.CQLFunctions;
@@ -59,26 +58,29 @@ import mat.model.cql.CQLFunctions;
  * The Class InsertIntoAceEditorDialogBox.
  */
 public class InsertIntoAceEditorDialogBox {
+	private static final String VALUE_SETS_CODES = "Value Sets/Codes";
+
+	private static final String NULLABLE = "Nullable";
+
 	/**
 	 * List of availableInsertItemList.
 	 */
 	private static List<String> availableInsertItemList = CQLWorkSpaceConstants.getAvailableItem();
 	
 	/** The all data types. */
-	private static List<String> allDataTypes = MatContext.get().getDataTypeList();
-	
-	private static List<String> allQdmDataTypes = MatContext.get().getQdmDataTypeList();
-	
+	private static List<String> allDataTypes = MatContext.get().getCqlConstantContainer().getCqlDatatypeList();
+		
 	/** The all attributes. */
-	private static List<String> allAttributes = MatContext.get().getAllAttributeList();
+	private static List<String> allAttributes = MatContext.get().getCqlConstantContainer().getCqlAttributeList();
 	
-	private static List<String> allUnits = MatContext.get().getAllUnitsList(); 
-	
-	private static List<String> allCqlUnits = MatContext.get().getAllCQLUnits();
-	
-	private static Map<String,String> cqlUnitMap = new LinkedHashMap<String,String>();
-	
-	private static HashSet<String> nonQuoteUnits = new HashSet<String>();
+	private static List<String> allTimings = MatContext.get().getCqlConstantContainer().getCqlTimingList();
+		
+	/**
+	 * allCqlUnits map in the format of <UnitName, CQLUnit>
+	 */
+	private static Map<String, String> allCqlUnits = MatContext.get().getCqlConstantContainer().getCqlUnitMap();
+		
+	private static HashSet<String> nonQuoteUnits = MatContext.get().getNonQuotesUnits();
 	
 	/** The attribute service. */
 	private static QDSAttributesServiceAsync attributeService = (QDSAttributesServiceAsync) GWT
@@ -98,7 +100,7 @@ public class InsertIntoAceEditorDialogBox {
 	/**
 	 * List of cqlFunctionsList.
 	 */
-	private static List<String> cqlFunctionsList = MatContext.get().getCqlGrammarDataType().getCqlFunctionsList();
+	private static List<String> cqlFunctionsList = MatContext.get().getCqlConstantContainer().getCqlKeywordList().getCqlFunctionsList();
 	
 	/** The Constant INSERT_AT_END. */
 	private static final int INSERT_AT_END = -1;
@@ -332,88 +334,73 @@ public class InsertIntoAceEditorDialogBox {
 											if(!allQDMDatatypes.getValue(selectedDatatypeIndex).equalsIgnoreCase(MatContext.get().PLEASE_SELECT)){
 												dataType = allQDMDatatypes.getValue(selectedDatatypeIndex);
 											}
-											
 										}
-										String name = itemNameToBeInserted;
+										String[] str = itemNameToBeInserted.toString().split("\\.");
+										StringBuilder sb = new StringBuilder();
+										boolean isNotValidCode = false;
+										String aliasStr = "";
+										if(str.length>1){
+											aliasStr = str[0];
+											itemNameToBeInserted = str[1];
+										} 
 										if(dataType != null){
-											if(name.equalsIgnoreCase(DEAD)){
-												if(dataType.equalsIgnoreCase(PATIENT_CHARACTERISTIC_EXPIRED)){
-													StringBuilder sb = new StringBuilder();
-													sb = sb.append("[\"" + dataType + "\"");
-													sb = sb.append(": \"").append(name + "\"]");
-													itemNameToBeInserted = sb.toString();
-												} else {
-													dataTypeListFormGroup.setValidationState(ValidationState.ERROR);
-													helpBlock.setIconType(IconType.EXCLAMATION_CIRCLE);
-													helpBlock.setText(MatContext.get().getMessageDelegate().getERROR_INVALID_CODE_DATA_TYPE());
-													messageFormgroup.setValidationState(ValidationState.ERROR);
-													itemNameToBeInserted = "";
-												}
-												
-											} else if(name.equalsIgnoreCase(BIRTH_DATE)){
-												if(dataType.equalsIgnoreCase(PATIENT_CHARACTERISTIC_BIRTHDATE)){
-													StringBuilder sb = new StringBuilder();
-													sb = sb.append("[\"" + dataType + "\"");
-													sb = sb.append(": \"").append(name + "\"]");
-													itemNameToBeInserted = sb.toString();
-												} else {
-													dataTypeListFormGroup.setValidationState(ValidationState.ERROR);
-													helpBlock.setIconType(IconType.EXCLAMATION_CIRCLE);
-													helpBlock.setText(MatContext.get().getMessageDelegate().getERROR_INVALID_CODE_DATA_TYPE());
-													messageFormgroup.setValidationState(ValidationState.ERROR);
-													itemNameToBeInserted = "";
-												}
-											} else if(dataType.equalsIgnoreCase(PATIENT_CHARACTERISTIC_BIRTHDATE)){
-												if(name.equalsIgnoreCase(BIRTH_DATE)){
-													StringBuilder sb = new StringBuilder();
-													sb = sb.append("[\"" + dataType + "\"");
-													sb = sb.append(": \"").append(name + "\"]");
-													itemNameToBeInserted = sb.toString();
-												} else {
-													dataTypeListFormGroup.setValidationState(ValidationState.ERROR);
-													helpBlock.setIconType(IconType.EXCLAMATION_CIRCLE);
-													helpBlock.setText(MatContext.get().getMessageDelegate().getERROR_INVALID_CODE_DATA_TYPE());
-													messageFormgroup.setValidationState(ValidationState.ERROR);
-													itemNameToBeInserted = "";
-												}
-											} else if(dataType.equalsIgnoreCase(PATIENT_CHARACTERISTIC_EXPIRED)){
-												if(name.equalsIgnoreCase(DEAD)){
-													StringBuilder sb = new StringBuilder();
-													sb = sb.append("[\"" + dataType + "\"");
-													sb = sb.append(": \"").append(name + "\"]");
-													itemNameToBeInserted = sb.toString();
-												} else {
-													dataTypeListFormGroup.setValidationState(ValidationState.ERROR);
-													helpBlock.setIconType(IconType.EXCLAMATION_CIRCLE);
-													helpBlock.setText(MatContext.get().getMessageDelegate().getERROR_INVALID_CODE_DATA_TYPE());
-													messageFormgroup.setValidationState(ValidationState.ERROR);
-													itemNameToBeInserted = "";
-												}
+											if(itemNameToBeInserted.equalsIgnoreCase(DEAD) 
+													&& !dataType.equalsIgnoreCase(PATIENT_CHARACTERISTIC_EXPIRED)){
+												isNotValidCode = true;											
+											} else if(itemNameToBeInserted.equalsIgnoreCase(BIRTH_DATE) 
+													&& !dataType.equalsIgnoreCase(PATIENT_CHARACTERISTIC_BIRTHDATE)){
+												isNotValidCode = true;
+											} else if(dataType.equalsIgnoreCase(PATIENT_CHARACTERISTIC_BIRTHDATE)
+												&& !itemNameToBeInserted.equalsIgnoreCase(BIRTH_DATE)){
+												isNotValidCode = true;
+											} else if(dataType.equalsIgnoreCase(PATIENT_CHARACTERISTIC_EXPIRED)
+												&& !itemNameToBeInserted.equalsIgnoreCase(DEAD)){
+												isNotValidCode = true;
+											}
+											if(isNotValidCode){
+												helpBlock.setIconType(IconType.EXCLAMATION_CIRCLE);
+												helpBlock.setText(MatContext.get().getMessageDelegate().getERROR_INVALID_CODE_DATA_TYPE());
+												messageFormgroup.setValidationState(ValidationState.ERROR);
+												itemNameToBeInserted = "";
 											} else {
-												StringBuilder sb = new StringBuilder();
+												
 												sb = sb.append("[\"" + dataType + "\"");
-												sb = sb.append(": \"").append(name + "\"]");
+												sb = sb.append(": ");
+												if(!aliasStr.isEmpty()){
+													sb = sb.append(aliasStr).append(".");
+												}
+												sb= sb.append("\"").append(itemNameToBeInserted).append("\"]");
 												itemNameToBeInserted = sb.toString();
 											}
-											
-											
-											
+										
 										} else {
-											StringBuilder sb = new StringBuilder();
-											sb = sb.append("\"" + name + "\"");
-											itemNameToBeInserted = sb.toString();
+											
+											if(!aliasStr.isEmpty()){
+												sb = sb.append(aliasStr).append(".");
+											}
+											sb= sb.append("\"").append(itemNameToBeInserted).append("\"");
+											itemNameToBeInserted = sb.toString();	
 										}
 										
 									} else if(itemTypeName.equalsIgnoreCase("definitions") || itemTypeName.equalsIgnoreCase("parameters")) {
 										StringBuilder sb = new StringBuilder(); 
-										sb = sb.append("\""); 
-										sb = sb.append(itemNameToBeInserted);
-										sb = sb.append("\""); 
+										String[] str = itemNameToBeInserted.toString().split("\\.");
+										if(str.length>1){
+											sb = sb.append(str[0]).append(".");
+										    itemNameToBeInserted = str[1];		
+										} 
+										sb = sb.append("\"").append(itemNameToBeInserted).append("\"");
 										itemNameToBeInserted = sb.toString(); 
 									} else if(itemTypeName.equalsIgnoreCase("functions")) {
 										StringBuilder sb = new StringBuilder(); 
+										String[] str = itemNameToBeInserted.toString().split("\\.");
+										if(str.length>1){
+											sb = sb.append(str[0]).append(".");
+											itemNameToBeInserted = str[1];		
+										} 
 										sb = sb.append("\""); 
-										itemNameToBeInserted = itemNameToBeInserted.substring(0, itemNameToBeInserted.indexOf("("));
+										itemNameToBeInserted = itemNameToBeInserted.substring(0, 
+												itemNameToBeInserted.indexOf("("));
 										sb = sb.append(itemNameToBeInserted); 
 										sb = sb.append("\"()");
 										itemNameToBeInserted = sb.toString(); 
@@ -629,6 +616,7 @@ public class InsertIntoAceEditorDialogBox {
 				if (selectedIndex != 0) {
 					String modeSelected = ModelistBox.getItemText(selectedIndex);
 					ModeDetailslistBox.setEnabled(true);
+					
 					addModeDetailslist(ModeDetailslistBox,JSONAttributeModeUtility.getModeDetailsList(modeSelected)); 
 					ModeDetailslistBox.setSelectedIndex(0);
 				} else {
@@ -837,6 +825,10 @@ public class InsertIntoAceEditorDialogBox {
 							listAllItemNames.addItem(cqlNavBarView.getViewParameterList().get(i)
 									.getParameterName());
 						}
+						
+						for (int j = 0; j < MatContext.get().getIncludedParamNames().size(); j++) {
+							listAllItemNames.addItem(MatContext.get().getIncludedParamNames().get(j));
+						}
 					} else if (itemTypeSelected.equalsIgnoreCase("functions")) {
 						listAllItemNames.clear();
 						availableDatatypes.clear();
@@ -851,6 +843,10 @@ public class InsertIntoAceEditorDialogBox {
 							String funcArgToolTip = getFunctionArgumentToolTipBuilder(functions);
 							listAllItemNames.insertItem(funcArg, funcArg, funcArgToolTip, INSERT_AT_END);
 						}
+						
+						for (int j = 0; j < MatContext.get().getIncludedFuncNames().size(); j++) {
+							listAllItemNames.addItem(MatContext.get().getIncludedFuncNames().get(j)+"()");
+						}
 					} else if (itemTypeSelected.equalsIgnoreCase("definitions")) {
 						listAllItemNames.clear();
 						availableDatatypes.clear();
@@ -863,6 +859,11 @@ public class InsertIntoAceEditorDialogBox {
 							listAllItemNames.addItem(cqlNavBarView.getViewDefinitions().get(i)
 									.getDefinitionName());
 						}
+						
+						for (int j = 0; j < MatContext.get().getIncludedDefNames().size(); j++) {
+							listAllItemNames.addItem(MatContext.get().getIncludedDefNames().get(j));
+						}
+						
 					} /*else if (itemTypeSelected.equalsIgnoreCase("timing")) {
 						listAllItemNames.clear();
 						listAllItemNames.setEnabled(true);
@@ -892,25 +893,10 @@ public class InsertIntoAceEditorDialogBox {
 						availableAttributesToInsert.setEnabled(false);
 						listAllItemNames.addItem(MatContext.get().PLEASE_SELECT);
 						for (int i = 0; i < cqlNavBarView.getAppliedQdmList().size(); i++) {
-							/*if(!searchDisplay.getAppliedQdmList().get(i)
-									.getDataType().equalsIgnoreCase("attribute")){
-								listAllItemNames.addItem(searchDisplay.getAppliedQdmList().get(i).getCodeListName()
-										+ "." + searchDisplay.getAppliedQdmList().get(i).getDataType());
-							}
-							if(searchDisplay.getAppliedQdmList().get(i).getDataType() != null
-									&& !searchDisplay.getAppliedQdmList().get(i)
-									.getDataType().equalsIgnoreCase("attribute")){
-								listAllItemNames.addItem(searchDisplay.getAppliedQdmList().get(i).getCodeListName()
-										+ "." + searchDisplay.getAppliedQdmList().get(i).getDataType());
-							} else if(searchDisplay.getAppliedQdmList().get(i).getDataType() == null){*/
-								/*if(searchDisplay.getAppliedQdmList().get(i).getDisplayName() != null){
-									listAllItemNames.addItem(searchDisplay.getAppliedQdmList().get(i).getDisplayName());
-								} else {*/
-									listAllItemNames.addItem(cqlNavBarView.getAppliedQdmList().get(i).getCodeListName());
-								//}
-								
-							//}
-							
+							listAllItemNames.addItem(cqlNavBarView.getAppliedQdmList().get(i).getCodeListName());							
+						}
+						for (int j = 0; j < MatContext.get().getIncludedValueSetNames().size(); j++) {
+							listAllItemNames.addItem(MatContext.get().getIncludedValueSetNames().get(j));
 						}
 					} else if (itemTypeSelected.equalsIgnoreCase("Attributes")) {
 						//open new popup/dialogBox
@@ -926,12 +912,16 @@ public class InsertIntoAceEditorDialogBox {
 						addAvailableItems(availableAttributesToInsert, allAttributes);
 						
 					} else if (itemTypeSelected.equalsIgnoreCase("Timing")) {
-						//open new popup/dialogBox
-						dialogModal.clear();
-						dialogModal.hide();
-						//searchDisplay.resetMessageDisplay();
-						InsertTimingExpressionIntoAceEditor.showTimingExpressionDialogBox(cqlNavBarView, curEditor);
-						cqlNavBarView.setIsPageDirty(true);
+						listAllItemNames.clear();
+						availableDatatypes.clear();
+						availableAttributesToInsert.clear();
+						listAllItemNames.setEnabled(true);
+						availableDatatypes.setEnabled(false);
+						availableAttributesToInsert.setEnabled(false);
+						listAllItemNames.addItem(MatContext.get().PLEASE_SELECT);
+						for(int i = 0; i < allTimings.size(); i++) {
+							listAllItemNames.addItem(allTimings.get(i));
+						}
 					}else {
 						listAllItemNames.clear();
 						availableDatatypes.clear();
@@ -1085,13 +1075,24 @@ public class InsertIntoAceEditorDialogBox {
 		}
 	}
 	
-	private static void addModeDetailslist(ListBoxMVP availableItemToInsert, List<String> modeDetailsList) {
-		availableItemToInsert.addItem(MatContext.get().PLEASE_SELECT);
-		for (int i = 0; i < modeDetailsList.size(); i++) {
-			if(!modeDetailsList.get(i).equalsIgnoreCase(MatContext.get().PLEASE_SELECT)){
-				availableItemToInsert.addItem(modeDetailsList.get(i));
+	private static void addModeDetailslist(ListBoxMVP availableItemToInsert, List<ModeDetailModel> list) {
+		/*availableItemToInsert.addItem(MatContext.get().PLEASE_SELECT);
+		for (int i = 0; i < list.size(); i++) {
+			if(!list.get(i).equalsIgnoreCase(MatContext.get().PLEASE_SELECT)){
+				availableItemToInsert.addItem(list.get(i));
 			}
+		}*/
+		
+		List<NameValuePair> retList = new ArrayList<NameValuePair>();
+		for(int i=0; i < list.size();i++){
+			ModeDetailModel mode = list.get(i);
+			NameValuePair nvp = new NameValuePair();
+			nvp.setName(mode.getModeName());
+			nvp.setValue(mode.getModeValue());
+			retList.add(nvp);
 		}
+		availableItemToInsert.setDropdownOptions(retList,true);
+		
 	}
 	
 	/**
@@ -1199,14 +1200,12 @@ public class InsertIntoAceEditorDialogBox {
 	 * @return the string
 	 */
 	private static String attributeStringBuilder(){
-		nonQuoteUnits = getNonQuotesUnits();
-		cqlUnitMap = getCqlUnitMap();
 		StringBuilder sb = new StringBuilder();
 		String selectedAttrItem = "";
 		String selectedMode = "";
 		String selectedMDetailsItem = "";
 		String selectedQuantity = QuantityTextBox.getText();
-		String selectedUnit = cqlUnitMap.get(UnitslistBox.getItemText(UnitslistBox.getSelectedIndex()));
+		String selectedUnit = allCqlUnits.get(UnitslistBox.getItemText(UnitslistBox.getSelectedIndex()));
 		
 		if(AttriblistBox.getSelectedIndex()>0){
 			selectedAttrItem = AttriblistBox.getItemText(AttriblistBox.getSelectedIndex());
@@ -1218,18 +1217,36 @@ public class InsertIntoAceEditorDialogBox {
 		
 		if(ModeDetailslistBox.getSelectedIndex()>0){
 			selectedMDetailsItem = ModeDetailslistBox.getItemText(ModeDetailslistBox.getSelectedIndex());
+			//selectedMDetailsItem = ModeDetailslistBox.getSelectedItemText();
 		}
 		 
 		if(selectedMode.isEmpty() && selectedMDetailsItem.isEmpty()){
 			sb.append(".").append(selectedAttrItem);
-		}else if(selectedMode.equalsIgnoreCase("Nullable")){
+		}else if(selectedMode.equalsIgnoreCase(NULLABLE)){
 			sb.append(".").append(selectedAttrItem).append(" ").append(selectedMDetailsItem);
-		}else if(selectedMode.equalsIgnoreCase("Value Sets")){
-			if(selectedAttrItem.equalsIgnoreCase(CQLWorkSpaceConstants.CQL_ATTRIBUTE_RESULT) || selectedAttrItem.equalsIgnoreCase(CQLWorkSpaceConstants.CQL_ATTRIBUTE_TARGET_OUTCOME)){
-				sb.append(".").append(selectedAttrItem).append(CQLWorkSpaceConstants.CQL_INSERT_AS_CODE).append("\"").append(selectedMDetailsItem).append("\"");
-			}else{
-				sb.append(".").append(selectedAttrItem).append(CQLWorkSpaceConstants.CQL_INSERT_IN).append("\"").append(selectedMDetailsItem).append("\"");
+		}else if(selectedMode.equalsIgnoreCase(VALUE_SETS_CODES)){
+			String valueArray[] = ModeDetailslistBox.getValue().split(":");
+			String type="";
+			String value = "";
+			if(valueArray.length > 0){
+				type = valueArray[0];
+				value = valueArray[1];
+				if(selectedAttrItem.equalsIgnoreCase(CQLWorkSpaceConstants.CQL_ATTRIBUTE_RESULT)
+						|| selectedAttrItem.equalsIgnoreCase(CQLWorkSpaceConstants.CQL_ATTRIBUTE_TARGET_OUTCOME)){
+					if(type.equalsIgnoreCase("valueset")) { // For Value Set
+						sb.append(".").append(selectedAttrItem).append(CQLWorkSpaceConstants.CQL_INSERT_AS_CODE_IN).append("\"").append(value).append("\"");
+					} else { // For Code 
+						sb.append(".").append(selectedAttrItem).append(CQLWorkSpaceConstants.CQL_INSERT_AS_CODE).append("\"").append(value).append("\"");
+					}
+				}else{
+					if(type.equalsIgnoreCase("valueset")) { // For Value Set
+						sb.append(".").append(selectedAttrItem).append(CQLWorkSpaceConstants.CQL_INSERT_IN).append("\"").append(value).append("\"");
+					} else { // For Code
+						sb.append(".").append(selectedAttrItem).append(CQLWorkSpaceConstants.CQL_EQUALS).append("\"").append(value).append("\"");
+					}
+				}
 			}
+			
 		}else if(QuantityTextBox.isEnabled()){
 			
 			sb.append(".").append(selectedAttrItem).append(" ").append(selectedMDetailsItem).append(" ").append(selectedQuantity).append(" ");
@@ -1243,38 +1260,6 @@ public class InsertIntoAceEditorDialogBox {
 		
 	}
 	
-	private static Map<String, String> getCqlUnitMap() {
-		 Map<String, String> map = new LinkedHashMap<String,String>(); ;
-		Iterator<String> i1 = allUnits.iterator();
-		Iterator<String> i2 = allCqlUnits.iterator();
-		while (i1.hasNext() && i2.hasNext()) {
-			map.put(i1.next(), i2.next());
-		}
-		return map;
-	}
-
-	private static HashSet<String> getNonQuotesUnits(){
-		 HashSet<String> hset = 
-	               new HashSet<String>();
-		hset.add("millisecond");
-		hset.add("milliseconds");
-		hset.add("second");
-		hset.add("seconds");
-		hset.add("minute");
-		hset.add("minutes");
-		hset.add("hour");
-		hset.add("hours");
-		hset.add("day");
-		hset.add("days");
-		hset.add("week");
-		hset.add("weeks");
-		hset.add("month");
-		hset.add("months");
-		hset.add("year");
-		hset.add("years");
-		
-		return hset;
-	}
 	/**
 	 * Builds the date time string.
 	 *
@@ -1433,8 +1418,10 @@ private static void defaultFrmGrpValidations(){
 		UnitslistBox.setWidth("18em");
 		UnitslistBox.setVisibleItemCount(10);
 		UnitslistBox.getElement().setId("Units_listBox");
+		
+		Set<String> allUnits = allCqlUnits.keySet();
 		for(String unit : allUnits) {
-			UnitslistBox.addItem(unit);
+			UnitslistBox.addItem(unit, unit);
 		}
 		//setting itemcount value to 1 turns listbox into a drop-down list.
 		UnitslistBox.setVisibleItemCount(1);

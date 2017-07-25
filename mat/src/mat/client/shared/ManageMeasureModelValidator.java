@@ -3,6 +3,7 @@ package mat.client.shared;
 import java.util.ArrayList;
 import java.util.List;
 import mat.client.measure.ManageMeasureDetailModel;
+import mat.shared.MatConstants;
 
 public class ManageMeasureModelValidator {
 	
@@ -27,6 +28,12 @@ public class ManageMeasureModelValidator {
 			//|| enteredScoringValue.equals("--Select--")) {
 			message.add(MatContext.get().getMessageDelegate().s_ERR_MEASURE_SCORE_REQUIRED);
 		}
+		
+		// MAT-8602 Continous Variable measures must be patient based.
+		if((scoring.equalsIgnoreCase(MatConstants.CONTINUOUS_VARIABLE) && (model.isPatientBased()))) {
+			message.add(MatContext.get().getMessageDelegate().CONTINOUS_VARIABLE_IS_NOT_PATIENT_BASED_ERROR);
+		}
+		
 		return message;
 	}
 	
