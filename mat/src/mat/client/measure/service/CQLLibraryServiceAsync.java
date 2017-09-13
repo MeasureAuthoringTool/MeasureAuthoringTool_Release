@@ -7,14 +7,12 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import mat.client.umls.service.VsacApiResult;
 import mat.model.CQLValueSetTransferObject;
 import mat.model.MatCodeTransferObject;
-import mat.model.cql.CQLCodeWrapper;
 import mat.model.cql.CQLDefinition;
 import mat.model.cql.CQLFunctions;
 import mat.model.cql.CQLIncludeLibrary;
 import mat.model.cql.CQLKeywords;
 import mat.model.cql.CQLLibraryDataSetObject;
 import mat.model.cql.CQLParameter;
-import mat.model.cql.CQLQualityDataSetDTO;
 import mat.shared.GetUsedCQLArtifactsResult;
 import mat.shared.SaveUpdateCQLResult;
 
@@ -48,6 +46,8 @@ public interface CQLLibraryServiceAsync {
 	void saveDraftFromVersion(String libraryId, AsyncCallback<SaveCQLLibraryResult> callback);
 	
 	void getLibraryCQLFileData(String libraryId, AsyncCallback<SaveUpdateCQLResult> callback);
+	
+	void getCQLLibraryFileData(String libraryId, AsyncCallback<SaveUpdateCQLResult> callback);
 
 	void saveAndModifyCQLGeneralInfo(String libraryId, String libraryValue,
 			AsyncCallback<SaveUpdateCQLResult> callback);
@@ -55,14 +55,14 @@ public interface CQLLibraryServiceAsync {
 	void getUserShareInfo(String cqlId, String searchText,
 			AsyncCallback<SaveCQLLibraryResult> callback);
 
-	void searchForIncludes(String referringID, String searchText, AsyncCallback<SaveCQLLibraryResult> callback);
+	void searchForIncludes(String referringID, String searchText, boolean filter, AsyncCallback<SaveCQLLibraryResult> callback);
 
 	void updateUsersShare(SaveCQLLibraryResult result, AsyncCallback<Void> callback);
 
 	void saveIncludeLibrayInCQLLookUp(String libraryId, CQLIncludeLibrary toBeModifiedObj, CQLIncludeLibrary currentObj,
 			List<CQLIncludeLibrary> incLibraryList, AsyncCallback<SaveUpdateCQLResult> callback);
 
-	void deleteInclude(String libraryId, CQLIncludeLibrary toBeModifiedIncludeObj, CQLIncludeLibrary cqlLibObject,
+	void deleteInclude(String libraryId, CQLIncludeLibrary toBeModifiedIncludeObj, 
 			List<CQLIncludeLibrary> viewIncludeLibrarys, AsyncCallback<SaveUpdateCQLResult> callback);
 
 	void getUsedCqlArtifacts(String libraryId, AsyncCallback<GetUsedCQLArtifactsResult> callback);
@@ -70,30 +70,27 @@ public interface CQLLibraryServiceAsync {
 	void countNumberOfAssociation(String Id, AsyncCallback<Integer> callback);
 
 	void saveAndModifyDefinitions(String libraryId, CQLDefinition toBeModifiedObj, CQLDefinition currentObj,
-			List<CQLDefinition> definitionList, AsyncCallback<SaveUpdateCQLResult> callback);
+			List<CQLDefinition> definitionList, boolean isFormatable, AsyncCallback<SaveUpdateCQLResult> callback);
 
 	void saveAndModifyFunctions(String libraryId, CQLFunctions toBeModifiedObj, CQLFunctions currentObj,
-			List<CQLFunctions> functionsList, AsyncCallback<SaveUpdateCQLResult> callback);
+			List<CQLFunctions> functionsList, boolean isFormatable, AsyncCallback<SaveUpdateCQLResult> callback);
 
 	void saveAndModifyParameters(String libraryId, CQLParameter toBeModifiedObj, CQLParameter currentObj,
-			List<CQLParameter> parameterList, AsyncCallback<SaveUpdateCQLResult> callback);
+			List<CQLParameter> parameterList, boolean isFormatable, AsyncCallback<SaveUpdateCQLResult> callback);
 
-	void deleteDefinition(String libraryId, CQLDefinition toBeDeletedObj, CQLDefinition currentObj,
+	void deleteDefinition(String libraryId, CQLDefinition toBeDeletedObj, 
 			List<CQLDefinition> definitionList, AsyncCallback<SaveUpdateCQLResult> callback);
 
-	void deleteFunctions(String libraryId, CQLFunctions toBeDeletedObj, CQLFunctions currentObj,
+	void deleteFunctions(String libraryId, CQLFunctions toBeDeletedObj, 
 			List<CQLFunctions> functionsList, AsyncCallback<SaveUpdateCQLResult> callback);
 
-	void deleteParameter(String libraryId, CQLParameter toBeDeletedObj, CQLParameter currentObj,
+	void deleteParameter(String libraryId, CQLParameter toBeDeletedObj, 
 			List<CQLParameter> parameterList, AsyncCallback<SaveUpdateCQLResult> callback);
 	
 	void saveCQLValueset(CQLValueSetTransferObject valueSetTransferObject, AsyncCallback<SaveUpdateCQLResult> asyncCallback);
 	
 	void deleteValueSet(String toBeDeletedValueSetId, String currentMeasureId,
 			AsyncCallback<SaveUpdateCQLResult> asyncCallback);
-
-	void updateCQLLibraryXMLForExpansionProfile(List<CQLQualityDataSetDTO> modifiedCqlQDMList, String libraryId,
-			String expProfileToAllValueSet, AsyncCallback<Void> asyncCallback);
 
 	void saveCQLUserDefinedValueset(CQLValueSetTransferObject matValueSetTransferObject,
 			AsyncCallback<SaveUpdateCQLResult> asyncCallback);
@@ -114,6 +111,6 @@ public interface CQLLibraryServiceAsync {
 
 	void deleteCQLLibrary(String cqllibId, String loginUserId, AsyncCallback<Void> callback);
 
-	void searchForStandaloneIncludes(String setId, String searchText,
-			AsyncCallback<SaveCQLLibraryResult> asyncCallback);
+	//void searchForStandaloneIncludes(String setId, String searchText,
+		//	AsyncCallback<SaveCQLLibraryResult> asyncCallback);
 }

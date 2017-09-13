@@ -175,6 +175,7 @@ public class CQLIncludeLibraryView {
 		aliasNameTxtBox.setSize("260px", "25px");
 		aliasNameTxtBox.getElement().setId("aliasNameField_IncludeSection");
 		aliasNameTxtBox.setName("aliasName");
+		aliasNameTxtBox.setTitle("Enter Library Alias");
 		
 		aliasNameGroup.add(aliasLabel);
 		aliasNameGroup.add(new SpacerWidget());
@@ -207,7 +208,8 @@ public class CQLIncludeLibraryView {
 		cqlAceEditor.setReadOnly(true);
 		cqlAceEditor.setUseWrapMode(true);
 		cqlAceEditor.clearAnnotations();
-		cqlAceEditor.redisplay();
+		//Commenting below code as its taking away focus and that makes our application not 508 compliant with other fields.
+		//cqlAceEditor.redisplay();
 		
 		Label viewCQlFileLabel = new Label(LabelType.INFO);
 		viewCQlFileLabel.setText("View CQL file here");
@@ -415,8 +417,9 @@ public class CQLIncludeLibraryView {
 	 *
 	 * @param result the cql library list
 	 * @param isEditable the is editable
+	 * @param isIncludesTab TODO
 	 */
-	public void buildIncludeLibraryCellTable(SaveCQLLibraryResult result, boolean isEditable) {
+	public void buildIncludeLibraryCellTable(SaveCQLLibraryResult result, boolean isEditable, boolean isIncludesTab) {
 		cellTablePanel.clear();
 		cellTablePanelBody.clear();
 		cellTablePanel.setStyleName("cellTablePanel");
@@ -488,7 +491,14 @@ public class CQLIncludeLibraryView {
 			cellTablePanel.add(cellTablePanelBody);
 			
 		} else {
-			HTML desc = new HTML("<p> No available libraries.</p>");
+			
+			HTML desc = null;
+			
+			if(isIncludesTab){
+				desc = new HTML("<p> Search to find available libraries.</p>");
+			} else {
+				desc = new HTML("<p> No available libraries.</p>");
+			}
 			cellTablePanelBody.add(desc);
 			cellTablePanel.add(cellTablePanelBody);
 		}
@@ -783,10 +793,10 @@ public class CQLIncludeLibraryView {
 	private void resetAceEditor() {
 		cqlAceEditor.clearAnnotations();
 		cqlAceEditor.removeAllMarkers();
-		cqlAceEditor.redisplay();
+		//cqlAceEditor.redisplay();
 		cqlAceEditor.setText("");
 	}
-	
+
 	/**
 	 * Reset from group.
 	 */

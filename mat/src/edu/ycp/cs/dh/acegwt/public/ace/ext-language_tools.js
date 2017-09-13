@@ -1520,23 +1520,8 @@ var Autocomplete = function() {
             
             var keyString = this.editor.keyString;
           //  alert("keyString:"+keyString);
-            var timingKeywords = window.timingList();
-            
-            var functionKeywords = ["Abs","AgeInDays","AgeInDaysAt","AgeInHours","AgeInHoursAt","AgeInMinutes","AgeInMinutesAt","AgeInMonths","AgeInMonthsAt",
-                                    "AgeInSeconds","AgeInSecondsAt","AgeInYears","AgeInYearsAt","AllTrue","AnyTrue","Avg","CalculateAgeInDays","CalculateAgeInDaysAt",
-                                    "CalculateAgeInHours","CalculateAgeInHoursAt","CalculateAgeInMinutes","CalculateAgeInMinutesAt","CalculateAgeInMonths",
-                                    "CalculateAgeInMonthsAt","CalculateAgeInSeconds","CalculateAgeInSecondsAt","CalculateAgeInYears","CalculateAgeInYearsAt","Ceiling",
-                                    "Coalesce","Count","DateTime","Exp","First","Floor","IndexOf","Last","Length","Ln","Log","Max","Median","Min","Mode",
-                                    "Now","PopulationStdDev","PopulationVariance","Round","StdDev","Sum","Time","TimeOfDay","Today","Truncate","Variance"];
-            
-            var Keywords = ["after","all","and","as","asc","ascending","before","between","by","called","case","cast","Choice","Code","codesystem","codesystems","collapse",
-                            "Concept","contains","context","convert","date","day","days","default","desc","descending","difference","display","distinct","div","duration",
-                            "during","else","end","ends","except","exists","false","flatten","from","function","hour","hours","if","implies","in","include","includes","included in",
-                            "intersect","Interval","Is","let","library","List","maximum","meets","millisecond","milliseconds","minimum","minute","minutes","mod","month","months",
-                            "not","null","occurs","of","or","or after","or before","or less","or more","overlaps","parameter","predecessor","private","properly","public","return",
-                            "same","singleton","second","seconds","start","starts","sort","successor","such that","then","time","timezone","to","true",
-                            "Tuple","union","using","valueset","version","week","weeks","where","when","width","with","within","without","xor","year","years"];
-            
+            var timingKeywords = window.timingList(); 
+            var keywords = window.keywordsList(); 
        	    var defineKeywords = window.definitioList();
         	var funcsKeywords = window.funcsList();
         	var paramKeywords = window.paramList();
@@ -1553,14 +1538,7 @@ var Autocomplete = function() {
             } else if(keyString == "f"){
             	//alert("keyString:"+this.editor.keyString);
             	matches = [];
-            	var fk = [];
-            	for(var i=0;i<funcsKeywords.length;i++){
-            		fk.push(funcsKeywords[i]);	
-            	}
-            	for(var i=0;i<functionKeywords.length;i++){
-            		fk.push(functionKeywords[i]+'()');	
-            	}
-            	this.getSpecificKeyWords(fk,matches, "functions");
+            	this.getSpecificKeyWords(funcsKeywords,matches, "functions");
             } else if(keyString == "d"){
             	//alert("keyString:"+this.editor.keyString);
             	matches = [];
@@ -1582,7 +1560,7 @@ var Autocomplete = function() {
             } else if(keyString == "k") {
             	/*alert("keyString:"+this.editor.keyString);*/
             	matches = []; 
-            	this.getSpecificKeyWords(Keywords, matches, "keywords");
+            	this.getSpecificKeyWords(keywords, matches, "keywords");
 
             } else if(keyString == "u") {
             	/*alert("keyString:"+this.editor.keyString);*/
@@ -1590,25 +1568,18 @@ var Autocomplete = function() {
             	this.getSpecificKeyWords(unitsKeywords, matches, "units");
 
             } else if(keyString == "space"){
-            	
-            	this.getSpecificKeyWords(valueSetKeywords, matches, "value sets/codes");
-                this.getSpecificKeyWords(unitsKeywords, matches, "units")
-            	this.getSpecificKeyWords(timingKeywords,matches, "timings");
-            	this.getSpecificKeyWords(paramKeywords,matches, "parameters");
-            	
-            	var fk1 = [];
-            	for(var i=0;i<funcsKeywords.length;i++){
-            		fk1.push(funcsKeywords[i]);	
-            	}
-            	for(var i=0;i<functionKeywords.length;i++){
-            		fk1.push(functionKeywords[i]+'()');	
-            	}
-            	//alert(fk1);
-            	this.getSpecificKeyWords(fk1,matches, "functions");
-            	this.getSpecificKeyWords(defineKeywords,matches, "definitions");
-            	this.getSpecificKeyWords(dataTypeKeywords, matches, "datatypes");
+            	/*alert("keyString:"+this.editor.keyString);*/
+            	matches = [];
             	this.getSpecificKeyWords(attributesKeywords, matches, "attributes");
-    	
+            	this.getSpecificKeyWords(dataTypeKeywords, matches, "datatypes");
+            	this.getSpecificKeyWords(defineKeywords,matches, "definitions");
+            	this.getSpecificKeyWords(funcsKeywords,matches, "functions");
+            	this.getSpecificKeyWords(keywords, matches, "keywords");
+            	this.getSpecificKeyWords(paramKeywords,matches, "parameters");
+            	this.getSpecificKeyWords(timingKeywords,matches, "timings");
+            	this.getSpecificKeyWords(unitsKeywords, matches, "units")
+            	this.getSpecificKeyWords(valueSetKeywords, matches, "value sets/codes");
+            	
             }
             this.completions = new FilteredList(matches);
             this.completions.setFilter(prefix);

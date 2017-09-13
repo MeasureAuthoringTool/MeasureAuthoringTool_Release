@@ -37,7 +37,6 @@ import com.google.gwt.user.client.ui.FormPanel;
 import com.google.gwt.user.client.ui.FormPanel.SubmitCompleteEvent;
 import com.google.gwt.user.client.ui.HasValue;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
@@ -47,11 +46,14 @@ import mat.DTO.AuditLogDTO;
 import mat.DTO.SearchHistoryDTO;
 import mat.client.Mat;
 import mat.client.MatPresenter;
+import mat.client.clause.cqlworkspace.EditConfirmationDialogBox;
 import mat.client.codelist.HasListBox;
 import mat.client.codelist.events.OnChangeMeasureVersionOptionsEvent;
+import mat.client.event.CQLVersionEvent;
 import mat.client.event.MeasureDeleteEvent;
 import mat.client.event.MeasureEditEvent;
 import mat.client.event.MeasureSelectedEvent;
+import mat.client.event.MeasureVersionEvent;
 import mat.client.history.HistoryModel;
 import mat.client.measure.ManageMeasureSearchModel.Result;
 import mat.client.measure.MeasureSearchView.AdminObserver;
@@ -209,6 +211,8 @@ public class ManageMeasurePresenter implements MatPresenter {
 		FormGroup getMessageFormGrp();
 
 		void setPatientBasedInput(ListBoxMVP patientBasedInput);
+		
+		EditConfirmationDialogBox getCreateNewConfirmationDialogBox();
 	}
 
 	/**
@@ -577,6 +581,9 @@ public class ManageMeasurePresenter implements MatPresenter {
 		CustomButton getZoomButton();
 
 		VerticalPanel getCellTablePanel();
+
+		EditConfirmationDialogBox getDraftConfirmationDialogBox();
+
 	}
 
 	/**
@@ -690,6 +697,8 @@ public class ManageMeasurePresenter implements MatPresenter {
 		}
 	};
 
+	private ManageMeasureSearchModel.Result resultToFireEvent ;
+	
 	/** The current details. */
 	private ManageMeasureDetailModel currentDetails;
 
@@ -719,7 +728,9 @@ public class ManageMeasurePresenter implements MatPresenter {
 
 	/** The is measure deleted. */
 	private boolean isMeasureDeleted = false;
-
+	
+	private boolean isMeasureVersioned = false;
+	
 	/** The is measure search filter visible. */
 	boolean isMeasureSearchFilterVisible = true;
 
@@ -756,6 +767,9 @@ public class ManageMeasurePresenter implements MatPresenter {
 
 	/** The measure del message. */
 	private String measureDelMessage;
+
+	/** The measure ver message. */
+	private String measureVerMessage;
 
 	/** The model. */
 	private TransferOwnerShipModel model = null;
@@ -853,6 +867,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 
 					isMeasureDeleted = true;
 					measureDeletion = true;
+					isMeasureVersioned = false;
 					measureDelMessage = event.getMessage();
 					System.out.println("Event - is Deleted : " + isMeasureDeleted + measureDeletion);
 					System.out.println("Event - message : " + measureDelMessage);
@@ -861,6 +876,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 					// deletion Failed.");
 					isMeasureDeleted = false;
 					measureDeletion = true;
+					isMeasureVersioned = false;
 					measureDelMessage = event.getMessage();
 					System.out.println("Event - is NOT Deleted : " + isMeasureDeleted + measureDeletion);
 					System.out.println("Event - message : " + measureDelMessage);
@@ -888,6 +904,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 	public void beforeClosingDisplay() {
 		isMeasureDeleted = false;
 		measureDeletion = false;
+		isMeasureVersioned = false;
 		isClone = false;
 		isLoading = false;
 		if(detailDisplay != null){
@@ -1012,35 +1029,49 @@ public class ManageMeasurePresenter implements MatPresenter {
 
 					@Override
 					public void onSuccess(ManageMeasureSearchModel.Result result) {
-						fireMeasureSelectedEvent(result.getId(), result.getVersion(), result.getName(),
-								result.getShortName(), result.getScoringType(), result.isEditable(),
-								result.isMeasureLocked(), result.getLockedUserId(result.getLockedUserInfo()));
-						// fireMeasureEditEvent();
-						showSearchingBusy(false);
-						isClone = false;
-
-						// LOGIT
-						if (isDraftCreation) {
-							MatContext.get().getAuditService().recordMeasureEvent(result.getId(), "Draft Created",
-									"Draft created based on Version " + result.getVersionValue(), false,
-									new AsyncCallback<Boolean>() {
-
-										@Override
-										public void onFailure(Throwable caught) {
-
-										}
-
-										@Override
-										public void onSuccess(Boolean result) {
-
-										}
-									});
-
+						resultToFireEvent = result;
+						if(isDraftCreation){
+						searchDisplay.getDraftConfirmationDialogBox().show(MatContext.get().getMessageDelegate().getMeasureDraftSuccessfulMessage(result.getName()));
+						searchDisplay.getDraftConfirmationDialogBox().getYesButton().setTitle("Continue");
+						searchDisplay.getDraftConfirmationDialogBox().getYesButton().setText("Continue");
+						searchDisplay.getDraftConfirmationDialogBox().getYesButton().setFocus(true);
 						}
+						else if(isClone){
+							fireMeasureSelected(result);
+						}
+					
 					}
 				});
 	}
 
+	private void fireMeasureSelected(ManageMeasureSearchModel.Result result){
+		fireMeasureSelectedEvent(result.getId(), result.getVersion(), result.getName(),
+				result.getShortName(), result.getScoringType(), result.isEditable(),
+				result.isMeasureLocked(), result.getLockedUserId(result.getLockedUserInfo()));
+		// fireMeasureEditEvent();
+		showSearchingBusy(false);
+		isClone = false;
+	}
+	
+	private void auditMeasureSelected(ManageMeasureSearchModel.Result result){
+		
+			MatContext.get().getAuditService().recordMeasureEvent(result.getId(), "Draft Created",
+					"Draft created based on Version " + result.getVersionValue(), false,
+					new AsyncCallback<Boolean>() {
+
+						@Override
+						public void onFailure(Throwable caught) {
+
+						}
+
+						@Override
+						public void onSuccess(Boolean result) {
+
+						}
+					});
+
+	}
+	
 	/**
 	 * Creates the draft of selected version.
 	 * 
@@ -1084,10 +1115,28 @@ public class ManageMeasurePresenter implements MatPresenter {
 	 *            the detail display
 	 */
 	private void detailDisplayHandlers(final DetailDisplay detailDisplay) {
-		detailDisplay.getSaveButton().addClickHandler(new ClickHandler() {
+		
+		detailDisplay.getCreateNewConfirmationDialogBox().getYesButton().addClickHandler(new ClickHandler() {
+			
 			@Override
 			public void onClick(ClickEvent event) {
 				update();
+			}
+		});
+		
+		detailDisplay.getSaveButton().addClickHandler(new ClickHandler() {
+			@Override
+			public void onClick(ClickEvent event) {
+			//Check if onClick is not for Cloning or Editing existing Measure
+				if(!isClone && currentDetails.getId() == null){
+				detailDisplay.getCreateNewConfirmationDialogBox().show(MatContext.get().getMessageDelegate().getCreateNewMeasureSuccessfulMessage(detailDisplay.getName().getValue()));
+				detailDisplay.getCreateNewConfirmationDialogBox().getYesButton().setTitle("Continue");
+				detailDisplay.getCreateNewConfirmationDialogBox().getYesButton().setText("Continue");
+				detailDisplay.getCreateNewConfirmationDialogBox().getYesButton().setFocus(true);
+				}else{
+					update();
+				}
+			
 			}
 		});
 
@@ -1637,12 +1686,13 @@ public class ManageMeasurePresenter implements MatPresenter {
 	 * 
 	 * @param measureId
 	 *            the measure id
+	 * @param measureName 
 	 * @param isMajor
 	 *            the is major
 	 * @param version
 	 *            the version
 	 */
-	private void saveFinalizedVersion(final String measureId, final boolean isMajor, final String version) {
+	private void saveFinalizedVersion(final String measureId, final String measureName, final boolean isMajor, final String version) {
 		showSearchingBusy(true);
 		MatContext.get().getMeasureService().saveFinalizedVersion(measureId, isMajor, version,
 				new AsyncCallback<SaveMeasureResult>() {
@@ -1674,7 +1724,10 @@ public class ManageMeasurePresenter implements MatPresenter {
 
 										}
 									});
+							isMeasureVersioned = true;
+							fireSuccessfullVersionEvent(isMeasureVersioned,measureName,MatContext.get().getMessageDelegate().getVersionSuccessfulMessage(measureName, versionStr));
 						} else {
+							isMeasureVersioned = false;
 							if (result.getFailureReason() == ConstantMessages.INVALID_CQL_DATA) {
 								versionDisplay.getErrorMessageDisplay()
 										.createAlert(MatContext.get().getMessageDelegate().getNoVersionCreated());
@@ -1684,6 +1737,11 @@ public class ManageMeasurePresenter implements MatPresenter {
 				});
 	}
 
+	private void fireSuccessfullVersionEvent(boolean isSuccess, String name, String message){
+		MeasureVersionEvent versionEvent = new MeasureVersionEvent(isSuccess, name, message);
+		MatContext.get().getEventBus().fireEvent(versionEvent);
+	}
+	
 	/**
 	 * Search.
 	 * 
@@ -1792,6 +1850,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 								public void onCloneClicked(ManageMeasureSearchModel.Result result) {
 									measureDeletion = false;
 									isMeasureDeleted = false;
+									isMeasureVersioned = false;
 									searchDisplay.getSuccessMeasureDeletion().clearAlert();
 									searchDisplay.getErrorMeasureDeletion().clearAlert();
 									isClone = true;
@@ -1809,6 +1868,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 									// result.getLockedUserId(result.getLockedUserInfo()));
 									measureDeletion = false;
 									isMeasureDeleted = false;
+									isMeasureVersioned = false;
 									searchDisplay.getSuccessMeasureDeletion().clearAlert();
 									searchDisplay.getErrorMeasureDeletion().clearAlert();
 									edit(result.getId());
@@ -1818,6 +1878,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 								public void onExportClicked(ManageMeasureSearchModel.Result result) {
 									measureDeletion = false;
 									isMeasureDeleted = false;
+									isMeasureVersioned = false;
 									searchDisplay.getSuccessMeasureDeletion().clearAlert();
 									searchDisplay.getErrorMeasureDeletion().clearAlert();
 									export(result.getId(), result.getName());
@@ -1827,6 +1888,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 								public void onExportSelectedClicked(Result result, boolean isCBChecked) {
 									measureDeletion = false;
 									isMeasureDeleted = false;
+									isMeasureVersioned = false;
 									searchDisplay.getSuccessMeasureDeletion().clearAlert();
 									searchDisplay.getErrorMeasureDeletion().clearAlert();
 									searchDisplay.getErrorMessageDisplayForBulkExport().clearAlert();
@@ -1838,6 +1900,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 								public void onExportSelectedClicked(CustomCheckBox checkBox) {
 									measureDeletion = false;
 									isMeasureDeleted = false;
+									isMeasureVersioned = false;
 									searchDisplay.getSuccessMeasureDeletion().clearAlert();
 									searchDisplay.getErrorMeasureDeletion().clearAlert();
 									searchDisplay.getErrorMessageDisplayForBulkExport().clearAlert();
@@ -1860,6 +1923,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 								public void onHistoryClicked(ManageMeasureSearchModel.Result result) {
 									measureDeletion = false;
 									isMeasureDeleted = false;
+									isMeasureVersioned = false;
 									searchDisplay.getSuccessMeasureDeletion().clearAlert();
 									searchDisplay.getErrorMeasureDeletion().clearAlert();
 									historyDisplay.setReturnToLinkText("<< Return to Measure Library");
@@ -1870,6 +1934,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 								public void onShareClicked(ManageMeasureSearchModel.Result result) {
 									measureDeletion = false;
 									isMeasureDeleted = false;
+									isMeasureVersioned = false;
 									searchDisplay.getSuccessMeasureDeletion().clearAlert();
 									searchDisplay.getErrorMeasureDeletion().clearAlert();
 									displayShare(result.getId(), result.getName());
@@ -1946,7 +2011,9 @@ public class ManageMeasurePresenter implements MatPresenter {
 								} else {
 									searchDisplay.getSuccessMeasureDeletion().clearAlert();
 									searchDisplay.getErrorMeasureDeletion().clearAlert();
-								}
+								}if(isMeasureVersioned){
+									searchDisplay.getSuccessMeasureDeletion().createAlert(measureVerMessage);
+								} 
 							}
 							SearchResultUpdate sru = new SearchResultUpdate();
 							sru.update(result, (TextBox) searchDisplay.getSearchString(), lastSearchText);
@@ -1966,6 +2033,16 @@ public class ManageMeasurePresenter implements MatPresenter {
 	 *            the search display
 	 */
 	private void searchDisplayHandlers(final SearchDisplay searchDisplay) {
+		searchDisplay.getDraftConfirmationDialogBox().getYesButton().addClickHandler(new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				fireMeasureSelected(resultToFireEvent);
+				auditMeasureSelected(resultToFireEvent);
+				resultToFireEvent = new ManageMeasureSearchModel.Result();
+			}
+		});
+		
 		searchDisplay.getSelectIdForEditTool()
 				.addSelectionHandler(new SelectionHandler<ManageMeasureSearchModel.Result>() {
 
@@ -1976,6 +2053,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 						searchDisplay.getSuccessMeasureDeletion().clearAlert();
 						measureDeletion = false;
 						isMeasureDeleted = false;
+						isMeasureVersioned = false;
 						if (!currentUserRole.equalsIgnoreCase(ClientConstants.ADMINISTRATOR)) {
 							final String mid = event.getSelectedItem().getId();
 							Result result = event.getSelectedItem();
@@ -2025,6 +2103,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 						searchDisplay.getSuccessMeasureDeletion().clearAlert();
 						measureDeletion = false;
 						isMeasureDeleted = false;
+						isMeasureVersioned = false;
 						if (!currentUserRole.equalsIgnoreCase(ClientConstants.ADMINISTRATOR)) {
 							final String mid = event.getSelectedItem().getId();
 							Result result = event.getSelectedItem();
@@ -2071,7 +2150,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 				searchDisplay.getSuccessMeasureDeletion().clearAlert();
 				measureDeletion = false;
 				isMeasureDeleted = false;
-
+				isMeasureVersioned = false;
 				createNew(); 
 			}
 		});
@@ -2081,6 +2160,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 			public void onClick(ClickEvent event) {
 				int startIndex = 1;
 				measureDeletion = false;
+				isMeasureVersioned = false;
 				searchDisplay.getErrorMeasureDeletion().clearAlert();
 				searchDisplay.getSuccessMeasureDeletion().clearAlert();
 				searchDisplay.getErrorMessageDisplay().clearAlert();
@@ -2127,6 +2207,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 				searchDisplay.getErrorMessageDisplayForBulkExport().clearAlert();
 				isMeasureDeleted = false;
 				measureDeletion = false;
+				isMeasureVersioned = false;
 				searchDisplay.getErrorMeasureDeletion().clearAlert();
 				searchDisplay.getSuccessMeasureDeletion().clearAlert();
 				searchDisplay.getErrorMessageDisplay().clearAlert();
@@ -2254,6 +2335,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 							public void onExportClicked(Result result) {
 								measureDeletion = false;
 								isMeasureDeleted = false;
+								isMeasureVersioned = false;
 								searchDisplay.getSuccessMeasureDeletion().clearAlert();
 								searchDisplay.getErrorMeasureDeletion().clearAlert();
 								export(result.getId(), result.getName());
@@ -2263,6 +2345,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 							public void onEditClicked(Result result) {
 								measureDeletion = false;
 								isMeasureDeleted = false;
+								isMeasureVersioned = false;
 								searchDisplay.getSuccessMeasureDeletion().clearAlert();
 								searchDisplay.getErrorMeasureDeletion().clearAlert();
 								edit(result.getId());
@@ -2621,15 +2704,39 @@ public class ManageMeasurePresenter implements MatPresenter {
 	 *            the version display
 	 */
 	private void versionDisplayHandlers(final VersionDisplay versionDisplay) {
+		
+		MatContext.get().getEventBus().addHandler(MeasureVersionEvent.TYPE, new MeasureVersionEvent.Handler() {
+
+			@Override
+			public void onVersioned(MeasureVersionEvent event) {
+				displaySearch();
+				if (event.isVersioned()) {
+
+					measureDeletion = false;
+					isMeasureDeleted = false;
+					isMeasureVersioned = true;
+					measureVerMessage = event.getMessage();
+				} else {
+					
+					measureDeletion = false;
+					isMeasureDeleted = false;
+					isMeasureVersioned = false;
+					measureVerMessage = event.getMessage();
+				}
+			}
+		});
+		
 		versionDisplay.getSaveButton().addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
+				isMeasureDeleted = false;
+				measureDeletion = false;
 				ManageMeasureSearchModel.Result selectedMeasure = versionDisplay.getSelectedMeasure();
 				versionDisplay.getErrorMessageDisplay().clearAlert();
 				if (((selectedMeasure != null) && (selectedMeasure.getId() != null))
 						&& (versionDisplay.getMajorRadioButton().getValue()
 								|| versionDisplay.getMinorRadioButton().getValue())) {
-					saveFinalizedVersion(selectedMeasure.getId(), versionDisplay.getMajorRadioButton().getValue(),
+					saveFinalizedVersion(selectedMeasure.getId(), selectedMeasure.getName(),versionDisplay.getMajorRadioButton().getValue(),
 							selectedMeasure.getVersion());
 				} else {
 					versionDisplay.getErrorMessageDisplay()

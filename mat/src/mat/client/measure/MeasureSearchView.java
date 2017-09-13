@@ -213,6 +213,7 @@ public class MeasureSearchView  implements HasSelectionHandlers<ManageMeasureSea
 		measureSearchHeader.getElement().setAttribute("tabIndex", "0");
 		TableCaptionElement caption = elem.createCaption();
 		caption.appendChild(measureSearchHeader.getElement());
+		
 		selectionModel = new MultiSelectionModel<ManageMeasureSearchModel.Result>();
 		table.setSelectionModel(selectionModel);
 		
@@ -781,6 +782,7 @@ public class MeasureSearchView  implements HasSelectionHandlers<ManageMeasureSea
 					table.getElement().setAttribute("aria-describedby", "measureSearchSummary");
 					cellTablePanel.add(invisibleLabel);
 			    }else{
+			    	
 			    	table = addColumnToTable();
 			    	Label invisibleLabel = (Label) LabelBuilder.buildInvisibleLabel("measureSearchSummary",
 							"In the following Measure List table, Measure Name is given in first column,"
@@ -789,6 +791,17 @@ public class MeasureSearchView  implements HasSelectionHandlers<ManageMeasureSea
 									+ "Clone in seventh column and Export in eight column.");
 					table.getElement().setAttribute("id", "MeasureSearchCellTable");
 					table.getElement().setAttribute("aria-describedby", "measureSearchSummary");
+					
+					MatSimplePager topSPager = new MatSimplePager(CustomPager.TextLocation.CENTER, pagerResources, false, 0, true,
+							"measureLibTopSpager");
+					topSPager.setPageStart(0);
+					topSPager.setDisplay(table);
+					topSPager.setPageSize(PAGE_SIZE);
+					
+					cellTablePanel.add(new SpacerWidget());
+					cellTablePanel.add(topSPager);
+					cellTablePanel.add(new SpacerWidget());
+		
 					cellTablePanel.add(invisibleLabel);
 			    }
 			

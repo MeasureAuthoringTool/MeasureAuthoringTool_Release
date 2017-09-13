@@ -213,4 +213,12 @@
         <include file="classpath:/liquibase/deploy_Sprint-112_MAT-8463_ALTER_TABLE_CQL_LIBRARY.xml"/>
         <include file="classpath:/liquibase/deploy_Sprint-113_MAT-8468_ALTER_TABLE_CQL_LIBRARY.xml"/>
        <!--  <include file="classpath:/liquibase/deploy_Sprint-113_MAT-8468_ALTER_TABLE_CQL_LIBRARY_ASSOCIATION.xml"/> -->
+        <include file="classpath:/liquibase/deploy_Sprint-123_MAT-8727_07182017_CQL_Add_Component_Attributes.xml"/>
+        <include file="classpath:/liquibase/deploy_Sprint-123_MAT-8708_8713_8714_ADD_REMOVE_DATATYPE4_ATTRIBUTES.xml"/>
+        <include file="classpath:/liquibase/deploy_Sprint-123_Add_Abbr_Name_To_Measure_Type.xml"/>
+        <include file="classpath:/liquibase/deploy_Sprint-124_MAT-8733_REMOVE_LOCATION_PERIOD_ATTRIBUTE.xml"/>
+		<include file="classpath:/liquibase/deploy_Sprint-124-MAT-8732_Adding_New_Measure_Types_v2.xml" />
+   		<include file="classpath:/liquibase/deploy_Sprint-125-MAT-8776_Remove_And_Rename_Attributes_QDM_5.3.xml" />
+   		<include file="classpath:/liquibase/deploy_Sprint-125-MAT-8775_Add_Attributes_To_Datatypes_QDM_5.3.xml" />
+        <include file="classpath:/liquibase/deploy_Sprint-125_MAT-8795_ALTER_TABLE_CQL_LIBRARY.xml"/>
    	</databaseChangeLog>

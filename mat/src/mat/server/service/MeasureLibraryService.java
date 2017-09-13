@@ -572,7 +572,7 @@ public interface MeasureLibraryService {
 	 * @param measureId the measure id
 	 * @return the default expansion identifier
 	 */
-	String getDefaultExpansionIdentifier(String measureId);
+	//String getDefaultExpansionIdentifier(String measureId);
 	
 	/**
 	 * Gets the current release version.
@@ -634,7 +634,7 @@ public interface MeasureLibraryService {
 	 * @return the save update cql result
 	 */
 	SaveUpdateCQLResult saveAndModifyDefinitions(String measureId,
-			CQLDefinition toBemodifiedObj, CQLDefinition currentObj, List<CQLDefinition> definitionList);
+			CQLDefinition toBemodifiedObj, CQLDefinition currentObj, List<CQLDefinition> definitionList, boolean isFormatable);
 		
 	/**
 	 * Save and modify parameters.
@@ -646,7 +646,7 @@ public interface MeasureLibraryService {
 	 * @return the save update cql result
 	 */
 	SaveUpdateCQLResult saveAndModifyParameters(String measureId, CQLParameter toBemodifiedObj, CQLParameter currentObj,
-			List<CQLParameter> parameterList);
+			List<CQLParameter> parameterList, boolean isFormatable);
 	
 	/**
 	 * Save and modify cql general info.
@@ -668,7 +668,7 @@ public interface MeasureLibraryService {
 	 * @return the save update cql result
 	 */
 	SaveUpdateCQLResult saveAndModifyFunctions(String measureId, CQLFunctions toBeModifiedObj, CQLFunctions currentObj,
-			List<CQLFunctions> functionsList);
+			List<CQLFunctions> functionsList, boolean isFormatable);
 	/**
 	 * Delete definition
 	 * 
@@ -678,7 +678,7 @@ public interface MeasureLibraryService {
 	 * @param definitionList the definition list
 	 * @return the save and update cql result
 	 */
-	SaveUpdateCQLResult deleteDefinition(String measureId, CQLDefinition toBeDeletedObj, CQLDefinition currentObj,
+	SaveUpdateCQLResult deleteDefinition(String measureId, CQLDefinition toBeDeletedObj, 
 			List<CQLDefinition> definitionList);
 
 	/**
@@ -690,7 +690,7 @@ public interface MeasureLibraryService {
 	 * @param functionsList the functions list
 	 * @return the save and update cql result
 	 */
-	SaveUpdateCQLResult deleteFunctions(String measureId, CQLFunctions toBeDeletedObj, CQLFunctions currentObj,
+	SaveUpdateCQLResult deleteFunctions(String measureId, CQLFunctions toBeDeletedObj, 
 			List<CQLFunctions> functionsList);
 
 	/**
@@ -702,7 +702,7 @@ public interface MeasureLibraryService {
 	 * @param parameterList the parameter list
 	 * @return the save and update cql result
 	 */
-	SaveUpdateCQLResult deleteParameter(String measureId, CQLParameter toBeDeletedObj, CQLParameter currentObj,
+	SaveUpdateCQLResult deleteParameter(String measureId, CQLParameter toBeDeletedObj, 
 			List<CQLParameter> parameterList);
 	
 	/**
@@ -754,7 +754,6 @@ public interface MeasureLibraryService {
 
 	SaveUpdateCQLResult deleteInclude(String currentMeasureId,
 			CQLIncludeLibrary toBeModifiedIncludeObj,
-			CQLIncludeLibrary cqlLibObject,
 			List<CQLIncludeLibrary> viewIncludeLibrarys);
 
 	VsacApiResult updateCQLVSACValueSets(String currentMeasureId, String expansionId, String sessionId);
@@ -764,5 +763,7 @@ public interface MeasureLibraryService {
 	CQLCodeWrapper getCQLCodes(String measureID);
 
 	SaveUpdateCQLResult deleteCode(String toBeDeletedId, String measureID);
+
+	SaveUpdateCQLResult getMeasureCQLLibraryData(String measureId);
 
 }

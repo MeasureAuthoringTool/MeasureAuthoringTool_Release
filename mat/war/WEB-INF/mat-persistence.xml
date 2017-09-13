@@ -5,40 +5,40 @@
         xmlns:tx="http://www.springframework.org/schema/tx"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:context="http://www.springframework.org/schema/context"
-        xsi:schemaLocation="http://www.springframework.org/schema/aop
-        http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
-        http://www.springframework.org/schema/beans
-        http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
-        http://www.springframework.org/schema/tx
-        http://www.springframework.org/schema/tx/spring-tx-2.5.xsd
+        xsi:schemaLocation="http://www.springframework.org/schema/aop 
+        http://www.springframework.org/schema/aop/spring-aop-2.5.xsd 
+        http://www.springframework.org/schema/beans 
+        http://www.springframework.org/schema/beans/spring-beans-2.5.xsd 
+        http://www.springframework.org/schema/tx 
+        http://www.springframework.org/schema/tx/spring-tx-2.5.xsd 
         http://www.springframework.org/schema/context
 		http://www.springframework.org/schema/context/spring-context-2.5.xsd">
-
+	
 	<bean id="propertyPlaceholderConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 	  <property name="systemPropertiesMode" value="2"/>
-	  <property name="properties">
-        <props>
-            <prop key="db_user">mat_app</prop>
+	  <property name="properties">  
+        <props>  
+            <prop key="db_user">mat_app</prop>  
             <prop key="db_password">mat_app</prop>
-        </props>
+        </props>  
       </property>
     </bean>
-
+    
      <bean id="liquibase" class="liquibase.integration.spring.SpringLiquibase">
 		<property name="dataSource" ref="dataSource" />
 		<property name="changeLog" value="classpath:/liquibase/changelog.xml"  />
 		<property name="contexts" value="prod" />
 	</bean>
-
+    
    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
         <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
 		<property name="url" value="jdbc:mysql://localhost:3306/MAT_APP"/>
         <property name="username" value="username"/>
         <property name="password" value="password"/>
     </bean>
-
+    
     <context:annotation-config />
-
+	
 	<!-- Hibernate SessionFactory -->
 	<bean id="sessionFactory"
 		class="org.springframework.orm.hibernate3.LocalSessionFactoryBean" depends-on="dataSource">
@@ -51,7 +51,7 @@
               <entry key="pre-update" value-ref="auditEventListener"/>
               <entry key="pre-delete" value-ref="auditEventListener"/>
           </map>
-        </property>
+        </property>		
 		<property name="hibernateProperties">
 			<props>
 				<prop key="hibernate.cache.provider_class">org.hibernate.cache.EhCacheProvider</prop>
@@ -61,8 +61,8 @@
 				<prop key="hibernate.default_batch_fetch_size">20</prop>
 				<prop key="hibernate.connection.release_mode">auto</prop>
 				<prop key="hibernate.cache.use_second_level_cache">true</prop>
-				<prop key="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</prop>
-                <!-- <prop key="hibernate.hbm2ddl.auto">update</prop> -->
+				<prop key="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</prop>	
+                <!-- <prop key="hibernate.hbm2ddl.auto">update</prop> -->		
 			</props>
 		</property>
 		<property name="mappingLocations">
@@ -81,7 +81,7 @@
    </bean>
 	<bean id="auditInterceptor" class="mat.dao.impl.AuditInterceptor">
    </bean>
-
+    
     <tx:annotation-driven transaction-manager="txManager"/>
     <bean id="txManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
         <property name="sessionFactory" ref="sessionFactory"/>
@@ -93,51 +93,51 @@
 	<bean id="auditLogDAO"
 		class="mat.dao.impl.AuditLogDAO" parent="baseDAO">
 	</bean>
-
+		
 	<bean id="securityRoleDAO"
 		class="mat.dao.impl.SecurityRoleDAO" parent="baseDAO">
 	</bean>
-
+		
 	<bean id="statusDAO"
 		class="mat.dao.impl.StatusDAO" parent="baseDAO">
 	</bean>
-
+	
 	<bean id="userDAO"
 		class="mat.dao.impl.UserDAO" parent="baseDAO">
 	</bean>
-
+	
 	<bean id="userPasswordDAO"
 		class="mat.dao.impl.UserPasswordDAO" parent="baseDAO">
 	</bean>
-
+	
 	<bean id="userSecurityQuestionDAO"
 		class="mat.dao.impl.UserSecurityQuestionDAO" parent="baseDAO">
 	</bean>
-
+	
 	<bean id="categoryDAO"
 		class="mat.dao.impl.CategoryDAO" parent="baseDAO">
 	</bean>
-
+	
 	<bean id="stewardDAO"
 		class="mat.dao.impl.StewardDAO" parent="baseDAO">
 	</bean>
-
+	
 	<bean id="authorDAO"
 		class="mat.dao.impl.AuthorDAO" parent="baseDAO">
 	</bean>
-
+	
 	<bean id="measureTypeDAO"
 		class="mat.dao.impl.MeasureTypeDAO" parent="baseDAO">
 	</bean>
-
+	
 	<bean id="codeDAO"
 		class="mat.dao.impl.CodeDAO" parent="baseDAO">
 	</bean>
-
+	
 	<bean id="codeListDAO"
 		class="mat.dao.impl.CodeListDAO" parent="baseDAO">
 	</bean>
-
+	
 	<bean id="codeSystemDAO"
 		class="mat.dao.impl.CodeSystemDAO" parent="baseDAO">
 	</bean>
@@ -145,27 +145,27 @@
 	<bean id="dataTypeDAO"
 		class="mat.dao.impl.DataTypeDAO" parent="baseDAO">
 	</bean>
-
+	
 	<bean id="listObjectDAO"
 		class="mat.dao.impl.ListObjectDAO" parent="baseDAO">
-	</bean>
-
+	</bean>	
+	
 	<bean id="listObjectLTDAO"
 		class="mat.dao.impl.ListObjectLTDAO" parent="baseDAO">
 	</bean>
 
 	<bean id="objectStatusDAO"
 		class="mat.dao.impl.ObjectStatusDAO" parent="baseDAO">
-	</bean>
-
+	</bean>	
+	
 	<bean id="qualityDataSetDAO"
 		class="mat.dao.impl.QualityDataSetDAO" parent="baseDAO">
 	</bean>
-
+	
 	<bean id="measureScoreDAO"
 			class="mat.dao.impl.MeasureScoreDAO" parent="baseDAO">
 	</bean>
-
+	
 	<bean id="unitDAO"
 		class="mat.dao.impl.UnitDAO" parent="baseDAO">
 	</bean>
@@ -173,16 +173,16 @@
 	<bean id="unitTypeDAO"
 			class="mat.dao.impl.UnitTypeDAO" parent="baseDAO">
 	</bean>
-
+	
 	<bean id="unitTypeMatrixDAO"
 			class="mat.dao.impl.UnitTypeMatrixDAO" parent="baseDAO">
 	</bean>
-
+	
 	<bean id="measureAuditLogDAO"
 			class="mat.dao.impl.MeasureAuditLogDAO" parent="baseDAO">
 	</bean>
-
-
+	
+	
 	<bean id="cqlLibraryAuditLogDAO"
 			class="mat.dao.impl.CQLLibraryAuditLogDAO" parent="baseDAO">
 	</bean>
@@ -197,53 +197,53 @@
 	<bean id="codeListAuditLogDAO"
 			class="mat.dao.impl.CodeListAuditLogDAO" parent="baseDAO">
 	</bean>
-
+	
 	<!-- <bean id="clauseDAO"
 		class="mat.dao.impl.clause.ClauseDAO" parent="baseDAO">
-	</bean>	 -->
-
+	</bean>	 -->		
+	
 	<!-- <bean id="contextDAO"
 		class="mat.dao.impl.clause.ContextDAO" parent="baseDAO">
-	</bean>	 -->
-
+	</bean>	 -->		
+	
 	<bean id="measureDAO"
 		class="mat.dao.impl.clause.MeasureDAO" parent="baseDAO">
-	</bean>
+	</bean>	
 	<bean id="measureSetDAO"
 		class="mat.dao.impl.clause.MeasureSetDAO" parent="baseDAO">
-	</bean>
-
+	</bean>		
+	
 	<bean id="cqlLibrarySetDAO"
 		class="mat.dao.impl.clause.CQLLibrarySetDAO" parent="baseDAO">
-	</bean>
-
+	</bean>	
+	
 	<!-- <bean id="metadataDAO"
 		class="mat.dao.impl.clause.MetadataDAO" parent="baseDAO">
-	</bean> -->
-
+	</bean> -->			
+	
 	<bean id="operatorDAO"
 		class="mat.dao.impl.clause.OperatorDAO" parent="baseDAO">
-	</bean>
-
+	</bean>			
+	
 	<!-- <bean id="qDSElementDAO"
 		class="mat.dao.impl.clause.QDSElementDAO" parent="baseDAO">
-	</bean>
-
+	</bean>	 		
+	
 	<bean id="qDSPropertyDAO"
 		class="mat.dao.impl.clause.QDSPropertyDAO" parent="baseDAO">
-	</bean>
-
+	</bean>			
+	
 	<bean id="staticElementDAO"
 		class="mat.dao.impl.clause.StaticElementDAO" parent="baseDAO">
-	</bean>	-->
-
+	</bean>	-->		
+	
 	<!-- <bean id="decisionDAO"
 		class="mat.dao.impl.clause.DecisionDAO" parent="baseDAO">
-	</bean>	 -->
+	</bean>	 -->		
 
 	<!-- <bean id="measurementTermDAO"
 		class="mat.dao.impl.clause.MeasurementTermDAO" parent="baseDAO">
-	</bean>	 -->
+	</bean>	 -->		
 
 	<!-- <bean id="qDSTermDAO"
 		class="mat.dao.impl.clause.QDSTermDAO" parent="baseDAO">
@@ -256,46 +256,46 @@
     <bean id="measureShareDAO"
         class="mat.dao.impl.clause.MeasureShareDAO" parent="baseDAO">
     </bean>
-
+         
     <bean id="qDSAttributesDAO"
         class="mat.dao.impl.clause.QDSAttributesDAO" parent="baseDAO">
-    </bean>
-
+    </bean>  
+    
      <bean id="attributesDAO"
         class="mat.dao.impl.clause.AttributesDAO" parent="baseDAO">
-    </bean>
-
+    </bean>  
+    
     <bean id="modesDAO"
         class="mat.dao.impl.clause.ModesDAO" parent="baseDAO">
-    </bean>
-
+    </bean>  
+    
     <bean id="modesAttributesDAO"
         class="mat.dao.impl.clause.ModesAttributesDAO" parent="baseDAO">
-    </bean>
-
+    </bean>  
+    
     <bean id="packagerDAO"
         class="mat.dao.impl.clause.PackagerDAO" parent="baseDAO">
     </bean>
-
+     
     <bean id="measureExportDAO"
         class="mat.dao.impl.clause.MeasureExportDAO" parent="baseDAO">
     </bean>
     <bean id="qDSAttributeDetailsDAO"
         class="mat.dao.impl.clause.QDSAttributeDetailsDAO" parent="baseDAO">
-    </bean>
+    </bean>     
 
     <bean id="attributeDetailsDAO"
         class="mat.dao.impl.clause.AttributeDetailsDAO" parent="baseDAO">
     </bean>
-
+    
     <bean id="transactionAuditLogDAO"
 		class="mat.dao.impl.TransactionAuditLogDAO" parent="baseDAO">
 	</bean>
-
+	
     <bean id="matFlagDAO"
-		class="mat.dao.impl.MatFlagDAO" parent="baseDAO">
+		class="mat.dao.impl.MatFlagDAO" parent="baseDAO"> 
 	</bean>
-
+	
     <bean id="measureXMLDAO"
         class="mat.dao.impl.clause.MeasureXMLDAO" parent="baseDAO">
     </bean>
@@ -303,40 +303,40 @@
 	<bean id="securityQuestionsDAO"
         class="mat.dao.impl.SecurityQuestionsDAO" parent="baseDAO">
     </bean>
-
+    
     <bean id="measureNotesDAO"
         class="mat.dao.impl.MeasureNotesDAO" parent="baseDAO">
     </bean>
-
+    
     <bean id="recentMSRActivityLogDAO"
 			class="mat.dao.impl.RecentMSRActivityLogDAO" parent="baseDAO">
 	</bean>
-
+	
 	 <bean id="recentCQLActivityLogDAO"
 			class="mat.dao.impl.RecentCQLActivityLogDAO" parent="baseDAO">
 	</bean>
-
+	
 	<bean id="organizationDAO"
             class="mat.dao.impl.OrganizationDAO" parent="baseDAO">
     </bean>
-
+    
     <bean id="userPasswordHistoryDAO"
 		class="mat.dao.impl.UserPasswordHistoryDAO" parent="baseDAO">
 	</bean>
 	<bean id="cqlDAO"
 		class="mat.dao.impl.clause.CQLDAO" parent="baseDAO">
 	</bean>
-	<bean id="cqlLibraryDAO"
+	<bean id="cqlLibraryDAO" 
 	    class="mat.dao.impl.clause.CQLLibraryDAO" parent="baseDAO">
 	</bean>
-	<bean id="cqlLibraryAssociationDAO"
+	<bean id="cqlLibraryAssociationDAO" 
 	    class="mat.dao.impl.clause.CQLLibraryAssociationDAO" parent="baseDAO">
 	</bean>
-
+	
 	<bean id="cqlLibraryShareDAO"
 		class="mat.dao.impl.clause.CQLLibraryShareDAO" parent="baseDAO">
 	</bean>
-
+	
 	<bean id="daoService" class="mat.dao.service.DAOService" >
 		<property name="auditLogDAO" ref="auditLogDAO"/>
 		<property name="securityRoleDAO" ref="securityRoleDAO"/>
@@ -392,5 +392,5 @@
 		<property name="cqlLibraryAssociationDAO" ref="cqlLibraryAssociationDAO"/>
 		<property name="cqlLibraryShareDAO" ref="cqlLibraryShareDAO"/>
 	</bean>
-
+	 
 </beans>

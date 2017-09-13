@@ -1,6 +1,8 @@
 package mat.client.clause.cqlworkspace;
 
 
+import java.util.ArrayList;
+
 import org.gwtbootstrap3.client.ui.Button;
 import org.gwtbootstrap3.client.ui.ButtonToolBar;
 import org.gwtbootstrap3.client.ui.Modal;
@@ -22,21 +24,28 @@ public class DeleteConfirmationDialogBox {
 
 	private  final Button yesButton = new Button("Yes"); 
 	private final Button noButton = new Button("Cancel");
+	private ErrorMessageAlert messageAlert = new ErrorMessageAlert();
 
 	
+	public ErrorMessageAlert getMessageAlert() {
+		return messageAlert;
+	}
+
+	public void setMessageAlert(ErrorMessageAlert messageAlert) {
+		this.messageAlert = messageAlert;
+	}
+
 	public DeleteConfirmationDialogBox() {
 		yesButton.getElement().setId("yes_Button");
 		noButton.getElement().setId("no_Button");
 	}
 	
-	public void show(String message) {
+	public void show() {
 		
 		Modal panel = new Modal();
 		ModalBody modalBody = new ModalBody(); 
-		ErrorMessageAlert messageAlert = new ErrorMessageAlert();
 
 		modalBody.clear();
-		messageAlert.clear();
 		modalBody.remove(messageAlert);
 		panel.remove(modalBody);
 		panel.setTitle("Warning");
@@ -46,10 +55,10 @@ public class DeleteConfirmationDialogBox {
 		panel.setDataBackdrop(ModalBackdrop.STATIC);
 		panel.setSize(ModalSize.MEDIUM);
 		panel.getElement().getStyle().setZIndex(1000);
+		panel.setRemoveOnHide(true);
 		
 		messageAlert.getElement().getStyle().setMarginTop(0.0, Style.Unit.PX);
 		messageAlert.getElement().getStyle().setMarginBottom(0.0, Style.Unit.PX);
-		messageAlert.createAlert(message);
 		modalBody.add(messageAlert);
 		
 		
@@ -72,6 +81,7 @@ public class DeleteConfirmationDialogBox {
 		panel.getElement().focus();
 		panel.show();
 	}
+	
 	
 	public void hide() {
 

@@ -3,8 +3,6 @@ package mat.client.measurepackage;
 import java.util.ArrayList;
 import java.util.List;
 
-import mat.model.Author;
-import mat.model.MeasureType;
 import mat.model.QualityDataSetDTO;
 import mat.model.RiskAdjustmentDTO;
 import mat.model.cql.CQLDefinition;
@@ -59,6 +57,27 @@ public class MeasurePackageDetail implements IsSerializable, Comparable<MeasureP
 	
 	/** The to compare risk adj vars. */
 	private List<RiskAdjustmentDTO> toCompareRiskAdjVars;
+	
+	public MeasurePackageDetail(MeasurePackageDetail detail){
+		this.sequence = detail.getSequence();
+		this.measureId = detail.getMeasureId();
+		this.packageClauses = detail.getPackageClauses();
+		this.qdmElements = detail.getQdmElements();
+		this.suppDataElements = detail.getSuppDataElements();
+		this.cqlSuppDataElements = detail.getCqlSuppDataElements();
+		this.cqlQdmElements = detail.getCqlQdmElements();
+		this.valueSetDate = detail.getValueSetDate();
+		this.toComparePackageClauses = detail.getToComparePackageClauses();
+		this.toCompareSuppDataElements = detail.getToCompareSuppDataElements();
+		this.toCompareCqlSuppDataElements = detail.getToCompareCqlSuppDataElements();
+		this.riskAdjClauses = detail.getRiskAdjClauses();
+		this.riskAdjVars = detail.getRiskAdjVars();
+		this.toCompareRiskAdjVars = detail.getToCompareRiskAdjVars();
+	}
+	
+	public MeasurePackageDetail() {
+		
+	}
 
 	/**
 	 * Gets the package name.
@@ -317,6 +336,10 @@ public class MeasurePackageDetail implements IsSerializable, Comparable<MeasureP
 	 * @return true, if is equal
 	 */
 	public boolean isEqual(List listA, List listB) {
+		
+		if( (listA == null) || (listB == null) ){
+			return false;
+		}
 		if (listA.size() != listB.size()) {
 			return false;
 		}

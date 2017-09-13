@@ -38,8 +38,8 @@
         <typeId root="2.16.840.1.113883.1.3" extension="POQM_HD000001UV02" />
         <templateId>
               <xsl:choose>
-              	<xsl:when test="'5.0.2' = $qdmVersionNumber">
-						<item root="2.16.840.1.113883.10.20.28.1.2" extension="2017-05-01" />
+              	<xsl:when test="'5.3' = $qdmVersionNumber">
+						<item root="2.16.840.1.113883.10.20.28.1.2" extension="2017-08-01" />
 	       		</xsl:when>
 	       		<xsl:when test="'4.1.2' = $qdmVersionNumber">
 						<item root="2.16.840.1.113883.10.20.28.1.1" extension="2014-11-24" />
@@ -255,7 +255,7 @@
         <subjectOf>
             <measureAttribute>
                 <code nullFlavor="OTH">
-                    <originalText value="eMeasure Identifier (Measure Authoring Tool)" />
+                    <originalText value="eCQM Identifier (Measure Authoring Tool)" />
                 </code>
                 <value xsi:type="ED" mediaType="text/plain">
                     <xsl:attribute name="value">
@@ -340,19 +340,7 @@
                             <code code="MSRTYPE" codeSystem="2.16.840.1.113883.5.4">
                                 <displayName value="Measure Type" />
                             </code>
-                            <xsl:variable name="nameVar">
-                                <xsl:choose>
-                                    <xsl:when test="@id = 'PATENGEXP'">
-                                        EXPERIENCE
-                                    </xsl:when>
-                                    <xsl:when test="@id = 'COSTRESOURCEUSE'">
-                                        RESOURCE
-                                    </xsl:when>
-                                    <xsl:otherwise>
-                                        <xsl:value-of select="upper-case(.)" />
-                                    </xsl:otherwise>
-                                </xsl:choose>
-                            </xsl:variable>
+                            <xsl:variable name="nameVar" select="@id" />
                             <value xsi:type="CD" code="{$nameVar}" codeSystem="2.16.840.1.113883.1.11.20368">
                                 <displayName value="{$nameVar}" />
                             </value>

@@ -74,10 +74,11 @@ public interface CQLService {
 	 * @param toBeModifiedObj the to be modified obj
 	 * @param currentObj the current obj
 	 * @param functionsList the functions list
+	 * @param isFormatable flag to determine if the function should be formatted on save
 	 * @return the save update cql result
 	 */
 	SaveUpdateCQLResult saveAndModifyFunctions(String measureId, CQLFunctions toBeModifiedObj, CQLFunctions currentObj,
-			List<CQLFunctions> functionsList);
+			List<CQLFunctions> functionsList, boolean isFormatable);
 	
 	/**
 	 * Save and modify parameters.
@@ -86,10 +87,12 @@ public interface CQLService {
 	 * @param toBeModifiedObj the to be modified obj
 	 * @param currentObj the current obj
 	 * @param parameterList the parameter list
+	 * @param isFormatable flag to determine if the parameter should be formatted on save
+
 	 * @return the save update cql result
 	 */
 	SaveUpdateCQLResult saveAndModifyParameters(String measureId, CQLParameter toBeModifiedObj, CQLParameter currentObj,
-			List<CQLParameter> parameterList);
+			List<CQLParameter> parameterList, boolean isFormatable);
 	
 	/**
 	 * Save and modify definitions.
@@ -98,10 +101,11 @@ public interface CQLService {
 	 * @param toBeModifiedObj the to be modified obj
 	 * @param currentObj the current obj
 	 * @param definitionList the definition list
+	 * @param isFormatable flag to determine if the definition should be formatted on save
 	 * @return the save update cql result
 	 */
-	SaveUpdateCQLResult saveAndModifyDefinitions(String measureId, CQLDefinition toBeModifiedObj,
-			CQLDefinition currentObj, List<CQLDefinition> definitionList);
+	SaveUpdateCQLResult saveAndModifyDefinitions(String xml, CQLDefinition toBeModifiedObj, CQLDefinition currentObj,
+			List<CQLDefinition> definitionList, boolean isFormatable);
 	
 	/**
 	 * Delete definition
@@ -112,7 +116,7 @@ public interface CQLService {
 	 * @param definitionList the definition list
 	 * @return the save and update result
 	 */
-	SaveUpdateCQLResult deleteDefinition(String measureId, CQLDefinition toBeDeletedObj, CQLDefinition currentObj,
+	SaveUpdateCQLResult deleteDefinition(String measureId, CQLDefinition toBeDeletedObj, 
 			List<CQLDefinition> definitionList);
 	
 	/**
@@ -124,7 +128,7 @@ public interface CQLService {
 	 * @param functionsList the functions list
 	 * @return the save and update result
 	 */
-	SaveUpdateCQLResult deleteFunctions(String measureId, CQLFunctions toBeDeltedObj, CQLFunctions currentObj,
+	SaveUpdateCQLResult deleteFunctions(String measureId, CQLFunctions toBeDeltedObj, 
 			List<CQLFunctions> functionsList);
 	
 	/**
@@ -136,7 +140,7 @@ public interface CQLService {
 	 * @param parameterList the parameter list
 	 * @return the save and update result
 	 */
-	SaveUpdateCQLResult deleteParameter(String measureId, CQLParameter toBeDeletedObj, CQLParameter currentObj,
+	SaveUpdateCQLResult deleteParameter(String measureId, CQLParameter toBeDeletedObj, 
 			List<CQLParameter> parameterList);
 	
 	/**
@@ -162,7 +166,7 @@ public interface CQLService {
 
 	String getSupplementalDefinitions();
 
-	StringBuilder getCqlString(CQLModel cqlModel);
+	String getCqlString(CQLModel cqlModel);
 
 	String getDefaultCodeSystems();
 	
@@ -185,7 +189,6 @@ public interface CQLService {
 
 	SaveUpdateCQLResult deleteInclude(String currentMeasureId,
 			CQLIncludeLibrary toBeModifiedIncludeObj,
-			CQLIncludeLibrary cqlLibObject,
 			List<CQLIncludeLibrary> viewIncludeLibrarys);
 
 	void saveCQLAssociation(CQLIncludeLibrary currentObj, String measureId);
@@ -203,7 +206,7 @@ public interface CQLService {
 
 	List<CQLLibraryAssociation> getAssociations(String id);
 
-	String getDefaultExpansionIdentifier(String xml);
+	//String getDefaultExpansionIdentifier(String xml);
 
 	SaveUpdateCQLResult saveCQLCodes(String xml , MatCodeTransferObject codeTransferObject);
 
@@ -212,5 +215,7 @@ public interface CQLService {
 	SaveUpdateCQLResult deleteCode(String xml, String toBeDeletedCodeId);
 
 	SaveUpdateCQLResult saveCQLCodeSystem(String xml, CQLCodeSystem codeSystem);
+
+	SaveUpdateCQLResult getCQLLibraryData(String xmlString);
 
 }

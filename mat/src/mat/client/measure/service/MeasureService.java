@@ -581,11 +581,12 @@ public interface MeasureService extends RemoteService {
 	 * @param toBemodifiedObj the to bemodified obj
 	 * @param currentObj the current obj
 	 * @param definitionList the definition list
+	 * @param isFormtable flag for if the definition should be formatted on save
 	 * @return the save update cql result
 	 */
 	SaveUpdateCQLResult saveAndModifyDefinitions(String measureId,
 			CQLDefinition toBemodifiedObj, CQLDefinition currentObj,
-			List<CQLDefinition> definitionList);
+			List<CQLDefinition> definitionList, boolean isFormatable);
 	
 	/**
 	 * Save and modify parameters.
@@ -594,11 +595,12 @@ public interface MeasureService extends RemoteService {
 	 * @param toBemodifiedObj the to bemodified obj
 	 * @param currentObj the current obj
 	 * @param parameterList the parameter list
+	 * @param isFormtable flag for if the parameter should be formatted on save
 	 * @return the save update cql result
 	 */
 	SaveUpdateCQLResult saveAndModifyParameters(String measureId,
 			CQLParameter toBemodifiedObj, CQLParameter currentObj,
-			List<CQLParameter> parameterList);
+			List<CQLParameter> parameterList, boolean isFormatable);
 	
 	/**
 	 * Save and modify cql general info.
@@ -617,10 +619,11 @@ public interface MeasureService extends RemoteService {
 	 * @param toBeModifiedObj the to be modified obj
 	 * @param currentObj the current obj
 	 * @param functionsList the functions list
+	 * @param isFormtable flag for if the function should be formatted on save
 	 * @return the save update cql result
 	 */
 	SaveUpdateCQLResult saveAndModifyFunctions(String measureId, CQLFunctions toBeModifiedObj, CQLFunctions currentObj,
-			List<CQLFunctions> functionsList);
+			List<CQLFunctions> functionsList, boolean isFormatable);
 	
 	/**
 	 * Delete definition
@@ -631,7 +634,7 @@ public interface MeasureService extends RemoteService {
 	 * @param definitionList the definition list
 	 * @return the save update cql result
 	 */
-	SaveUpdateCQLResult deleteDefinition(String measureId, CQLDefinition toBeDeletedObj, CQLDefinition currentObj, 
+	SaveUpdateCQLResult deleteDefinition(String measureId, CQLDefinition toBeDeletedObj, 
 			List<CQLDefinition> definitionList);
 	
 	/**
@@ -643,7 +646,7 @@ public interface MeasureService extends RemoteService {
 	 * @param functionsList the functions list
 	 * @return the save update cql result
 	 */
-	SaveUpdateCQLResult deleteFunctions(String measureId, CQLFunctions toBeDeletedObj, CQLFunctions currentObj, 
+	SaveUpdateCQLResult deleteFunctions(String measureId, CQLFunctions toBeDeletedObj,  
 			List<CQLFunctions> functionsList); 
 	
 	/**
@@ -655,7 +658,7 @@ public interface MeasureService extends RemoteService {
 	 * @param parameterList the parameter list
 	 * @return the save update cql result
 	 */
-	SaveUpdateCQLResult deleteParameter(String measureId, CQLParameter toBeDeletedObj, CQLParameter currentObj, 
+	SaveUpdateCQLResult deleteParameter(String measureId, CQLParameter toBeDeletedObj,  
 			List<CQLParameter> parameterList); 
 	
 	
@@ -690,7 +693,6 @@ public interface MeasureService extends RemoteService {
 
 	SaveUpdateCQLResult deleteInclude(String currentMeasureId,
 			CQLIncludeLibrary toBeModifiedIncludeObj,
-			CQLIncludeLibrary cqlLibObject,
 			List<CQLIncludeLibrary> viewIncludeLibrarys);
 	
 	VsacApiResult updateCQLVSACValueSets(String currentMeasureId, String expansionId);
@@ -700,4 +702,6 @@ public interface MeasureService extends RemoteService {
 	CQLCodeWrapper getCQLCodes(String measureID);
 
 	SaveUpdateCQLResult deleteCode(String toBeDeletedId, String measureID);
+
+	SaveUpdateCQLResult getMeasureCQLLibraryData(String measureId);
 }

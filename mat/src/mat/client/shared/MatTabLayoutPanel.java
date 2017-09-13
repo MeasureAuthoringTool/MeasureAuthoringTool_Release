@@ -18,6 +18,7 @@ import mat.client.clause.cqlworkspace.CQLStandaloneWorkSpacePresenter;
 import mat.client.clause.cqlworkspace.CQLWorkSpacePresenter;
 import mat.client.measure.ManageMeasureDetailModel;
 import mat.client.measure.metadata.MetaDataPresenter;
+import mat.client.measure.metadata.MetaDataPresenter.MetaDataDetailDisplay;
 import mat.client.measurepackage.MeasurePackageDetail;
 import mat.client.measurepackage.MeasurePackagePresenter;
 import mat.client.shared.ui.MATTabPanel;
@@ -59,6 +60,8 @@ public class MatTabLayoutPanel extends MATTabPanel implements BeforeSelectionHan
 	
 	/** The save error message. */
 	private ErrorMessageDisplay saveErrorMessage;
+	
+	private WarningConfirmationMessageAlert saveErrorMessageAlert;
 	
 	/** The save button. */
 	private Button saveButton;
@@ -417,9 +420,9 @@ public class MatTabLayoutPanel extends MATTabPanel implements BeforeSelectionHan
 			MetaDataPresenter metaDataPresenter) {
 		if ((MatContext.get().getCurrentMeasureId() != null) && !MatContext.get().getCurrentMeasureId().equals("")
 				&&!isMeasureDetailsSame(metaDataPresenter)) {
-			saveErrorMessage = metaDataPresenter.getMetaDataDisplay().getSaveErrorMsg();
-			saveErrorMessage.clear();
-			saveButton = metaDataPresenter.getMetaDataDisplay().getSaveBtn();
+			saveErrorMessageAlert = metaDataPresenter.getMetaDataDisplay().getSaveErrorMsg();
+			saveErrorMessageAlert.clearAlert();
+			//saveButton = metaDataPresenter.getMetaDataDisplay().getSaveBtn();
 			if (metaDataPresenter.isSubView()) {
 				metaDataPresenter.backToDetail();
 				metaDataPresenter.getMetaDataDisplay().setSaveButtonEnabled(
@@ -427,10 +430,13 @@ public class MatTabLayoutPanel extends MATTabPanel implements BeforeSelectionHan
 				metaDataPresenter.getComponentMeasures();
 				metaDataPresenter.setStewardAndMeasureDevelopers();
 			}
-			showErrorMessage(metaDataPresenter.getMetaDataDisplay().getSaveErrorMsg());
-			metaDataPresenter.getMetaDataDisplay().getSaveErrorMsg().getButtons().get(0).setFocus(true);
-			handleClickEventsOnUnsavedErrorMsg(selectedIndex, metaDataPresenter.getMetaDataDisplay()
-					.getSaveErrorMsg().getButtons(), metaDataPresenter.getMetaDataDisplay().getSaveErrorMsg(), null);
+			metaDataPresenter.getMetaDataDisplay().getErrorMessageDisplay().clearAlert();
+			metaDataPresenter.getMetaDataDisplay().getErrorMessageDisplay2().clearAlert();
+			metaDataPresenter.getMetaDataDisplay().getSuccessMessageDisplay().clearAlert();
+			metaDataPresenter.getMetaDataDisplay().getSuccessMessageDisplay2().clearAlert();
+			showErrorMessageAlert(saveErrorMessageAlert);
+			saveErrorMessageAlert.getWarningConfirmationYesButton().setFocus(true);
+			handleClickEventsOnUnsavedErrorMsgAlert(selectedIndex, metaDataPresenter.getMetaDataDisplay(), null);
 		} else {
 			isUnsavedData = false;
 		}
@@ -445,14 +451,15 @@ public class MatTabLayoutPanel extends MATTabPanel implements BeforeSelectionHan
 	private void validateNewMeasurePackageTab(int selectedIndex,
 			MeasurePackagePresenter measurePackagerPresenter) {
 		if (!isMeasurePackageDetailsSame(measurePackagerPresenter)) {
-			saveErrorMessage = measurePackagerPresenter.getView().getSaveErrorMessageDisplay();
-			saveErrorMessage.clear();
+			measurePackagerPresenter.getView().getSaveErrorMessageDisplayOnEdit().clearAlert();
+			saveErrorMessageAlert = measurePackagerPresenter.getView().getSaveErrorMessageDisplay();
+			saveErrorMessageAlert.clearAlert();
+			
 			saveButton = measurePackagerPresenter.getView().getPackageGroupingWidget().getSaveGrouping();
 			//saveButton = (PrimaryButton)measurePackagerPresenter.getView().getAddQDMElementsToMeasureButton();
-			showErrorMessage(measurePackagerPresenter.getView().getSaveErrorMessageDisplay());
-			measurePackagerPresenter.getView().getSaveErrorMessageDisplay().getButtons().get(0).setFocus(true);
-			handleClickEventsOnUnsavedErrorMsg(selectedIndex, measurePackagerPresenter.getView().getSaveErrorMessageDisplay().getButtons(),
-					measurePackagerPresenter.getView().getSaveErrorMessageDisplay(), null);
+			showErrorMessageAlert(saveErrorMessageAlert);
+			saveErrorMessageAlert.getWarningConfirmationYesButton().setFocus(true);
+			handleClickEventsOnUnsavedErrorMsgAlert(selectedIndex, measurePackagerPresenter.getView().getSaveErrorMessageDisplay(), null);
 		} else {
 			isUnsavedData = false;
 		}
@@ -557,7 +564,66 @@ public class MatTabLayoutPanel extends MATTabPanel implements BeforeSelectionHan
 			}
 		}
 	}
-
+	private void handleClickEventsOnUnsavedErrorMsgAlert(int selIndex, final WarningConfirmationMessageAlert saveErrorMessage, final String auditMessage) {
+		isUnsavedData = true;
+		
+		saveErrorMessage.getWarningConfirmationYesButton().addClickHandler(new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent arg0) {
+				isUnsavedData = false;
+				if (auditMessage != null) {
+					MatContext.get().recordTransactionEvent(MatContext.get().getCurrentMeasureId(),
+							null, auditMessage, auditMessage, ConstantMessages.DB_LOG);
+				}
+				saveErrorMessage.clearAlert();
+				updateOnBeforeSelection();
+				selectTab(selectedIndex);
+				
+			}
+		});
+		
+		
+		saveErrorMessage.getWarningConfirmationNoButton().addClickHandler(new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent arg0) {
+				isUnsavedData = false;
+				saveErrorMessage.clearAlert();
+				saveButton.setFocus(true);
+				
+			}
+		});
+		
+		/*ClickHandler clickHandler = new ClickHandler() {
+			@Override
+			public void onClick(ClickEvent event) {
+				isUnsavedData = false;
+				SecondaryButton button = (SecondaryButton) event.getSource();
+				if ("Yes".equals(button.getText())) { // navigate to the tab select
+					//Audit If Yes is clicked and changes are discarded on clauseWorkspace.
+					if (auditMessage != null) {
+						MatContext.get().recordTransactionEvent(MatContext.get().getCurrentMeasureId(),
+								null, auditMessage, auditMessage, ConstantMessages.DB_LOG);
+					}
+					saveErrorMessage.clear();
+					updateOnBeforeSelection();
+					selectTab(selectedIndex);
+				} else if ("No".equals(button.getText())) { // do not navigate, set focus to the Save button on the Page
+					saveErrorMessage.clear();
+					saveButton.setFocus(true);
+				}
+			}
+		};
+		for (SecondaryButton secondaryButton : btns) {
+			secondaryButton.addClickHandler(clickHandler);
+		}*/
+		
+		if (isUnsavedData) {
+			MatContext.get().setErrorTabIndex(selIndex);
+			MatContext.get().setErrorTab(true);
+		}
+	}
 	
 	/**
 	 * On Click Events.
@@ -648,6 +714,44 @@ public class MatTabLayoutPanel extends MATTabPanel implements BeforeSelectionHan
 		}
 	}
 	
+	private void handleClickEventsOnUnsavedErrorMsgAlert(int selIndex,final MetaDataDetailDisplay metaDataDetailDisplay, final String auditMessage) {
+		isUnsavedData = true;
+		
+		metaDataDetailDisplay.getSaveErrorMsg().getWarningConfirmationYesButton().addClickHandler(new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent arg0) {
+				isUnsavedData = false;
+				if (auditMessage != null) {
+					MatContext.get().recordTransactionEvent(MatContext.get().getCurrentMeasureId(),
+							null, auditMessage, auditMessage, ConstantMessages.DB_LOG);
+				}
+				metaDataDetailDisplay.getSaveErrorMsg().clear();
+				updateOnBeforeSelection();
+				selectTab(selectedIndex);
+				
+			}
+		});
+		
+		
+		metaDataDetailDisplay.getSaveErrorMsg().getWarningConfirmationNoButton().addClickHandler(new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent arg0) {
+				isUnsavedData = false;
+				metaDataDetailDisplay.getSaveErrorMsg().clearAlert();
+				metaDataDetailDisplay.getSaveBtn().setFocus(true);
+				
+			}
+		});
+		
+		
+		if (isUnsavedData) {
+			MatContext.get().setErrorTabIndex(selIndex);
+			MatContext.get().setErrorTab(true);
+		}
+	}
+	
 	/**
 	 * Show error message.
 	 * 
@@ -662,6 +766,13 @@ public class MatTabLayoutPanel extends MATTabPanel implements BeforeSelectionHan
 		errorMessageDisplay.setMessageWithButtons(msg, btn);
 	}
 	
+	
+	private void showErrorMessageAlert(WarningConfirmationMessageAlert errorMessageDisplay) {
+		String msg = MatContext.get().getMessageDelegate().getSaveErrorMsg();
+		errorMessageDisplay.clearAlert();
+		errorMessageDisplay.setMessage(msg);
+		errorMessageDisplay.createAlert();
+	}
 	
 	/**
 	 * Checked to see if the Measure Details page Data and the DB data are the

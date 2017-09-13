@@ -11,6 +11,7 @@ import mat.client.clause.clauseworkspace.presenter.PopulationWorkSpaceConstants;
 import mat.client.clause.cqlworkspace.CQLWorkSpaceConstants;
 import mat.model.ModeDetailModel;
 import mat.model.cql.CQLQualityDataSetDTO;
+import mat.shared.CQLIdentifierObject;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.json.client.JSONArray;
@@ -47,7 +48,10 @@ public class JSONAttributeModeUtility {
 	private static final String NULLABLE = "Nullable";
 	
 	/** The Constant VALUE_SET. */
-	private static final String VALUE_SET = "Value Sets/Codes";
+	private static final String VALUE_SET = "Value Sets";
+	
+	/** The Constant VALUE_SET. */
+	private static final String CODES = "Codes";
 	
 	/** The Constant DATATYPE. */
 	static final String DATATYPE = "datatype";
@@ -166,18 +170,31 @@ public class JSONAttributeModeUtility {
 					String mName = attrObject.toString();
 					mName = mName.replace("\"", "");
 					if (modeName.equalsIgnoreCase(mName)) {
-						if(modeName.equalsIgnoreCase("Value Sets/Codes")){
+						if(modeName.equalsIgnoreCase("Value Sets")){
 							for(CQLQualityDataSetDTO valSets : MatContext.get().getValueSetCodeQualityDataSetList()){
 								ModeDetailModel mode = new ModeDetailModel();
 								if(!valSets.getCodeListName().equalsIgnoreCase("Birthdate") && !valSets.getCodeListName().equalsIgnoreCase("Dead")) {
 									mode.setModeValue(valSets.getCodeListName());
-									if(valSets.getType()!= null)
-										mode.setModeName(valSets.getType()+":" +valSets.getCodeListName());
-									else 
-										mode.setModeName("valueset:"+valSets.getCodeListName());
-									modeDetailsList.add(mode);
+									if(valSets.getType()== null) {
+										mode.setModeName("valueset:\""+valSets.getCodeListName() + "\"");
+										modeDetailsList.add(mode);
+									}
 								}
 							}
+							getIncludesList(MatContext.get().getIncludedValueSetNames(), modeDetailsList, "valueset:");
+							
+						} else if(modeName.equalsIgnoreCase("Codes")){
+							for(CQLQualityDataSetDTO valSets : MatContext.get().getValueSetCodeQualityDataSetList()){
+								ModeDetailModel mode = new ModeDetailModel();
+								if(!valSets.getCodeListName().equalsIgnoreCase("Birthdate") && !valSets.getCodeListName().equalsIgnoreCase("Dead")) {
+									mode.setModeValue(valSets.getCodeListName());
+									if(valSets.getType()!= null) {
+										mode.setModeName(valSets.getType()+":\"" +valSets.getCodeListName() + "\"");
+										modeDetailsList.add(mode);
+									}
+								}
+							}
+							getIncludesList(MatContext.get().getIncludedCodeNames(), modeDetailsList, "code:");
 						} else{
 							if (attrJSONObject.get("details").isArray() != null) {
 								JSONArray attrModeObject = attrJSONObject.get("details").isArray();
@@ -355,8 +372,10 @@ public class JSONAttributeModeUtility {
 			attrMode = COMPUTATIVE;
 		} else if(mode.equals("Nullable")){
 			attrMode = NULLABLE;
-		} else if(mode.equals("ValueSets/Codes")){
+		} else if(mode.equals("ValueSets")){
 			attrMode = VALUE_SET;
+		} else if(mode.equals("Codes")){
+			attrMode = CODES;
 		}
 		
 		return attrMode;
@@ -376,4 +395,18 @@ public class JSONAttributeModeUtility {
 	}
 	
 	
+	public static List<ModeDetailModel> getIncludesList(List<CQLIdentifierObject> includesList,
+			List<ModeDetailModel> modeDetailList, String type) {
+		
+		for (int i = 0; i < includesList.size(); i++) {
+			ModeDetailModel mode = new ModeDetailModel();
+			String includesStr = includesList.get(i).toString();
+			mode.setModeValue(includesStr);
+			mode.setModeName(type + includesStr);
+			modeDetailList.add(mode);
+		}
+		
+		return modeDetailList;
+
+	}
 }

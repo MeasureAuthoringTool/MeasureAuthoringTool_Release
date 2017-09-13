@@ -1,5 +1,7 @@
 package mat.client.shared;
 
+import java.util.ArrayList;
+
 import mat.shared.ConstantMessages;
 
 // TODO: Auto-generated Javadoc
@@ -155,7 +157,7 @@ public class MessageDelegate {
 	public static final String RISK_ADJ_SAVED = "Risk Adjustment Variables have been saved.";
 	
 	/** The Constant TEMP_EMAIL_SENT. */
-	public static final String TEMP_EMAIL_SENT = "Temporary Password E-mail has been sent.";
+	public static final String TEMP_EMAIL_SENT = " Temporary Password E-mail has been sent.";
 	
 	/** The Constant VALUE_SET_COMPLETE_SAVED. */
 	public static final String VALUE_SET_COMPLETE_SAVED = "Value set successfully saved as complete.";
@@ -436,6 +438,8 @@ public class MessageDelegate {
 	//MAT-8627 validations for functions attached to Measure Observations.
 	private final String MEASURE_OBSERVATION_USER_DEFINED_FUNC_REURN_TYPE_VALIDATION_MESSAGE = "Measure Observations added to a measure grouping must contain a user-defined function that returns an integer, a decimal, or a quantity.";
 	
+	private final String INVALID_QDM_VERSION_IN_INCLUDES ="The current QDM version and the QDM version of one or more of the included libraries are not the same. Please navigate to the Includes section to replace or remove the conflicting libraries.";
+	
 	/**
 	 * Gets the population work space validation error.
 	 *
@@ -471,9 +475,8 @@ public class MessageDelegate {
 			+ "Initial Population, Measure Population,and at least one Measure Observation.";
 	
 	/** The delete measure warning message. */
-	private final String DELETE_MEASURE_WARNING_MESSAGE = "Deleting a draft or version of a measure will"
-			+ "permanently remove the designated measure draft or "
-			+ "version from  the Measure Authoring Tool. Deleted measures cannot <br> be recovered.";
+	private final String DELETE_MEASURE_WARNING_MESSAGE = "Deleting a draft or version of a measure will permanently remove the designated measure draft or "
+			+ "version from  the Measure Authoring Tool. Deleted measures cannot be recovered.";
 	
 	/** The description required. */
 	private final String DESCRIPTION_REQUIRED = "Description is required.";
@@ -845,27 +848,6 @@ public class MessageDelegate {
 	
 	/** The invalid logic measure packager. */
 	private final String INVALID_LOGIC_MEASURE_PACKAGER = "Populations or Measure Observations within a Measure Grouping must contain a valid Definition or Function.";
-	
-	/** The delete confirmation parameter. */
-	private final String DELETE_CONFIRMATION_PARAMETER = "You have selected to delete this expression. Do you want to permanently delete this Parameter?";
-	
-	/** The delete confirmation definition. */
-	private final String DELETE_CONFIRMATION_DEFINITION = "You have selected to delete this expression. Do you want to permanently delete this Definition?";
-	
-	/** The delete confirmation function. */
-	private final String DELETE_CONFIRMATION_FUNCTION = "You have selected to delete this expression. Do you want to permanently delete this Function?";
-	
-	/** The delete confirmation function. */
-	private final String DELETE_CONFIRMATION_FUNCTION_ARGUMENT = "You have selected to delete this Argument. Please confirm that you want to remove this Argument.";
-	
-	/** The delete confirmation include. */
-	private final String DELETE_CONFIRMATION_INCLUDE = "You have selected to delete this expression. Do you want to permanently delete this Library Alias?";
-	
-	/** The delete confirmation valueset. */
-	private final String DELETE_CONFIRMATION_VALUESET = "You have selected to delete this Value Set. Please confirm that you want to remove this Value Set.";
-	
-	/** The delete confirmation codes. */
-	private final String DELETE_CONFIRMATION_CODES = "You have selected to delete this Code. Please confirm that you want to remove this Code.";
 	
 	/** The error library version. */
 	private final String ERROR_LIBRARY_VERSION ="Please select version type Major or Minor.";
@@ -2581,8 +2563,8 @@ public class MessageDelegate {
 	 *
 	 * @return the welcome message
 	 */
-	public static String getWelcomeMessage() {
-		return WELCOME_MESSAGE;
+	public static String getWelcomeMessage(String userFristName) {
+		return "Welcome "+ userFristName+"! " +WELCOME_MESSAGE;
 	}
 	
 	
@@ -2671,6 +2653,69 @@ public class MessageDelegate {
 	}
 	
 	/**
+	 * Gets the successful qdm remove msg.
+	 *
+	 * @return the 508 Complaint message for successful qdm remove msg
+	 */
+	public String getSUCCESSFUL_QDM_REMOVE_MSG(String codeListName) {
+		return "Value set " + (codeListName.length()>60 ? codeListName.substring(0, 59) : codeListName) + " has been removed successfully.";
+	}
+	
+	/**
+	 * Gets the successful qdm remove msg.
+	 *
+	 * @return the 508 Complaint message for successful Code Remove msg
+	 */
+	public String getSUCCESSFUL_CODE_REMOVE_MSG(String codeOID) {
+		return "Code " + (codeOID.length()>60 ? codeOID.substring(0, 59) : codeOID) + " has been removed successfully.";
+	}
+	
+	/**
+	 * Gets the successful definition remove msg.
+	 *
+	 * @return the 508 Complaint message for successful Definition Remove msg
+	 */
+	public String getSuccessfulDefinitionRemoveMessage(String definitionName) {
+		return "Definition " + (definitionName.length()>60 ? definitionName.substring(0, 59) : definitionName) + " has been removed successfully.";
+	}
+	
+	/**
+	 * Gets the successful function remove msg.
+	 *
+	 * @return the 508 Complaint message for successful Function Remove msg
+	 */
+	public String getSuccessfulFunctionRemoveMessage(String functionName) {
+		return "Function " + (functionName.length()>60 ? functionName.substring(0, 59) : functionName) + " has been removed successfully.";
+	}
+	
+	/**
+	 * Gets the successful paramater remove msg.
+	 *
+	 * @return the 508 Complaint message for successful Parameter Remove msg
+	 */
+	public String getSuccessfulParameterRemoveMessage(String parameterName) {
+		return "Parameter " + (parameterName.length()>60 ? parameterName.substring(0, 59) : parameterName) + " has been removed successfully.";
+	}
+	
+	/**
+	 * Gets the successful include remove msg.
+	 *
+	 * @return the 508 Complaint message for successful Include Remove msg
+	 */
+	public String getSuccessfulIncludeRemoveMessage(String includeName) {
+		return "Library " + (includeName.length()>60 ? includeName.substring(0, 59) : includeName) + " has been removed successfully.";
+	}
+	
+	/**
+	 * Gets the successful function argument remove msg.
+	 *
+	 * @return the 508 Complaint message for successful Function Argument Remove msg
+	 */
+	public String getSuccessfulFunctionArgumentRemoveMessage(String argumentName) {
+		return "Argument " + (argumentName.length()>60 ? argumentName.substring(0, 59) : argumentName) + " has been removed successfully.";
+	}
+	
+	/**
 	 * Gets the warning measure package creation generic.
 	 *
 	 * @return the warning measure package creation generic
@@ -2753,20 +2798,22 @@ public class MessageDelegate {
 	
 	/**
 	 * Gets the successful saved cql definition.
+	 * @param name TODO
 	 *
 	 * @return the successful saved cql definition
 	 */
-	public String getSUCCESSFUL_SAVED_CQL_DEFINITION() {
-		return SUCCESSFUL_SAVED_CQL_DEFINITION;
+	public String getSUCCESSFUL_SAVED_CQL_DEFINITION(String name) {
+		return "Definition " + (name.length()>60 ? name.substring(0, 59) : name) + " successfully saved.";
 	}
 	
 	/**
 	 * Gets the successful saved cql parameter.
+	 * @param name TODO
 	 *
 	 * @return the successful saved cql parameter
 	 */
-	public String getSUCCESSFUL_SAVED_CQL_PARAMETER() {
-		return SUCCESSFUL_SAVED_CQL_PARAMETER;
+	public String getSUCCESSFUL_SAVED_CQL_PARAMETER(String name) {
+		return "Parameter " + (name.length()>60 ? name.substring(0, 59) : name) + " successfully saved.";
 	}
 	
 	/**
@@ -2798,29 +2845,32 @@ public class MessageDelegate {
 	
 	/**
 	 * Gets the sucess definition modify.
+	 * @param name TODO
 	 *
 	 * @return the sucess definition modify
 	 */
-	public String getSUCESS_DEFINITION_MODIFY() {
-		return SUCESS_DEFINITION_MODIFY;
+	public String getSUCESS_DEFINITION_MODIFY(String name) {
+		return "Definition " +(name.length()>60 ? name.substring(0, 59) : name)+" successfully saved.";
 	}
 	
 	/**
 	 * Gets the sucess parameter modify.
+	 * @param name TODO
 	 *
 	 * @return the sucess parameter modify
 	 */
-	public String getSUCESS_PARAMETER_MODIFY() {
-		return SUCESS_PARAMETER_MODIFY;
+	public String getSUCESS_PARAMETER_MODIFY(String name) {
+		return "Parameter " +(name.length()>60 ? name.substring(0, 59) : name)+" successfully saved.";
 	}
 	
 	/**
 	 * Gets the successful saved cql functions.
+	 * @param name TODO
 	 *
 	 * @return the successful saved cql functions
 	 */
-	public String getSUCCESSFUL_SAVED_CQL_FUNCTIONS() {
-		return SUCCESSFUL_SAVED_CQL_FUNCTIONS;
+	public String getSUCCESSFUL_SAVED_CQL_FUNCTIONS(String name) {
+		return "Function " + (name.length()>60 ? name.substring(0, 59) : name) + " successfully saved.";
 	}
 	
 	/**
@@ -2834,11 +2884,12 @@ public class MessageDelegate {
 	
 	/**
 	 * Gets the sucess function modify.
+	 * @param name TODO
 	 *
 	 * @return the sucess function modify
 	 */
-	public String getSUCESS_FUNCTION_MODIFY() {
-		return SUCESS_FUNCTION_MODIFY;
+	public String getSUCESS_FUNCTION_MODIFY(String name) {
+		return "Function " +(name.length()>60 ? name.substring(0, 59) : name)+" successfully saved.";
 	}
 	
 	/**
@@ -2897,29 +2948,32 @@ public class MessageDelegate {
 	
 	/**
 	 * Gets the sucess definition modify with errors.
+	 * @param name TODO
 	 *
 	 * @return the sucess definition modify with errors
 	 */
-	public String getSUCESS_DEFINITION_MODIFY_WITH_ERRORS() {
-		return SUCESS_DEFINITION_MODIFY_WITH_ERRORS;
+	public String getSUCESS_DEFINITION_MODIFY_WITH_ERRORS(String name) {
+		return "Definition " +(name.length()>60 ? name.substring(0, 59) : name)+" successfully saved with errors.";
 	}
 
 	/**
 	 * Gets the sucess parameter modify with errors.
+	 * @param name TODO
 	 *
 	 * @return the sucess parameter modify with errors
 	 */
-	public String getSUCESS_PARAMETER_MODIFY_WITH_ERRORS() {
-		return SUCESS_PARAMETER_MODIFY_WITH_ERRORS;
+	public String getSUCESS_PARAMETER_MODIFY_WITH_ERRORS(String name) {
+		return "Parameter " +(name.length()>60 ? name.substring(0, 59) : name)+" successfully saved with errors.";
 	}
 
 	/**
 	 * Gets the sucess function modify with errors.
+	 * @param name TODO
 	 *
 	 * @return the sucess function modify with errors
 	 */
-	public String getSUCESS_FUNCTION_MODIFY_WITH_ERRORS() {
-		return SUCESS_FUNCTION_MODIFY_WITH_ERRORS;
+	public String getSUCESS_FUNCTION_MODIFY_WITH_ERRORS(String name) {
+		return "Function " +(name.length()>60 ? name.substring(0, 59) : name)+" successfully saved with errors.";
 	}
 
 	/**
@@ -2959,51 +3013,89 @@ public class MessageDelegate {
 	}
 
 	/**
-	 * Gets the delete confirmation parameter.
+	 * Gets the delete confirmation parameter displaying the definition name to be deleted.
 	 *
 	 * @return the delete confirmation parameter
 	 */
-	public String getDELETE_CONFIRMATION_PARAMETER() {
-		return DELETE_CONFIRMATION_PARAMETER;
+	public String getDELETE_CONFIRMATION_PARAMETER(String parameterName) {
+		return "You have selected to delete parameter " + (parameterName.length()>60 ? parameterName.substring(0, 59) : parameterName) + ". Please confirm that you want to remove this parameter.";
 	}
 
 	/**
-	 * Gets the delete confirmation definition.
+	 * Gets the delete confirmation definition for CQL Workspace displaying the definition name to be deleted.
 	 *
 	 * @return the delete confirmation definition
 	 */
-	public String getDELETE_CONFIRMATION_DEFINITION() {
-		return DELETE_CONFIRMATION_DEFINITION;
+	public ArrayList<String> getDeleteConfirmationDefinitionCQLWorkspace(String definitionName) {
+		
+		ArrayList<String> list = new ArrayList<String>();
+		list.add("You have selected to delete definition " + (definitionName.length()>60 ? definitionName.substring(0, 59) : definitionName) + ".");
+		list.add(" ");
+		list.add("Note: Removing an expression that is currently connected to a population will cause that expression to be removed from the Population Workspace and may reset your measure grouping. Please confirm that you want to remove this definition.");
+		
+		return list;
 	}
 
 	/**
-	 * Gets the delete confirmation function.
+	 * Gets the delete confirmation definition for CQL Library Workspace displaying the definition name to be deleted.
+	 *
+	 * @return the delete confirmation definition
+	 */
+	public String getDeleteConfirmationDefinitionCQLLibraryWorkspace(String definitionName) {
+		return "You have selected to delete definition " + (definitionName.length()>60 ? definitionName.substring(0, 59) : definitionName) + ".";
+	}
+
+	/**
+	 * Gets the delete confirmation definition displaying the definition name to be deleted.
+	 *
+	 * @return the delete confirmation definition
+	 */
+	/*public String getDELETE_CONFIRMATION_DEFINITION(String definitionName) {
+		return "You have selected to delete definition " + definitionName + ". Please confirm that you want to remove this definition.";
+	}*/
+
+	/**
+	 * Gets the delete confirmation function for CQL Workspace displaying the function name to be deleted.
 	 *
 	 * @return the delete confirmation function
 	 */
-	public String getDELETE_CONFIRMATION_FUNCTION() {
-		return DELETE_CONFIRMATION_FUNCTION;
+	public ArrayList<String> getDeleteConfirmationFunctionCQLWorkspace(String functionName) {
+		ArrayList<String> list = new ArrayList<String>();
+		list.add("You have selected to delete function " + (functionName.length()>60 ? functionName.substring(0, 59) : functionName) + ".");
+		list.add(" ");
+		list.add("Note: Removing an expression that is currently connected to a population will cause that expression to be removed from the Population Workspace and may reset your measure grouping. Please confirm that you want to remove this function.");
+		
+		return list;
 	}
 	
 	/**
-	 * Gets the delete confirmation include.
+	 * Gets the delete confirmation function for CQL Library Workspace displaying the function name to be deleted.
+	 *
+	 * @return the delete confirmation function
+	 */
+	public String getDeleteConfirmationFunctionCQLLibraryWorkspace(String functionName) {
+		return "You have selected to delete function " + (functionName.length()>60 ? functionName.substring(0, 59) : functionName) + ".";
+	}
+	
+	/**
+	 * Gets the delete confirmation function displaying the function name to be deleted.
+	 *
+	 * @return the delete confirmation function
+	 */
+	/*public String getDELETE_CONFIRMATION_FUNCTION(String functionName) {
+		return "You have selected to delete function " + functionName + ". Please confirm that you want to remove this function.";
+	}*/
+	
+	/**
+	 * Gets the delete confirmation include displaying the include name to be deleted.
 	 *
 	 * @return the delete confirmation include
 	 */
-	public String getDELETE_CONFIRMATION_INCLUDE() {
-		return DELETE_CONFIRMATION_INCLUDE;
+	public String getDELETE_CONFIRMATION_INCLUDE(String includeName) {
+		return "You have selected to delete library " + (includeName.length()>60 ? includeName.substring(0, 59) : includeName) + ". Please confirm that you want to remove this library alias.";
 	}
 
-	/**
-	 * Gets the valueset success message.
-	 *
-	 * @param codeListName the code list name
-	 * @return the valueset success message
-	 */
-	public String getValuesetSuccessMessage(String codeListName) {
-		return "Value set " + codeListName + " has been applied successfully.";
-	}
-
+	
 	/**
 	 * Gets the error include alias name no special char.
 	 *
@@ -3353,24 +3445,24 @@ public class MessageDelegate {
 	}
 
 	/**
-	 * @return the dELETE_CONFIRMATION_CODES
+	 * @return the 508 Complaint message for deleting the Code
 	 */
-	public String getDELETE_CONFIRMATION_CODES() {
-		return DELETE_CONFIRMATION_CODES;
+	public String getDELETE_CONFIRMATION_CODES(String codeOID) {
+		return "You have selected to delete code " + (codeOID.length()>60 ? codeOID.substring(0, 59) : codeOID) + ". Please confirm that you want to remove this Code.";
 	}
 
 	/**
-	 * @return the dELETE_CONFIRMATION_VALUESET
+	 * @return the 508 Complaint message for deleting the Value Set
 	 */
-	public String getDELETE_CONFIRMATION_VALUESET() {
-		return DELETE_CONFIRMATION_VALUESET;
+	public String getDELETE_CONFIRMATION_VALUESET(String codeListName) {
+		return "You have selected to delete value set " + (codeListName.length()>60 ? codeListName.substring(0, 59) : codeListName) + ". Please confirm that you want to remove this value set.";
 	}
 
 	/**
 	 * @return the dELETE_CONFIRMATION_FUNCTION_ARGUMENT
 	 */
-	public String getDELETE_CONFIRMATION_FUNCTION_ARGUMENT() {
-		return DELETE_CONFIRMATION_FUNCTION_ARGUMENT;
+	public String getDELETE_CONFIRMATION_FUNCTION_ARGUMENT(String functionArgumentName) {
+		return "You have selected to delete argument " + (functionArgumentName.length()>60 ? functionArgumentName.substring(0, 59) : functionArgumentName) + ". Please confirm that you want to remove this argument.";
 	}
 	
 	/**
@@ -3378,6 +3470,50 @@ public class MessageDelegate {
 	 */
 	public static String getPACKAGER_CQL_ERROR() {
 		return PACKAGER_CQL_ERROR;
+	}
+	
+	public String getSUCESS_FUNCTION_ARG_MODIFY(String ArgName){
+		return "Function Argument "+ ArgName +" successfully modified.";
+	}
+	 public String getSUCESS_FUNCTION_ARG_ADD(String ArgName){
+		 return "Function Argument "+ ArgName +" successfully saved.";
+	 }
+	/**
+	 * Gets the valueset success message.
+	 *
+	 * @param codeListName the code list name
+	 * @return the valueset success message
+	 */
+	public String getValuesetSuccessMessage(String codeListName) {
+		return "Value set " + (codeListName.length()>60 ? codeListName.substring(0, 59) : codeListName) + " has been applied successfully.";
+	}
+	
+	public String getValuesetSuccessfulReterivalMessage(String codeListName) {
+		return "Value set " + (codeListName.length()>60 ? codeListName.substring(0, 59) : codeListName) + " successfully retrieved from VSAC.";
+	}
+	
+	public String getMeasureDraftSuccessfulMessage(String measureName){
+		return "You have created a draft of "+(measureName.length()>60 ? measureName.substring(0, 59) : measureName)+". Please click continue to navigate to the Measure Details page.";
+	}
+	
+	public String getLibraryDraftSuccessfulMessage(String cqlLibName){
+		return "You have created a draft of "+(cqlLibName.length()>60 ? cqlLibName.substring(0, 59) : cqlLibName)+". Please click continue to navigate to the CQL Composer.";
+	}
+	
+	public String getCreateNewMeasureSuccessfulMessage(String measureName){
+		return "You have created a new measure "+(measureName.length()>60 ? measureName.substring(0, 59) : measureName)+". Please click continue to navigate to the Measure Details page.";
+	}
+	
+	public String getCreateNewLibrarySuccessfulMessage(String libraryName){
+		return "You have created a new library "+(libraryName.length()>60 ? libraryName.substring(0, 59) : libraryName)+". Please click continue to navigate to the CQL Composer.";
+	}
+	
+	public String getVersionSuccessfulMessage(String name, String version){
+		return name + " v" + (version.length()>60 ? version.substring(0, 59) : version) + " has been successfully created.";
+	}
+
+	public String getINVALID_QDM_VERSION_IN_INCLUDES() {
+		return INVALID_QDM_VERSION_IN_INCLUDES;
 	}
 
 }

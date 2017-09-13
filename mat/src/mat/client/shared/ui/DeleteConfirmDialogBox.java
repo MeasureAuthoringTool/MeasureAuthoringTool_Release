@@ -1,4 +1,4 @@
-package mat.client.clause.cqlworkspace;
+package mat.client.shared.ui;
 
 import org.gwtbootstrap3.client.ui.Button;
 import org.gwtbootstrap3.client.ui.Input;
@@ -16,6 +16,8 @@ import com.google.gwt.dom.client.Style;
 import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.event.dom.client.KeyUpEvent;
 import com.google.gwt.event.dom.client.KeyUpHandler;
+import com.google.gwt.user.client.ui.FocusPanel;
+import com.google.gwt.user.client.ui.Focusable;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
@@ -26,27 +28,29 @@ import mat.client.shared.SpacerWidget;
 
 // TODO: Auto-generated Javadoc
 /**
- * The Class DeleteCQLLibraryConfirmDialogBox.
+ * The Class DeleteConfirmDialogBox.
  */
-public class DeleteCQLLibraryConfirmDialogBox {
+public class DeleteConfirmDialogBox {
 
 	/** The confirm button. */
-	private static Button confirmButton;
+	private  Button confirmButton;
 
 	/** The password entered. */
-	private static String passwordEntered;
+	private  String passwordEntered;
 	
-	private static Modal panel;
+	private  Modal panel;
 	
-
+	FocusPanel focusPanel = new FocusPanel();
+	
+	Input password = new Input(InputType.PASSWORD);
 	/**
 	 * showDeletionConfimationDialog.
 	 *
 	 * @param message
 	 *            the message
 	 */
-	public static void showDeletionConfimationDialog(String message) {
-
+	public void showDeletionConfimationDialog(String message) {
+		focusPanel.clear();
 	    panel = new Modal();
 	    confirmButton = new Button("Confirm");
 	    passwordEntered = "";
@@ -64,23 +68,24 @@ public class DeleteCQLLibraryConfirmDialogBox {
 		panel.setDataBackdrop(ModalBackdrop.STATIC);
 		panel.setSize(ModalSize.MEDIUM);
 		panel.getElement().getStyle().setZIndex(1000);
+		panel.setRemoveOnHide(true);
 
 		messageAlert.getElement().getStyle().setMarginTop(0.0, Style.Unit.PX);
 		messageAlert.getElement().getStyle().setMarginBottom(0.0, Style.Unit.PX);
 		messageAlert.createAlert(message);
-		modalBody.add(messageAlert);
+		//modalBody.add(messageAlert);
 		
 		VerticalPanel passwordPanel = new VerticalPanel();
 		passwordPanel.getElement().setId("passwordPanel_VerticalPanel");
-		final HTML passwordText = new HTML(
+		HTML passwordText = new HTML(
 				"<h4>To confirm deletion enter your password below:<h4>");
-		final Input password = new Input(InputType.PASSWORD);
+		
 		
 		password.setId("password_PasswordTextBox");
 		password.setPlaceholder("Enter Password");
-		password.setTitle("Enter Password");
-		password.setValidateOnBlur(true);
-		
+		password.setTitle( message + "To confirm deletion enter your password.");
+		//password.setValidateOnBlur(true);
+		password.setFocus(true);
 		HorizontalPanel hp = new HorizontalPanel();
 		hp.getElement().setId("hp_HorizontalPanel");
 		HTML required = new HTML(RequiredIndicator.get());
@@ -115,8 +120,11 @@ public class DeleteCQLLibraryConfirmDialogBox {
 		confirmButton.setEnabled(false);
 
 		modalFooter.add(confirmButton);
-
-		modalBody.add(passwordPanel);
+		VerticalPanel vp = new VerticalPanel();
+		vp.add(messageAlert);
+		vp.add(passwordPanel);
+		focusPanel.add(vp);
+		modalBody.add(focusPanel);
 		panel.add(modalBody);
 
 		panel.add(modalFooter);
@@ -138,7 +146,7 @@ public class DeleteCQLLibraryConfirmDialogBox {
 	 *
 	 * @return the password entered
 	 */
-	public static String getPasswordEntered() {
+	public  String getPasswordEntered() {
 		return passwordEntered;
 	}
 
@@ -147,8 +155,8 @@ public class DeleteCQLLibraryConfirmDialogBox {
 	 *
 	 * @param passwordEntered the new password entered
 	 */
-	public static void setPasswordEntered(String passwordEntered) {
-		DeleteCQLLibraryConfirmDialogBox.passwordEntered = passwordEntered;
+	public  void setPasswordEntered(String passwordEntered) {
+		this.passwordEntered = passwordEntered;
 	}
 
 	/**
@@ -156,8 +164,12 @@ public class DeleteCQLLibraryConfirmDialogBox {
 	 *
 	 * @return the confirmbutton
 	 */
-	public static Button getConfirmbutton() {
+	public  Button getConfirmbutton() {
 		return confirmButton;
+	}
+
+	public Input getPassword() {
+		return password;
 	}
 
 }

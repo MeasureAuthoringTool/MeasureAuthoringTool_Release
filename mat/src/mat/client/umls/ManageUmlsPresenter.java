@@ -30,6 +30,7 @@ import mat.client.shared.ContentWithHeadingWidget;
 import mat.client.shared.ErrorMessageDisplayInterface;
 import mat.client.shared.HorizontalFlowPanel;
 import mat.client.shared.MatContext;
+import mat.client.shared.MessageAlert;
 import mat.client.shared.SaveCancelButtonBar;
 import mat.client.umls.service.VSACAPIServiceAsync;
 import mat.client.util.ClientConstants;
@@ -102,7 +103,7 @@ public class ManageUmlsPresenter implements MatPresenter{
 		 * 
 		 * @return the info message
 		 */
-		HasHTML getInfoMessage();
+		//HasHTML getInfoMessage();
 		
 		
 		
@@ -135,7 +136,7 @@ public class ManageUmlsPresenter implements MatPresenter{
 		 * @param value
 		 *            the new info message visible
 		 */
-		void setInfoMessageVisible(boolean value);
+		//void setInfoMessageVisible(boolean value);
 		
 		/**
 		 * Sets the initial focus.
@@ -153,6 +154,8 @@ public class ManageUmlsPresenter implements MatPresenter{
 		FormGroup getMessageFormGrp();
 
 		FormGroup getUserIdGroup();
+
+		MessageAlert getSuccessMessageAlert();
 	}
 	
 	/** The display. */
@@ -161,10 +164,10 @@ public class ManageUmlsPresenter implements MatPresenter{
 	/** The welcome message. */
 	private String userFirstName;
 	/** The panel. */
-	private ContentWithHeadingWidget panel = new ContentWithHeadingWidget();
+	//private ContentWithHeadingWidget panel = new ContentWithHeadingWidget();
 	
 	/** The panel with message. */
-	private VerticalPanel panelWithMessage = new VerticalPanel();
+	//private VerticalPanel panelWithMessage = new VerticalPanel();
 	
 	/**Key down handler to trap enter key.**/
 	private KeyDownHandler submitOnEnterHandler = new KeyDownHandler() {
@@ -242,11 +245,11 @@ public class ManageUmlsPresenter implements MatPresenter{
 	/**
 	 * Hide welcome message.
 	 */
-	protected void hideWelcomeMessage() {
+	/*protected void hideWelcomeMessage() {
 		panelWithMessage.remove(buildSuccessMessagePanel(userFirstName));
 		showWelcomeMessage = false;
 		
-	}
+	}*/
 
 	/* (non-Javadoc)
 	 * @see mat.client.MatPresenter#beforeClosingDisplay()
@@ -260,21 +263,31 @@ public class ManageUmlsPresenter implements MatPresenter{
 	 */
 	@Override
 	public void beforeDisplay() {
-		String heading = "UMLS Account Login";
+		/*String heading = "UMLS Account Login";
 		panel.setHeading(heading, "UmlsLogin");
 		FlowPanel fp = new FlowPanel();
-		fp.getElement().setId("fp_FlowPanel");
+		fp.getElement().setId("fp_FlowPanel");*/
 		resetWidget();		
-		fp.add(display.asWidget());		
-		panel.setContent(fp);
+	//	fp.add(display.asWidget());		
+		/*panel.setContent(fp);
 		if(showWelcomeMessage){
 		panelWithMessage.add(buildSuccessMessagePanel(userFirstName));	
 		showWelcomeMessage=false;
+		Mat.focusSkipLists("UMLSMessageLogin");
 		}else{
 			panelWithMessage.remove(buildSuccessMessagePanel(userFirstName));
+			Mat.focusSkipLists("UmlsLogin");
 		}
-		panelWithMessage.add(panel);
-		Mat.focusSkipLists("UmlsLogin");
+		panelWithMessage.add(panel);*/
+		if(showWelcomeMessage){
+			showWelcomeMessage = false;
+			display.getSuccessMessageAlert().createAlert(MatContext.get().getMessageDelegate().getWelcomeMessage(userFirstName));
+		} else {
+			display.getSuccessMessageAlert().clearAlert();
+		}
+		
+		Mat.focusSkipLists("UMLSAccountLogin");
+		
 	}
 	
 	/**
@@ -283,7 +296,7 @@ public class ManageUmlsPresenter implements MatPresenter{
 	 * @param userFirstName the user first name
 	 * @return the widget
 	 */
-	private Widget buildSuccessMessagePanel(String userFirstName) {
+	/*private Widget buildSuccessMessagePanel(String userFirstName) {
 		hfPpanel.clear();
 		hfPpanel.getElement().setId("hfPpanel_HorizontalFlowPanel");
 		hfPpanel.setStyleName(MAT_LOGIN_SUCCESS_MESSAGE);
@@ -301,23 +314,23 @@ public class ManageUmlsPresenter implements MatPresenter{
 		hPanel.add(msgPanel);
 		hfPpanel.add(hPanel);			
 		return hfPpanel;
-	}
+	}*/
 	
 	/**
 	 * Wrap.
 	 *
 	 * @param arg the arg
 	 * @return the widget
-	 */
+	 *//*
 	private Widget wrap(String arg) {
 		return new HTML(arg);
-	}
+	}*/
 	/* (non-Javadoc)
 	 * @see mat.client.MatPresenter#getWidget()
 	 */
 	@Override
 	public Widget getWidget() {		
-		return panelWithMessage;
+		return display.asWidget();
 	}
 	
 	/**private method to invalidate UMLS's session by clearing UMLSSession Map for current HTTP session ID.**/
@@ -338,7 +351,8 @@ public class ManageUmlsPresenter implements MatPresenter{
 	/**Method to clear all messages and un set user id and password input box's.**/
 	private void resetWidget() {
 		display.getErrorMessageDisplay().clear();
-		display.setInfoMessageVisible(false);
+		display.getSuccessMessageAlert().clear();
+		//display.setInfoMessageVisible(false);
 		display.getExternalLinkDisclaimer().setVisible(false);
 		display.getPasswordInput().setText("");
 		display.getUserIdText().setText("");
@@ -350,9 +364,10 @@ public class ManageUmlsPresenter implements MatPresenter{
 	
 	/** Private submit method - Calls to VSAC service.**/
 	private void submit() {
-		hideWelcomeMessage();
+		//hideWelcomeMessage();
 		display.getErrorMessageDisplay().clear();
-		display.setInfoMessageVisible(false);
+		display.getSuccessMessageAlert().clearAlert();
+		//display.setInfoMessageVisible(false);
 		display.getExternalLinkDisclaimer().setVisible(false);
 		
 		if (display.getUserIdText().getText().isEmpty()) {
@@ -388,9 +403,10 @@ public class ManageUmlsPresenter implements MatPresenter{
 						display.getMessageFormGrp().setValidationState(ValidationState.NONE);
 						display.getHelpBlock().setText("");
 						Mat.showUMLSActive();
-						display.setInfoMessageVisible(true);
-						display.getInfoMessage().setText(
-								MatContext.get().getMessageDelegate().getUMLS_SUCCESSFULL_LOGIN());
+					//	display.setInfoMessageVisible(true);
+						//display.getInfoMessage().setText(
+							//	MatContext.get().getMessageDelegate().getUMLS_SUCCESSFULL_LOGIN());
+						display.getSuccessMessageAlert().createAlert(MatContext.get().getMessageDelegate().getUMLS_SUCCESSFULL_LOGIN());
 						display.getPasswordInput().setText("");
 						display.getUserIdText().setText("");
 						Mat.showUMLSActive();

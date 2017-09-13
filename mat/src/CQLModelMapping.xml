@@ -77,9 +77,9 @@
 					<field name="suppDataElement" type="java.lang.Boolean">
 						<bind-xml name="suppDataElement" node="attribute" />
 					</field>
-					<field name="expansionIdentifier" type="java.lang.String">
+					<!-- <field name="expansionIdentifier" type="java.lang.String">
 						<bind-xml name="expansionIdentifier" node="attribute" />
-					</field>
+					</field> -->
 				</class>
 			</bind-xml>
 		</field>
@@ -256,6 +256,10 @@
 
 					<field name="version" type="java.lang.String">
 						<bind-xml name="cqlVersion" node="attribute" />
+					</field>
+					
+					<field name="qdmVersion" type="java.lang.String">
+						<bind-xml name="qdmVersion" node="attribute" />
 					</field>
 
 				</class>

@@ -15,10 +15,12 @@ import org.gwtbootstrap3.client.ui.constants.Toggle;
 import org.gwtbootstrap3.client.ui.constants.ValidationState;
 
 import com.google.gwt.dom.client.Style.Unit;
+import com.google.gwt.user.client.ui.FocusPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
+import edu.ycp.cs.dh.acegwt.client.ace.AceCommand;
 import edu.ycp.cs.dh.acegwt.client.ace.AceEditor;
 import edu.ycp.cs.dh.acegwt.client.ace.AceEditorMode;
 import edu.ycp.cs.dh.acegwt.client.ace.AceEditorTheme;
@@ -50,8 +52,8 @@ public class CQLParametersView {
 	/** The parameter add new button. */
 	private CQLAddNewButton addNewButtonBar = new CQLAddNewButton("parameter");
 
-	/** The main param view vertical panel. */
-	VerticalPanel mainParamViewVerticalPanel = new VerticalPanel();
+	/** The main param view focus panel. */
+	FocusPanel mainParamViewVerticalPanel = new FocusPanel();
 
 	/** The collapsible CQL panel widget. */
 	private CQLCollapsibleCQLPanelWidget collapsibleCQLPanelWidget = new CQLCollapsibleCQLPanelWidget();
@@ -129,6 +131,12 @@ public class CQLParametersView {
 		parameterAceEditor.clearAnnotations();
 		parameterAceEditor.removeAllMarkers();
 		parameterAceEditor.getElement().setAttribute("id", "Parameter_AceEditorID");
+		parameterAceEditor.getElement().getElementsByTagName("textarea").getItem(0).setTitle("Build CQL Expression");
+		
+		// MAT-8735 Disable tab and shift-tab
+		parameterAceEditor.removeCommand(AceCommand.INDENT);
+		parameterAceEditor.removeCommand(AceCommand.OUTDENT);
+
 		paramAceEditorPanel.add(parameterAceEditor);
 		paramAceEditorPanel.getElement().setAttribute("id", "SimplePanel_Parameter_AceEditor");
 		
@@ -165,7 +173,13 @@ public class CQLParametersView {
 		parameterVP.add(addNewButtonBar);
 		parameterVP.add(paramNameGroup);
 		parameterVP.add(paramCommentGroup);
-		parameterVP.add(parameterButtonBar);
+		
+		HorizontalPanel buttonPanel = new HorizontalPanel();
+		buttonPanel.add(parameterButtonBar.getInfoButtonGroup());
+		buttonPanel.add(parameterButtonBar);
+		parameterVP.add(buttonPanel);
+		
+		//parameterVP.add(parameterButtonBar);
 		parameterVP.add(aceEditorPanel);
 		parameterVP.add(new SpacerWidget());
 		parameterVP.add(collapsibleCQLPanelWidget.buildViewCQLCollapsiblePanel());
@@ -176,13 +190,12 @@ public class CQLParametersView {
 		parameterFP.add(parameterVP);
 		parameterFP.setStyleName("cqlRightContainer");
 
+		mainParamViewVerticalPanel.setTitle("Parameter Section");
 		mainParamViewVerticalPanel.setStyleName("cqlRightContainer");
-		mainParamViewVerticalPanel.setWidth("700px");
-		mainParamViewVerticalPanel.setHeight("500px");
+		mainParamViewVerticalPanel.setWidth("725px");
 		parameterFP.setWidth("700px");
 		parameterFP.setStyleName("marginLeft15px");
 		mainParamViewVerticalPanel.add(parameterFP);
-		mainParamViewVerticalPanel.setHeight("675px");
 	}
 
 	
@@ -190,7 +203,7 @@ public class CQLParametersView {
 	 * 
 	 */
 	public void setMarginInButtonBar() {
-		parameterButtonBar.getElement().setAttribute("style", "margin-top:-10px;margin-left:400px;");
+		parameterButtonBar.getElement().setAttribute("style", "margin-top:-10px;margin-left:350px;");
 		//parameterButtonBar.getSaveButton().setMarginRight(-15.00);
 		parameterButtonBar.getDeleteButton().setMarginLeft(-5.00);
 	}
@@ -237,7 +250,7 @@ public class CQLParametersView {
 	 *
 	 * @return the view
 	 */
-	public VerticalPanel getView() {
+	public FocusPanel getView() {
 		mainParamViewVerticalPanel.clear();
 		resetAll();
 		buildView();
@@ -386,4 +399,19 @@ public class CQLParametersView {
 		getParamCommentGroup().setValidationState(ValidationState.NONE);
 		getParamNameGroup().setValidationState(ValidationState.NONE);
 	}
+
+	/**
+	 * @return the mainParamViewVerticalPanel
+	 */
+	public FocusPanel getMainParamViewVerticalPanel() {
+		return mainParamViewVerticalPanel;
+	}
+
+	/**
+	 * @param mainParamViewVerticalPanel the mainParamViewVerticalPanel to set
+	 */
+	public void setMainParamViewVerticalPanel(FocusPanel mainParamViewVerticalPanel) {
+		this.mainParamViewVerticalPanel = mainParamViewVerticalPanel;
+	}
+	
 }

@@ -24,7 +24,6 @@ import org.gwtbootstrap3.client.ui.constants.ButtonSize;
 import org.gwtbootstrap3.client.ui.constants.ButtonType;
 import org.gwtbootstrap3.client.ui.constants.IconType;
 import org.gwtbootstrap3.client.ui.constants.PanelType;
-import org.gwtbootstrap3.client.ui.constants.Pull;
 import org.gwtbootstrap3.client.ui.constants.Toggle;
 import org.gwtbootstrap3.client.ui.constants.ValidationState;
 import org.gwtbootstrap3.client.ui.gwt.CellTable;
@@ -43,6 +42,7 @@ import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.ColumnSortEvent.ListHandler;
+import com.google.gwt.user.client.ui.FocusPanel;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.SimplePanel;
@@ -50,6 +50,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.MultiSelectionModel;
 
+import edu.ycp.cs.dh.acegwt.client.ace.AceCommand;
 import edu.ycp.cs.dh.acegwt.client.ace.AceEditor;
 import edu.ycp.cs.dh.acegwt.client.ace.AceEditorMode;
 import edu.ycp.cs.dh.acegwt.client.ace.AceEditorTheme;
@@ -98,8 +99,8 @@ public class CQLFunctionsView {
 	/** The observer. */
 	private Observer observer;
 	
-	/** The main function vertical panel. */
-	private VerticalPanel mainFunctionVerticalPanel = new VerticalPanel();
+	/** The main function focus panel. */
+	private FocusPanel mainFunctionVerticalPanel = new FocusPanel();
 	
 	/** The func name txt area. */
 	private MatTextBox funcNameTxtArea = new MatTextBox();
@@ -221,7 +222,7 @@ public class CQLFunctionsView {
 		
 		Panel aceEditorPanel = new Panel(PanelType.PRIMARY);
 		PanelHeader header = new PanelHeader();
-		header.setText("Build CQL Expression.");
+		header.setText("Build CQL Expression");
 		PanelBody body = new PanelBody();
 		
 		SimplePanel funcAceEditorPanel = new SimplePanel();
@@ -236,8 +237,15 @@ public class CQLFunctionsView {
 		functionBodyAceEditor.setUseWrapMode(true);
 		functionBodyAceEditor.clearAnnotations();
 		functionBodyAceEditor.removeAllMarkers();
-		functionBodyAceEditor.redisplay();
+		//Commenting below code as its taking away focus and that makes our application not 508 compliant with other fields.
+		//functionBodyAceEditor.redisplay();
 		functionBodyAceEditor.getElement().setAttribute("id", "Func_AceEditorID");
+		functionBodyAceEditor.getElement().getElementsByTagName("textarea").getItem(0).setTitle("Build CQL Expression");
+		
+		// MAT-8735 Disable tab and shift-tab
+		functionBodyAceEditor.removeCommand(AceCommand.INDENT);
+		functionBodyAceEditor.removeCommand(AceCommand.OUTDENT);
+
 		funcAceEditorPanel.add(functionBodyAceEditor);
 		funcAceEditorPanel.getElement().setAttribute("id", "SimplePanel_Function_AceEditor");
 		body.add(funcAceEditorPanel);
@@ -247,7 +255,7 @@ public class CQLFunctionsView {
 		addNewArgument.setType(ButtonType.LINK);
 		addNewArgument.getElement().setId("addArgument_Button");
 
-		addNewArgument.setTitle("Add Argument");
+		addNewArgument.setTitle("Click this button to add a new function argument");
 		addNewArgument.setText("Add Argument");
 		addNewArgument.setId("Add_Argument_ID");
 		addNewArgument.setIcon(IconType.PLUS);
@@ -333,7 +341,13 @@ public class CQLFunctionsView {
 		funcVP.add(addNewArgument);
 		createAddArgumentViewForFunctions(functionArgumentList,isEditable);
 		funcVP.add(cellTablePanel);
-		funcVP.add(functionButtonBar);
+		
+		HorizontalPanel buttonPanel = new HorizontalPanel();
+		buttonPanel.add(functionButtonBar.getInfoButtonGroup());
+		buttonPanel.add(functionButtonBar);
+		funcVP.add(buttonPanel);
+		
+	//	funcVP.add(functionButtonBar);
 	//	funcVP.add(new SpacerWidget());
 		funcVP.add(aceEditorPanel);
 		funcVP.add(new SpacerWidget());
@@ -343,15 +357,14 @@ public class CQLFunctionsView {
 		funcFP.add(funcVP);
 		funcFP.setStyleName("cqlRightContainer");
 
+		mainFunctionVerticalPanel.setTitle("Function Section");
 		mainFunctionVerticalPanel.setStyleName("cqlRightContainer");
-		mainFunctionVerticalPanel.setWidth("700px");
-		mainFunctionVerticalPanel.setHeight("500px");
+		mainFunctionVerticalPanel.setWidth("725px");
 		funcFP.setWidth("700px");
 		funcFP.setStyleName("marginLeft15px");
 	
 		mainFunctionVerticalPanel.clear();
 		mainFunctionVerticalPanel.add(funcFP);
-		mainFunctionVerticalPanel.setHeight("675px");
 	}
 
 	/**
@@ -359,10 +372,10 @@ public class CQLFunctionsView {
 	 */
 	public void setMarginInButtonBar() {
 		
-		functionButtonBar.getElement().setAttribute("style", "margin-top:-10px;margin-left:330px;");
+		functionButtonBar.getElement().setAttribute("style", "margin-top:-10px;margin-left:280px;");
 		functionButtonBar.getEraseButton().setMarginRight(5.00);
 		functionButtonBar.getInsertButton().setMarginRight(10.00);
-		functionButtonBar.getInfoButton().setMarginLeft(-10.00);
+		//functionButtonBar.getInfoButton().setMarginLeft(-10.00);
 		functionButtonBar.getDeleteButton().setMarginLeft(-10.00);
 	}
 	
@@ -374,7 +387,7 @@ public class CQLFunctionsView {
 	 * @param isEditable the is editable
 	 * @return the view
 	 */
-	public VerticalPanel getView(boolean isEditable) {
+	public FocusPanel getView(boolean isEditable) {
 		mainFunctionVerticalPanel.clear();
 		resetAll();
 		buildView(isEditable);
@@ -666,15 +679,15 @@ public class CQLFunctionsView {
 			@Override
 			public SafeHtml getValue(CQLFunctionArgument object) {
 				SafeHtmlBuilder sb = new SafeHtmlBuilder();
-				String title = "Click to Modify QDM";
-				String cssClass = "customEditButton";
-				
-				if (isEditable) {
-					sb.appendHtmlConstant("<button tabindex=\"0\" type=\"button\" title='" + title + "' class=\" "
-							+ cssClass + "\">Editable</button>");
+				String title = "Click to Modify Argument";
+				String cssClass = "btn btn-link";
+				String iconCss = "fa fa-pencil fa-lg";
+				if(isEditable){
+					sb.appendHtmlConstant("<button type=\"button\" title='"
+							+ title + "' tabindex=\"0\" class=\" " + cssClass + "\" style=\"color: darkgoldenrod;\" > <i class=\" " + iconCss + "\"></i><span style=\"font-size:0;\">Edit</button>");
 				} else {
-					sb.appendHtmlConstant("<button tabindex=\"0\" type=\"button\" title='" + title + "' class=\" "
-							+ cssClass + "\" disabled/>Editable</button>");
+					sb.appendHtmlConstant("<button type=\"button\" title='"
+							+ title + "' tabindex=\"0\" class=\" " + cssClass + "\" disabled style=\"color: black;\"><i class=\" "+iconCss + "\"></i> <span style=\"font-size:0;\">Edit</span></button>");
 				}
 				
 				return sb.toSafeHtml();
@@ -714,17 +727,16 @@ public class CQLFunctionsView {
 			@Override
 			public SafeHtml getValue(CQLFunctionArgument object) {
 				SafeHtmlBuilder sb = new SafeHtmlBuilder();
-				String title = "Click to Delete QDM";
-				String cssClass;
+				String title = "Click to Delete Argument";
+				String cssClass = "btn btn-link";
+				String iconCss = "fa fa-trash fa-lg";
 				
-				cssClass = "customDeleteButton";
 				if (isEditable) {
-					sb.appendHtmlConstant("<button tabindex=\"0\"type=\"button\" title='" + title + "' class=\" "
-							+ cssClass + "\"/>Delete</button>");
-					
+					sb.appendHtmlConstant("<button type=\"button\" title='"
+							+ title + "' tabindex=\"0\" class=\" " + cssClass + "\" style=\"margin-left: 0px;\" > <i class=\" " + iconCss + "\"></i><span style=\"font-size:0;\">Delete</button>");
 				} else {
-					sb.appendHtmlConstant("<button tabindex=\"0\"type=\"button\" title='" + title + "' class=\" "
-							+ cssClass + "\" disabled/>Delete</button>");
+					sb.appendHtmlConstant("<button type=\"button\" title='"
+							+ title + "' tabindex=\"0\" class=\" " + cssClass + "\" disabled style=\"margin-left: 0px;\"><i class=\" "+iconCss + "\"></i> <span style=\"font-size:0;\">Delete</span></button>");
 				}
 				
 				return sb.toSafeHtml();
@@ -757,7 +769,7 @@ public class CQLFunctionsView {
 	 *
 	 * @return the main function vertical panel
 	 */
-	public VerticalPanel getMainFunctionVerticalPanel() {
+	public FocusPanel getMainFunctionVerticalPanel() {
 		return mainFunctionVerticalPanel;
 	}
 
@@ -766,7 +778,7 @@ public class CQLFunctionsView {
 	 *
 	 * @param mainFunctionVerticalPanel the new main function vertical panel
 	 */
-	public void setMainFunctionVerticalPanel(VerticalPanel mainFunctionVerticalPanel) {
+	public void setMainFunctionVerticalPanel(FocusPanel mainFunctionVerticalPanel) {
 		this.mainFunctionVerticalPanel = mainFunctionVerticalPanel;
 	}
 

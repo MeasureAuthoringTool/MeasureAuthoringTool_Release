@@ -8,7 +8,6 @@ import mat.model.CQLLibraryOwnerReportDTO;
 import mat.model.CQLValueSetTransferObject;
 import mat.model.MatCodeTransferObject;
 import mat.model.clause.CQLLibrary;
-import mat.model.cql.CQLCodeWrapper;
 import mat.model.cql.CQLDefinition;
 import mat.model.cql.CQLFunctions;
 import mat.model.cql.CQLIncludeLibrary;
@@ -16,7 +15,6 @@ import mat.model.cql.CQLKeywords;
 import mat.model.cql.CQLLibraryAssociation;
 import mat.model.cql.CQLLibraryDataSetObject;
 import mat.model.cql.CQLParameter;
-import mat.model.cql.CQLQualityDataSetDTO;
 import mat.server.util.XmlProcessor;
 import mat.shared.GetUsedCQLArtifactsResult;
 import mat.shared.SaveUpdateCQLResult;
@@ -59,9 +57,9 @@ public interface CQLLibraryServiceInterface {
 
 	SaveCQLLibraryResult getUserShareInfo(String cqlId, String searchText);
 
-	SaveCQLLibraryResult searchForIncludes(String setId, String searchText);
+	SaveCQLLibraryResult searchForIncludes(String setId, String searchText, boolean filter);
 	
-	SaveCQLLibraryResult searchForStandaloneIncludes(String setId, String searchText);
+//	SaveCQLLibraryResult searchForStandaloneIncludes(String setId, String searchText);
 
 	void updateUsersShare(SaveCQLLibraryResult result);
 
@@ -69,28 +67,28 @@ public interface CQLLibraryServiceInterface {
 			CQLIncludeLibrary currentObj, List<CQLIncludeLibrary> incLibraryList);
 
 	SaveUpdateCQLResult deleteInclude(String libraryId, CQLIncludeLibrary toBeModifiedIncludeObj,
-			CQLIncludeLibrary cqlLibObject, List<CQLIncludeLibrary> viewIncludeLibrarys);
+			List<CQLIncludeLibrary> viewIncludeLibrarys);
 
 	GetUsedCQLArtifactsResult getUsedCqlArtifacts(String libraryId);
 
 	int countNumberOfAssociation(String id);
 	
 	SaveUpdateCQLResult saveAndModifyDefinitions(String libraryId, CQLDefinition toBeModifiedObj,
-			CQLDefinition currentObj, List<CQLDefinition> definitionList);
+			CQLDefinition currentObj, List<CQLDefinition> definitionList, boolean isFormatable);
 
 	SaveUpdateCQLResult saveAndModifyFunctions(String libraryId, CQLFunctions toBeModifiedObj, CQLFunctions currentObj,
-			List<CQLFunctions> functionsList);
+			List<CQLFunctions> functionsList, boolean isFormatable);
 
 	SaveUpdateCQLResult saveAndModifyParameters(String libraryId, CQLParameter toBeModifiedObj, CQLParameter currentObj,
-			List<CQLParameter> parameterList);
+			List<CQLParameter> parameterList, boolean isFormatable);
 
-	SaveUpdateCQLResult deleteDefinition(String libraryId, CQLDefinition toBeDeletedObj, CQLDefinition currentObj,
+	SaveUpdateCQLResult deleteDefinition(String libraryId, CQLDefinition toBeDeletedObj, 
 			List<CQLDefinition> definitionList);
 
-	SaveUpdateCQLResult deleteFunctions(String libraryId, CQLFunctions toBeDeletedObj, CQLFunctions currentObj,
+	SaveUpdateCQLResult deleteFunctions(String libraryId, CQLFunctions toBeDeletedObj, 
 			List<CQLFunctions> functionsList);
 
-	SaveUpdateCQLResult deleteParameter(String libraryId, CQLParameter toBeDeletedObj, CQLParameter currentObj,
+	SaveUpdateCQLResult deleteParameter(String libraryId, CQLParameter toBeDeletedObj, 
 			List<CQLParameter> parameterList);
 
 
@@ -98,8 +96,8 @@ public interface CQLLibraryServiceInterface {
 
 	SaveUpdateCQLResult deleteValueSet(String toBeDelValueSetId, String libraryId);
 
-	void updateCQLLibraryXMLForExpansionProfile(List<CQLQualityDataSetDTO> modifyWithDTO, String measureId,
-			String expansionProfile);
+	/*void updateCQLLibraryXMLForExpansionProfile(List<CQLQualityDataSetDTO> modifyWithDTO, String measureId,
+			String expansionProfile);*/
 
 	SaveUpdateCQLResult saveCQLUserDefinedValueset(CQLValueSetTransferObject matValueSetTransferObject);
 
@@ -119,4 +117,8 @@ public interface CQLLibraryServiceInterface {
 	SaveUpdateCQLResult deleteCode(String toBeDeletedId, String libraryId);
 
 	void deleteCQLLibrary(String cqllibId, String loginUserId);
+
+	SaveUpdateCQLResult getCQLLibraryFileData(String libraryId);
+
+
 }

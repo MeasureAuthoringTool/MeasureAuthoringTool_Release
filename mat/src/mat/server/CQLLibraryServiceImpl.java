@@ -27,8 +27,8 @@ public class CQLLibraryServiceImpl extends SpringRemoteServiceServlet implements
 		return this.getCQLLibraryService().search(searchText,filter, startIndex,pageSize);
 	}
 	@Override
-	public SaveCQLLibraryResult searchForIncludes(String setId, String searchText){
-		return this.getCQLLibraryService().searchForIncludes(setId,searchText);
+	public SaveCQLLibraryResult searchForIncludes(String setId, String searchText, boolean filter){
+		return this.getCQLLibraryService().searchForIncludes(setId,searchText, filter);
 	}
 	
 	@Override
@@ -97,6 +97,11 @@ public class CQLLibraryServiceImpl extends SpringRemoteServiceServlet implements
 	}
 	
 	@Override
+	public SaveUpdateCQLResult getCQLLibraryFileData(String libraryId) {
+		return this.getCQLLibraryService().getCQLLibraryFileData(libraryId);
+	}
+	
+	@Override
 	public SaveUpdateCQLResult saveAndModifyCQLGeneralInfo(String libraryId, String libraryValue){
 		return this.getCQLLibraryService().saveAndModifyCQLGeneralInfo(libraryId, libraryValue);
 	}
@@ -122,8 +127,8 @@ public class CQLLibraryServiceImpl extends SpringRemoteServiceServlet implements
 	}
 	@Override
 	public SaveUpdateCQLResult deleteInclude(String libraryId, CQLIncludeLibrary toBeModifiedIncludeObj,
-			CQLIncludeLibrary cqlLibObject, List<CQLIncludeLibrary> viewIncludeLibrarys) {
-		return this.getCQLLibraryService().deleteInclude(libraryId, toBeModifiedIncludeObj, cqlLibObject, viewIncludeLibrarys);
+			List<CQLIncludeLibrary> viewIncludeLibrarys) {
+		return this.getCQLLibraryService().deleteInclude(libraryId, toBeModifiedIncludeObj, viewIncludeLibrarys);
 	}
 	@Override
 	public GetUsedCQLArtifactsResult getUsedCqlArtifacts(String libraryId) {
@@ -148,40 +153,40 @@ public class CQLLibraryServiceImpl extends SpringRemoteServiceServlet implements
 	}
 	@Override
 	public SaveUpdateCQLResult saveAndModifyDefinitions(String libraryId, CQLDefinition toBeModifiedObj,
-			CQLDefinition currentObj, List<CQLDefinition> definitionList) {
-		return this.getCQLLibraryService().saveAndModifyDefinitions(libraryId, toBeModifiedObj, currentObj, definitionList);
+			CQLDefinition currentObj, List<CQLDefinition> definitionList, boolean isFormatable) {
+		return this.getCQLLibraryService().saveAndModifyDefinitions(libraryId, toBeModifiedObj, currentObj, definitionList, isFormatable);
 	}
 	@Override
 	public
 	SaveUpdateCQLResult saveAndModifyFunctions(String libraryId, CQLFunctions toBeModifiedObj, CQLFunctions currentObj,
-			List<CQLFunctions> functionsList) {
-		return this.getCQLLibraryService().saveAndModifyFunctions(libraryId, toBeModifiedObj, currentObj, functionsList);
+			List<CQLFunctions> functionsList, boolean isFormatable) {
+		return this.getCQLLibraryService().saveAndModifyFunctions(libraryId, toBeModifiedObj, currentObj, functionsList, isFormatable);
 	}
 	@Override
 	public SaveUpdateCQLResult saveAndModifyParameters(String libraryId, CQLParameter toBeModifiedObj, CQLParameter currentObj,
-			List<CQLParameter> parameterList) {
-		return this.getCQLLibraryService().saveAndModifyParameters(libraryId, toBeModifiedObj, currentObj, parameterList);
+			List<CQLParameter> parameterList, boolean isFormatable) {
+		return this.getCQLLibraryService().saveAndModifyParameters(libraryId, toBeModifiedObj, currentObj, parameterList, isFormatable);
 	}
 	@Override
-	public SaveUpdateCQLResult deleteDefinition(String libraryId, CQLDefinition toBeDeletedObj, CQLDefinition currentObj,
+	public SaveUpdateCQLResult deleteDefinition(String libraryId, CQLDefinition toBeDeletedObj,
 			List<CQLDefinition> definitionList) {
-		return this.getCQLLibraryService().deleteDefinition(libraryId, toBeDeletedObj, currentObj, definitionList);
+		return this.getCQLLibraryService().deleteDefinition(libraryId, toBeDeletedObj, definitionList);
 	}
 	@Override
-	public SaveUpdateCQLResult deleteFunctions(String libraryId, CQLFunctions toBeDeletedObj, CQLFunctions currentObj,
+	public SaveUpdateCQLResult deleteFunctions(String libraryId, CQLFunctions toBeDeletedObj,
 			List<CQLFunctions> functionsList) {
-		return this.getCQLLibraryService().deleteFunctions(libraryId, toBeDeletedObj, currentObj, functionsList);
+		return this.getCQLLibraryService().deleteFunctions(libraryId, toBeDeletedObj, functionsList);
 	}
 	@Override
-	public SaveUpdateCQLResult deleteParameter(String libraryId, CQLParameter toBeDeletedObj, CQLParameter currentObj,
+	public SaveUpdateCQLResult deleteParameter(String libraryId, CQLParameter toBeDeletedObj,
 			List<CQLParameter> parameterList) {
-		return this.getCQLLibraryService().deleteParameter(libraryId, toBeDeletedObj, currentObj, parameterList);
+		return this.getCQLLibraryService().deleteParameter(libraryId, toBeDeletedObj, parameterList);
 	}
-	@Override
-	public void updateCQLLibraryXMLForExpansionProfile(List<CQLQualityDataSetDTO> modifyWithDTO, String measureId,
+	//@Override
+	/*public void updateCQLLibraryXMLForExpansionProfile(List<CQLQualityDataSetDTO> modifyWithDTO, String measureId,
 			String expansionProfile) {
 		this.getCQLLibraryService().updateCQLLibraryXMLForExpansionProfile(modifyWithDTO, measureId, expansionProfile);
-	}
+	}*/
 	@Override
 	public SaveUpdateCQLResult saveCQLUserDefinedValueset(CQLValueSetTransferObject matValueSetTransferObject) {
 		return this.getCQLLibraryService().saveCQLUserDefinedValueset(matValueSetTransferObject);
@@ -215,9 +220,9 @@ public class CQLLibraryServiceImpl extends SpringRemoteServiceServlet implements
 		 this.getCQLLibraryService().deleteCQLLibrary(cqllibId, loginUserId);
 	}
 	
-	@Override
+	/*@Override
 	public SaveCQLLibraryResult searchForStandaloneIncludes(String setId, String searchText) {
 		return this.getCQLLibraryService().searchForStandaloneIncludes(setId, searchText);
-	}
+	}*/
 	
 }

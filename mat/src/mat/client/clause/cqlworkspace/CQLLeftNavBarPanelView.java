@@ -32,6 +32,7 @@ import com.google.gwt.event.dom.client.DoubleClickEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
+import com.google.gwt.user.client.ui.FocusPanel;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
 import com.google.gwt.user.client.ui.HorizontalPanel;
@@ -40,17 +41,19 @@ import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.SuggestBox;
 import com.google.gwt.user.client.ui.SuggestOracle;
 import com.google.gwt.user.client.ui.SuggestOracle.Suggestion;
+import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
+import edu.ycp.cs.dh.acegwt.client.ace.AceEditor;
 import mat.client.shared.CQLSuggestOracle;
-import mat.client.shared.DeleteConfirmationMessageAlert;
 import mat.client.shared.ErrorMessageAlert;
 import mat.client.shared.MatContext;
 import mat.client.shared.MessageAlert;
 import mat.client.shared.SuccessMessageAlert;
 import mat.client.shared.WarningConfirmationMessageAlert;
 import mat.client.shared.WarningMessageAlert;
+import mat.client.util.MatTextBox;
 import mat.model.clause.QDSAttributes;
 import mat.model.cql.CQLCode;
 import mat.model.cql.CQLDefinition;
@@ -549,6 +552,7 @@ public class CQLLeftNavBarPanelView {
 		searchSuggestIncludeTextBox = new SuggestBox(getSuggestOracle(includeLibraryNameMap.values()));
 		searchSuggestIncludeTextBox.setWidth("180px");
 		searchSuggestIncludeTextBox.setText("Search");
+		searchSuggestIncludeTextBox.setTitle("Search Included Alias");
 		searchSuggestIncludeTextBox.getElement().setId("searchTextBox_TextBoxIncludesLib");
 
 		searchSuggestIncludeTextBox.getValueBox().addClickHandler(new ClickHandler() {
@@ -607,6 +611,7 @@ public class CQLLeftNavBarPanelView {
 		// updateSuggestOracle();
 		searchSuggestParamTextBox.setWidth("180px");
 		searchSuggestParamTextBox.setText("Search");
+		searchSuggestParamTextBox.setTitle("Search Parameter");
 		searchSuggestParamTextBox.getElement().setId("searchTextBox_TextBoxParameterLib");
 
 		searchSuggestParamTextBox.getValueBox().addClickHandler(new ClickHandler() {
@@ -665,7 +670,8 @@ public class CQLLeftNavBarPanelView {
 		// updateNewSuggestDefineOracle();
 		searchSuggestDefineTextBox.setWidth("180px");
 		searchSuggestDefineTextBox.setText("Search");
-		searchSuggestDefineTextBox.getElement().setId("searchTextBox_TextBoxParameterLib");
+		searchSuggestDefineTextBox.setTitle("Search Definition");
+		searchSuggestDefineTextBox.getElement().setId("searchSuggestDefineTextBox");
 
 		searchSuggestDefineTextBox.getValueBox().addClickHandler(new ClickHandler() {
 
@@ -723,6 +729,7 @@ public class CQLLeftNavBarPanelView {
 		// updateNewSuggestFuncOracle();
 		searchSuggestFuncTextBox.setWidth("180px");
 		searchSuggestFuncTextBox.setText("Search");
+		searchSuggestFuncTextBox.setTitle("Search Function");
 		searchSuggestFuncTextBox.getElement().setId("searchTextBox_TextBoxFuncLib");
 
 		searchSuggestFuncTextBox.getValueBox().addClickHandler(new ClickHandler() {
@@ -951,7 +958,8 @@ public class CQLLeftNavBarPanelView {
 				for (int i = 0; i < listBox.getItemCount(); i++) {
 					if (selectedQDMName.equals(listBox.getItemText(i))) {
 						listBox.setItemSelected(i, true);
-
+						//listBox.setSelectedIndex(i);
+						listBox.setFocus(true);
 						break;
 					}
 				}
@@ -1345,6 +1353,7 @@ public class CQLLeftNavBarPanelView {
 	public void updateNewSuggestIncLibOracle() {
 		if (searchSuggestIncludeTextBox != null) {
 			CQLSuggestOracle cqlSuggestOracle = new CQLSuggestOracle(includeLibraryNameMap.values());
+			
 		}
 	}
 
@@ -2485,6 +2494,7 @@ public class CQLLeftNavBarPanelView {
 		MatContext.get().getValuesets().clear();
 		MatContext.get().getIncludes().clear();
 		MatContext.get().getIncludedValueSetNames().clear();
+		MatContext.get().getIncludedCodeNames().clear();
 		MatContext.get().getIncludedParamNames().clear();
 		MatContext.get().getIncludedDefNames().clear();
 		MatContext.get().getIncludedFuncNames().clear();
@@ -2579,5 +2589,39 @@ public class CQLLeftNavBarPanelView {
 	 */
 	public void setCurrentSelectedValueSetObjId(String currentSelectedValueSetObjId) {
 		this.currentSelectedValueSetObjId = currentSelectedValueSetObjId;
+	}
+	
+	public void setFocus(MatTextBox matTextBox){
+		matTextBox.setFocus(true);
+	}
+	
+	public void setFocus(AceEditor aceEditor){
+		aceEditor.focus();
+	}
+	
+	public void setFocus(FocusPanel focusPanel){
+		focusPanel.setFocus(true);
+	}
+
+	public void setFocus(TextBox aliasNameTxtArea) {
+		aliasNameTxtArea.setFocus(true);
+	}
+	
+	public boolean checkForIncludedLibrariesQDMVersion(){
+		boolean isValid = true;
+		List<CQLIncludeLibrary> includedLibraryList = getViewIncludeLibrarys();
+		if(includedLibraryList.size()==0){
+			isValid = true;
+		} else {
+			for(CQLIncludeLibrary cqlIncludeLibrary : includedLibraryList){
+				if(cqlIncludeLibrary.getQdmVersion()==null){
+					continue;
+				}else if(!cqlIncludeLibrary.getQdmVersion().equalsIgnoreCase(MatContext.get().getCurrentQDMVersion())){
+					isValid = false;
+					break;
+				}
+			}
+		}
+		return isValid;
 	}
 }

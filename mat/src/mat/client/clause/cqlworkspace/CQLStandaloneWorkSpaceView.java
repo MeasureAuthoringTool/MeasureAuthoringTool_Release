@@ -179,7 +179,8 @@ public class CQLStandaloneWorkSpaceView implements CQLStandaloneWorkSpacePresent
 		unsetEachSectionSelectedObject();
 		mainFlowPanel.clear();
 		mainFlowPanel.add(cqlParametersView.getView());
-
+		//508 Compliance for Parameter section
+		getCqlLeftNavBarPanelView().setFocus(getCQLParametersView().getMainParamViewVerticalPanel());
 	}
 
 
@@ -197,6 +198,8 @@ public class CQLStandaloneWorkSpaceView implements CQLStandaloneWorkSpacePresent
 		unsetEachSectionSelectedObject();
 		mainFlowPanel.clear();
 		mainFlowPanel.add(cqlDefinitionsView.getView());
+		//508 Compliance for Definition section
+		getCqlLeftNavBarPanelView().setFocus(getCQLDefinitionsView().getMainDefineViewVerticalPanel());
 	}
 
 
@@ -214,6 +217,8 @@ public class CQLStandaloneWorkSpaceView implements CQLStandaloneWorkSpacePresent
 		unsetEachSectionSelectedObject();
 		mainFlowPanel.clear();
 		mainFlowPanel.add(cqlFunctionsView.getView(MatContext.get().getLibraryLockService().checkForEditPermission()));
+		//508 Compliance for Function section
+		getCqlLeftNavBarPanelView().setFocus(getCQLFunctionsView().getMainFunctionVerticalPanel());
 	}
 	
 	
@@ -249,6 +254,7 @@ public class CQLStandaloneWorkSpaceView implements CQLStandaloneWorkSpacePresent
 			cqlLeftNavBarPanelView.getGlobalWarningConfirmationMessageAlert().clearAlert();
 	//	cqlLeftNavBarPanelView.getDeleteConfirmationMessgeAlert().clearAlert();
 		hideAceEditorAutoCompletePopUp();
+		hideInformationDropDown();
 		resetFormGroups();
 	}
 	
@@ -270,7 +276,12 @@ public class CQLStandaloneWorkSpaceView implements CQLStandaloneWorkSpacePresent
 		cqlParametersView.hideAceEditorAutoCompletePopUp();
 		cqlFunctionsView.hideAceEditorAutoCompletePopUp();
 	}
-	
+	@Override
+	public void hideInformationDropDown() {
+		cqlDefinitionsView.getDefineButtonBar().getInfoButtonGroup().getElement().setAttribute("class", "btn-group");
+		cqlParametersView.getParameterButtonBar().getInfoButtonGroup().getElement().setAttribute("class", "btn-group");
+		cqlFunctionsView.getFunctionButtonBar().getInfoButtonGroup().getElement().setAttribute("class", "btn-group");
+	}
 	
 	/* (non-Javadoc)
 	 * @see mat.client.clause.cqlworkspace.CQLStandaloneWorkSpacePresenter.ViewDisplay#getMainPanel()
