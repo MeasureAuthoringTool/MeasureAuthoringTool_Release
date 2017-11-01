@@ -536,10 +536,10 @@ public class CQLHumanReadableHTMLCreator {
 				
 				Element checkBoxElement = divElement.appendElement("input");
 				checkBoxElement.attr("type", "checkbox");
-				String id = "test-Population Criteria" + (key.toString()) + "_"
+				String id = "test-Population_Criteria" + (key.toString()) + "_" 
 						+ (int) (Math.random() * 1000);
 				checkBoxElement.attr("id", id);
-				
+								
 				Element labelElement = divElement.appendElement("label");
 				labelElement.attr("for", id);
 				labelElement.attr("class", "list-header");
@@ -584,13 +584,13 @@ public class CQLHumanReadableHTMLCreator {
 														"/measure/elementLookUp/qdm[@code='true'][@datatype]");
 			
 			if((qdmValuesetElementList.getLength() + qdmCodeElementList.getLength()) == 0) {
+				
 				String output = "None"; 
 				Element qdmElementLI = qdmElementUL.appendElement(HTML_LI);   
 				qdmElementLI.attr("style", "width:80%");
 				qdmElementLI.append(output);
-			}
-			
-			else {
+				
+			} else {
 				ArrayList<String> qdmValueSetElementStringList = new ArrayList<String>();
 				ArrayList<String> qdmCodeElementStringList = new ArrayList<String>();
 
@@ -1039,10 +1039,10 @@ public class CQLHumanReadableHTMLCreator {
 
 		Element checkBoxElement = mainliElement.appendElement("input");
 		checkBoxElement.attr("type", "checkbox");
-		String id = "test-" + populationName + "_"
+		String id = "test-" + populationName.replace(" ", "_") + "_"
 				+ (int) (Math.random() * 1000);
 		checkBoxElement.attr("id", id);
-
+		
 		Element definitionLabelElement = mainliElement.appendElement("label");
 		definitionLabelElement.attr("for", id);
 		definitionLabelElement.attr("class", "list-header");
@@ -1074,10 +1074,10 @@ public class CQLHumanReadableHTMLCreator {
 
 		Element checkBoxElement = mainliElement.appendElement("input");
 		checkBoxElement.attr("type", "checkbox");
-		String id = "test-" + populationName + "_"
+		String id = "test-" + populationName.replace(" ", "_") + "_"
 				+ (int) (Math.random() * 1000);
 		checkBoxElement.attr("id", id);
-
+		
 		Element definitionLabelElement = mainliElement.appendElement("label");
 		definitionLabelElement.attr("for", id);
 		definitionLabelElement.attr("class", "list-header");
@@ -1144,18 +1144,6 @@ public class CQLHumanReadableHTMLCreator {
 		Element mainDivElement = mainliElement.appendElement("div");
 		mainDivElement.attr("class", "treeview hover p-l-10");
 
-		Element checkBoxElement = mainDivElement.appendElement("input");
-		checkBoxElement.attr("type", "checkbox");
-		String id = "test-" + statementIdentifier + "_"
-				+ (int) (Math.random() * 1000);
-		checkBoxElement.attr("id", id);
-		
-//		if (definitionsOrFunctionsAlreadyDisplayed.contains(statementIdentifier)) {
-//			checkBoxElement.attr("checked", "");
-//		} else {
-//			definitionsOrFunctionsAlreadyDisplayed.add(statementIdentifier);
-//		}		
-				
 		Element subULElement = mainDivElement.appendElement("ul");
 		Element subLiElement = subULElement.appendElement("li");
 		subLiElement.attr("style","padding-left: 0px;");
@@ -1206,10 +1194,10 @@ public class CQLHumanReadableHTMLCreator {
 		
 		Element checkBoxElement = mainDivElement.appendElement("input");
 		checkBoxElement.attr("type", "checkbox");
-		String id = "test-" + statementIdentifier + "_"
+		String id = "test-" + statementIdentifier.replace(" ", "_") + "_"
 				+ (int) (Math.random() * 1000);
 		checkBoxElement.attr("id", id);
-
+		
 		Element definitionLabelElement = mainDivElement.appendElement("label");
 		definitionLabelElement.attr("for", id);
 		definitionLabelElement.attr("class", "list-header");

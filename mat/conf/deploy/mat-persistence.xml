@@ -23,7 +23,7 @@
 	<bean id="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean">
 		<property name="jndiName" value="jdbc/mat_app" />
 	</bean>
-
+	
 	<context:annotation-config transaction-manager="txManager"/>
 	<tx:annotation-driven transaction-manager="txManager"/>
 	

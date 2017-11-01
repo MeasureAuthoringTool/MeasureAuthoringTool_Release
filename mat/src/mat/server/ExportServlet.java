@@ -87,6 +87,9 @@ public class ExportServlet extends HttpServlet {
 	/** The Constant TEST_PLAN */
 	private static final String TEXT_PLAIN = "text/plain"; 
 	
+	/** The Constant APPLICATION_JSON. */
+	private static final String APPLICATION_JSON = "application/json";
+	
 	/** The Constant CONTENT_TYPE. */
 	private static final String CONTENT_TYPE = "Content-Type";
 	
@@ -119,6 +122,7 @@ public class ExportServlet extends HttpServlet {
 	
 	private static final String CQL_LIBRARY = "cqlLibrary";
 	private static final String ELM = "elm"; 
+	private static final String JSON = "json"; 
 	
 	private static final String TEXT_CQL = "text/cql";
 	
@@ -165,7 +169,11 @@ public class ExportServlet extends HttpServlet {
 				export = exportELMFile(resp, measureLibraryService, id, type, 
 						measure, fnu); 
 					
-			} else if (ZIP.equals(format)) {
+			} else if(JSON.equals(format)) {
+				export = exportJSONFile(resp, measureLibraryService, id, type, 
+						measure, fnu); 
+					
+			}else if (ZIP.equals(format)) {
 				export = exportEmeasureZip(resp, measureLibraryService, id,
 						measure, exportDate, fnu);
 			} else if (SUBTREE_HTML.equals(format)){
@@ -222,6 +230,35 @@ public class ExportServlet extends HttpServlet {
 					+ export.getCqlLibraryName() + ".xml");
 		} else {
 			resp.setHeader(CONTENT_TYPE, TEXT_XML);
+		}
+		return export;
+	}
+	
+	private ExportResult exportJSONFile(HttpServletResponse resp, MeasureLibraryService measureLibraryService, String id,
+			String type, Measure measure, FileNameUtility fnu) throws Exception {
+		
+		ExportResult export = getService().getJSONFile(id); 
+		
+		if(export.getIncludedCQLExports().size() > 0){
+			ZipPackager zp = new ZipPackager();
+			zp.getCQLZipBarr(export, "json");
+			
+			resp.setHeader(CONTENT_DISPOSITION, ATTACHMENT_FILENAME + fnu.getZipName(export.measureName + "_" + "JSON"));
+			resp.setContentType("application/zip");
+			resp.getOutputStream().write(export.zipbarr);
+			resp.getOutputStream().close();
+			export.zipbarr = null;
+		}else if (SAVE.equals(type)) {
+			String currentReleaseVersion = measure.getReleaseVersion();
+			if(currentReleaseVersion.contains(".")){
+				currentReleaseVersion = currentReleaseVersion.replace(".", "_");
+			}
+			System.out.println("Release version zip " + currentReleaseVersion);
+			resp.setHeader(CONTENT_DISPOSITION, ATTACHMENT_FILENAME
+					//+ fnu.getELMFileName(export.getCqlLibraryName()));
+					+ export.getCqlLibraryName() + ".json");
+		} else {
+			resp.setHeader(CONTENT_TYPE, APPLICATION_JSON);
 		}
 		return export;
 	}

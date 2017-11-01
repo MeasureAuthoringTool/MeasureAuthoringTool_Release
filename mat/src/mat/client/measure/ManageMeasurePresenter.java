@@ -3,6 +3,43 @@ package mat.client.measure;
 import java.util.ArrayList;
 import java.util.List;
 
+import mat.DTO.AuditLogDTO;
+import mat.DTO.SearchHistoryDTO;
+import mat.client.Mat;
+import mat.client.MatPresenter;
+import mat.client.clause.cqlworkspace.EditConfirmationDialogBox;
+import mat.client.codelist.HasListBox;
+import mat.client.codelist.events.OnChangeMeasureVersionOptionsEvent;
+import mat.client.event.MeasureDeleteEvent;
+import mat.client.event.MeasureEditEvent;
+import mat.client.event.MeasureSelectedEvent;
+import mat.client.event.MeasureVersionEvent;
+import mat.client.history.HistoryModel;
+import mat.client.measure.ManageMeasureSearchModel.Result;
+import mat.client.measure.MeasureSearchView.AdminObserver;
+import mat.client.measure.metadata.CustomCheckBox;
+import mat.client.measure.metadata.Grid508;
+import mat.client.measure.service.MeasureCloningService;
+import mat.client.measure.service.MeasureCloningServiceAsync;
+import mat.client.measure.service.SaveMeasureResult;
+import mat.client.shared.ContentWithHeadingWidget;
+import mat.client.shared.CustomButton;
+import mat.client.shared.FocusableWidget;
+import mat.client.shared.ListBoxMVP;
+import mat.client.shared.ManageMeasureModelValidator;
+import mat.client.shared.MatContext;
+import mat.client.shared.MessageAlert;
+import mat.client.shared.MessageDelegate;
+import mat.client.shared.MostRecentMeasureWidget;
+import mat.client.shared.PrimaryButton;
+import mat.client.shared.SearchWidgetWithFilter;
+import mat.client.shared.SkipListBuilder;
+import mat.client.shared.SynchronizationDelegate;
+import mat.client.shared.search.SearchResultUpdate;
+import mat.client.util.ClientConstants;
+import mat.shared.ConstantMessages;
+import mat.shared.MatConstants;
+
 import org.gwtbootstrap3.client.ui.Button;
 import org.gwtbootstrap3.client.ui.FormGroup;
 import org.gwtbootstrap3.client.ui.HelpBlock;
@@ -41,44 +78,6 @@ import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
-
-import mat.DTO.AuditLogDTO;
-import mat.DTO.SearchHistoryDTO;
-import mat.client.Mat;
-import mat.client.MatPresenter;
-import mat.client.clause.cqlworkspace.EditConfirmationDialogBox;
-import mat.client.codelist.HasListBox;
-import mat.client.codelist.events.OnChangeMeasureVersionOptionsEvent;
-import mat.client.event.CQLVersionEvent;
-import mat.client.event.MeasureDeleteEvent;
-import mat.client.event.MeasureEditEvent;
-import mat.client.event.MeasureSelectedEvent;
-import mat.client.event.MeasureVersionEvent;
-import mat.client.history.HistoryModel;
-import mat.client.measure.ManageMeasureSearchModel.Result;
-import mat.client.measure.MeasureSearchView.AdminObserver;
-import mat.client.measure.metadata.CustomCheckBox;
-import mat.client.measure.metadata.Grid508;
-import mat.client.measure.service.MeasureCloningService;
-import mat.client.measure.service.MeasureCloningServiceAsync;
-import mat.client.measure.service.SaveMeasureResult;
-import mat.client.shared.ContentWithHeadingWidget;
-import mat.client.shared.CustomButton;
-import mat.client.shared.FocusableWidget;
-import mat.client.shared.ListBoxMVP;
-import mat.client.shared.ManageMeasureModelValidator;
-import mat.client.shared.MatContext;
-import mat.client.shared.MessageAlert;
-import mat.client.shared.MessageDelegate;
-import mat.client.shared.MostRecentMeasureWidget;
-import mat.client.shared.PrimaryButton;
-import mat.client.shared.SearchWidgetWithFilter;
-import mat.client.shared.SkipListBuilder;
-import mat.client.shared.SynchronizationDelegate;
-import mat.client.shared.search.SearchResultUpdate;
-import mat.client.util.ClientConstants;
-import mat.shared.ConstantMessages;
-import mat.shared.MatConstants;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -259,7 +258,12 @@ public class ManageMeasurePresenter implements MatPresenter {
 		 * Checks if is ELM
 		 */
 		public boolean isELM();
-
+		
+		/**
+		 * Checks if is JSON
+		 */
+		public boolean isJSON();
+		
 		/**
 		 * Checks if is e measure package.
 		 * 
@@ -283,6 +287,8 @@ public class ManageMeasurePresenter implements MatPresenter {
 		public void setMeasureName(String name);
 
 		boolean isCQLLibrary();
+
+		public void setVersion_Based_ExportOptions(String releaseVersion);
 	}
 
 	/**
@@ -954,7 +960,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 
 		url += (exportDisplay.isEMeasure() ? "emeasure" : exportDisplay.isSimpleXML() ? "simplexml" :
 		// exportDisplay.isCodeList() ? "codelist" :
-				exportDisplay.isCQLLibrary() ? "cqlLibrary" : exportDisplay.isELM() ? "elm" : "zip");
+				exportDisplay.isCQLLibrary() ? "cqlLibrary" : exportDisplay.isELM() ? "elm" : exportDisplay.isJSON() ? "json" : "zip");
 		return url;
 	}
 
@@ -1471,7 +1477,9 @@ public class ManageMeasurePresenter implements MatPresenter {
 	 * @param name
 	 *            the name
 	 */
-	private void export(String id, String name) {
+	private void export(ManageMeasureSearchModel.Result result) {
+		String id = result.getId();
+		String name = result.getName();
 		// US 170
 		MatContext.get().getAuditService().recordMeasureEvent(id, "Measure Exported", null, true,
 				new AsyncCallback<Boolean>() {
@@ -1489,6 +1497,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 		exportDisplay.getErrorMessageDisplay().clearAlert();
 		searchDisplay.getErrorMessageDisplayForBulkExport().clearAlert();
 		panel.getButtonPanel().clear();
+		exportDisplay.setVersion_Based_ExportOptions(result.getHqmfReleaseVersion());
 		panel.setHeading("My Measures > Export", "MeasureLibrary");
 		panel.setContent(exportDisplay.asWidget());
 		exportDisplay.setMeasureName(name);
@@ -1881,7 +1890,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 									isMeasureVersioned = false;
 									searchDisplay.getSuccessMeasureDeletion().clearAlert();
 									searchDisplay.getErrorMeasureDeletion().clearAlert();
-									export(result.getId(), result.getName());
+									export(result);
 								}
 
 								@Override
@@ -2338,7 +2347,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 								isMeasureVersioned = false;
 								searchDisplay.getSuccessMeasureDeletion().clearAlert();
 								searchDisplay.getErrorMeasureDeletion().clearAlert();
-								export(result.getId(), result.getName());
+								export(result);
 							}
 
 							@Override
@@ -2568,7 +2577,7 @@ public class ManageMeasurePresenter implements MatPresenter {
 			final String name = currentDetails.getName();
 			final String shortName = currentDetails.getShortName();
 			final String scoringType = currentDetails.getMeasScoring();
-			final String version = currentDetails.getVersionNumber();		
+			final String version = currentDetails.getVersionNumber()+"."+currentDetails.getRevisionNumber();		
 			MatContext.get().getMeasureService().save(currentDetails, new AsyncCallback<SaveMeasureResult>() {
 
 				@Override

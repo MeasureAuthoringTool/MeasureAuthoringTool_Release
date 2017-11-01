@@ -360,8 +360,10 @@ public class CQLLibraryService extends SpringRemoteServiceServlet implements CQL
 			result.setSuccess(true);
 			result.setId(newLibraryObject.getId());
 			result.setCqlLibraryName(newLibraryObject.getName());
-			String formattedVersion = MeasureUtility.getVersionTextWithRevisionNumber(existingLibrary.getVersion(), 
-					newLibraryObject.getRevisionNumber(), existingLibrary.isDraft());
+			/*String formattedVersion = MeasureUtility.getVersionTextWithRevisionNumber(existingLibrary.getVersion(), 
+					newLibraryObject.getRevisionNumber(), existingLibrary.isDraft());*/
+			String formattedVersion = MeasureUtility.getVersionTextWithRevisionNumber(newLibraryObject.getVersion(), 
+					newLibraryObject.getRevisionNumber(), newLibraryObject.isDraft());
 			result.setVersionStr(formattedVersion);
 			result.setEditable(isDraftable);
 			
@@ -1692,7 +1694,12 @@ public class CQLLibraryService extends SpringRemoteServiceServlet implements CQL
 			String libraryId) {
 		CQLLibrary cqlLibrary = cqlLibraryDAO.find(libraryId);
 		if (cqlLibrary != null) {
-			cqlService.updateCQLLookUpTag(getCQLLibraryXml(cqlLibrary), modifyWithDTO, modifyDTO);
+			SaveUpdateCQLResult result = cqlService.updateCQLLookUpTag(getCQLLibraryXml(cqlLibrary), modifyWithDTO, modifyDTO);
+			if(result != null && result.isSuccess()){
+				cqlLibrary.setCQLByteArray(result.getXml().getBytes());
+				cqlLibraryDAO.save(cqlLibrary);
+				cqlLibraryDAO.refresh(cqlLibrary);
+			}
 		}
 		
 	}

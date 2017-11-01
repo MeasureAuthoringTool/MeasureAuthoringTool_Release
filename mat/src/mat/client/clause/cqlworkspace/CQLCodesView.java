@@ -152,6 +152,11 @@ public class CQLCodesView {
 	
 	/** The cell table panel body. */
 	private PanelBody cellTablePanelBody = new PanelBody();
+
+	/**
+	 * Flag for if the codes view is loading
+	 */
+	private boolean isLoading;
 	
 	private static final int TABLE_ROW_COUNT = 10;
 	
@@ -584,21 +589,6 @@ public class CQLCodesView {
 	}
 	
 	/**
-	 * This method enable/disable's reterive and updateFromVsac button
-	 * and hide/show loading please wait message.
-	 *
-	 * @param busy the busy
-	 */
-	public void showSearchingBusyOnCodes(final boolean busy) {
-		if (busy) {
-			Mat.showLoadingMessage();
-		} else {
-			Mat.hideLoadingMessage();
-		}
-		getRetrieveFromVSACButton().setEnabled(!busy);
-	}
-	
-	/**
 	 * Gets the cell table main panel.
 	 *
 	 * @return the cell table main panel
@@ -1000,5 +990,14 @@ public class CQLCodesView {
 	public void setCodeSystemOid(String codeSystemOid) {
 		CodeSystemOid = codeSystemOid;
 	}
+	
+	public boolean getIsLoading() {
+		return isLoading;
+	}
+
+	public void setIsLoading(boolean isLoading) {
+		this.isLoading = isLoading;
+	}
+	
 	
 }

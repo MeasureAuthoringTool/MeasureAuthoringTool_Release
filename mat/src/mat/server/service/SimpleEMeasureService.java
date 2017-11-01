@@ -156,5 +156,7 @@ public interface SimpleEMeasureService {
 	ExportResult getCQLLibraryFile(String measureId) throws Exception;
 
 	ExportResult getELMFile(String measureId) throws Exception;
+	
+	ExportResult getJSONFile(String measureId) throws Exception;
 
 }

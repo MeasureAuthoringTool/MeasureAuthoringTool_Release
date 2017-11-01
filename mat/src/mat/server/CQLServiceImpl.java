@@ -3156,23 +3156,6 @@ public class CQLServiceImpl implements CQLService {
 		try {
 			NodeList nodesValuesets = (NodeList) processor.findNodeList(processor.getOriginalDoc(),
 					XPATH_EXPRESSION_VALUESETS);
-			if (nodesValuesets.getLength() > 1) {
-				Node parentNode = nodesValuesets.item(0).getParentNode();
-				/*if (parentNode.getAttributes().getNamedItem("vsacExpIdentifier") != null) {
-					if (!StringUtils.isBlank(modifyWithDTO.getVsacExpIdentifier())) {
-						parentNode.getAttributes().getNamedItem("vsacExpIdentifier")
-								.setNodeValue(modifyWithDTO.getExpansionIdentifier());
-					} else {
-						parentNode.getAttributes().removeNamedItem("vsacExpIdentifier");
-					}
-				} else {
-					if (!StringUtils.isEmpty(modifyWithDTO.getExpansionIdentifier())) {
-						Attr vsacExpIdentifierAttr = processor.getOriginalDoc().createAttribute("vsacExpIdentifier");
-						vsacExpIdentifierAttr.setNodeValue(modifyWithDTO.getVsacExpIdentifier());
-						parentNode.getAttributes().setNamedItem(vsacExpIdentifierAttr);
-					}
-				}*/
-			}
 			for (int i = 0; i < nodesValuesets.getLength(); i++) {
 				Node newNode = nodesValuesets.item(i);
 				newNode.getAttributes().getNamedItem("name").setNodeValue(modifyWithDTO.getCodeListName());
@@ -3198,22 +3181,6 @@ public class CQLServiceImpl implements CQLService {
 				} else {
 					newNode.getAttributes().getNamedItem("suppDataElement").setNodeValue("false");
 				}
-
-			/*	if (newNode.getAttributes().getNamedItem("expansionIdentifier") != null) {
-					if (!StringUtils.isBlank(modifyWithDTO.getExpansionIdentifier())) {
-						newNode.getAttributes().getNamedItem("expansionIdentifier")
-								.setNodeValue(modifyWithDTO.getExpansionIdentifier());
-					} else {
-						newNode.getAttributes().removeNamedItem("expansionIdentifier");
-					}
-				} else {
-					if (!StringUtils.isEmpty(modifyWithDTO.getExpansionIdentifier())) {
-						Attr expansionIdentifierAttr = processor.getOriginalDoc()
-								.createAttribute("expansionIdentifier");
-						expansionIdentifierAttr.setNodeValue(modifyWithDTO.getExpansionIdentifier());
-						newNode.getAttributes().setNamedItem(expansionIdentifierAttr);
-					}
-				}*/
 			}
 			result.setSuccess(true);
 			result.setXml(processor.transform(processor.getOriginalDoc()));

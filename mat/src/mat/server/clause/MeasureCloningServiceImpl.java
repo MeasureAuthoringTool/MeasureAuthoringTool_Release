@@ -185,7 +185,7 @@ implements MeasureCloningService {
 		cqlService = (CQLService) context.getBean("cqlService");
 		measureLibraryService = (MeasureLibraryService) context.getBean("measureLibraryService");
 		cqlLibraryService = (CQLLibraryService) context.getBean("cqlLibraryService");
-		
+		clonedMeasure = null;
 		boolean isMeasureClonable = false;
 		if(creatingDraft){
 			isMeasureClonable = MatContextServiceUtil.get().isCurrentMeasureDraftable(measureDAO, userDAO, currentDetails.getId());
@@ -321,8 +321,10 @@ implements MeasureCloningService {
 			result.setName(currentDetails.getName());
 			result.setShortName(currentDetails.getShortName());
 			result.setScoringType(currentDetails.getMeasScoring());
-			String formattedVersion = MeasureUtility.getVersionText(
-					measure.getVersion(), measure.isDraft());
+			/*String formattedVersion = MeasureUtility.getVersionText(
+					measure.getVersion(), measure.isDraft());*/
+			String formattedVersion = MeasureUtility.getVersionTextWithRevisionNumber(clonedMeasure.getVersion(), 
+					clonedMeasure.getRevisionNumber(), clonedMeasure.isDraft());
 			result.setVersion(formattedVersion);
 			result.setEditable(TRUE);
 			result.setClonable(TRUE);
