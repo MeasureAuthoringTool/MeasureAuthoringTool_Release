@@ -23,7 +23,7 @@
 	<bean id="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean">
 		<property name="jndiName" value="jdbc/mat_app" />
 	</bean>
-	
+
 	<context:annotation-config transaction-manager="txManager"/>
 	<tx:annotation-driven transaction-manager="txManager"/>
 	
@@ -289,10 +289,6 @@
     <bean id="securityQuestionsDAO"
         class="mat.dao.impl.SecurityQuestionsDAO" parent="baseDAO">
     </bean>
-	
-	<bean id="measureNotesDAO"
-        class="mat.dao.impl.MeasureNotesDAO" parent="baseDAO">
-    </bean>
     
     <bean id="recentMSRActivityLogDAO"
 			class="mat.dao.impl.RecentMSRActivityLogDAO" parent="baseDAO">
@@ -324,7 +320,11 @@
 	<bean id="cqlLibraryShareDAO"
 		class="mat.dao.impl.clause.CQLLibraryShareDAO" parent="baseDAO">
 	</bean>
-
+	
+	<bean id="emailAuditLogDAO" 
+		class="mat.dao.impl.EmailAuditLogDAO" parent="baseDAO">
+	</bean>
+	
 	<bean id="daoService" class="mat.dao.service.DAOService" >
 		<property name="auditLogDAO" ref="auditLogDAO"/>
 		<property name="securityRoleDAO" ref="securityRoleDAO"/>
@@ -369,7 +369,6 @@
 		<property name="transactionAuditLogDAO" ref="transactionAuditLogDAO"/>
 		<property name="matFlagDAO" ref="matFlagDAO"/>
 		<property name="measureXMLDAO" ref="measureXMLDAO"/>
-		<property name="measureNotesDAO" ref="measureNotesDAO"/>
 		<property name="recentMSRActivityLogDAO" ref="recentMSRActivityLogDAO"/>
 		<property name="recentCQLActivityLogDAO" ref="recentCQLActivityLogDAO"/>
 		<property name="organizationDAO" ref="organizationDAO"/>
@@ -379,6 +378,7 @@
 		<property name="cqlLibrarySetDAO" ref="cqlLibrarySetDAO"/>
 		<property name="cqlLibraryAuditLogDAO" ref="cqlLibraryAuditLogDAO"/>
 		<property name="cqlLibraryShareDAO" ref="cqlLibraryShareDAO"/>
+		<property name="emailAuditLogDAO" ref="emailAuditLogDAO" />
 	</bean>
      
 </beans>

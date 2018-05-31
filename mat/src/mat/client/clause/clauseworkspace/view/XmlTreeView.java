@@ -24,6 +24,7 @@ import mat.shared.MatConstants;
 import mat.shared.UUIDUtilClient;
 
 import org.apache.commons.lang.StringUtils;
+import org.gwtbootstrap3.client.ui.Button;
 import org.gwtbootstrap3.client.ui.CheckBox;
 
 import com.google.gwt.cell.client.AbstractCell;
@@ -56,13 +57,11 @@ import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.safehtml.client.SafeHtmlTemplates;
-import com.google.gwt.safehtml.client.SafeHtmlTemplates.Template;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.user.cellview.client.CellTree;
 import com.google.gwt.user.cellview.client.TreeNode;
 import com.google.gwt.user.client.Event;
-import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.FocusPanel;
@@ -85,10 +84,7 @@ import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwt.view.client.TreeViewModel;
 import com.google.gwt.xml.client.NamedNodeMap;
 import com.google.gwt.xml.client.Node;
-//import mat.client.clause.clauseworkspace.model.GlobalCopyPaste;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class XmlTreeView.
  */
@@ -2166,7 +2162,6 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 	 * @param inValidNodeList the in valid node list
 	 * @return the string
 	 */
-	@SuppressWarnings("unchecked")
 	private  List<String> validateClauseWorkspaceCellTreeNodes(CellTreeNode treeNode, Map<String,
 			List<String>> dataTypeMap, List<String> inValidNodeList) {
 		
@@ -2951,45 +2946,6 @@ public class XmlTreeView extends Composite implements  XmlTreeDisplay, TreeViewM
 	 */
 	public void setValidHumanReadable(boolean isValidHumanReadable) {
 		this.isValidHumanReadable = isValidHumanReadable;
-	}
-	
-	
-	/**
-	 * Checks if is allowed function.
-	 *
-	 * @param funcName the func name
-	 * @return true, if is allowed function
-	 */
-	private boolean isAllowedFunction(String funcName) {
-		List<String> allowedFunctionsList = ComparisonDialogBox.getAllowedFunctionsList(MatContext.get().functions, selectedNode.getLabel());
-		boolean retValue = false;
-		for(String name:allowedFunctionsList){
-			if(name.equalsIgnoreCase(funcName)){
-				retValue = true;
-				break;
-			}
-		}
-		
-		return retValue;
-	}
-	
-	/**
-	 * Checks if is allowed filter function.
-	 *
-	 * @param funcName the func name
-	 * @return true, if is allowed filter function
-	 */
-	private boolean isAllowedFilterFunction(String funcName) {
-		List<String> allowedFunctionsList = ComparisonDialogBox.filterFunctions(selectedNode, MatContext.get().functions);
-		boolean retValue = false;
-		for(String name:allowedFunctionsList){
-			if(name.equalsIgnoreCase(funcName)){
-				retValue = true;
-				break;
-			}
-		}
-		
-		return retValue;
 	}
 	
 	/**

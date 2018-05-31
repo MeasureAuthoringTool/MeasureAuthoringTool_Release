@@ -8,6 +8,7 @@ import mat.model.CQLLibraryOwnerReportDTO;
 import mat.model.CQLValueSetTransferObject;
 import mat.model.MatCodeTransferObject;
 import mat.model.clause.CQLLibrary;
+import mat.model.cql.CQLCode;
 import mat.model.cql.CQLDefinition;
 import mat.model.cql.CQLFunctions;
 import mat.model.cql.CQLIncludeLibrary;
@@ -15,6 +16,8 @@ import mat.model.cql.CQLKeywords;
 import mat.model.cql.CQLLibraryAssociation;
 import mat.model.cql.CQLLibraryDataSetObject;
 import mat.model.cql.CQLParameter;
+import mat.model.cql.CQLQualityDataModelWrapper;
+import mat.model.cql.CQLQualityDataSetDTO;
 import mat.server.util.XmlProcessor;
 import mat.shared.GetUsedCQLArtifactsResult;
 import mat.shared.SaveUpdateCQLResult;
@@ -113,6 +116,8 @@ public interface CQLLibraryServiceInterface {
 	List<CQLLibraryOwnerReportDTO> getCQLLibrariesForOwner();
 
 	SaveUpdateCQLResult saveCQLCodestoCQLLibrary(MatCodeTransferObject transferObject);
+	
+	SaveUpdateCQLResult saveCQLCodeListToCQLLibrary(List<CQLCode> codeList, String libraryId);
 
 	SaveUpdateCQLResult deleteCode(String toBeDeletedId, String libraryId);
 
@@ -120,5 +125,12 @@ public interface CQLLibraryServiceInterface {
 
 	SaveUpdateCQLResult getCQLLibraryFileData(String libraryId);
 
+	SaveCQLLibraryResult searchForReplaceLibraries(String setId, boolean filter);
 
+	SaveUpdateCQLResult getCQLDataForLoad(String id);
+
+	CQLQualityDataModelWrapper saveValueSetList(List<CQLValueSetTransferObject> transferObjectList,
+			List<CQLQualityDataSetDTO> appliedValueSetList, String cqlLibraryId);
+
+	SaveUpdateCQLResult modifyCQLCodeInCQLLibrary(CQLCode codeToReplace, CQLCode replacementCode, String cqlLibraryId);
 }

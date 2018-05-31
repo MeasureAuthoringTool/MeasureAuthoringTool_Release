@@ -8,13 +8,14 @@ import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 import mat.client.umls.service.VsacApiResult;
 import mat.model.CQLValueSetTransferObject;
 import mat.model.MatCodeTransferObject;
-import mat.model.cql.CQLCodeWrapper;
+import mat.model.cql.CQLCode;
 import mat.model.cql.CQLDefinition;
 import mat.model.cql.CQLFunctions;
 import mat.model.cql.CQLIncludeLibrary;
 import mat.model.cql.CQLKeywords;
 import mat.model.cql.CQLLibraryDataSetObject;
 import mat.model.cql.CQLParameter;
+import mat.model.cql.CQLQualityDataModelWrapper;
 import mat.model.cql.CQLQualityDataSetDTO;
 import mat.shared.GetUsedCQLArtifactsResult;
 import mat.shared.SaveUpdateCQLResult;
@@ -26,6 +27,9 @@ public interface CQLLibraryService extends RemoteService {
 	CQLLibraryDataSetObject findCQLLibraryByID(String cqlLibraryID);
 	SaveCQLLibraryResult save(CQLLibraryDataSetObject cqlModel);
 	public SaveUpdateCQLResult getCQLData(String id);
+	
+	public SaveUpdateCQLResult getCQLDataForLoad(String id);
+	
 	boolean isLibraryLocked(String id);
 	SaveCQLLibraryResult resetLockedDate(String currentLibraryId,String userId);
 	SaveCQLLibraryResult updateLockedDate(String currentLibraryId,String userId);
@@ -47,6 +51,8 @@ public interface CQLLibraryService extends RemoteService {
 	SaveCQLLibraryResult getUserShareInfo(String cqlId, String searchText);
 
 	SaveCQLLibraryResult searchForIncludes(String setId, String searchText, boolean filter);
+	
+	SaveCQLLibraryResult searchForReplaceLibraries(String setId, boolean filter);
 	
 	//SaveCQLLibraryResult searchForStandaloneIncludes(String setId, String searchText);
 	
@@ -95,10 +101,17 @@ public interface CQLLibraryService extends RemoteService {
 	 void transferLibraryOwnerShipToUser(List<String> list, String toEmail);
 
 	SaveUpdateCQLResult saveCQLCodestoCQLLibrary(MatCodeTransferObject transferObject);
-
+	
+	SaveUpdateCQLResult saveCQLCodeListToCQLLibrary(List<CQLCode> codeList, String libraryId);
+	
+	SaveUpdateCQLResult modifyCQLCodeInCQLLibrary(CQLCode codeToReplace, CQLCode replacementCode, String cqlLibraryId);
+	
 	SaveUpdateCQLResult deleteCode(String toBeDeletedId, String libraryId);
 
 	void deleteCQLLibrary(String cqllibId, String loginUserId);
 
 	SaveUpdateCQLResult getCQLLibraryFileData(String libraryId);
+
+	CQLQualityDataModelWrapper saveValueSetList(List<CQLValueSetTransferObject> transferObjectList,
+			List<CQLQualityDataSetDTO> appliedValueSetList, String cqlLibraryId);
 }

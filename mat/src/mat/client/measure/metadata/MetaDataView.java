@@ -36,7 +36,6 @@ import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.HasKeyboardSelectionPolicy.KeyboardSelectionPolicy;
-import com.google.gwt.user.client.DOM;
 //import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.DialogBox;
@@ -71,7 +70,6 @@ import mat.client.shared.HorizontalFlowPanel;
 import mat.client.shared.LabelBuilder;
 import mat.client.shared.ListBoxMVP;
 import mat.client.shared.MatCheckBoxCell;
-import mat.client.shared.MatContext;
 import mat.client.shared.MessageAlert;
 import mat.client.shared.PrimaryButton;
 import mat.client.shared.SpacerWidget;
@@ -84,7 +82,7 @@ import mat.model.MeasureSteward;
 import mat.model.MeasureType;
 import mat.model.QualityDataSetDTO;
 
-// TODO: Auto-generated Javadoc
+
 /**
  * The Class MetaDataView.
  */
@@ -398,16 +396,14 @@ public class MetaDataView implements MetaDataDetailDisplay{
 		errorMessages2.setWidth("900px");
 		saveErrorDisplay.setWidth("900px");
 		addEditCmponentMeasures.setType(ButtonType.PRIMARY);
-	//	addEditMeasureType.setType(ButtonType.PRIMARY);
 		addEditCmponentMeasures.setTitle("Add or Edit Component Measures.");
 		
 		addClickHandlers();
 		searchString.setHeight("20px");
 		
 		saveErrorDisplay.clearAlert();
-		//mainPanel.add(mainContent);
 		mainPanel.setStyleName("contentPanel");
-		DOM.setElementAttribute(mainPanel.getElement(), "id", "MetaDataView.containerPanel");
+		mainPanel.getElement().setAttribute("id", "MetaDataView.containerPanel");
 		focusPanel.add(mainPanel);
 		focusPanel.getElement().setId("focusPanel_FocusPanel01");
 	}
@@ -2490,7 +2486,7 @@ public class MetaDataView implements MetaDataDetailDisplay{
 	 */
 	private TextAreaWithMaxLength createReferenceInput() {
 		TextAreaWithMaxLength newReferenceBox = new TextAreaWithMaxLength();
-		DOM.setElementAttribute(newReferenceBox.getElement(), "id", "Reference");
+		newReferenceBox.getElement().setAttribute("id", "Reference");
 		newReferenceBox.setSize("750px", "60px");
 		newReferenceBox.setMaxLength(2000);
 		newReferenceBox.addKeyDownHandler(new KeyDownHandler() {
@@ -2559,7 +2555,6 @@ public class MetaDataView implements MetaDataDetailDisplay{
 	 *            the row index
 	 */
 	private void removeRow(FlexTable reference, int rowIndex) {
-		int numRows = reference.getRowCount();
 		if (referenceTable.getWidget(rowIndex, 0) instanceof HorizontalPanel) {
 			HorizontalPanel horizontalPanel =  (HorizontalPanel) referenceTable.getWidget(rowIndex, 0);
 			TextAreaWithMaxLength areaWithMaxLength = (TextAreaWithMaxLength) horizontalPanel.getWidget(1);
@@ -2708,7 +2703,6 @@ public class MetaDataView implements MetaDataDetailDisplay{
 	 */
 	@Override
 	public HasValue<String> getEmeasureId(){
-		// TODO Auto-generated method stub
 		return eMeasureIdentifierInput;
 	}
 	
@@ -2717,7 +2711,6 @@ public class MetaDataView implements MetaDataDetailDisplay{
 	 */
 	@Override
 	public void setGenerateEmeasureIdButtonEnabled(boolean b) {
-		// TODO Auto-generated method stub
 		generateeMeasureIDButton.setEnabled(b);
 	}
 	
@@ -2726,7 +2719,6 @@ public class MetaDataView implements MetaDataDetailDisplay{
 	 */
 	@Override
 	public HasClickHandlers getGenerateEmeasureIdButton() {
-		// TODO Auto-generated method stub
 		return generateeMeasureIDButton;
 	}
 	
@@ -2842,7 +2834,6 @@ public class MetaDataView implements MetaDataDetailDisplay{
 	 */
 	@Override
 	public WarningConfirmationMessageAlert getSaveErrorMsg() {
-		// TODO Auto-generated method stub
 		return saveErrorDisplay;
 	}
 	
@@ -2966,49 +2957,6 @@ public class MetaDataView implements MetaDataDetailDisplay{
 	public void setAuthorsSelectedList(List<Author> authorsSelectedList) {
 		this.authorsSelectedList = authorsSelectedList;
 	}
-	
-	
-	/* (non-Javadoc)
-	 * @see mat.client.measure.metadata.MetaDataPresenter.MetaDataDetailDisplay#buildStewardCellTable(java.util.List, boolean)
-	 */
-//	@Override
-	/*public void buildStewardCellTable(List<MeasureSteward> currentStewardList,
-			boolean editable) {
-		
-		stewardSPanel.clear();
-		stewardSPanel.setStyleName("cellTablePanel");
-		stewardCellTable = new CellTable<MeasureSteward>();
-		stewardCellTable
-		.setKeyboardSelectionPolicy(KeyboardSelectionPolicy.ENABLED);
-		ListDataProvider<MeasureSteward> sortProvider = new ListDataProvider<MeasureSteward>();
-		if(stewardId!=null) {
-			List<MeasureSteward> measureStewardSelectedList = new ArrayList<MeasureSteward>();
-			measureStewardSelectedList.addAll(swapMeasureStewardList(currentStewardList));
-			stewardCellTable.setRowData(measureStewardSelectedList);
-			stewardCellTable.setRowCount(measureStewardSelectedList.size(), true);
-			sortProvider.refresh();
-			sortProvider.getList().addAll(measureStewardSelectedList);
-		} else {
-			stewardCellTable.setRowData(currentStewardList);
-			stewardCellTable.setRowCount(currentStewardList.size(), true);
-			sortProvider.refresh();
-			sortProvider.getList().addAll(currentStewardList);
-		}
-		
-		addStewardColumnToTable(editable);
-		sortProvider.addDataDisplay(stewardCellTable);
-		stewardCellTable.setWidth("100%");
-		Label invisibleLabel = (Label) LabelBuilder
-				.buildInvisibleLabel(
-						"stewardListSummary",
-						"In the following Steward List table, Select is given in first Column and Steward is given in Second column");
-		stewardSPanel.getElement().setAttribute("id", "StewardListCellTable");
-		stewardSPanel.getElement().setAttribute("aria-describedby",
-				"stewardListSummary");
-		stewardSPanel.setSize("500px", "150px");
-		stewardSPanel.add(invisibleLabel);
-		stewardSPanel.setWidget(stewardCellTable);
-	}*/
 	
 	
 	/* (non-Javadoc)

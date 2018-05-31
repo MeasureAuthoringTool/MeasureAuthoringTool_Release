@@ -4,6 +4,24 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.gwtbootstrap3.client.ui.Button;
+
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.FocusEvent;
+import com.google.gwt.event.dom.client.FocusHandler;
+import com.google.gwt.event.logical.shared.CloseEvent;
+import com.google.gwt.event.logical.shared.CloseHandler;
+import com.google.gwt.event.logical.shared.OpenEvent;
+import com.google.gwt.event.logical.shared.OpenHandler;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.ui.DisclosurePanel;
+import com.google.gwt.user.client.ui.SimplePanel;
+import com.google.gwt.user.client.ui.TextBox;
+import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.gwt.user.client.ui.Widget;
+
 import mat.client.Mat;
 import mat.client.MatPresenter;
 import mat.client.MeasureComposerPresenter;
@@ -19,30 +37,11 @@ import mat.client.shared.ListBoxMVP;
 import mat.client.shared.MatContext;
 import mat.client.shared.SuccessMessageDisplay;
 import mat.client.umls.service.VSACAPIServiceAsync;
-import mat.client.umls.service.VsacApiResult;
 import mat.model.MatValueSet;
 import mat.model.MatValueSetTransferObject;
 import mat.model.QualityDataModelWrapper;
 import mat.model.QualityDataSetDTO;
 
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.event.dom.client.FocusEvent;
-import com.google.gwt.event.dom.client.FocusHandler;
-import com.google.gwt.event.logical.shared.CloseEvent;
-import com.google.gwt.event.logical.shared.CloseHandler;
-import com.google.gwt.event.logical.shared.OpenEvent;
-import com.google.gwt.event.logical.shared.OpenHandler;
-import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.DisclosurePanel;
-import com.google.gwt.user.client.ui.SimplePanel;
-import com.google.gwt.user.client.ui.TextBox;
-import com.google.gwt.user.client.ui.VerticalPanel;
-import com.google.gwt.user.client.ui.Widget;
-
-// TODO: Auto-generated Javadoc
 /**QDSCodeListSearchPresenter.java.**/
 public class QDSCodeListSearchPresenter implements MatPresenter {
 	
@@ -458,7 +457,7 @@ public class QDSCodeListSearchPresenter implements MatPresenter {
 											MatContext
 											.get()
 											.getMessageDelegate()
-											.getDuplicateAppliedValueSetMsg());
+											.getDuplicateAppliedValueSetMsg(result.getCodeListName()));
 								}
 							}
 						});
@@ -566,7 +565,7 @@ public class QDSCodeListSearchPresenter implements MatPresenter {
 						if (result.getFailureReason() == SaveUpdateCodeListResult.ALREADY_EXISTS) {
 							searchDisplay.getErrorMessageDisplay().setMessage(
 									MatContext.get().getMessageDelegate()
-									.getDuplicateAppliedValueSetMsg());
+									.getDuplicateAppliedValueSetMsg(result.getCodeListName()));
 						}
 					}
 				}
@@ -612,30 +611,6 @@ public class QDSCodeListSearchPresenter implements MatPresenter {
 		setWidgetsReadOnly(MatContext.get().getMeasureLockService().checkForEditPermission());
 		MeasureComposerPresenter.setSubSkipEmbeddedLink("subContainerPanel");
 		Mat.focusSkipLists("MeasureComposer");
-	}
-	
-	/**
-	 * Convert message.
-	 *
-	 * @param id
-	 *            - {@link Integer}.
-	 * @return String - {@link String}.
-	 */
-	private String convertMessage(final int id) {
-		String message;
-		switch (id) {
-			case VsacApiResult.UMLS_NOT_LOGGEDIN:
-				message = MatContext.get().getMessageDelegate()
-				.getUMLS_NOT_LOGGEDIN();
-				break;
-			case VsacApiResult.OID_REQUIRED:
-				message = MatContext.get().getMessageDelegate()
-				.getUMLS_OID_REQUIRED();
-				break;
-			default:
-				message = MatContext.get().getMessageDelegate().getVSAC_RETRIEVE_FAILED();
-		}
-		return message;
 	}
 	
 	/**
@@ -774,7 +749,6 @@ public class QDSCodeListSearchPresenter implements MatPresenter {
 	 */
 	private void saveMeasureXML(final String qdmXMLString, final String valuesetXMLString) {
 		final String nodeName = "qdm";
-		final String newNodeName = "valueset";
 		
 		MeasureXmlModel exportModal = new MeasureXmlModel();
 		exportModal.setMeasureId(MatContext.get().getCurrentMeasureId());
@@ -846,7 +820,7 @@ public class QDSCodeListSearchPresenter implements MatPresenter {
 			return;
 		}
 		
-		showSearchingBusy(true);
+		/*showSearchingBusy(true);
 		vsacapiService.getValueSetByOIDAndVersionOrExpansionId(oid, version, effectiveDate, new AsyncCallback<VsacApiResult>() {
 			@Override
 			public void onFailure(final Throwable caught) {
@@ -866,7 +840,7 @@ public class QDSCodeListSearchPresenter implements MatPresenter {
 				}
 				showSearchingBusy(false);
 			}
-		});
+		});*/
 	}
 	
 	/**

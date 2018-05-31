@@ -8,11 +8,11 @@ import mat.dao.CodeListAuditLogDAO;
 import mat.dao.CodeListDAO;
 import mat.dao.CodeSystemDAO;
 import mat.dao.DataTypeDAO;
+import mat.dao.EmailAuditLogDAO;
 import mat.dao.ListObjectDAO;
 import mat.dao.ListObjectLTDAO;
 import mat.dao.MatFlagDAO;
 import mat.dao.MeasureAuditLogDAO;
-import mat.dao.MeasureNotesDAO;
 import mat.dao.MeasureScoreDAO;
 import mat.dao.MeasureValidationLogDAO;
 import mat.dao.ObjectStatusDAO;
@@ -48,7 +48,6 @@ import mat.dao.clause.ModesDAO;
 import mat.dao.clause.OperatorDAO;
 import mat.dao.clause.QDSAttributeDetailsDAO;
 import mat.dao.clause.QDSAttributesDAO;
-import mat.server.service.CQLLibraryAuditService;
 
 
 /**
@@ -103,9 +102,6 @@ public class DAOService {
 	
 	/** The measure export dao. */
 	private MeasureExportDAO measureExportDAO;
-	
-	/** The measure notes dao. */
-	private MeasureNotesDAO measureNotesDAO;
 	
 	/** The measure score dao. */
 	private MeasureScoreDAO measureScoreDAO;
@@ -190,6 +186,8 @@ public class DAOService {
 	private CQLLibraryAssociationDAO cqlLibraryAssociationDAO;
 	
 	private CQLLibraryShareDAO cqlLibraryShareDAO;
+	
+	private EmailAuditLogDAO emailAuditLogDAO; 
 	
 	/**
 	 * Gets the attribute details dao.
@@ -334,15 +332,6 @@ public class DAOService {
 	 */
 	public MeasureExportDAO getMeasureExportDAO() {
 		return measureExportDAO;
-	}
-	
-	/**
-	 * Gets the measure notes dao.
-	 * 
-	 * @return the measure notes dao
-	 */
-	public MeasureNotesDAO getMeasureNotesDAO() {
-		return measureNotesDAO;
 	}
 	
 	//US 421
@@ -696,16 +685,6 @@ public class DAOService {
 	}
 	
 	/**
-	 * Sets the measure notes dao.
-	 * 
-	 * @param measureNotesDAO
-	 *            the new measure notes dao
-	 */
-	public void setMeasureNotesDAO(MeasureNotesDAO measureNotesDAO) {
-		this.measureNotesDAO = measureNotesDAO;
-	}
-	
-	/**
 	 * Sets the measure score dao.
 	 * 
 	 * @param measureScoreDAO
@@ -1012,6 +991,14 @@ public class DAOService {
 
 	public void setCqlLibraryShareDAO(CQLLibraryShareDAO cqlLibraryShareDAO) {
 		this.cqlLibraryShareDAO = cqlLibraryShareDAO;
+	}
+
+	public EmailAuditLogDAO getEmailAuditLogDAO() {
+		return emailAuditLogDAO;
+	}
+
+	public void setEmailAuditLogDAO(EmailAuditLogDAO emailAuditLogDAO) {
+		this.emailAuditLogDAO = emailAuditLogDAO;
 	}
 	
 }

@@ -3,7 +3,23 @@ package mat.client.clause;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import mat.client.Mat;
+
+import org.gwtbootstrap3.client.ui.Button;
+
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.FocusEvent;
+import com.google.gwt.event.dom.client.FocusHandler;
+import com.google.gwt.event.logical.shared.CloseEvent;
+import com.google.gwt.event.logical.shared.CloseHandler;
+import com.google.gwt.event.logical.shared.OpenEvent;
+import com.google.gwt.event.logical.shared.OpenHandler;
+import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.ui.DisclosurePanel;
+import com.google.gwt.user.client.ui.TextBox;
+import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.gwt.user.client.ui.Widget;
+
 import mat.client.MatPresenter;
 import mat.client.codelist.HasListBox;
 import mat.client.codelist.service.SaveUpdateCodeListResult;
@@ -16,29 +32,12 @@ import mat.client.shared.ListBoxMVP;
 import mat.client.shared.MatContext;
 import mat.client.shared.SuccessMessageDisplay;
 import mat.client.shared.SuccessMessageDisplayInterface;
-import mat.client.umls.service.VSACAPIServiceAsync;
-import mat.client.umls.service.VsacApiResult;
 import mat.model.CodeListSearchDTO;
 import mat.model.MatValueSet;
 import mat.model.MatValueSetTransferObject;
 import mat.model.QualityDataSetDTO;
 import mat.shared.ConstantMessages;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.event.dom.client.FocusEvent;
-import com.google.gwt.event.dom.client.FocusHandler;
-import com.google.gwt.event.logical.shared.CloseEvent;
-import com.google.gwt.event.logical.shared.CloseHandler;
-import com.google.gwt.event.logical.shared.OpenEvent;
-import com.google.gwt.event.logical.shared.OpenHandler;
-import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.DisclosurePanel;
-import com.google.gwt.user.client.ui.TextBox;
-import com.google.gwt.user.client.ui.VerticalPanel;
-import com.google.gwt.user.client.ui.Widget;
 
-// TODO: Auto-generated Javadoc
 /**
  * QDMAvailableValueSetPresenter class.
  */
@@ -282,10 +281,6 @@ public class QDMAvailableValueSetPresenter  implements MatPresenter {
 	 */
 	private final SearchDisplay searchDisplay;
 	
-	/** The vsacapi service. {@link VSACAPIServiceAsync} instance. */
-	private final VSACAPIServiceAsync vsacapiService = MatContext.get()
-			.getVsacapiServiceAsync();
-	
 	/**
 	 * Constructor.
 	 * @param sDisplayArg
@@ -415,28 +410,6 @@ public class QDMAvailableValueSetPresenter  implements MatPresenter {
 	@Override
 	public void beforeDisplay() {
 		displaySearch();
-	}
-	
-	/**
-	 * Convert message.
-	 *
-	 * @param id
-	 *            the id
-	 * @return String
-	 */
-	private String convertMessage(int id) {
-		String message;
-		switch(id) {
-			case VsacApiResult.UMLS_NOT_LOGGEDIN:
-				message = MatContext.get().getMessageDelegate().getUMLS_NOT_LOGGEDIN();
-				break;
-			case VsacApiResult.OID_REQUIRED:
-				message = MatContext.get().getMessageDelegate().getUMLS_OID_REQUIRED();
-				break;
-			default:
-				message = MatContext.get().getMessageDelegate().getVSAC_RETRIEVE_FAILED();
-		}
-		return message;
 	}
 	
 	/**
@@ -704,7 +677,7 @@ public class QDMAvailableValueSetPresenter  implements MatPresenter {
 			return;
 		}
 		
-		showSearchingBusy(true);
+		/*showSearchingBusy(true);
 		vsacapiService.getValueSetByOIDAndVersionOrExpansionId(oid, version, effectiveDate, new AsyncCallback<VsacApiResult>() {
 			@Override
 			public void onFailure(final Throwable caught) {
@@ -724,30 +697,7 @@ public class QDMAvailableValueSetPresenter  implements MatPresenter {
 				}
 				showSearchingBusy(false);
 			}
-		});
-	}
-	
-	/**
-	 * This method is used in searching all available Value sets for pop up.
-	 *
-	 * @param busy
-	 *            the busy
-	 */
-	private void showSearchingBusy(final boolean busy) {
-		if (busy) {
-			Mat.showLoadingMessage();
-		} else {
-			Mat.hideLoadingMessage();
-		}
-		busyLoading = busy;
-		searchDisplay.getRetrieveButton().setEnabled(!busy);
-		searchDisplay.getOIDInput().setEnabled(!busy);
-		searchDisplay.getVersion().setEnabled(!busy);
-		searchDisplay.getEffectiveDate().setEnabled(!busy);
-		if (searchDisplay.getVersion().getValue().equals(Boolean.TRUE)
-				|| searchDisplay.getEffectiveDate().getValue().equals(Boolean.TRUE)) {
-			searchDisplay.getDateInput().setEnabled(!busy);
-		}
+		});*/
 	}
 	
 	/**
@@ -810,10 +760,10 @@ public class QDMAvailableValueSetPresenter  implements MatPresenter {
 				if (result.getFailureReason() == SaveUpdateCodeListResult.ALREADY_EXISTS) {
 					if (!isUSerDefined) {
 						searchDisplay.getErrorMessageDisplay().setMessage(
-								MatContext.get().getMessageDelegate().getDuplicateAppliedValueSetMsg());
+								MatContext.get().getMessageDelegate().getDuplicateAppliedValueSetMsg(result.getCodeListName()));
 					} else {
 						searchDisplay.getErrorMessageUserDefinedPanel().setMessage(
-								MatContext.get().getMessageDelegate().getDuplicateAppliedValueSetMsg());
+								MatContext.get().getMessageDelegate().getDuplicateAppliedValueSetMsg(result.getCodeListName()));
 					}
 				} else {
 					appliedQDMList = result.getAppliedQDMList();

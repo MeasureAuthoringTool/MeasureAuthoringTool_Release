@@ -103,30 +103,17 @@ public class CQLLibraryDAO extends GenericDAO<CQLLibrary, String> implements mat
 
 	/** The lock threshold. */
 	private final long lockThreshold = 3 * 60 * 1000; // 3 minutes
-
-	@Override
-	public List<CQLLibrary> searchForIncludes(String setId, String searchText, boolean filter) {
-		String searchString = searchText.toLowerCase().trim();
-		/*Criteria cCriteria = getSessionFactory().getCurrentSession().createCriteria(CQLLibrary.class);
+	
+	private List<CQLLibrary> searchForReplaceLibrariesMeasure(String setId) {
+		Criteria cCriteria = getSessionFactory().getCurrentSession().createCriteria(CQLLibrary.class);
 		cCriteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
 		cCriteria.add(Restrictions.eq("draft", false));
 		cCriteria.add(Restrictions.eq("qdmVersion", MATPropertiesService.get().getQmdVersion()));
+		cCriteria.add(Restrictions.eq("set_id", setId));
 		cCriteria.addOrder(Order.desc("set_id")).addOrder(Order.desc("version"));
 		cCriteria.setFirstResult(0);
-*/
-		String queryString = null;
-		
-		if(filter){
-			queryString = CQLQueryUtil.buildQuery(MATPropertiesService.get().getQmdVersion(), setId, 2);
-		} else {
-			queryString = CQLQueryUtil.buildQuery(MATPropertiesService.get().getQmdVersion(), setId, 1);
-		}
-		
-		Query query = getSessionFactory().getCurrentSession().createQuery(queryString);
-				
-		List<CQLLibrary> libraryResultList = query.list();
-		
-		//List<CQLLibrary> result = null;
+
+		List<CQLLibrary> libraryResultList = cCriteria.list();
 
 		List<CQLLibrary> orderedCQlLibList = null;
 		if (libraryResultList != null) {
@@ -135,54 +122,33 @@ public class CQLLibraryDAO extends GenericDAO<CQLLibrary, String> implements mat
 			orderedCQlLibList = new ArrayList<CQLLibrary>();
 		}
 
-		StringUtility su = new StringUtility();
-		List<CQLLibrary> orderedList = new ArrayList<CQLLibrary>();
-
-		//Iterator<CQLLibrary> orderedCQlLibListIte = orderedCQlLibList.iterator();
+		Iterator<CQLLibrary> orderedCQlLibListIte = orderedCQlLibList.iterator();
 
 		// Adding logic to get rid of libraries with second level of child and
-		// also those with cyclic dependency.
-		/*List<CQLLibraryAssociation> totalAssociations = new ArrayList<CQLLibraryAssociation>();
+		// also those with cyclic dependency, if library does not have second level of child, check for if it's in the same family
+		List<CQLLibraryAssociation> totalAssociations = new ArrayList<CQLLibraryAssociation>();
 		while (orderedCQlLibListIte.hasNext()) {
 			CQLLibrary cqlLibrary = orderedCQlLibListIte.next();
 			String asociationId = (cqlLibrary.getMeasureId() != null) ? cqlLibrary.getMeasureId() : cqlLibrary.getId();
-
-			if (cqlLibraryAssociationDAO.findAssociationCount(asociationId) == 0) {
-				if (setId != null && asociationId != null) {
-					if (setId.equalsIgnoreCase(getSetIdForCQLLibrary(asociationId))) {
-						orderedCQlLibListIte.remove();
-					}
-				}
-			} else {
-				totalAssociations = cqlLibraryAssociationDAO.getAssociations(asociationId);
-				if (hasChildLibraries(totalAssociations)) {
-					orderedCQlLibListIte.remove();
-				} else if (hasCyclicDependency(setId, asociationId)) {
-					orderedCQlLibListIte.remove();
-				}
-			}
-		}
-*/
-		for (CQLLibrary cqlLibrary : orderedCQlLibList) {
-
-			boolean matchesSearch = searchResultsForCQLLibrary(searchString, su, cqlLibrary);
-			if (matchesSearch) {
-				orderedList.add(cqlLibrary);
+			
+			totalAssociations = cqlLibraryAssociationDAO.getAssociations(asociationId);
+			if (hasChildLibraries(totalAssociations)) {
+				orderedCQlLibListIte.remove();
 			}
 		}
 
-		return orderedList;
+		return orderedCQlLibList;
 
 	}
 
-	/*@Override
-	public List<CQLLibrary> searchForStandaloneIncludes(String setId, String searchText) {
-		String searchString = searchText.toLowerCase().trim();
+	private List<CQLLibrary> searchForReplaceLibrariesIncludes(String setId) {
 		Criteria cCriteria = getSessionFactory().getCurrentSession().createCriteria(CQLLibrary.class);
 		cCriteria.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
 		cCriteria.add(Restrictions.eq("draft", false));
 		cCriteria.add(Restrictions.eq("qdmVersion", MATPropertiesService.get().getQmdVersion()));
+		cCriteria.add(Restrictions.eq("set_id", setId));
 		cCriteria.addOrder(Order.desc("set_id")).addOrder(Order.desc("version"));
+		
 		cCriteria.setFirstResult(0);
 
 		List<CQLLibrary> libraryResultList = cCriteria.list();
@@ -204,17 +170,40 @@ public class CQLLibraryDAO extends GenericDAO<CQLLibrary, String> implements mat
 			String asociationId = (cqlLibrary.getMeasureId() != null) ? cqlLibrary.getMeasureId() : cqlLibrary.getId();
 			int associationCount = cqlLibraryAssociationDAO.findAssociationCount(asociationId);
 
-			// Adding logic to get rid of libraries with child. If there are no child's check for same family includes.
+			// Logic to remove any library with a child
 			if (associationCount > 0){
 				orderedCQlLibListIte.remove();
-			}else if (associationCount == 0) {
-				if (setId != null && asociationId != null) {
-					if (setId.equalsIgnoreCase(getSetIdForCQLLibrary(asociationId))) {
-						orderedCQlLibListIte.remove();
-					}
-				}
-			} 
+			}
 		}
+
+		return orderedCQlLibList;
+
+	}
+
+	@Override
+	public List<CQLLibrary> searchForIncludes(String setId, String searchText, boolean filter) {
+		String searchString = searchText.toLowerCase().trim();
+		String queryString = null;
+		
+		if(filter){
+			queryString = CQLQueryUtil.buildQuery(MATPropertiesService.get().getQmdVersion(), setId, 2);
+		} else {
+			queryString = CQLQueryUtil.buildQuery(MATPropertiesService.get().getQmdVersion(), setId, 0);
+		}
+		
+		Query query = getSessionFactory().getCurrentSession().createQuery(queryString);
+				
+		List<CQLLibrary> libraryResultList = query.list();
+		
+		List<CQLLibrary> orderedCQlLibList = null;
+		if (libraryResultList != null) {
+			orderedCQlLibList = sortLibraryList(libraryResultList);
+		} else {
+			orderedCQlLibList = new ArrayList<CQLLibrary>();
+		}
+
+		StringUtility su = new StringUtility();
+		List<CQLLibrary> orderedList = new ArrayList<CQLLibrary>();
 
 		for (CQLLibrary cqlLibrary : orderedCQlLibList) {
 
@@ -227,7 +216,22 @@ public class CQLLibraryDAO extends GenericDAO<CQLLibrary, String> implements mat
 		return orderedList;
 
 	}
-*/	
+	
+	@Override
+	public List<CQLLibrary> searchForReplaceLibraries(String setId, boolean filter) {
+		String queryString = null;
+		List<CQLLibrary> libraryResultList = new ArrayList<>(); 
+		
+		
+		if(filter){
+			libraryResultList = searchForReplaceLibrariesMeasure(setId);
+		} else {
+			libraryResultList = searchForReplaceLibrariesIncludes(setId);
+		}
+		
+		return libraryResultList;
+	}
+	
 	private void printAllID(List<CQLLibrary> orderedCQlLibList) {
 		StringBuilder idString = new StringBuilder();
 		for (CQLLibrary library : orderedCQlLibList) {
@@ -613,13 +617,19 @@ public class CQLLibraryDAO extends GenericDAO<CQLLibrary, String> implements mat
 	 */
 	@Override
 	public List<CQLLibraryShareDTO> getLibraryShareInfoForLibrary(String cqlId, String searchText) {
-		String searchString = searchText.toLowerCase().trim();
+		
 		Criteria userCriteria = getSessionFactory().getCurrentSession().createCriteria(User.class);
 		int pageSize = Integer.MAX_VALUE;
 		userCriteria.add(Restrictions.eq("securityRole.id", "3"));
 		// Added restriction for Active user's for User story MAT:2900.
 		userCriteria.add(Restrictions.eq("status.id", "1"));
 		userCriteria.add(Restrictions.ne("id", LoggedInUserUtil.getLoggedInUser()));
+		//Added restriction for Search by user name MAT-8908.
+		if(StringUtils.isNotBlank(searchText)) {
+			String searchString = searchText.toLowerCase();
+			userCriteria.add(Restrictions.or(Restrictions.ilike("firstName", "%" + searchString + "%"),
+					Restrictions.ilike("lastName", "%" + searchString + "%")));
+		}
 		userCriteria.setFirstResult(0);
 		// userCriteria.setMaxResults(pageSize);
 		userCriteria.addOrder(Order.asc("lastName"));
@@ -627,22 +637,17 @@ public class CQLLibraryDAO extends GenericDAO<CQLLibrary, String> implements mat
 		List<User> userResults = userCriteria.list();
 		HashMap<String, CQLLibraryShareDTO> userIdDTOMap = new HashMap<String, CQLLibraryShareDTO>();
 		ArrayList<CQLLibraryShareDTO> orderedDTOList = new ArrayList<CQLLibraryShareDTO>();
-		List<CQLLibraryShareDTO> dtoList = new ArrayList<CQLLibraryShareDTO>();
-		StringUtility stringUtility = new StringUtility();
 		for (User user : userResults) {
-			if (searchResultsForSharedUsers(searchString, stringUtility, user)) {
-				CQLLibraryShareDTO dto = new CQLLibraryShareDTO();
-				dtoList.add(dto);
-				dto.setUserId(user.getId());
-				dto.setFirstName(user.getFirstName());
-				dto.setLastName(user.getLastName());
-				dto.setOrganizationName(user.getOrganizationName());
-				userIdDTOMap.put(user.getId(), dto);
-				orderedDTOList.add(dto);
-			}
+			CQLLibraryShareDTO dto = new CQLLibraryShareDTO();		
+			dto.setUserId(user.getId());
+			dto.setFirstName(user.getFirstName());
+			dto.setLastName(user.getLastName());
+			dto.setOrganizationName(user.getOrganizationName());
+			userIdDTOMap.put(user.getId(), dto);
+			orderedDTOList.add(dto);
 		}
 
-		if (dtoList.size() > 0) {
+		if (orderedDTOList.size() > 0) {
 			Criteria shareCriteria = getSessionFactory().getCurrentSession().createCriteria(CQLLibraryShare.class);
 			shareCriteria.add(Restrictions.in("shareUser.id", userIdDTOMap.keySet()));
 			shareCriteria.add(Restrictions.eq("cqlLibrary.id", cqlId));
@@ -712,7 +717,6 @@ public class CQLLibraryDAO extends GenericDAO<CQLLibrary, String> implements mat
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public String getSetIdForCQLLibrary(String cqlLibraryId) {
 
 		Criteria mCriteria = getSessionFactory().getCurrentSession().createCriteria(CQLLibrary.class);
@@ -750,22 +754,6 @@ public class CQLLibraryDAO extends GenericDAO<CQLLibrary, String> implements mat
 			dto.setLockedUserInfo(lockedUserInfo);
 		}
 		return dto;
-	}
-
-	private boolean searchResultsForSharedUsers(String searchTextLC, StringUtility stringUtility, User user) {
-
-		boolean matchesSearch = stringUtility.isEmptyOrNull(searchTextLC) ? true :
-		// User First Name
-				user.getFirstName().toLowerCase().contains(searchTextLC) ? true :
-				// User Last Name
-						user.getLastName().toLowerCase().contains(searchTextLC) ? true :
-						/*
-						 * // Owner email address
-						 * user.getEmailAddress().toLowerCase().contains(
-						 * searchTextLC) ? true:
-						 */
-								false;
-		return matchesSearch;
 	}
 
 	@Override

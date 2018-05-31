@@ -1,14 +1,16 @@
 package mat.client.clause.cqlworkspace;
 
+import mat.client.Mat;
+import mat.client.shared.MatContext;
+import mat.client.shared.SpacerWidget;
+
+import org.gwtbootstrap3.client.ui.HelpBlock;
 import org.gwtbootstrap3.client.ui.gwt.FlowPanel;
 
 import com.google.gwt.user.client.ui.HorizontalPanel;
 //import org.gwtbootstrap3.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
-
-import mat.client.shared.MatContext;
-import mat.client.shared.SpacerWidget;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -67,7 +69,9 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 	
 	/** The cql left nav bar panel view. */
 	private CQLLeftNavBarPanelView cqlLeftNavBarPanelView;
-
+	
+	private HelpBlock helpBlock = new HelpBlock();
+	
 	/**
 	 * Instantiates a new CQL work space view.
 	 */
@@ -128,10 +132,10 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 	 * Builds the cql file view.
 	 */
 	@Override
-	public void buildCQLFileView() {
+	public void buildCQLFileView(boolean isEditable) {
 		unsetEachSectionSelectedObject();
 		mainFlowPanel.clear();
-		mainFlowPanel.add(cqlViewCQLView.buildView());
+		mainFlowPanel.add(cqlViewCQLView.buildView(isEditable));
 
 	}
 
@@ -149,6 +153,7 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 	public void buildGeneralInformation() {
 		unsetEachSectionSelectedObject();
 		mainFlowPanel.clear();
+		setGeneralInfoHeading();
 		mainFlowPanel.add(generalInformationView.getView());
 
 	}
@@ -618,6 +623,21 @@ public class CQLWorkSpaceView implements CQLWorkSpacePresenter.ViewDisplay {
 	@Override
 	public CQLCodesView getCodesView() {
 		return codesView;
+	}
+	
+	@Override
+	public void setGeneralInfoHeading(){
+		getCqlGeneralInformationView().setHeading("CQL Workspace > General Information", "generalInfoMainHPanel_HPanel");
+		Mat.focusSkipLists("MeasureComposer");
+	}
+
+	@Override
+	public HelpBlock getHelpBlock() {
+		return helpBlock;
+	}
+
+	public void setHelpBlock(HelpBlock helpBlock) {
+		this.helpBlock = helpBlock;
 	}
 	
 }

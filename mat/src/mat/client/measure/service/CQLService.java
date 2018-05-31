@@ -184,7 +184,7 @@ public interface CQLService {
 
 	SaveUpdateCQLResult modifyCQLValueSets(CQLValueSetTransferObject matValueSetTransferObject);
 
-	SaveUpdateCQLResult saveIncludeLibrayInCQLLookUp(String measureId, CQLIncludeLibrary toBeModifiedObj,
+	SaveUpdateCQLResult saveAndModifyIncludeLibrayInCQLLookUp(String measureId, CQLIncludeLibrary toBeModifiedObj,
 			CQLIncludeLibrary currentObj, List<CQLIncludeLibrary> incLibraryList);
 
 	SaveUpdateCQLResult deleteInclude(String currentMeasureId,
@@ -217,5 +217,7 @@ public interface CQLService {
 	SaveUpdateCQLResult saveCQLCodeSystem(String xml, CQLCodeSystem codeSystem);
 
 	SaveUpdateCQLResult getCQLLibraryData(String xmlString);
+
+	SaveUpdateCQLResult getCQLDataForLoad(String xmlString);
 
 }

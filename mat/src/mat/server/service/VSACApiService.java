@@ -6,7 +6,6 @@ import mat.client.umls.service.VsacApiResult;
 import mat.model.cql.CQLQualityDataSetDTO;
 
 
-// TODO: Auto-generated Javadoc
 /**
  * The Interface MeasureLibraryService.
  */
@@ -17,15 +16,10 @@ public interface VSACApiService {
 	
 	VsacApiResult getAllVersionListByOID(String oid, String sessionId);
 	
-	VsacApiResult updateVSACValueSets(String measureId, String defaultExpId, String sessionId);
-	
 	boolean validateVsacUser(String userName, String password, String sessionId);
 	
 	VsacApiResult getMostRecentValueSetByOID(String oid, String expansionId, String sessionId);
 	
-	VsacApiResult getValueSetByOIDAndVersionOrExpansionId(String oid, String version, String expansionId, String sessionId);
-	
-	VsacApiResult updateAllVSACValueSetsAtPackage(String measureId, String sessionId);
 	
 	VsacApiResult getAllExpIdentifierList(String sessionId);
 
@@ -33,4 +27,7 @@ public interface VSACApiService {
 			String sessionId);
 
 	VsacApiResult getDirectReferenceCode(String oid, String sessionId);
+	
+	VsacApiResult getVSACProgramsAndReleases();
+	
 }

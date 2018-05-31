@@ -1489,6 +1489,12 @@ padding: 2px;
     font-weight:bold;
     word-wrap: break-word;
 }
+
+.tableWrap {
+	width: 100%;
+	word-wrap: break-word;
+}
+
 .contentWithHeadingPanel {
     -moz-box-sizing:border-box;
     background-color:#F0F0F0;
@@ -2749,3 +2755,11 @@ padding: 2px;
 	float: right;
 	white-space: nowrap;
 	}
+
+.borderSpacing {
+	border-spacing: 35px 20px;
+}
+
+.marginLeftButtons {
+	margin-left: 500px;
+}	

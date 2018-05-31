@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 import mat.shared.ConstantMessages;
 
-// TODO: Auto-generated Javadoc
 /**
  * Message store to prevent duplicated messages final String fields and their
  * getters.
@@ -13,7 +12,8 @@ import mat.shared.ConstantMessages;
  */
 public class MessageDelegate {
 	
-	
+	public static final String DEFAULT_SECURITY_QUESTION_VALUE = "********";
+	public static final String EMPTY_VALUE = "";
 	
 	/** The Constant WELCOME_MESSAGE. */
 	public static final String WELCOME_MESSAGE = "You have successfully logged into the MAT.";
@@ -177,6 +177,10 @@ public class MessageDelegate {
 	/** The Constant RATIO_MEASURE_OBS_ASSOCIATION_REQUIRED. */
 	public static final String RATIO_MEASURE_OBS_ASSOCIATION_REQUIRED = "For Ratio Measures, each Measure Observation requires an association be made to the Numerator or the Denominator.";
 
+	public static final String SECURITY_QUESTION_ANSWERS_MUST_CONTAIN_AT_LEAST_THREE_CHARACTERS = "Security question answers must contain at least three characters.";
+	
+	public static final String ALL_SECURITY_QUESTIONS_MUST_CONTAIN_A_VALID_SECURITY_ANSWER = "All security questions must contain a valid security answer";
+	
 	/** The Constant ERROR_IN_SAVING_QDM_ELEMENTS. */
 	private static final String ERROR_IN_SAVING_QDM_ELEMENTS = "Valuesets with different OIDs can not have the same valueset name.";
 
@@ -196,14 +200,23 @@ public class MessageDelegate {
 	public final String  SUCCESSFUL_OID_RETREIVAL_FROM_VSAC = "Value set successfully retrieved from VSAC.";
 	
 	/** The warning pasting in applied qdm elements. */
-	public final String WARNING_PASTING_IN_APPLIED_QDM_ELEMENTS = "You are trying to paste QDM elements in this measure." +
-			"If you want to continue say Yes or No to cancel.";
+	public final String WARNING_PASTING_IN_VALUESET = "The clipboard does not contain any value sets to be pasted at this time.";
 	
 	/** The successfully pasted qdm elements in measure. */
-	public final String SUCCESSFULLY_PASTED_QDM_ELEMENTS_IN_MEASURE = "Selected QDM elements have been pasted successfully.";
+	public final String SUCCESSFULLY_VALUESET_PASTE = "Selected value sets have been pasted successfully.";
+	
+	public final String SUCCESSFULLY_PASTED_CODES_IN_MEASURE = "Selected Codes have been pasted successfully.";
+	
+	public final String CLIPBOARD_DOES_NOT_CONTAIN_CODES = "The clipboard does not contain any codes to be pasted at this time.";
+	
+	public final String VALUE_SETS_COPIED_SUCCESSFULLY = "Value Sets successfully copied.";
+	
+	public final String CODES_COPIED_SUCCESSFULLY = "Codes successfully copied.";
 	
 	/** The copy qdm select atleast one. */
-	public final String COPY_QDM_SELECT_ATLEAST_ONE  = "Please select at least one applied QDM element to copy.";
+	public final String COPY_QDM_SELECT_ATLEAST_ONE  = "Please select at least one Value Set to copy.";
+	
+	public final String COPY_CODE_SELECT_ATLEAST_ONE  = "Please select at least one Code to copy.";
 	
 	/** The successful qdm remove msg. */
 	public final String SUCCESSFUL_QDM_REMOVE_MSG  = "Selected value set has been removed successfully.";
@@ -312,7 +325,7 @@ public class MessageDelegate {
 	
 	
 	/** The Constant NO_USERS_RETURNED. */
-	public static final String NO_USERS_RETURNED = "No Users returned. Please search again.";
+	public static final String NO_USERS_RETURNED = "No users returned. Please search again.";
 	
 	/** The Constant NO_VERSION_CREATED. */
 	public static final String NO_VERSION_CREATED = "Unable to version. There are validation errors in CQL. Please correct and try again.";
@@ -322,6 +335,8 @@ public class MessageDelegate {
 	private final String ERROR_VALIDATION_COMMENT_AREA = "Comment cannot exceed 250 characters. ";
 	
 	private static final String PACKAGER_CQL_ERROR = "Your CQL file contains validation errors. Errors must be corrected before proceeding to measure packaging. Please return to the CQL Workspace to make corrections.";
+	
+	private static final String SUCCESSFULLY_SHARED = " sharing status has been successfully updated.";
 	
 	/**
 	 * Gets the measure save server error message.
@@ -353,7 +368,7 @@ public class MessageDelegate {
 	}
 	
 	/** The abv name required. */
-	private final String ABV_NAME_REQUIRED = "Abbreviated Name is required.";
+	private final String ABV_NAME_REQUIRED = "eCQM Abbreviated Title is required.";
 	
 	/** The account locked. */
 	private final String ACCOUNT_LOCKED = "Please contact MAT Support. We are unable to complete your request at this time.";
@@ -405,6 +420,9 @@ public class MessageDelegate {
 	/** The organization success message. */
 	private final String ORGANIZATION_SUCCESS_MESSAGE = "Organization successfully added.";
 	
+	/** The organization modified success message. */
+	private final String ORGANIZATION_MODIFIED_SUCCESS_MESSAGE = "Organization successfully modified.";
+	
 	/** The user success message. */
 	private final String USER_SUCCESS_MESSAGE = "User information saved successfully.";
 	
@@ -433,13 +451,15 @@ public class MessageDelegate {
 	private final String MEASURE_OBSERVATION_USER_DEFINED_FUNC_VALIDATION_MESSAGE = "Measure Observations added to a measure grouping may only contain a user-defined function that has exactly 1 argument in the argument list.";
 	
 	//MAT-8626 validations for Argument Type for Measure Observation Function Must Match Return Type of Associated Population.	
-	private final String MEASURE_OBSERVATION_RETURN_SAME_TYPE_VALIDATION_MESSAGE = "Measure Observations added to a measure grouping must have an argument that returns the same type as the definition directly applied to the Measure Population associated with the Measure Observation.";
+	//MAT-8960 Updating the validation message.
+	private final String MEASURE_OBSERVATION_RETURN_SAME_TYPE_VALIDATION_MESSAGE = "A Measure Observation must have an argument that returns the same type as the items in the list that was returned for the definition applied to the associated measure population.";
 		
 	//MAT-8627 validations for functions attached to Measure Observations.
 	private final String MEASURE_OBSERVATION_USER_DEFINED_FUNC_REURN_TYPE_VALIDATION_MESSAGE = "Measure Observations added to a measure grouping must contain a user-defined function that returns an integer, a decimal, or a quantity.";
 	
 	private final String INVALID_QDM_VERSION_IN_INCLUDES ="The current QDM version and the QDM version of one or more of the included libraries are not the same. Please navigate to the Includes section to replace or remove the conflicting libraries.";
 	
+	private final String NO_LIBRARY_TO_REPLACE ="Please select a library to replace.";
 	/**
 	 * Gets the population work space validation error.
 	 *
@@ -484,15 +504,12 @@ public class MessageDelegate {
 	/** The descriptor required. */
 	private final String DESCRIPTOR_REQUIRED = "Descriptor is required.";
 	
-	/** The doesnt follow rules. */
+	/** The doesn't follow rules. */
 	private final String DOESNT_FOLLOW_RULES = "The new password you entered does not match the following rules:";
-	
-	/** The duplicate applied qdm. */
-	private final String DUPLICATE_APPLIED_VALUE_SET = "Value set name already exists.";
 	
 	/** The duplicate codes msg. */
 	private final String DUPLICATE_CODES_MSG = "All code(s) were identified as duplicates to code(s) already in the value set and were ignored upon import.";
-	
+		
 	/** The duplicate error. */
 	private final String DUPLICATE_ERROR = "Import failed. One or more duplicate codes exist in file. Please remove then try again.";
 	
@@ -611,6 +628,8 @@ public class MessageDelegate {
 	/** The oid in use. */
 	private final String OID_IN_USE = "OID is already in use.";
 	
+	private final String OID_EXISTS = "OID already exists.";
+	
 	/** The package success. */
 	private final String PACKAGE_SUCCESS = "Measure packaged successfully. Please access the Measure Library to export the measure.";
 	
@@ -716,13 +735,7 @@ public class MessageDelegate {
 	/** The save error msg. */
 	private final String SAVE_ERROR_MSG = "You have unsaved changes that will be discarded if you continue. "
 			+ "Do you want to continue without saving?";
-	
-	// TODO is this such a smart policy?
-	// This makes denial of service attacks on accounts too easy.
-	// Perhaps make them answer a security question?
-	/** The seccond attempt failed. */
-	//private final String SECCOND_ATTEMPT_FAILED = "Failed 2nd attempt. Next attempt will lock the account.";
-	
+		
 	/** The security not answered. */
 	private final String SECURITY_NOT_ANSWERED = "Your security questions have not been answered.  You cannot continue. Please contact the Helpdesk";
 	
@@ -743,6 +756,9 @@ public class MessageDelegate {
 	
 	/** The successful modify applied qdm. */
 	private final String SUCCESSFUL_MODIFY_APPLIED_VALUESET = "Selected value set has been modified successfully.";
+	
+	/** The successful modify applied qdm. */
+	private final String SUCCESSFUL_MODIFY_APPLIED_CODE = "Selected code has been modified successfully.";
 	
 	/** The system error. */
 	private final String SYSTEM_ERROR = "Import failed due to system error. Please try again.";
@@ -1159,8 +1175,12 @@ public class MessageDelegate {
 	 * 
 	 * @return String
 	 */
-	public String getDuplicateAppliedValueSetMsg() {
+/*	public String getDuplicateAppliedValueSetMsg() {
 		return DUPLICATE_APPLIED_VALUE_SET;
+	}*/
+	
+	public String getDuplicateAppliedValueSetMsg(String name) {
+		return name + " already exists. Please add a unique suffix.";
 	}
 	
 	/**
@@ -1172,6 +1192,12 @@ public class MessageDelegate {
 		return DUPLICATE_CODES_MSG;
 	}
 	
+	
+	
+	public String getBirthdateOrDeadMessage(String codeSystemName, String codeId) {
+		return "The " + codeSystemName + " Code " + codeId  + " is a default code already provided. Multiple instances of this code are not allowed.";
+	}
+
 	/**
 	 * Gets the duplicate error message.
 	 * 
@@ -1337,8 +1363,6 @@ public class MessageDelegate {
 		return IMPORT_SUCCESS;
 	}
 	
-	// public static final String x = "";
-	// ASK STAN
 	/**
 	 * Gets the import success message.
 	 * 
@@ -1674,6 +1698,11 @@ public class MessageDelegate {
 		return OID_IN_USE;
 	}
 	
+	
+	public String getOIDExistsMessage() {
+		return OID_EXISTS;
+	}
+	
 	/**
 	 * Gets the oID required message.
 	 * 
@@ -1956,28 +1985,6 @@ public class MessageDelegate {
 	 */
 	public String getSaveErrorMsg() {
 		return SAVE_ERROR_MSG;
-	}
-	
-	/**
-	 * Gets the second attempt failed message.
-	 *
-	 * @param index the index
-	 * @return String
-	 */
-	/*	public String getSecondAttemptFailedMessage() {
-		return SECCOND_ATTEMPT_FAILED;
-	}
-	 */
-	
-	/**
-	 * Gets the security answer too short message.
-	 * 
-	 * @param index
-	 *            the index
-	 * @return String
-	 */
-	public String getSecurityAnswerTooShortMessage(int index) {
-		return "Security Answer " + index + " is too short.";
 	}
 	
 	/**
@@ -2496,6 +2503,15 @@ public class MessageDelegate {
 	}
 	
 	/**
+	 * Gets the organization success message.
+	 *
+	 * @return the oRGANIZATION_SUCCESS_MESSAGE
+	 */
+	public String getORGANIZATION_MODIFIED_SUCCESS_MESSAGE() {
+		return ORGANIZATION_MODIFIED_SUCCESS_MESSAGE;
+	}
+	
+	/**
 	 * Gets the user success message.
 	 *
 	 * @return the uSER_SUCCESS_MESSAGE
@@ -2611,8 +2627,8 @@ public class MessageDelegate {
 	 *
 	 * @return the warning pasting in applied qdm elements
 	 */
-	public String getWARNING_PASTING_IN_APPLIED_QDM_ELEMENTS() {
-		return WARNING_PASTING_IN_APPLIED_QDM_ELEMENTS;
+	public String getWARNING_PASTING_IN_VALUESET() {
+		return WARNING_PASTING_IN_VALUESET;
 	}
 	
 	/**
@@ -2629,8 +2645,8 @@ public class MessageDelegate {
 	 *
 	 * @return the successfully pasted qdm elements in measure
 	 */
-	public String getSUCCESSFULLY_PASTED_QDM_ELEMENTS_IN_MEASURE() {
-		return SUCCESSFULLY_PASTED_QDM_ELEMENTS_IN_MEASURE;
+	public String getSUCCESSFULLY_VALUESET_PASTE() {
+		return SUCCESSFULLY_VALUESET_PASTE;
 	}
 	
 	/**
@@ -2798,7 +2814,7 @@ public class MessageDelegate {
 	
 	/**
 	 * Gets the successful saved cql definition.
-	 * @param name TODO
+	 * @param name 
 	 *
 	 * @return the successful saved cql definition
 	 */
@@ -2808,7 +2824,7 @@ public class MessageDelegate {
 	
 	/**
 	 * Gets the successful saved cql parameter.
-	 * @param name TODO
+	 * @param name 
 	 *
 	 * @return the successful saved cql parameter
 	 */
@@ -2845,7 +2861,7 @@ public class MessageDelegate {
 	
 	/**
 	 * Gets the sucess definition modify.
-	 * @param name TODO
+	 * @param name 
 	 *
 	 * @return the sucess definition modify
 	 */
@@ -2855,7 +2871,7 @@ public class MessageDelegate {
 	
 	/**
 	 * Gets the sucess parameter modify.
-	 * @param name TODO
+	 * @param name 
 	 *
 	 * @return the sucess parameter modify
 	 */
@@ -2865,7 +2881,7 @@ public class MessageDelegate {
 	
 	/**
 	 * Gets the successful saved cql functions.
-	 * @param name TODO
+	 * @param name 
 	 *
 	 * @return the successful saved cql functions
 	 */
@@ -2884,7 +2900,7 @@ public class MessageDelegate {
 	
 	/**
 	 * Gets the sucess function modify.
-	 * @param name TODO
+	 * @param name 
 	 *
 	 * @return the sucess function modify
 	 */
@@ -2948,7 +2964,7 @@ public class MessageDelegate {
 	
 	/**
 	 * Gets the sucess definition modify with errors.
-	 * @param name TODO
+	 * @param name 
 	 *
 	 * @return the sucess definition modify with errors
 	 */
@@ -2958,7 +2974,7 @@ public class MessageDelegate {
 
 	/**
 	 * Gets the sucess parameter modify with errors.
-	 * @param name TODO
+	 * @param name 
 	 *
 	 * @return the sucess parameter modify with errors
 	 */
@@ -2968,7 +2984,7 @@ public class MessageDelegate {
 
 	/**
 	 * Gets the sucess function modify with errors.
-	 * @param name TODO
+	 * @param name 
 	 *
 	 * @return the sucess function modify with errors
 	 */
@@ -3504,6 +3520,14 @@ public class MessageDelegate {
 		return "You have created a new measure "+(measureName.length()>60 ? measureName.substring(0, 59) : measureName)+". Please click continue to navigate to the Measure Details page.";
 	}
 	
+	public String getEditMeasureSuccessfulMessage(String measureName) {
+		return "You have successfully edited measure "+(measureName.length()>60 ? measureName.substring(0, 59) : measureName)+". Please click continue to navigate to the Measure Library page.";
+	}
+	
+	public String getCloneMeasureSuccessfulMessage(String measureName) {
+		return "You have successfully cloned measure "+(measureName.length()>60 ? measureName.substring(0, 59) : measureName)+". Please click continue to navigate to the Measure Details page.";
+	}
+	
 	public String getCreateNewLibrarySuccessfulMessage(String libraryName){
 		return "You have created a new library "+(libraryName.length()>60 ? libraryName.substring(0, 59) : libraryName)+". Please click continue to navigate to the CQL Composer.";
 	}
@@ -3514,6 +3538,32 @@ public class MessageDelegate {
 
 	public String getINVALID_QDM_VERSION_IN_INCLUDES() {
 		return INVALID_QDM_VERSION_IN_INCLUDES;
+	}
+	
+	public String generateDuplicateErrorMessage(String name){
+		String message = (name.length()>60 ? name.substring(0, 59) : name) +" already exists. Please add a unique suffix.";
+		return  message;
+		
+	}
+
+	public String getNO_LIBRARY_TO_REPLACE() {
+		return NO_LIBRARY_TO_REPLACE;
+	}
+
+	public String getCOPY_CODE_SELECT_ATLEAST_ONE() {
+		return COPY_CODE_SELECT_ATLEAST_ONE;
+	}
+	
+	public static String getMeasureSuccessfullyShared(String measureName) {
+		return measureName + SUCCESSFULLY_SHARED;
+	}
+
+	public static String getLibrarySuccessfullyShared(String cqlLibraryName) {
+		return cqlLibraryName + SUCCESSFULLY_SHARED;
+	}
+
+	public String getSUCCESSFUL_MODIFY_APPLIED_CODE() {
+		return SUCCESSFUL_MODIFY_APPLIED_CODE;
 	}
 
 }

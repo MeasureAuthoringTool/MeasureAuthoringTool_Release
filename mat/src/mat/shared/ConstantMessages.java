@@ -327,6 +327,9 @@ public  class ConstantMessages {
 	/** The Constant LOGINID. */
 	public static final String LOGINID = "loginId";
 	
+	/** The Constant URL. */
+	public static final String URL = "url";
+	
 	/** The Constant ROOT_PATH. */
 	public static final String ROOT_PATH = "/";
 	
@@ -497,5 +500,7 @@ public  class ConstantMessages {
 	/** The Constant BIRTHDATE. */
 	public static final String BIRTHDATE_OID = "21112-8";
 	
+	public static final String BIRTHDATE_CODE_SYSTEM_OID = "2.16.840.1.113883.6.1";
 	
+	public static final String DEAD_CODE_SYSTEM_OID = "2.16.840.1.113883.6.96";
 }

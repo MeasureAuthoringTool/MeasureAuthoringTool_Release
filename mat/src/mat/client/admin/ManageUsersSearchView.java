@@ -40,8 +40,6 @@ import mat.client.shared.MatButtonCell;
 import mat.client.shared.MatContext;
 import mat.client.shared.MatSimplePager;
 import mat.client.shared.SearchWidgetBootStrap;
-/*import mat.client.shared.PrimaryButton;
-import mat.client.shared.SecondaryButton;*/
 import mat.client.shared.SpacerWidget;
 import mat.client.shared.search.SearchResults;
 import mat.client.util.CellTableUtility;
@@ -166,13 +164,13 @@ public class ManageUsersSearchView implements ManageUsersPresenter.SearchDisplay
 		cellTable.addColumn(userRoleColumn, SafeHtmlUtils.fromSafeConstant(
 				"<span title=\"User Role\">" + "User Role" + "</span>"));
 		
-		
-		Cell<String> historyButton = new MatButtonCell("Click to view history", "customClockButton");
+		//MAT-9000. Changes to Account Management -> Manage Users table to use bootstrap history column icon.
+		Cell<String> historyButton = new MatButtonCell("Click to view history", "btn btn-link", "fa fa-clock-o fa-lg" , "History");
 		Column<Result, String> historyColumn = new Column<Result, 
 				String>(historyButton) {
 			@Override
 			public String getValue(Result object) {
-				return "History";
+				return "";
 			}
 				};
 				historyColumn.setFieldUpdater(new FieldUpdater<Result, String>() {

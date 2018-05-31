@@ -4,6 +4,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.gwtbootstrap3.client.ui.Button;
+
+import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.HasClickHandlers;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.ui.SimplePanel;
+import com.google.gwt.user.client.ui.Widget;
+
 import mat.client.Mat;
 import mat.client.MatPresenter;
 import mat.client.MeasureComposerPresenter;
@@ -18,6 +29,7 @@ import mat.client.shared.InProgressMessageDisplay;
 import mat.client.shared.MatContext;
 import mat.client.shared.MeasurePackageClauseCellListWidget;
 import mat.client.shared.MessageAlert;
+import mat.client.shared.MessageDelegate;
 import mat.client.shared.ReadOnlyHelper;
 import mat.client.shared.WarningConfirmationMessageAlert;
 import mat.client.shared.WarningMessageAlert;
@@ -30,17 +42,6 @@ import mat.model.cql.CQLDefinition;
 import mat.shared.MeasurePackageClauseValidator;
 import mat.shared.SaveUpdateCQLResult;
 
-import com.google.gwt.core.client.GWT;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.event.dom.client.HasClickHandlers;
-import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.SimplePanel;
-import com.google.gwt.user.client.ui.Widget;
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class MeasurePackagePresenter.
  */
@@ -462,7 +463,6 @@ public class MeasurePackagePresenter implements MatPresenter {
 				if(MatContext.get().getMeasureLockService().checkForEditPermission()){
 					clearMessages();
 					view.getPackageGroupingWidget().getDisclosurePanelAssociations().setVisible(false);
-					System.out.println("Overview Object"+ packageOverview.getClauses().size());
 					setNewMeasurePackage();
 				}
 			}
@@ -495,82 +495,62 @@ public class MeasurePackagePresenter implements MatPresenter {
 				validateGroup();
 			}
 		});
-		view.getaddRiskAdjVariablesToMeasure().addClickHandler(
-				new ClickHandler() {
-					
-					@Override
-					public void onClick(ClickEvent event) {
-						clearMessages();
-						updateRiskAdjFromView(currentDetail);
-						((Button) view.getPackageMeasureButton()).setEnabled(true);
-						MatContext
-						.get()
-						.getPackageService()
-						.saveRiskVariables(currentDetail,
-								new AsyncCallback<Void>() {
-							@Override
-							public void onFailure(
-									final Throwable caught) {
-								Mat.hideLoadingMessage();
-								view.getPackageErrorMessageDisplay()
-								.createAlert(
-										MatContext
-										.get()
-										.getMessageDelegate()
-										.getUnableToProcessMessage());
-							}
-							
-							@Override
-							public void onSuccess(
-									final Void result) {
-								getMeasurePackageOverview(MatContext
-										.get()
-										.getCurrentMeasureId());
-								view.getRiskAdjSuccessMessageDisplay()
-								.createAlert(
-										MatContext
-										.get()
-										.getMessageDelegate()
-										.getRiskAdjSavedMessage());
-							}
-						});
-						
-					}
-				});
 		
-		view.getAddQDMElementsToMeasureButton().addClickHandler(
-				new ClickHandler() {
+		
+		view.getaddRiskAdjVariablesToMeasure().addClickHandler(new ClickHandler() {
+
+			@Override
+			public void onClick(ClickEvent event) {
+				showMeasurePackagerBusy(true);
+				clearMessages();
+				updateRiskAdjFromView(currentDetail);
+				((Button) view.getPackageMeasureButton()).setEnabled(true);
+				MatContext.get().getPackageService().saveRiskVariables(currentDetail, new AsyncCallback<Void>() {
 					@Override
-					public void onClick(final ClickEvent event) {
-						clearMessages();
-						((Button) view.getPackageMeasureButton()).setEnabled(true);
-						updateSuppDataDetailsFromView(currentDetail);
-						MatContext
-						.get()
-						.getPackageService()
-						.saveQDMData(currentDetail,
-								new AsyncCallback<Void>() {
-							@Override
-							public void onFailure(final Throwable caught) {
-								Mat.hideLoadingMessage();
-								view.getPackageErrorMessageDisplay().
-								createAlert(MatContext.get().
-										getMessageDelegate().
-										getUnableToProcessMessage());
-							}
-							
-							@Override
-							public void onSuccess(final Void result) {
-								getMeasurePackageOverview(MatContext.get()
-										.getCurrentMeasureId());
-								view.getSuppDataSuccessMessageDisplay()
-								.createAlert(MatContext.get()
-										.getMessageDelegate()
-										.getSuppDataSavedMessage());
-							}
-						});
+					public void onFailure(final Throwable caught) {
+						Mat.hideLoadingMessage();
+						view.getPackageErrorMessageDisplay()
+								.createAlert(MatContext.get().getMessageDelegate().getUnableToProcessMessage());
+						showMeasurePackagerBusy(false);
+					}
+
+					@Override
+					public void onSuccess(final Void result) {
+						getMeasurePackageOverview(MatContext.get().getCurrentMeasureId());
+						view.getRiskAdjSuccessMessageDisplay()
+								.createAlert(MatContext.get().getMessageDelegate().getRiskAdjSavedMessage());
+						showMeasurePackagerBusy(false);
 					}
 				});
+
+			}
+		});
+
+		view.getAddQDMElementsToMeasureButton().addClickHandler(new ClickHandler() {
+			@Override
+			public void onClick(final ClickEvent event) {
+				showMeasurePackagerBusy(true);
+				clearMessages();
+				((Button) view.getPackageMeasureButton()).setEnabled(true);
+				updateSuppDataDetailsFromView(currentDetail);
+				MatContext.get().getPackageService().saveQDMData(currentDetail, new AsyncCallback<Void>() {
+					@Override
+					public void onFailure(final Throwable caught) {
+						view.getPackageErrorMessageDisplay()
+								.createAlert(MatContext.get().getMessageDelegate().getUnableToProcessMessage());
+						showMeasurePackagerBusy(false);
+					}
+
+					@Override
+					public void onSuccess(final Void result) {
+						getMeasurePackageOverview(MatContext.get().getCurrentMeasureId());
+						view.getSuppDataSuccessMessageDisplay()
+								.createAlert(MatContext.get().getMessageDelegate().getSuppDataSavedMessage());
+						showMeasurePackagerBusy(false);
+					}
+				});
+			}
+		});
 		
 		view.getPackageGroupingWidget().getSaveGrouping().addClickHandler(new ClickHandler() {
 			@Override
@@ -578,17 +558,19 @@ public class MeasurePackagePresenter implements MatPresenter {
 				clearMessages();
 				((Button) view.getPackageMeasureButton()).setEnabled(true);
 				view.getPackageGroupingWidget().getDisclosurePanelAssociations().setVisible(false);
-				
 				final MeasurePackageDetail tempMeasurePackageDetails = new MeasurePackageDetail(currentDetail);
 				updateDetailsFromView(tempMeasurePackageDetails);
-				
+			
 				if (isValid()) {
+					showMeasurePackagerBusy(true);
 					MatContext.get().getPackageService()
 					.save(tempMeasurePackageDetails, new AsyncCallback<MeasurePackageSaveResult>() {
 						@Override
 						public void onFailure(final Throwable caught) {
 							Window.alert(MatContext.get().getMessageDelegate().getGenericErrorMessage());
+							showMeasurePackagerBusy(false);
 						}
+						
 						@Override
 						public void onSuccess(final MeasurePackageSaveResult result) {
 							if (result.isSuccess()) {
@@ -599,6 +581,9 @@ public class MeasurePackagePresenter implements MatPresenter {
 										MatContext.get().getMessageDelegate().
 										getGroupingSavedMessage());
 								
+								showMeasurePackagerBusy(false);
+
+								
 							} else {
 								if (result.getMessages().size() > 0) {
 									view.getPackageErrorMessageDisplay().
@@ -607,8 +592,11 @@ public class MeasurePackagePresenter implements MatPresenter {
 									view.getPackageErrorMessageDisplay().clearAlert();
 								}
 							}
+							
 						}
 					});
+					
+					showMeasurePackagerBusy(false);
 				}
 			}
 		});
@@ -726,7 +714,7 @@ public class MeasurePackagePresenter implements MatPresenter {
 	 */
 	@Override
 	public void beforeDisplay() {
-		Mat.hideLoadingMessage();
+		showMeasurePackagerBusy(true);
 		clearMessages();
 		//panel.clear();
 		if ((MatContext.get().getCurrentMeasureId() != null)
@@ -738,6 +726,7 @@ public class MeasurePackagePresenter implements MatPresenter {
 						@Override
 						public void onFailure(Throwable caught) {
 							Window.alert(MatContext.get().getMessageDelegate().getGenericErrorMessage());
+							showMeasurePackagerBusy(false);
 						}
 
 						@Override
@@ -753,10 +742,13 @@ public class MeasurePackagePresenter implements MatPresenter {
 								ErrorMessageAlert errorMessageAlert = new ErrorMessageAlert();
 								panel.add(errorMessageAlert);
 																
-								errorMessageAlert.createAlert(MatContext.get().getMessageDelegate().getPACKAGER_CQL_ERROR());
+								MatContext.get().getMessageDelegate();
+								errorMessageAlert.createAlert(MessageDelegate.getPACKAGER_CQL_ERROR());
 																								
 								view.getPackageGroupingWidget().getDisclosurePanelAssociations().setVisible(false);
-							}							
+							}		
+							
+							showMeasurePackagerBusy(false);
 						}
 				
 			});
@@ -765,6 +757,7 @@ public class MeasurePackagePresenter implements MatPresenter {
 		} else {
 			displayEmpty();
 		}
+		
 		MeasureComposerPresenter.setSubSkipEmbeddedLink("MeasurePackagerContentFlowPanel");
 		Mat.focusSkipLists("MeasureComposer");
 	}
@@ -845,19 +838,6 @@ public class MeasurePackagePresenter implements MatPresenter {
 	}
 	
 	/**
-	 * Show error message.
-	 *
-	 * @param errorMessageDisplay the error message display
-	 *//*
-	private void showErrorMessage(ErrorMessageDisplay errorMessageDisplay) {
-		String msg = MatContext.get().getMessageDelegate().getSaveErrorMsg();
-		List<String> btn = new ArrayList<String>();
-		btn.add("Yes");
-		btn.add("No");
-		errorMessageDisplay.setMessageWithButtons(msg, btn);
-	}*/
-	
-	/**
 	 * Handle click events on unsaved error msg.
 	 *
 	 * @param detail the detail
@@ -886,34 +866,10 @@ public class MeasurePackagePresenter implements MatPresenter {
 
 			@Override
 			public void onClick(ClickEvent arg0) {
-				// TODO Auto-generated method stub
 				saveErrorMessage.clearAlert();
 				view.getPackageGroupingWidget().getSaveGrouping().setFocus(true);
 			}
 		});
-		
-		/*ClickHandler clickHandler = new ClickHandler() {
-			@Override
-			public void onClick(ClickEvent event) {
-				SecondaryButton button = (SecondaryButton) event.getSource();
-				// If Yes - do not navigate, set focus to the Save button on the Page and clear cell tree
-				// // Else -do not navigate, set focus to the Save button on the Page
-				if ("Yes".equals(button.getText())) {
-					saveErrorMessage.clear();
-					currentDetail = new MeasurePackageDetail();
-					currentDetail = detail;
-					clearMessages();
-					setMeasurePackageDetailsOnView();
-					
-				} else if ("No".equals(button.getText())) {
-					saveErrorMessage.clear();
-					view.getPackageGroupingWidget().getSaveGrouping().setFocus(true);
-				}
-			}
-		};
-		for (SecondaryButton secondaryButton : btns) {
-			secondaryButton.addClickHandler(clickHandler);
-		}*/
 	}
 	
 	/**
@@ -1301,33 +1257,6 @@ public class MeasurePackagePresenter implements MatPresenter {
 	}
 	
 	/**
-	 * Service call to VSAC to update Measure Xml before invoking simple xml and value set sheet generation.
-	 *
-	 * @param measureId - String.
-	 * @param updateVsacResult the update vsac result
-	 */ //commented out for 5.1 release
-	/*private void updateValueSetsBeforePackaging(final String measureId) {
-		vsacapiServiceAsync.updateAllVSACValueSetsAtPackage(measureId,
-				new AsyncCallback<VsacApiResult>() {
-			
-			@Override
-			public void onFailure(final Throwable caught) {
-				Mat.hideLoadingMessage();
-				Window.alert(MatContext.get().getMessageDelegate().getGenericErrorMessage());
-				((Button) view.getPackageMeasureButton()).setEnabled(true);
-				((Button) view.getPackageMeasureAndExportButton()).setEnabled(true);
-				view.getInProgressMessageDisplay().clear();
-			}
-			
-			@Override
-			public void onSuccess(final VsacApiResult result) {
-				validateMeasureAndExport(measureId,
-						result);
-			}
-		});
-	}*/
-	
-	/**
 	 * Service Call to generate Simple Xml and value set sheet.
 	 * @param measureId - String.
 	 * @param updateVsacResult - VsacApiResult.
@@ -1434,9 +1363,39 @@ public class MeasurePackagePresenter implements MatPresenter {
 						view.getInProgressMessageDisplay().clear();
 					}
 				}
+				
+				//record Package created Audit event
+				if (result.isValid()) {	
+					MatContext.get().getAuditService().recordMeasureEvent(measureId, "Measure Package Created",
+							"", false, new AsyncCallback<Boolean>() {
+	
+								@Override
+								public void onFailure(Throwable caught) {
+	
+								}
+	
+								@Override
+								public void onSuccess(Boolean result) {
+	
+								}
+							});
+				}
 			}
 		});
 	}
+	
+	private void showMeasurePackagerBusy(boolean isBusy) {
+		if(isBusy) {
+			Mat.showLoadingMessage();
+		}
+		
+		else {
+			Mat.hideLoadingMessage(); 
+		}
+		
+		view.setViewIsEditable(!isBusy, null);
+	}
+	
 	
 	/**
 	 * Save export.
@@ -1446,6 +1405,37 @@ public class MeasurePackagePresenter implements MatPresenter {
 		String url = GWT.getModuleBaseURL() + "export?id=" + model.getId()
 				+ "&format=zip";
 		Window.Location.replace(url + "&type=save");
+	}
+
+	/**
+	 * Checks if is measure package details same.
+	 *
+	 * @param measurePackagePresenter the measure package presenter
+	 * @return true, if is measure package details same
+	 */
+	public boolean isMeasurePackageDetailsSame(){
+		if(getCurrentDetail() == null){
+			return true;
+		}
+		
+		MeasurePackageDetail pageData = new MeasurePackageDetail();
+		updateDetailsFromView(pageData);
+		updateSuppDataDetailsFromView(pageData);
+		updateRiskAdjFromView(pageData);
+		MeasurePackageDetail dbData = getCurrentDetail();
+		pageData.setToComparePackageClauses(pageData.getPackageClauses());
+		dbData.setToComparePackageClauses(getDbPackageClauses());
+		pageData.setToCompareSuppDataElements(pageData.getSuppDataElements());
+		dbData.setToCompareSuppDataElements(getDbSuppDataElements());
+		pageData.setToCompareCqlSuppDataElements(pageData.getCqlSuppDataElements());
+		dbData.setToCompareCqlSuppDataElements(getDbCQLSuppDataElements());
+		pageData.setToCompareRiskAdjVars(pageData.getRiskAdjVars());
+		dbData.setToCompareRiskAdjVars(getDbRiskAdjVars());
+		return pageData.equals(dbData);
+	}
+
+	public boolean isMeasurePackageValid() {
+		return isMeasurePackageDetailsSame();
 	}
 	
 }

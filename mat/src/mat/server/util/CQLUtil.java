@@ -1,7 +1,5 @@
 package mat.server.util;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -9,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -18,11 +17,15 @@ import javax.xml.xpath.XPathFactory;
 
 import mat.dao.clause.CQLLibraryDAO;
 import mat.model.clause.CQLLibrary;
+import mat.model.cql.CQLDefinition;
+import mat.model.cql.CQLFunctions;
 import mat.model.cql.CQLIncludeLibrary;
 import mat.model.cql.CQLModel;
+import mat.model.cql.CQLParameter;
 import mat.server.CQLUtilityClass;
-import mat.server.cqlparser.CQLFilter;
 import mat.shared.CQLErrors;
+import mat.shared.CQLExpressionObject;
+import mat.shared.CQLExpressionOprandObject;
 import mat.shared.CQLIdentifierObject;
 import mat.shared.CQLObject;
 import mat.shared.GetUsedCQLArtifactsResult;
@@ -33,12 +36,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cqframework.cql.cql2elm.CQLtoELM;
 import org.cqframework.cql.cql2elm.CqlTranslatorException;
+import org.cqframework.cql.cql2elm.MATCQLFilter;
+import org.hl7.elm.r1.FunctionDef;
+import org.hl7.elm.r1.OperandDef;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class CQLUtil.
  */
@@ -144,11 +149,10 @@ public class CQLUtil {
 	 * @return true if it valid, false if it is not.
 	 */
 	private static boolean isValidDataTypeCombination(String name, List<String> dataTypeList) {
-		boolean isValid = true;
 
 		// check if the birthdate valueset is being used with something other
 		// than then Patient Characteristic Birthdate datatype
-		if (name.equalsIgnoreCase(BIRTHDATE)) {
+		if (name.equals(BIRTHDATE)) {
 			for (String dataType : dataTypeList) {
 				if (!dataType.equalsIgnoreCase(PATIENT_CHARACTERISTIC_BIRTHDATE)) {
 					return false;
@@ -158,7 +162,7 @@ public class CQLUtil {
 
 		// check if the dead valueset is being used with something other than
 		// the Patient Characteristic Expired datatype
-		else if (name.equalsIgnoreCase(DEAD)) {
+		else if (name.equals(DEAD)) {
 			for (String dataType : dataTypeList) {
 				if (!dataType.equalsIgnoreCase(PATIENT_CHARACTERSTICS_EXPIRED)) {
 					return false;
@@ -279,7 +283,7 @@ public class CQLUtil {
 
 		String nameXPathString = "";
 		for (String codeName : cqlCodesIdentifierList) {            	  
-			nameXPathString += "[@codeName !=\"" + codeName + "\"]";
+			nameXPathString += "[@displayName !=\"" + codeName + "\"]";
 		}
 
 		String xPathForUnusedCodes = "//cqlLookUp//code" + nameXPathString;
@@ -533,25 +537,15 @@ public class CQLUtil {
 
 			cqlErrors.setEndErrorInLine(cte.getLocator().getEndLine());
 			cqlErrors.setEndErrorAtOffset(cte.getLocator().getEndChar());
-
+			System.err.println(cte.getMessage());
 			cqlErrors.setErrorMessage(cte.getMessage());
 			errors.add(cqlErrors);
 		}
 
 		parsedCQL.setCqlErrors(errors);
 	}
-
-	/**
-	 * Filter CQL artifacts.
-	 *
-	 * @param cqlModel the cql model
-	 * @param parsedCQL the parsed CQL
-	 * @param folder the folder
-	 * @param cqlToElm the cql to elm
-	 * @param exprList the expr list
-	 */
-
-	public static void filterCQLArtifacts(CQLModel cqlModel, SaveUpdateCQLResult parsedCQL, CQLtoELM cqlToElm, List<String> exprList) {
+	
+	/*public static void filterCQLArtifacts(CQLModel cqlModel, SaveUpdateCQLResult parsedCQL, CQLtoELM cqlToElm, List<String> exprList) {
 		if (cqlToElm != null) {
 
 			CQLFilter cqlFilter = new CQLFilter(cqlToElm.getLibrary(), exprList, cqlToElm.getLibraryHolderMap(), cqlModel);
@@ -568,6 +562,7 @@ public class CQLUtil {
 			usedArtifacts.setValueSetDataTypeMap(cqlFilter.getValueSetDataTypeMap());
 			usedArtifacts.setCodeDataTypeMap(cqlFilter.getCodeDataTypeMap());
 			usedArtifacts.setIncludeLibMap(cqlFilter.getUsedLibrariesMap());
+			
 			parsedCQL.setUsedCQLArtifacts(usedArtifacts);
 			parsedCQL.setCqlObject(cqlObject);
 
@@ -575,24 +570,109 @@ public class CQLUtil {
 			usedArtifacts.setDefinitionToFunctionMap(cqlFilter.getDefinitionToFunctionMap());
 			usedArtifacts.setFunctionToDefinitionMap(cqlFilter.getFunctionToDefinitionMap());
 			usedArtifacts.setFunctionToFunctionMap(cqlFilter.getFunctionToFunctionMap());
+			
+			System.out.println(usedArtifacts.toString());
 		}
-	}
+	}*/
 
 	/**
-	 * Creates the CQL temp file.
+	 * Filter CQL artifacts.
 	 *
-	 * @param cqlFileString the cql file string
-	 * @param name the name
-	 * @param parentFolder the parent folder
-	 * @return the file
-	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @param cqlModel the cql model
+	 * @param parsedCQL the parsed CQL
+	 * @param folder the folder
+	 * @param cqlToElm the cql to elm
+	 * @param exprList the expr list
 	 */
-	private static File createCQLTempFile(String cqlFileString, String name, File parentFolder) throws IOException {
-		File cqlFile = new File(parentFolder, name + ".cql");
-		FileWriter fw = new FileWriter(cqlFile);
-		fw.write(cqlFileString);
-		fw.close();
-		return cqlFile;
+
+	public static void filterCQLArtifacts(CQLModel cqlModel, SaveUpdateCQLResult parsedCQL, CQLtoELM cqlToElm, List<String> exprList) {
+		CQLObject cqlObject = new CQLObject(); 
+		if (cqlToElm != null && cqlToElm.getErrors().isEmpty()) {
+			String parentLibraryString = cqlToElm.getParentCQLLibraryString();
+						
+			MATCQLFilter cqlFilter = new MATCQLFilter(parentLibraryString, cqlToElm.getCqlLibraryMapping() , exprList, cqlToElm.getTranslator(), cqlToElm.getTranslators());
+						
+			try {
+				cqlFilter.filter();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			for(CQLDefinition definition : cqlModel.getDefinitionList()) {
+				String definitionName = definition.getDefinitionName(); 
+				CQLExpressionObject expression = new CQLExpressionObject("Definition", definitionName);
+				expression.setReturnType(cqlToElm.getExpression(definitionName).getResultType().toString());		
+				expression.setCodeDataTypeMap(mapSetValueToListValue(cqlFilter.getExpressionNameToCodeDataTypeMap().get(definitionName)));
+				expression.setValueSetDataTypeMap(mapSetValueToListValue(cqlFilter.getExpressionNameToValuesetDataTypeMap().get(definitionName)));
+				System.out.println("Defn name:"+definitionName);
+				System.out.println(expression.getValueSetDataTypeMap());
+				System.out.println();
+				cqlObject.getCqlDefinitionObjectList().add(expression);
+			}
+
+			for(CQLFunctions function : cqlModel.getCqlFunctions()) {
+				String functionName = function.getFunctionName(); 
+				FunctionDef functionDef = (FunctionDef) cqlToElm.getExpression(functionName);
+
+				CQLExpressionObject expression = new CQLExpressionObject("Function", functionName);
+				expression.setReturnType(cqlToElm.getExpressionReturnType(functionName));		
+				expression.setCodeDataTypeMap(mapSetValueToListValue(cqlFilter.getExpressionNameToCodeDataTypeMap().get(functionName)));
+				expression.setValueSetDataTypeMap(mapSetValueToListValue(cqlFilter.getExpressionNameToValuesetDataTypeMap().get(functionName)));
+
+				for (OperandDef expressionDef : functionDef.getOperand()) {
+					CQLExpressionOprandObject cqlExpressionOprandObject = new CQLExpressionOprandObject();
+					cqlExpressionOprandObject.setName(expressionDef.getName());
+					cqlExpressionOprandObject.setReturnType(expressionDef.getResultType().toString());
+					expression.getOprandList().add(cqlExpressionOprandObject);
+				}
+
+				cqlObject.getCqlFunctionObjectList().add(expression);
+			}
+
+
+			for(CQLParameter parameter : cqlModel.getCqlParameters()) {
+				String parameterName = parameter.getParameterName(); 
+				CQLExpressionObject expression = new CQLExpressionObject("Parameter", parameterName);
+				cqlObject.getCqlParameterObjectList().add(expression);
+			}
+
+			GetUsedCQLArtifactsResult usedArtifacts = new GetUsedCQLArtifactsResult();
+			usedArtifacts.setUsedCQLcodes(cqlFilter.getUsedCodes());
+			usedArtifacts.setUsedCQLcodeSystems(cqlFilter.getUsedCodeSystems());
+			usedArtifacts.setUsedCQLDefinitions(cqlFilter.getUsedDefinitions());
+			usedArtifacts.setUsedCQLFunctions(cqlFilter.getUsedFunctions());
+			usedArtifacts.setUsedCQLParameters(cqlFilter.getUsedParameters());
+			usedArtifacts.setUsedCQLValueSets(cqlFilter.getUsedValuesets());
+			usedArtifacts.setUsedCQLLibraries(cqlFilter.getUsedLibraries());
+			usedArtifacts.setValueSetDataTypeMap(cqlFilter.getValuesetDataTypeMap());
+			usedArtifacts.setCodeDataTypeMap(cqlFilter.getCodeDataTypeMap());
+			usedArtifacts.setExpressionNameToValuesetDataTypeMap(cqlFilter.getExpressionNameToValuesetDataTypeMap());
+			usedArtifacts.setExpressionNameToCodeDataTypeMap(cqlFilter.getExpressionNameToCodeDataTypeMap());
+
+			Map<String, CQLIncludeLibrary> includedLibraries = new HashMap<>();			
+			
+			for(String library : cqlFilter.getUsedLibraries()) {
+				includedLibraries.put(library, cqlModel.getIncludedCQLLibXMLMap().get(library).getCqlLibrary());
+			}
+			
+			usedArtifacts.setIncludeLibMap(includedLibraries);
+			parsedCQL.setUsedCQLArtifacts(usedArtifacts);
+		}
+		parsedCQL.setCqlObject(cqlObject);
+	}
+	
+	public static Map<String, List<String>> mapSetValueToListValue(Map<String, Set<String>> mapWithSet) {
+		Map<String, List<String>> mapWithList = new HashMap<>(); 
+		if(mapWithSet == null) {
+			return mapWithList; 
+		}
+		
+		for(Entry<String, Set<String>> entry : mapWithSet.entrySet()) {
+            List<String> newList = new ArrayList<>(entry.getValue());
+            mapWithList.put(entry.getKey(), newList);
+		}  
+
+		return mapWithList; 
 	}
 
 	/**
@@ -603,7 +683,7 @@ public class CQLUtil {
 	 *
 	 * @param cqlModel the new included CQL expressions
 	 */
-	private static void setIncludedCQLExpressions(CQLModel cqlModel) {
+	public static void setIncludedCQLExpressions(CQLModel cqlModel) {
 
 		List<CQLIncludeLibrary> cqlIncludeLibraries = cqlModel.getCqlIncludeLibrarys();
 		if (cqlIncludeLibraries == null) {
@@ -622,15 +702,10 @@ public class CQLUtil {
 			addNamesToList(alias, xmlProcessor, "//cqlLookUp/functions/function/@name", cqlModel.getIncludedFuncNames());
 			addNamesToList(alias, xmlProcessor, "//cqlLookUp/valuesets/valueset[@suppDataElement=\"false\"]/@name", cqlModel.getIncludedValueSetNames());
 			addNamesToList(alias, xmlProcessor, "//cqlLookUp/parameters/parameter[@readOnly=\"false\"]/@name", cqlModel.getIncludedParamNames());
-			addNamesToList(alias, xmlProcessor, "//cqlLookUp/codes/code[@readOnly=\"false\"]/@codeName", cqlModel.getIncludedCodeNames());
+			addNamesToList(alias, xmlProcessor, "//cqlLookUp/codes/code[@readOnly=\"false\"]/@displayName", cqlModel.getIncludedCodeNames());
 
 		}
 
-		/*System.out.println("Included Definition names:" + cqlModel.getIncludedDefNames());
-              System.out.println("Included Function names:" + cqlModel.getIncludedFuncNames());
-              System.out.println("Included Value-Set names:" + cqlModel.getIncludedValueSetNames());
-              System.out.println("Included Parameter names:" + cqlModel.getIncludedParamNames());
-              System.out.println("Included Code names:" + cqlModel.getIncludedCodeNames());*/
 	}
 
 	/**
@@ -656,7 +731,6 @@ public class CQLUtil {
 				}			}                    
 
 		} catch (XPathExpressionException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -905,7 +979,7 @@ public class CQLUtil {
 	}
 
 	/**
-	 * Adds the un used grand childrento simple XML.
+	 * Adds the unused grand children to simple XML.
 	 *
 	 * @param originalDoc the original doc
 	 * @param result the result
@@ -926,7 +1000,6 @@ public class CQLUtil {
 			List<CQLIncludeLibrary> cqlChildLibs = cqlModel.getCqlIncludeLibrarys();
 
 			for(CQLIncludeLibrary library:cqlChildLibs){
-				String libId = library.getCqlLibraryId();
 				String libAlias = library.getAliasName();
 				String libName = library.getCqlLibraryName();
 				String libVersion = library.getVersion();                          
@@ -945,7 +1018,7 @@ public class CQLUtil {
 
 						for(CQLIncludeLibrary grandChildLib : cqlGrandChildLibs){
 
-							boolean gcFound = childs.contains(grandChildLib);// foundCQLLib(childs, grandChildLib);
+							boolean gcFound = childs.contains(grandChildLib);
 
 							if(!gcFound){
 								Element libNode = originalDoc.createElement("lib");

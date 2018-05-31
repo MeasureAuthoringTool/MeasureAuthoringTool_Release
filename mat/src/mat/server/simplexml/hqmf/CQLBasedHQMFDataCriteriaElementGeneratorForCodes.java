@@ -1,6 +1,9 @@
 
 package mat.server.simplexml.hqmf;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.xml.xpath.XPathExpressionException;
 
 import org.apache.commons.lang.StringUtils;
@@ -11,12 +14,11 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import mat.client.shared.MatContext;
 import mat.model.clause.MeasureExport;
-import mat.server.util.MATPropertiesService;
 import mat.server.util.XmlProcessor;
 import mat.shared.UUIDUtilClient;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class CQLBasedHQMFDataCriteriaElementGenerator.
  */
@@ -38,9 +40,8 @@ public class CQLBasedHQMFDataCriteriaElementGeneratorForCodes implements Generat
 	 */
 	@Override
 	public String generate(MeasureExport me) throws Exception {
-
 		String dataCriteria = "";
-		 dataCriteria = getHQMFXmlString(me);
+		dataCriteria = getHQMFXmlString(me);
 		return dataCriteria;
 	}
 
@@ -55,16 +56,8 @@ public class CQLBasedHQMFDataCriteriaElementGeneratorForCodes implements Generat
 	private String getHQMFXmlString(MeasureExport me) {
 		getExtensionValueBasedOnVersion(me);
 		XmlProcessor dataCriteriaXMLProcessor = me.getHQMFXmlProcessor();
-		//me.setHQMFXmlProcessor(dataCriteriaXMLProcessor);
-		
-		/*String simpleXMLStr = me.getSimpleXML();
-		XmlProcessor simpleXmlprocessor = new XmlProcessor(simpleXMLStr);
-		me.setSimpleXMLProcessor(simpleXmlprocessor);*/
-		
-	//	prepHQMF(me);
 		
 		createDataCriteriaForQDMELements(me, dataCriteriaXMLProcessor, me.getSimpleXMLProcessor());
-	//	addDataCriteriaComment(dataCriteriaXMLProcessor);
 		return dataCriteriaXMLProcessor.transform(dataCriteriaXMLProcessor.getOriginalDoc(), true);
 	}
 	
@@ -74,7 +67,7 @@ public class CQLBasedHQMFDataCriteriaElementGeneratorForCodes implements Generat
 			String releaseVersion = me.getMeasure().getReleaseVersion();
 			if (releaseVersion.equalsIgnoreCase("v4")) {
 				return VERSION_4_1_2_ID;
-			} else if (releaseVersion.equalsIgnoreCase(MATPropertiesService.get().getCurrentReleaseVersion())) {
+			} else if (MatContext.get().isCQLMeasure(releaseVersion)) {
 				return VERSION_5_0_ID;
 			} else {
 				return VERSION_4_3_ID;
@@ -197,23 +190,14 @@ public class CQLBasedHQMFDataCriteriaElementGeneratorForCodes implements Generat
 		String statusValue = templateNode.getAttributes().getNamedItem("status").getNodeValue();
 		String rootValue = qdmNode.getAttributes().getNamedItem(ID).getNodeValue();
 		String dataType = qdmNode.getAttributes().getNamedItem("datatype").getNodeValue();
-		String qdmOidValue = qdmNode.getAttributes().getNamedItem(OID).getNodeValue();
 
-		// String isCodeType =
-		// qdmNode.getAttributes().getNamedItem("code").getNodeValue();
-
-		//String qdmName = qdmNode.getAttributes().getNamedItem(NAME).getNodeValue();
 		Node actionNegInd = templateNode.getAttributes().getNamedItem("actionNegationInd");
-	//	String entryCommentText = dataType;
 		String codeOID = qdmNode.getAttributes().getNamedItem("oid").getNodeValue();
 		// Stan wants to generate unique id ( extension and root combination
 		// which is different from Value set).
 		String qdmLocalVariableName = codeOID + "_" + dataType;
-		// String localVariableName = qdmLocalVariableName;
-		
 
 		qdmLocalVariableName = StringUtils.deleteWhitespace(qdmLocalVariableName);
-		// localVariableName = StringUtils.deleteWhitespace(localVariableName);
 
 		Element dataCriteriaSectionElem = (Element) dataCriteriaXMLProcessor.getOriginalDoc()
 				.getElementsByTagName("dataCriteriaSection").item(0);
@@ -296,24 +280,30 @@ public class CQLBasedHQMFDataCriteriaElementGeneratorForCodes implements Generat
 				valueElem.setAttribute("code", codeOID);
 				valueElem.setAttribute("codeSystem", codeSystemOID);
 				valueElem.setAttribute("codeSystemName", codeSystemName);
-				valueElem.setAttribute("codeSystemVersion", codeSystemVersion);
-
+				
+				setCodeSystemVersion(qdmNode, valueElem, codeSystemVersion);
 			}
 
 			dataCriteriaElem.appendChild(valueElem);
-
-			
-			/*appendEntryElem = true;*/
 		}
 		if (templateNode.getAttributes().getNamedItem("includeSubTemplate") != null) {
 			appendSubTemplateNode(templateNode, dataCriteriaXMLProcessor, templateXMLProcessor, dataCriteriaElem,
 					qdmNode);
 		}
-		/*if (appendEntryElem) {*/
-			dataCriteriaSectionElem.appendChild(entryElem);
 
-		//}
+		dataCriteriaSectionElem.appendChild(entryElem);
+	}
 
+
+	private void setCodeSystemVersion(Node qdmNode, Element valueElem, String codeSystemVersion) {
+		Node isCodeSystemVersionIncludedNode = qdmNode.getAttributes().getNamedItem("isCodeSystemVersionIncluded");
+		boolean isCodeSystemVersionIncluded = true;
+		if(isCodeSystemVersionIncludedNode != null) {
+			isCodeSystemVersionIncluded = Boolean.parseBoolean(isCodeSystemVersionIncludedNode.getNodeValue());
+		} 
+		if(isCodeSystemVersionIncluded) {
+			valueElem.setAttribute("codeSystemVersion", codeSystemVersion);
+		}
 	}
 
 	/**
@@ -357,9 +347,8 @@ public class CQLBasedHQMFDataCriteriaElementGeneratorForCodes implements Generat
 			codeElem.setAttribute("code", codeOID);
 			codeElem.setAttribute("codeSystem", codeSystemOID);
 			codeElem.setAttribute("codeSystemName", codeSystemName);
-			codeElem.setAttribute("codeSystemVersion", codeSystemVersion);
+			setCodeSystemVersion(qdmNode, codeElem, codeSystemVersion);
 
-			// }
 			dataCriteriaElem.appendChild(codeElem);
 
 		} else if (isPatientChar) {
@@ -373,8 +362,7 @@ public class CQLBasedHQMFDataCriteriaElementGeneratorForCodes implements Generat
 			codeElem.setAttribute("code", codeOID);
 			codeElem.setAttribute("codeSystem", codeSystemOID);
 			codeElem.setAttribute("codeSystemName", codeSystemName);
-			codeElem.setAttribute("codeSystemVersion", codeSystemVersion);
-			
+			setCodeSystemVersion(qdmNode, codeElem, codeSystemVersion);
 			dataCriteriaElem.appendChild(codeElem);
 		} else if (isIntervention) {
 			Element codeElem = dataCriteriaXMLProcessor.getOriginalDoc().createElement(CODE);
@@ -386,8 +374,7 @@ public class CQLBasedHQMFDataCriteriaElementGeneratorForCodes implements Generat
 			codeElem.setAttribute("code", codeOID);
 			codeElem.setAttribute("codeSystem", codeSystemOID);
 			codeElem.setAttribute("codeSystemName", codeSystemName);
-			codeElem.setAttribute("codeSystemVersion", codeSystemVersion);
-
+			setCodeSystemVersion(qdmNode, codeElem, codeSystemVersion);
 			dataCriteriaElem.appendChild(codeElem);
 		} else {
 			Element codeElement = createCodeForDatatype(templateNode, dataCriteriaXMLProcessor);
@@ -419,72 +406,101 @@ public class CQLBasedHQMFDataCriteriaElementGeneratorForCodes implements Generat
 		String subTemplateName = templateNode.getAttributes().getNamedItem("includeSubTemplate").getNodeValue();
 		Node subTemplateNode = templateXMLProcessor.findNode(templateXMLProcessor.getOriginalDoc(),
 				"/templates/subtemplates/" + subTemplateName);
-		NodeList subTemplateNodeChilds = templateXMLProcessor.findNodeList(templateXMLProcessor.getOriginalDoc(),
-				"/templates/subtemplates/" + subTemplateName + "/child::node()");
-		String qdmOidValue = qdmNode.getAttributes().getNamedItem(OID).getNodeValue();
 		String qdmName = qdmNode.getAttributes().getNamedItem(NAME).getNodeValue();
 		String qdmNameDataType = qdmNode.getAttributes().getNamedItem("datatype").getNodeValue();
 		String qdmTaxonomy = qdmNode.getAttributes().getNamedItem(TAXONOMY).getNodeValue();
+		NodeList subTemplateNodeChilds = templateXMLProcessor.findNodeList(templateXMLProcessor.getOriginalDoc(), "/templates/subtemplates/"
+				+ subTemplateName + "/child::node()");
+		
 		if (subTemplateNode.getAttributes().getNamedItem("changeAttribute") != null) {
 			String[] attributeToBeModified = subTemplateNode.getAttributes().getNamedItem("changeAttribute")
 					.getNodeValue().split(",");
+			
+			
+			
 			for (String changeAttribute : attributeToBeModified) {
 				NodeList attributedToBeChangedInNode = null;
 				attributedToBeChangedInNode = templateXMLProcessor.findNodeList(templateXMLProcessor.getOriginalDoc(),
 						"/templates/subtemplates/" + subTemplateName + "//" + changeAttribute);
+											
 				if (changeAttribute.equalsIgnoreCase(ID)) {
 					String rootId = qdmNode.getAttributes().getNamedItem("uuid").getNodeValue();
-					attributedToBeChangedInNode.item(0).getAttributes().getNamedItem("root").setNodeValue(rootId);
-					attributedToBeChangedInNode.item(0).getAttributes().getNamedItem("extension")
+					
+					Node clonedNode = attributedToBeChangedInNode.item(0).cloneNode(true);
+					clonedNode.getAttributes().getNamedItem("root").setNodeValue(rootId);
+					clonedNode.getAttributes().getNamedItem("extension")
 							.setNodeValue(UUIDUtilClient.uuid());
+					
+					replaceParentNodeWithClonedNode(attributedToBeChangedInNode.item(0), clonedNode);
 				} else if (changeAttribute.equalsIgnoreCase(CODE)) {
 						String codeOID = qdmNode.getAttributes().getNamedItem("oid").getNodeValue();
 						String codeSystemOID = qdmNode.getAttributes().getNamedItem("codeSystemOID").getNodeValue();
 						String codeSystemName = qdmNode.getAttributes().getNamedItem("taxonomy").getNodeValue();
 						String codeSystemVersion = qdmNode.getAttributes().getNamedItem("codeSystemVersion")
 								.getNodeValue();
-
-						if (attributedToBeChangedInNode.item(0).getAttributes()
+						Node isCodeSystemVersionIncludedNode = qdmNode.getAttributes().getNamedItem("isCodeSystemVersionIncluded");
+						boolean isCodeSystemVersionIncluded = true;
+						if(isCodeSystemVersionIncludedNode != null) {
+							isCodeSystemVersionIncluded = Boolean.parseBoolean(isCodeSystemVersionIncludedNode.getNodeValue());
+						}
+						
+						Node clonedNode = attributedToBeChangedInNode.item(0).cloneNode(true);
+				
+						if (clonedNode.getAttributes()
 								.getNamedItem("valueSetVersion") != null) {
-							attributedToBeChangedInNode.item(0).getAttributes().removeNamedItem("valueSetVersion");
+							clonedNode.getAttributes().removeNamedItem("valueSetVersion");
 						}
 
-						if (attributedToBeChangedInNode.item(0).getAttributes().getNamedItem("valueSet") != null) {
-							attributedToBeChangedInNode.item(0).getAttributes().removeNamedItem("valueSet");
+						if (clonedNode.getAttributes().getNamedItem("valueSet") != null) {
+							clonedNode.getAttributes().removeNamedItem("valueSet");
 						}
 
-						Attr attrNodeCode = attributedToBeChangedInNode.item(0).getOwnerDocument()
+						Attr attrNodeCode = clonedNode.getOwnerDocument()
 								.createAttribute("code");
 						attrNodeCode.setNodeValue(codeOID);
-						attributedToBeChangedInNode.item(0).getAttributes().setNamedItem(attrNodeCode);
+						clonedNode.getAttributes().setNamedItem(attrNodeCode);
 
-						Attr attrNodeCodeSystem = attributedToBeChangedInNode.item(0).getOwnerDocument()
+						Attr attrNodeCodeSystem = clonedNode.getOwnerDocument()
 								.createAttribute("codeSystem");
 						attrNodeCodeSystem.setNodeValue(codeSystemOID);
-						attributedToBeChangedInNode.item(0).getAttributes().setNamedItem(attrNodeCodeSystem);
+						clonedNode.getAttributes().setNamedItem(attrNodeCodeSystem);
 
-						Attr attrNodeCodeSystemName = attributedToBeChangedInNode.item(0).getOwnerDocument()
+						Attr attrNodeCodeSystemName = clonedNode.getOwnerDocument()
 								.createAttribute("codeSystemName");
 						attrNodeCodeSystemName.setNodeValue(codeSystemName);
-						attributedToBeChangedInNode.item(0).getAttributes().setNamedItem(attrNodeCodeSystemName);
+						clonedNode.getAttributes().setNamedItem(attrNodeCodeSystemName);
 
-						Attr attrNodeCodeSystemVersion = attributedToBeChangedInNode.item(0).getOwnerDocument()
-								.createAttribute("codeSystemVersion");
-						attrNodeCodeSystemVersion.setNodeValue(codeSystemVersion);
-						attributedToBeChangedInNode.item(0).getAttributes().setNamedItem(attrNodeCodeSystemVersion);
-					
-
+						if(isCodeSystemVersionIncluded) {
+							Attr attrNodeCodeSystemVersion = clonedNode.getOwnerDocument()
+									.createAttribute("codeSystemVersion");
+							attrNodeCodeSystemVersion.setNodeValue(codeSystemVersion);
+							clonedNode.getAttributes().setNamedItem(attrNodeCodeSystemVersion);
+						}
+						replaceParentNodeWithClonedNode(attributedToBeChangedInNode.item(0), clonedNode);
 				} else if (changeAttribute.equalsIgnoreCase(DISPLAY_NAME)) {
-					attributedToBeChangedInNode.item(0).getAttributes().getNamedItem("value")
+					Node clonedNode = attributedToBeChangedInNode.item(0).cloneNode(true);
+					
+					clonedNode.getAttributes().getNamedItem("value")
 							.setNodeValue(HQMFDataCriteriaGenerator.removeOccurrenceFromName(qdmName) + " "
 									+ qdmTaxonomy + " value set");
+					
+					replaceParentNodeWithClonedNode(attributedToBeChangedInNode.item(0), clonedNode);
 				} else if (changeAttribute.equalsIgnoreCase(TITLE)) {
-					attributedToBeChangedInNode.item(0).getAttributes().getNamedItem("value")
+					Node clonedNode = attributedToBeChangedInNode.item(0).cloneNode(true);
+					
+					clonedNode.getAttributes().getNamedItem("value")
 							.setNodeValue(qdmNameDataType);
+					
+					replaceParentNodeWithClonedNode(attributedToBeChangedInNode.item(0), clonedNode);
 				} else if (changeAttribute.equalsIgnoreCase(ITEM)) {
 					for (int count = 0; count < attributedToBeChangedInNode.getLength(); count++) {
+						
 						Node itemNode = attributedToBeChangedInNode.item(count);
-						itemNode.getAttributes().getNamedItem("extension").setNodeValue(extensionValue);
+						Node clonedNode = itemNode.cloneNode(true);
+						
+						clonedNode.getAttributes().getNamedItem("extension").setNodeValue(extensionValue);
+						
+						replaceParentNodeWithClonedNode(attributedToBeChangedInNode.item(count), clonedNode);
 					}
 
 				}
@@ -496,6 +512,12 @@ public class CQLBasedHQMFDataCriteriaElementGeneratorForCodes implements Generat
 			XmlProcessor.clean(nodeToAttach);
 			dataCriteriaElem.appendChild(nodeToAttach);
 		}
+	}
+
+
+	private void replaceParentNodeWithClonedNode(Node toBeChangedNode, Node clonedNode) {
+		Node parentNode = toBeChangedNode.getParentNode();
+		parentNode.replaceChild(clonedNode, toBeChangedNode);
 	}
 
 	/**

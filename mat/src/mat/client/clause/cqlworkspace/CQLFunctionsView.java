@@ -59,6 +59,7 @@ import mat.client.shared.CQLAddNewButton;
 import mat.client.shared.CQLButtonToolBar;
 import mat.client.shared.CQLCollapsibleCQLPanelWidget;
 import mat.client.shared.MatSimplePager;
+import mat.client.shared.SkipListBuilder;
 import mat.client.shared.SpacerWidget;
 import mat.client.util.CellTableUtility;
 import mat.client.util.MatTextBox;
@@ -168,6 +169,8 @@ public class CQLFunctionsView {
 	private TextBox returnTypeTextBox = new TextBox();
 	private FormGroup returnTypeAndButtonPanelGroup = new FormGroup();
 
+	HTML heading = new HTML();
+	
 	/**
 	 * Instantiates a new CQL functions view.
 	 */
@@ -175,7 +178,7 @@ public class CQLFunctionsView {
 		// TODO Auto-generated constructor stub
 		mainFunctionVerticalPanel.clear();
 		functionBodyAceEditor.startEditor();
-		
+		heading.addStyleName("leftAligned");
 		collapsibleCQLPanelWidget.getViewCQLAceEditor().startEditor();
 		collapsibleCQLPanelWidget.getViewCQLAnchor().setDataToggle(Toggle.COLLAPSE);
 		collapsibleCQLPanelWidget.getViewCQLAnchor().setDataParent("#panelGroup");
@@ -191,6 +194,10 @@ public class CQLFunctionsView {
 	 */
 	@SuppressWarnings("static-access")
 	private void buildView(boolean isEditable) {
+		
+		mainFunctionVerticalPanel.getElement().setId("mainFuncViewVerticalPanel");
+		
+		
 		collapsibleCQLPanelWidget.getPanelViewCQLCollapse().clear();
 		funcNameGroup.clear();
 		funcCommentGroup.clear();
@@ -198,6 +205,10 @@ public class CQLFunctionsView {
 		returnTypeAndButtonPanelGroup.clear();
 		VerticalPanel funcVP = new VerticalPanel();
 		HorizontalPanel funcFP = new HorizontalPanel();
+		
+		funcVP.add(heading);
+		funcVP.add(new SpacerWidget());
+		funcVP.add(new SpacerWidget());
 		
 		FormLabel functionNameLabel = new FormLabel();
 		functionNameLabel.setText("Function Name");
@@ -998,7 +1009,7 @@ public class CQLFunctionsView {
 		getFunctionCommentTextArea().setEnabled(isEditable);
 		getFunctionBodyAceEditor().setReadOnly(!isEditable);
 		getFunctionButtonBar().setEnabled(isEditable);
-	/*	getAddNewButtonBar().getaddNewButton().setEnabled(isEditable);*/
+		/*getAddNewButtonBar().getaddNewButton().setEnabled(isEditable);*/
 		getAddNewArgument().setEnabled(isEditable);
 		getContextFuncPATRadioBtn().setEnabled(isEditable);
 		getContextFuncPOPRadioBtn().setEnabled(isEditable);
@@ -1096,4 +1107,23 @@ public class CQLFunctionsView {
 	public TextBox getReturnTypeTextBox() {
 		return returnTypeTextBox;
 	}
+	
+	public void setHeading(String text,String linkName) {
+		String linkStr = SkipListBuilder.buildEmbeddedString(linkName);
+		heading.setHTML(linkStr +"<h4><b>" + text + "</b></h4>");
+	}
+	
+	/**
+	 * Added this method as part of MAT-8882.
+	 * @param isEditable
+	 */
+	public void setReadOnly(boolean isEditable) {		
+		getAddNewButtonBar().getaddNewButton().setEnabled(isEditable);
+		getAddNewArgument().setEnabled(isEditable);
+		getFunctionButtonBar().getSaveButton().setEnabled(isEditable);
+		getFunctionButtonBar().getEraseButton().setEnabled(isEditable);
+		getFunctionButtonBar().getDeleteButton().setEnabled(isEditable);
+		getFunctionButtonBar().getInsertButton().setEnabled(isEditable);
+		getFunctionButtonBar().getInfoButton().setEnabled(isEditable);
+	}	
 }

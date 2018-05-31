@@ -4,14 +4,12 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import mat.DTO.MeasureNoteDTO;
 import mat.client.clause.clauseworkspace.model.MeasureDetailResult;
 import mat.client.clause.clauseworkspace.model.MeasureXmlModel;
 import mat.client.clause.clauseworkspace.model.SortedClauseMapResult;
 import mat.client.measure.ManageMeasureDetailModel;
 import mat.client.measure.ManageMeasureSearchModel;
 import mat.client.measure.ManageMeasureShareModel;
-import mat.client.measure.MeasureNotesModel;
 import mat.client.measure.TransferOwnerShipModel;
 import mat.client.umls.service.VsacApiResult;
 import mat.model.CQLValueSetTransferObject;
@@ -22,6 +20,7 @@ import mat.model.Organization;
 import mat.model.QualityDataModelWrapper;
 import mat.model.QualityDataSetDTO;
 import mat.model.RecentMSRActivityLog;
+import mat.model.cql.CQLCode;
 import mat.model.cql.CQLCodeWrapper;
 import mat.model.cql.CQLDefinition;
 import mat.model.cql.CQLFunctions;
@@ -83,15 +82,6 @@ public interface MeasureServiceAsync {
 	void createAndSaveCQLLookUp(List<QualityDataSetDTO> list,
 			String measureID, String expProfileToAllQDM, AsyncCallback<Void> callback);
 	
-	/**
-	 * Delete measure notes.
-	 * 
-	 * @param measureNoteDTO
-	 *            the measure note dto
-	 * @param callback
-	 *            the callback
-	 */
-	void deleteMeasureNotes(MeasureNoteDTO measureNoteDTO, AsyncCallback<Void> callback);
 	
 	/**
 	 * Generate and save max emeasure id.
@@ -102,18 +92,6 @@ public interface MeasureServiceAsync {
 	 *            the callback
 	 */
 	void generateAndSaveMaxEmeasureId(ManageMeasureDetailModel measureId, AsyncCallback<Integer> callback);
-	
-	/**
-	 * Gets the all measure notes by measure id.
-	 * 
-	 * @param measureID
-	 *            the measure id
-	 * @param callback
-	 *            the callback
-	 * @return the all measure notes by measure id
-	 */
-	void getAllMeasureNotesByMeasureID(String measureID,
-			AsyncCallback<MeasureNotesModel> callback);
 	
 	/** Gets the all recent measure for user.
 	 * 
@@ -196,6 +174,8 @@ public interface MeasureServiceAsync {
 	/**
 	 * Gets the users for share.
 	 * 
+	 * @param userName
+	 *            the user name entered for search 
 	 * @param measureId
 	 *            the measure id
 	 * @param startIndex
@@ -206,7 +186,7 @@ public interface MeasureServiceAsync {
 	 *            the callback
 	 * @return the users for share
 	 */
-	void getUsersForShare(String measureId, int startIndex, int pageSize, AsyncCallback<ManageMeasureShareModel> callback);
+	void getUsersForShare(String userName, String measureId, int startIndex, int pageSize, AsyncCallback<ManageMeasureShareModel> callback);
 	
 	/**
 	 * Checks if is measure locked.
@@ -277,17 +257,6 @@ public interface MeasureServiceAsync {
 	void saveMeasureDetails(ManageMeasureDetailModel model,AsyncCallback<SaveMeasureResult> callback);
 	
 	/**
-	 * Save measure note.
-	 *
-	 * @param model the model
-	 * @param measureId            the measureId
-	 * @param userId            the userId
-	 * @param callback            the callback
-	 */
-	void saveMeasureNote(MeasureNoteDTO model,
-			String measureId, String userId, AsyncCallback<SaveMeasureNotesResult> callback);
-	
-	/**
 	 * Save measure xml.
 	 * 
 	 * @param measureXmlModel
@@ -349,18 +318,6 @@ public interface MeasureServiceAsync {
 	 *            the callback
 	 */
 	void updateLockedDate(String measureId,String userId, AsyncCallback<SaveMeasureResult> callback);
-	
-	/**
-	 * Update measure notes.
-	 * 
-	 * @param measureNoteDTO
-	 *            the measure note dto
-	 * @param userId
-	 *            the user id
-	 * @param callback
-	 *            the callback
-	 */
-	void updateMeasureNotes(MeasureNoteDTO measureNoteDTO, String userId, AsyncCallback<Void> callback);
 	
 	/**
 	 * Update measure xml.
@@ -763,10 +720,21 @@ public interface MeasureServiceAsync {
 
 	void saveCQLCodestoMeasure(MatCodeTransferObject transferObject, AsyncCallback<SaveUpdateCQLResult> callback);
 
+	void saveCQLCodeListToMeasure(List<CQLCode> codeList, String measureId, AsyncCallback<SaveUpdateCQLResult> callback);
+	
 	void getCQLCodes(String measureID, AsyncCallback<CQLCodeWrapper> callback);
 
 	void deleteCode(String toBeDeletedId, String measureID, AsyncCallback<SaveUpdateCQLResult> callback);
 
 	void getMeasureCQLLibraryData(String measureId, AsyncCallback<SaveUpdateCQLResult> callback);
+	
+	void getMeasureCQLDataForLoad(String measureId, AsyncCallback<SaveUpdateCQLResult> callback);
+
+	void saveValueSetList(List<CQLValueSetTransferObject> transferObjectList,
+			List<CQLQualityDataSetDTO> appliedValueSetList, String measureId,
+			AsyncCallback<CQLQualityDataModelWrapper> callback);
+
+	void modifyCQLCodeInMeasure(CQLCode modifyCQLCode, CQLCode refCode, String measureId,
+			AsyncCallback<SaveUpdateCQLResult> asyncCallback);
 
 }

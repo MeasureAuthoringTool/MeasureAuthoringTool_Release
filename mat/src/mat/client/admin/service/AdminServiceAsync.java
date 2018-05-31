@@ -1,12 +1,11 @@
 package mat.client.admin.service;
 
+import com.google.gwt.user.client.rpc.AsyncCallback;
+
 import mat.client.admin.ManageOrganizationDetailModel;
 import mat.client.admin.ManageOrganizationSearchModel;
 import mat.client.admin.ManageUsersDetailModel;
 import mat.client.admin.ManageUsersSearchModel;
-import mat.model.User;
-
-import com.google.gwt.user.client.rpc.AsyncCallback;
 
 /**
  * The Interface AdminServiceAsync.
@@ -50,14 +49,6 @@ public interface AdminServiceAsync {
 	 */
 	public void resetUserPassword(String userid, AsyncCallback<Void> callback);
 	
-	/** Save update organization.
-	 * 
-	 * @param currentModel the current model
-	 * @param updatedModel the updated model
-	 * @param callback the callback */
-	void saveUpdateOrganization(ManageOrganizationDetailModel currentModel, ManageOrganizationDetailModel updatedModel,
-			AsyncCallback<SaveUpdateOrganizationResult> callback);
-	
 	/**
 	 * Save update user.
 	 * 
@@ -93,4 +84,11 @@ public interface AdminServiceAsync {
 	void deleteOrganization(ManageOrganizationSearchModel.Result organization, AsyncCallback<Void> callback);
 	
 	void getUserByEmail(String emailId, AsyncCallback<ManageUsersDetailModel> callback);
+
+	public void saveOrganization(ManageOrganizationDetailModel updatedOrganizationDetailModel,
+			AsyncCallback<SaveUpdateOrganizationResult> asyncCallback);
+
+	public void updateOrganization(Long currentOrganizationId,
+			ManageOrganizationDetailModel updatedOrganizationDetailModel,
+			AsyncCallback<SaveUpdateOrganizationResult> asyncCallback);
 }

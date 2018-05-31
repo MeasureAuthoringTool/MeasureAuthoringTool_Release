@@ -7,12 +7,15 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import mat.client.umls.service.VsacApiResult;
 import mat.model.CQLValueSetTransferObject;
 import mat.model.MatCodeTransferObject;
+import mat.model.cql.CQLCode;
 import mat.model.cql.CQLDefinition;
 import mat.model.cql.CQLFunctions;
 import mat.model.cql.CQLIncludeLibrary;
 import mat.model.cql.CQLKeywords;
 import mat.model.cql.CQLLibraryDataSetObject;
 import mat.model.cql.CQLParameter;
+import mat.model.cql.CQLQualityDataModelWrapper;
+import mat.model.cql.CQLQualityDataSetDTO;
 import mat.shared.GetUsedCQLArtifactsResult;
 import mat.shared.SaveUpdateCQLResult;
 
@@ -26,6 +29,8 @@ public interface CQLLibraryServiceAsync {
 
 
 	void getCQLData(String id, AsyncCallback<SaveUpdateCQLResult> callback);
+	
+	void getCQLDataForLoad(String id, AsyncCallback<SaveUpdateCQLResult> callback);
 
 	void isLibraryLocked(String id, AsyncCallback<Boolean> isLocked);
 	
@@ -56,6 +61,9 @@ public interface CQLLibraryServiceAsync {
 			AsyncCallback<SaveCQLLibraryResult> callback);
 
 	void searchForIncludes(String referringID, String searchText, boolean filter, AsyncCallback<SaveCQLLibraryResult> callback);
+	
+	void searchForReplaceLibraries(String setId, boolean filter, AsyncCallback<SaveCQLLibraryResult> callback);
+
 
 	void updateUsersShare(SaveCQLLibraryResult result, AsyncCallback<Void> callback);
 
@@ -107,9 +115,18 @@ public interface CQLLibraryServiceAsync {
 
 	void saveCQLCodestoCQLLibrary(MatCodeTransferObject transferObject, AsyncCallback<SaveUpdateCQLResult> callback);
 
+	void saveCQLCodeListToCQLLibrary(List<CQLCode> codeList, String libraryId, AsyncCallback<SaveUpdateCQLResult> callback);
+	
 	void deleteCode(String toBeDeletedId, String libraryId, AsyncCallback<SaveUpdateCQLResult> callback);
 
 	void deleteCQLLibrary(String cqllibId, String loginUserId, AsyncCallback<Void> callback);
+
+	void saveValueSetList(List<CQLValueSetTransferObject> transferObjectList,
+			List<CQLQualityDataSetDTO> appliedValueSetList, String cqlLibraryId,
+			AsyncCallback<CQLQualityDataModelWrapper> callback);
+
+	void modifyCQLCodeInCQLLibrary(CQLCode codeToReplace, CQLCode replacementCode, String cqlLibraryId,
+			AsyncCallback<SaveUpdateCQLResult> asyncCallback);
 
 	//void searchForStandaloneIncludes(String setId, String searchText,
 		//	AsyncCallback<SaveCQLLibraryResult> asyncCallback);

@@ -31,7 +31,6 @@ import mat.client.shared.SaveCancelButtonBar;
 import mat.client.shared.SpacerWidget;
 import mat.client.shared.TextAreaWithMaxLength;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class ManageMeasureDetailView.
  */
@@ -44,16 +43,6 @@ public class ManageMeasureDetailView
 	/** The measure name label. */
 	private MeasureNameLabel measureNameLabel = new MeasureNameLabel();
 	
-/*	*//** The name label. *//*
-	private String nameLabel = "Name";
-	
-	*//** The short name label. *//*
-	private String shortNameLabel = "Abbreviated Name";
-	
-	//US 421. Measure scoring choice is now part of measure creation process.
-	*//** The scoring label. *//*
-	private String scoringLabel = "Measure Scoring";
-	*/
 	/** The name. */
 	private TextAreaWithMaxLength name = new TextAreaWithMaxLength();
 	
@@ -74,13 +63,7 @@ public class ManageMeasureDetailView
 	private MessageAlert errorMessages = new ErrorMessageAlert();
 	
 	/**  The edit confirmation box. */
-	EditConfirmationDialogBox createNewConfirmationDialogBox = new EditConfirmationDialogBox();
-	
-	/** The yes patient based radio button. *//*
-	private RadioButton radioBtnYes;
-	
-	*//** The no patient based radio button. *//*
-	private RadioButton radioBtnNo;*/
+	EditConfirmationDialogBox confirmationDialogBox = new EditConfirmationDialogBox();
 	
 	/** The instructions. */
 	protected HTML instructions = new HTML("Enter a measure name and abbreviated name. Then continue to the Measure Composer.");
@@ -123,19 +106,15 @@ public class ManageMeasureDetailView
 	/** The help block. */
 	private HelpBlock helpBlock = new HelpBlock();
 
-	/** The caution patientbased msg str. */
 	private String cautionPatientbasedMsgStr = "<div style=\"padding-left:5px;\">WARNING: Changing the Measure Scoring type will "
 			+ "reset the Patient-based Measure to its default setting.<br/>";
 
-	/** The caution patientbased msg place holder. */
 	protected HTML cautionPatientbasedMsgPlaceHolder = new HTML();
 	
 	/**
 	 * Instantiates a new manage measure detail view.
 	 */
 	public ManageMeasureDetailView() {
-		
-		
 		mainPanel.setStylePrimaryName("contentPanel");
 		mainPanel.addStyleName("leftAligned");
 		mainPanel.getElement().setId("mainPanel_SimplePanel");
@@ -158,9 +137,6 @@ public class ManageMeasureDetailView
 		
 		Form createMeasureForm = new Form();
 		
-		/*messageFormGrp.add(helpBlock);
-		messageFormGrp.getElement().setAttribute("role", "alert");
-		createMeasureForm.add(messageFormGrp);*/
 		
 		FormLabel measureNameLabel = new FormLabel();
 		measureNameLabel.setText("Name");
@@ -178,13 +154,13 @@ public class ManageMeasureDetailView
 		measureNameGroup.add(name);
 		
 		FormLabel shortNameLabel = new FormLabel();
-		shortNameLabel.setText("Abbreviated Name");
-		shortNameLabel.setTitle("Abbreviated Name");
+		shortNameLabel.setText("eCQM Abbreviated Title");
+		shortNameLabel.setTitle("eCQM Abbreviated Title");
 		shortNameLabel.setFor("ShortNameTextBox");
 		shortNameLabel.setShowRequiredIndicator(true);
 		shortNameLabel.setId("ShortNameTextBox_Id");
 		shortName.setId("ShortNameTextBox");
-		shortName.setTitle("Enter Abbreviated name.");;
+		shortName.setTitle("Enter eCQM Abbreviated Title");;
 		shortName.setWidth("18em");
 		shortName.setMaxLength(32);
 		shortNameGroup.add(shortNameLabel);
@@ -250,31 +226,6 @@ public class ManageMeasureDetailView
 		mainPanel.add(fPanel);
 				
 	}
-
-	/*@Override
-	public FormGroup getMeasureNameGroup() {
-		return measureNameGroup;
-	}
-
-	@Override	
-	public FormGroup getShortNameGroup() {
-		return shortNameGroup;
-	}
-
-	@Override
-	public FormGroup getScoringGroup() {
-		return scoringGroup;
-	}*/
-
-	/*@Override
-	public FormGroup getMessageFormGrp() {
-		return messageFormGrp;
-	}*/
-
-	/*@Override
-	public FormGroup getPatientBasedFormGrp() {
-		return patientBasedFormGrp;
-	}*/
 
 	
 	/* (non-Javadoc)
@@ -415,7 +366,6 @@ public class ManageMeasureDetailView
 	 */
 	@Override
 	public HasValue<String> getMeasureVersion() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -434,27 +384,6 @@ public class ManageMeasureDetailView
 		}
 	}
 
-
-	/**
-	 * Gets the yes patient based radio button.
-	 *
-	 * @return the invisible radio alert yes
-	 */
-	/*@Override
-	public RadioButton getPatientBasedYesRadioButton() {
-		return radioBtnYes;
-	}
-
-
-	*//**
-	 * Gets the no patient based radio button
-	 *//*
-	@Override
-	public RadioButton getPatientBasedNoRadioButton() {
-		return radioBtnNo;
-	}*/
-	
-	
 	/* (non-Javadoc)
 	 * @see mat.client.measure.ManageMeasurePresenter.DetailDisplay#getPatientBasedInput()
 	 */
@@ -500,8 +429,8 @@ public class ManageMeasureDetailView
 	/**
 	 * @return the createNewConfirmationDialogBox
 	 */
-	public EditConfirmationDialogBox getCreateNewConfirmationDialogBox() {
-		return createNewConfirmationDialogBox;
+	public EditConfirmationDialogBox getConfirmationDialogBox() {
+		return confirmationDialogBox;
 	}
 
 }

@@ -4,9 +4,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import mat.client.clause.clauseworkspace.model.MeasureXmlModel;
 import mat.client.measure.ManageMeasureShareModel;
 import mat.client.measure.service.ValidateMeasureResult;
+import mat.client.shared.MatContext;
 import mat.dao.CQLLibraryAuditLogDAO;
 import mat.dao.DataTypeDAO;
 import mat.dao.MeasureAuditLogDAO;
@@ -47,14 +52,8 @@ import mat.server.service.MeasurePackageService;
 import mat.server.service.SimpleEMeasureService;
 import mat.server.service.SimpleEMeasureService.ExportResult;
 import mat.server.util.ExportSimpleXML;
-import mat.server.util.MATPropertiesService;
 import mat.shared.ValidationUtility;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class MeasurePackageServiceImpl.
  */
@@ -86,10 +85,6 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 	/** The measure export dao. */
 	@Autowired
 	private MeasureExportDAO measureExportDAO;
-	
-	/** The measure package dao. */
-	@Autowired
-	private MeasureDAO measurePackageDAO;
 	
 	/** The measure set dao. */
 	@Autowired
@@ -140,7 +135,7 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 	
 	//	@Override
 	//	public void clone(Measure measurePackage, String newCloneName) {
-	//		measurePackageDAO.clone(measurePackage, newCloneName);
+	//		measureDAO.clone(measurePackage, newCloneName);
 	//	}
 	
 	/** The validator. */
@@ -152,7 +147,7 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 	@Override
 	public long count() {
 		User user = userDAO.find(LoggedInUserUtil.getLoggedInUser());
-		return measurePackageDAO.countMeasureShareInfoForUser(user);
+		return measureDAO.countMeasureShareInfoForUser(user);
 	}
 	
 	/* (non-Javadoc)
@@ -161,7 +156,7 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 	@Override
 	public long count(final int filter) {
 		User user = userDAO.find(LoggedInUserUtil.getLoggedInUser());
-		return measurePackageDAO.countMeasureShareInfoForUser(filter, user);
+		return measureDAO.countMeasureShareInfoForUser(filter, user);
 	}
 	
 	/* (non-Javadoc)
@@ -170,7 +165,7 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 	@Override
 	public long count(final String searchText) {
 		User user = userDAO.find(LoggedInUserUtil.getLoggedInUser());
-		return measurePackageDAO.countMeasureShareInfoForUser(searchText, user);
+		return measureDAO.countMeasureShareInfoForUser(searchText, user);
 	}
 	
 		
@@ -179,7 +174,7 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 	 */
 	@Override
 	public int countUsersForMeasureShare() {
-		return measurePackageDAO.countUsersForMeasureShare();
+		return measureDAO.countUsersForMeasureShare();
 	}
 	
 	/* (non-Javadoc)
@@ -225,7 +220,6 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 	}
 	
 	
-	//TODO422:
 	/**
 	 * Generate export.
 	 * 
@@ -240,18 +234,13 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 	 */
 	private void generateExport(final String measureId, final List<String> message ,
 			final List<MatValueSet> matValueSetList) throws Exception {
-		//TODO
 		MeasureXML measureXML = measureXMLDAO.findForMeasure(measureId);
 		Measure measure = measureDAO.find(measureId);
 		String exportedXML = "";
 				
-		if(measure.getReleaseVersion().equalsIgnoreCase(MATPropertiesService.get().getCurrentReleaseVersion())) {
-			
+		if(measure.getReleaseVersion() != null && MatContext.get().isCQLMeasure(measure.getReleaseVersion())) {
 			CQLModel cqlModel = CQLUtilityClass.getCQLStringFromXML(measureXML.getMeasureXMLAsString());
-//			MATCQLParser matcqlParser = new MATCQLParser();
-//			CQLFileObject cqlFileObject = matcqlParser.parseCQL(CQLUtilityClass.getCqlString(cqlModel, "").toString());
 			exportedXML = ExportSimpleXML.export(measureXML, message, measureDAO,organizationDAO, cqlLibraryDAO, cqlModel);
-			
 		} else {
 			exportedXML = ExportSimpleXML.export(measureXML, message, measureDAO,organizationDAO);
 		}
@@ -264,7 +253,6 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 		//replace all @id attributes of <elementLookUp>/<qdm> with @uuid attribute value
 		exportedXML = ExportSimpleXML.setQDMIdAsUUID(exportedXML);
 		
-//		Measure measure = measureDAO.find(measureId);
 		MeasureExport export = measureExportDAO.findForMeasure(measureId);
 		if (export == null) {
 			export = new MeasureExport();
@@ -284,7 +272,7 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 	 */
 	@Override
 	public Measure getById(final String id) {
-		return measurePackageDAO.find(id);
+		return measureDAO.find(id);
 	}
 	
 	/* (non-Javadoc)
@@ -320,11 +308,11 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 	}
 	
 	/* (non-Javadoc)
-	 * @see mat.server.service.MeasurePackageService#getUsersForShare(java.lang.String, int, int)
+	 * @see mat.server.service.MeasurePackageService#getUsersForShare(String, java.lang.String, int, int)
 	 */
 	@Override
-	public List<MeasureShareDTO> getUsersForShare(final String measureId, final int startIndex, final int pageSize) {
-		return measurePackageDAO.getMeasureShareInfoForMeasure(measureId, startIndex - 1, pageSize);
+	public List<MeasureShareDTO> getUsersForShare(final String userName, final String measureId, final int startIndex, final int pageSize) {
+		return measureDAO.getMeasureShareInfoForMeasure(userName, measureId, startIndex - 1, pageSize);
 	}
 	
 	/**
@@ -375,7 +363,7 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 				measurePackage.setOwner(currentUser);
 			}
 		}
-		measurePackageDAO.save(measurePackage);
+		measureDAO.save(measurePackage);
 	}
 	
 	/* (non-Javadoc)
@@ -427,7 +415,7 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 	public List<MeasureShareDTO> search(final int startIndex,
 			final int numResults) {
 		User user = userDAO.find(LoggedInUserUtil.getLoggedInUser());
-		return measurePackageDAO.getMeasureShareInfoForUser(user, startIndex - 1, numResults);
+		return measureDAO.getMeasureShareInfoForUser(user, startIndex - 1, numResults);
 	}
 	
 	/* (non-Javadoc)
@@ -436,7 +424,7 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 	@Override
 	public List<MeasureShareDTO> search(final String searchText, final int startIndex, final int numResults) {
 		User user = userDAO.find(LoggedInUserUtil.getLoggedInUser());
-		return measurePackageDAO.getMeasureShareInfoForUser(searchText,  user, startIndex - 1, numResults);
+		return measureDAO.getMeasureShareInfoForUser(searchText,  user, startIndex - 1, numResults);
 	}
 	
 	/* (non-Javadoc)
@@ -446,7 +434,7 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 	public List<MeasureShareDTO> searchForAdminWithFilter(String searchText,
 			int startIndex, int numResults, int filter) {
 		//User user = userDAO.find(LoggedInUserUtil.getLoggedInUser());
-		return measurePackageDAO.getMeasureShareInfoForUserWithFilter(searchText, startIndex - 1, numResults, filter);
+		return measureDAO.getMeasureShareInfoForUserWithFilter(searchText, startIndex - 1, numResults, filter);
 	}
 	
 	
@@ -457,7 +445,7 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 	public List<MeasureShareDTO> searchWithFilter(final String searchText, final int startIndex,
 			final int numResults, final int filter) {
 		User user = userDAO.find(LoggedInUserUtil.getLoggedInUser());
-		return measurePackageDAO.getMeasureShareInfoForUserWithFilter(searchText,  user, startIndex - 1, numResults, filter);
+		return measureDAO.getMeasureShareInfoForUserWithFilter(searchText,  user, startIndex - 1, numResults, filter);
 	}
 	
 	/* (non-Javadoc)
@@ -465,7 +453,7 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 	 */
 	@Override
 	public List<Measure> getComponentMeasuresInfo(List<String> measureIds){
-		return measurePackageDAO.getComponentMeasureInfoForMeasures(measureIds);
+		return measureDAO.getComponentMeasureInfoForMeasures(measureIds);
 	}
 	/**
 	 * Sets the validator.
@@ -543,7 +531,7 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 	 */
 	@Override
 	public void updateLockedOutDate(final Measure m) {
-		measurePackageDAO.resetLockDate(m);
+		measureDAO.resetLockDate(m);
 	}
 	
 	/* (non-Javadoc)
@@ -561,8 +549,8 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 	 */
 	@Override
 	public void updateUsersShare(final ManageMeasureShareModel model) {
-		StringBuffer auditLogAdditionlInfo = new StringBuffer("Measure shared with ");
-		StringBuffer auditLogForModifyRemove = new StringBuffer("Measure shared status revoked with ");
+		StringBuilder auditLogAdditionlInfo = new StringBuilder("Measure shared with ");
+		StringBuilder auditLogForModifyRemove = new StringBuilder("Measure shared status revoked with ");
 		MeasureShare measureShare = null;
 		boolean first = true;
 		boolean firstRemove = true;
@@ -584,7 +572,7 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 				if ((measureShare == null) && ShareLevel.MODIFY_ID.equals(dto.getShareLevel())) {
 					recordShareEvent = true;
 					measureShare = new MeasureShare();
-					measureShare.setMeasure(measurePackageDAO.find(model.getMeasureId()));
+					measureShare.setMeasure(measureDAO.find(model.getMeasureId()));
 					measureShare.setShareUser(user);
 					User currentUser = userDAO.find(LoggedInUserUtil.getLoggedInUser());
 					measureShare.setOwner(currentUser);
@@ -600,14 +588,12 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 					
 					measureShare.setShareLevel(sLevel);
 					measureShareDAO.save(measureShare);
-				} else if (!ShareLevel.MODIFY_ID.equals(dto.getShareLevel())) {
+				} else if (measureShare != null && !ShareLevel.MODIFY_ID.equals(dto.getShareLevel())) {
 					recordRevokeShareEvent = true;
 					measureShareDAO.delete(measureShare.getId());
 					logger.info("Removing Sharing " + measureShare.getMeasure().getId()
 							+ " with " + user.getId()
 							+ " at level " + sLevel.getDescription());
-					System.out.println("Removing Sharing " + measureShare.getMeasure().getId()
-							+ " with " + user.getId() + " at level " + sLevel.getDescription());
 					if (!firstRemove) { //first time, don't add the comma.
 						auditLogForModifyRemove.append(", ");
 					}
@@ -622,10 +608,12 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 			if (recordShareEvent && recordRevokeShareEvent) {
 				auditLogAdditionlInfo.append("\n").append(auditLogForModifyRemove);
 			} else if (recordRevokeShareEvent) {
-				auditLogAdditionlInfo = new StringBuffer(auditLogForModifyRemove);
+				auditLogAdditionlInfo = new StringBuilder(auditLogForModifyRemove);
 			}
-			measureAuditLogDAO.recordMeasureEvent(measureShare.getMeasure(),
-					"Measure Shared", auditLogAdditionlInfo.toString());
+			if(measureShare != null && measureShare.getMeasure() != null) {
+				measureAuditLogDAO.recordMeasureEvent(measureShare.getMeasure(),
+						"Measure Shared", auditLogAdditionlInfo.toString());
+			}
 		}
 	}
 	
@@ -653,7 +641,6 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 			ExportResult exportResult = eMeasureService.getHumanReadableForNode(measureId, populationSubXML);
 			humanReadableHTML = exportResult.export;
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return humanReadableHTML;
@@ -664,7 +651,7 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 	 */
 	@Override
 	public boolean getMeasure(String measureId) {
-		return measurePackageDAO.getMeasure(measureId);
+		return measureDAO.getMeasure(measureId);
 	}
 
 	/**

@@ -3,6 +3,15 @@ package mat.client.clause;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.SimplePanel;
+import com.google.gwt.user.client.ui.Widget;
+
 import mat.client.Mat;
 import mat.client.MatPresenter;
 import mat.client.MeasureComposerPresenter;
@@ -12,17 +21,9 @@ import mat.client.shared.InProgressMessageDisplay;
 import mat.client.shared.MatContext;
 import mat.client.shared.SuccessMessageDisplayInterface;
 import mat.client.umls.service.VSACAPIServiceAsync;
-import mat.client.umls.service.VsacApiResult;
 import mat.model.QualityDataModelWrapper;
 import mat.model.QualityDataSetDTO;
 import mat.shared.ConstantMessages;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.SimplePanel;
-import com.google.gwt.user.client.ui.Widget;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -218,7 +219,7 @@ public class QDSAppliedListPresenter implements MatPresenter {
 			public void onClick(final ClickEvent event) {
 				resetQDSFields();
 				searchDisplay.getInProgressMessageDisplay().setMessage("Loading Please Wait...");
-				updateVSACValueSets();
+			//	updateVSACValueSets();
 			}
 		});
 	}
@@ -243,25 +244,6 @@ public class QDSAppliedListPresenter implements MatPresenter {
 		
 	}
 	
-	/**
-	 * Method to get Message against failure reason.
-	 * @param id
-	 *            - {@link Integer}
-	 * @return {@link String}
-	 */
-	private String convertMessage(int id) {
-		String message;
-		switch (id) {
-			case VsacApiResult.UMLS_NOT_LOGGEDIN:
-				message = MatContext.get().getMessageDelegate()
-				.getUMLS_NOT_LOGGEDIN();
-				break;
-			default:
-				message = MatContext.get().getMessageDelegate()
-				.getUnknownFailMessage();
-		}
-		return message;
-	}
 	
 	/**
 	 * Method to put view on Main Panel.
@@ -401,32 +383,7 @@ public class QDSAppliedListPresenter implements MatPresenter {
 	 */
 	private void updateVSACValueSets() {
 		//showSearchingBusy(true);
-		vsacapiServiceAsync.updateVSACValueSets(MatContext.get().getCurrentMeasureId(), null, new AsyncCallback<VsacApiResult>() {
-			
-			@Override
-			public void onFailure(final Throwable caught) {
-				searchDisplay.getInProgressMessageDisplay().clear();
-				Window.alert(MatContext.get().getMessageDelegate().getGenericErrorMessage());
-				//showSearchingBusy(false);
-			}
-			
-			@Override
-			public void onSuccess(final VsacApiResult result) {
-				//showSearchingBusy(false);
-				searchDisplay.getInProgressMessageDisplay().clear();
-				if (result.isSuccess()) {
-					searchDisplay.getApplyToMeasureSuccessMsg().setMessage(
-							MatContext.get().getMessageDelegate().getVSAC_UPDATE_SUCCESSFULL());
-					// getAppliedQDMList(true);
-					QDSAppliedListModel appliedListModel = new QDSAppliedListModel();
-					appliedListModel.setAppliedQDMs(result.getUpdatedQualityDataDTOLIst());
-					searchDisplay.buildCellTable(appliedListModel);
-					searchDisplay.setAppliedQDMList(result.getUpdatedQualityDataDTOLIst());
-				} else {
-					searchDisplay.getErrorMessageDisplay().setMessage(convertMessage(result.getFailureReason()));
-				}
-			}
-		});
+		
 	}
 	
 }

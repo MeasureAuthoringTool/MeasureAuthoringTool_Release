@@ -3,23 +3,8 @@ package mat.client.measure;
 import java.util.ArrayList;
 import java.util.List;
 
-import mat.client.CustomPager;
-import mat.client.measure.ManageMeasurePresenter.ShareDisplay;
-import mat.client.shared.ErrorMessageAlert;
-import mat.client.shared.ErrorMessageDisplay;
-import mat.client.shared.ErrorMessageDisplayInterface;
-import mat.client.shared.LabelBuilder;
-import mat.client.shared.MatCheckBoxCell;
-import mat.client.shared.MatSimplePager;
-import mat.client.shared.MeasureNameLabel;
-import mat.client.shared.MessageAlert;
-import mat.client.shared.SaveCancelButtonBar;
-import mat.client.shared.SpacerWidget;
-import mat.client.util.CellTableUtility;
-import mat.model.clause.MeasureShareDTO;
-import mat.model.clause.ShareLevel;
-
 import org.gwtbootstrap3.client.ui.CheckBox;
+
 import com.google.gwt.cell.client.Cell;
 import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.cell.client.SafeHtmlCell;
@@ -34,7 +19,7 @@ import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.HTML;
+import com.google.gwt.user.client.ui.FocusPanel;
 import com.google.gwt.user.client.ui.HasVerticalAlignment;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.InlineLabel;
@@ -42,6 +27,22 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.ListDataProvider;
+
+import mat.client.CustomPager;
+import mat.client.measure.ManageMeasurePresenter.ShareDisplay;
+import mat.client.shared.ErrorMessageAlert;
+import mat.client.shared.LabelBuilder;
+import mat.client.shared.MatCheckBoxCell;
+import mat.client.shared.MatSimplePager;
+import mat.client.shared.MeasureNameLabel;
+import mat.client.shared.MessageAlert;
+import mat.client.shared.SaveCancelButtonBar;
+import mat.client.shared.SearchWidgetBootStrap;
+import mat.client.shared.SpacerWidget;
+import mat.client.shared.WarningMessageAlert;
+import mat.client.util.CellTableUtility;
+import mat.model.clause.MeasureShareDTO;
+import mat.model.clause.ShareLevel;
 
 /**
  * The Class ManageMeasureShareView.
@@ -58,21 +59,20 @@ public class ManageMeasureShareView implements ShareDisplay {
 	
 	/** The error messages. */
 	private MessageAlert errorMessages = new ErrorMessageAlert();
+	private MessageAlert warningMessages = new WarningMessageAlert();
 	
 	/** The measure name label. */
 	private MeasureNameLabel measureNameLabel = new MeasureNameLabel();
 	
 	/** The private check. */
 	private CheckBox privateCheck = new CheckBox();
-//	private ToggleSwitch privateCheck = new ToggleSwitch();
-//	private CustomCheckBox privateCheck = new CustomCheckBox("Select 'Private Measure' to make "
-//			+ "a Measure Private.", "Private Measure", true);
-//	/** The search view. */
-//	private SearchView<MeasureShareDTO> searchView = new SearchView<MeasureShareDTO>("Users");
-	/** The selection model. */
-	/*
-	 * private SingleSelectionModel<MeasureShareDTO> selectionModel;
-	 */
+	
+	/**The search widget. */
+	private SearchWidgetBootStrap searchWidgetBootStrap = new SearchWidgetBootStrap("Search", "Search User Name");
+	
+	/** The search widget focus panel. */
+	private FocusPanel searchWidgetFocusPanel = new FocusPanel();
+
 	/**
 	 * Instantiates a new manage measure share view.
 	 */
@@ -93,16 +93,24 @@ public class ManageMeasureShareView implements ShareDisplay {
 		// content.add(measureNameLabel);
 		content.add(horizontalPanel);
 		
+		//MAT-8907
+		VerticalPanel vp = new VerticalPanel();
+		vp.add(searchWidgetBootStrap.getSearchWidget("Search User Name", "MeasureSharing"));
+		content.add(new SpacerWidget());
+		searchWidgetFocusPanel.add(vp);
+		searchWidgetFocusPanel.setWidth("300px");
+		content.add(searchWidgetFocusPanel);		
+		content.add(new SpacerWidget());
 		// content.add(new Label("Select users with whom you wish to share modify access:"));
 		content.add(new SpacerWidget());
 		
 		cellTablePanel.getElement().setId("cellTablePanel_VerticalPanel");
 		cellTablePanel.setWidth("77%");
-		/*
-		 * Widget searchViewWidget = searchView.asWidget(); searchViewWidget.setWidth("60%"); content.add(searchViewWidget);
-		 */
+
 		content.add(cellTablePanel);
 		content.add(new SpacerWidget());
+		content.add(errorMessages);
+		content.add(warningMessages);
 		content.add(buttonBar);
 		
 	}
@@ -233,12 +241,7 @@ public class ManageMeasureShareView implements ShareDisplay {
 			 * ("mouseover".equals(event.getNativeEvent().getType())) { Element cellElement =
 			 * event.getNativeEvent().getEventTarget().cast(); cellElement.setTitle("cell contents go here."); } } });
 			 */
-		} else {
-			HTML desc = new HTML("<p> No Users available for sharing.</p>");
-			cellTablePanel.add(desc);
 		}
-		
-		
 	}
 	/*
 	 * (non-Javadoc)
@@ -266,6 +269,16 @@ public class ManageMeasureShareView implements ShareDisplay {
 		return errorMessages;
 	}
 	
+	@Override
+	public MessageAlert getWarningMessageDisplay() {
+		return warningMessages;
+	}
+	
+	@Override
+	public void resetMessageDisplay() {
+		errorMessages.clearAlert();
+		warningMessages.clearAlert();
+	}
 	/* (non-Javadoc)
 	 * @see mat.client.measure.ManageMeasurePresenter.ShareDisplay#getPageSelectionTool()
 	 */
@@ -305,7 +318,7 @@ public class ManageMeasureShareView implements ShareDisplay {
 	 * @see mat.client.measure.ManageMeasurePresenter.ShareDisplay#getShareButton()
 	 */
 	@Override
-	public HasClickHandlers getShareButton() {
+	public HasClickHandlers getSaveButton() {
 		return buttonBar.getSaveButton();
 	}
 	
@@ -332,4 +345,21 @@ public class ManageMeasureShareView implements ShareDisplay {
 	public void setPrivate(boolean isPrivate) {
 		privateCheck.setValue(isPrivate);
 	}
+	
+	/* (non-Javadoc)
+	 * @see mat.client.measure.ManageMeasurePresenter.SearchDisplay#getSearchButton()
+	 */
+	public SearchWidgetBootStrap getSearchWidgetBootStrap() {
+		return searchWidgetBootStrap;
+	}
+	/**
+	 * Gets the focus panel.
+	 *
+	 * @return the focus panel
+	 */
+	@Override
+	public FocusPanel getSearchWidgetFocusPanel() {
+		return searchWidgetFocusPanel;
+	}
+	
 }

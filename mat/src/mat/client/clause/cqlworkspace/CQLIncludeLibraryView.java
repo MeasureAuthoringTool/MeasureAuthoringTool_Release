@@ -1,8 +1,10 @@
 package mat.client.clause.cqlworkspace;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.gwtbootstrap3.client.ui.Button;
 import org.gwtbootstrap3.client.ui.FormGroup;
@@ -53,6 +55,7 @@ import mat.client.shared.LabelBuilder;
 import mat.client.shared.MatCheckBoxCell;
 import mat.client.shared.MatSimplePager;
 import mat.client.shared.SearchWidgetBootStrap;
+import mat.client.shared.SkipListBuilder;
 import mat.client.shared.SpacerWidget;
 import mat.client.util.CellTableUtility;
 import mat.client.util.MatTextBox;
@@ -96,6 +99,10 @@ public class CQLIncludeLibraryView {
 	/** The includes button bar. */
 	private CQLButtonToolBar includesButtonBar = new CQLButtonToolBar("includes");
 	
+	private CQLButtonToolBar includesModifyButtonBar = new CQLButtonToolBar("includesAliasModify");
+	
+	private VerticalPanel buttonPanel = new VerticalPanel();
+	
 	/** The s widget. */
 	private SearchWidgetBootStrap sWidget = new SearchWidgetBootStrap("Search", "Enter Search Text here");
 	
@@ -116,6 +123,12 @@ public class CQLIncludeLibraryView {
 	/** The selected list. */
 	private List<CQLLibraryDataSetObject> selectedList;
 	
+	private Map<String, CQLLibraryDataSetObject> replaceLibraries; 
+	
+	private Map<String,CQLLibraryDataSetObject> availableLibraries = new HashMap<String,CQLLibraryDataSetObject>();
+
+
+
 	/** The selected object. */
 	private String selectedObject;
 	
@@ -133,6 +146,11 @@ public class CQLIncludeLibraryView {
 	
 	/** The alias name group. */
 	private FormGroup aliasNameGroup = new FormGroup();
+	
+	HTML heading = new HTML();
+	
+	/** The rep lib items. */
+	//private  ListBoxMVP repLibItems = new ListBoxMVP();
 	
 	/**
 	 * The Interface Observer.
@@ -152,14 +170,16 @@ public class CQLIncludeLibraryView {
 	 * Instantiates a new CQL include library view.
 	 */
 	public CQLIncludeLibraryView(){
-	
+		buttonPanel.clear();
 		aliasNameGroup.clear();
+		buttonPanel.getElement().setId("buttonPanel");
 		getIncludesButtonBar().setStylePrimaryName("floatRightButtonPanel");
-		
+		heading.addStyleName("leftAligned");
 		VerticalPanel verticalPanel = new VerticalPanel();
 		verticalPanel.getElement().setId("vPanel_VerticalPanelIncludeSection");
+		verticalPanel.add(heading);
 		verticalPanel.add(new SpacerWidget());
-		
+		verticalPanel.add(new SpacerWidget());
 		VerticalPanel aliasNameVP = new VerticalPanel();
 		HorizontalPanel aliasLabelHP = new HorizontalPanel();
 		
@@ -170,6 +190,7 @@ public class CQLIncludeLibraryView {
 		//aliasLabel.setText("Alias Name");
 		aliasLabel.setTitle("Alias Name");
 		aliasLabel.setText("Library Alias");
+		aliasLabel.setFor("aliasNameField_IncludeSection");
 		
 		aliasNameTxtBox.setText("");
 		aliasNameTxtBox.setSize("260px", "25px");
@@ -184,17 +205,17 @@ public class CQLIncludeLibraryView {
 		setMarginInButtonBar();
 		
 		VerticalPanel aliasLabelVP = new VerticalPanel();
-		//aliasLabelVP.add(aliasLabel);
-		//aliasLabelVP.add(new SpacerWidget());
-		//aliasLabelVP.add(aliasNameTxtBox);
-		aliasLabelVP.add(aliasNameGroup);
-		aliasLabelVP.setWidth("580px");
-		aliasLabelVP.setStylePrimaryName("margintop20px");
 		
+		aliasLabelVP.add(aliasNameGroup);
+		
+		aliasLabelVP.setStylePrimaryName("margintop20px");
+		buttonPanel.clear();
+		buttonPanel.add(includesButtonBar);
+		buttonPanel.getElement().setAttribute("style", "margin-left:300px;");
 		aliasLabelHP.add(aliasLabelVP);
 		aliasLabelHP.add(new SpacerWidget());
 		aliasLabelHP.add(new SpacerWidget());
-		aliasLabelHP.add(includesButtonBar);
+		aliasLabelHP.add(buttonPanel);
 		aliasNameVP.add(aliasLabelHP);
 		
 		
@@ -257,6 +278,9 @@ public class CQLIncludeLibraryView {
 	}
 	
 	
+	/**
+	 * Sets the margin in button bar.
+	 */
 	private void setMarginInButtonBar() {
 
 		includesButtonBar.getSaveButton().setMarginLeft(-30.00);
@@ -271,6 +295,9 @@ public class CQLIncludeLibraryView {
 		ownerTextboxPanel.clear();
 		searchCellTablePanel.clear();
 		aliasNameTxtBox.setEnabled(false);
+		buttonPanel.clear();
+		buttonPanel.getElement().setAttribute("style", "margin-left:250px;");
+		buttonPanel.add(includesModifyButtonBar);
 		
 		//Label ownerLabel = new Label(LabelType.INFO, "Owner Name");
 		FormLabel ownerLabel = new FormLabel();
@@ -296,6 +323,12 @@ public class CQLIncludeLibraryView {
 		cqlLibraryNameTextBox.setName("aliasName");
 		cqlLibraryNameTextBox.setEnabled(false);
 		
+		/*FormLabel cqlRepLibLabel = new FormLabel();
+		cqlRepLibLabel.setMarginTop(5);
+		cqlRepLibLabel.setId("cqlRepLibrary_Label");
+		cqlRepLibLabel.setText("Replace Library");
+		cqlRepLibLabel.setTitle("Replace Library");
+		*/
 		ownerTextboxPanel.add(ownerLabel);
 		ownerTextboxPanel.add(new SpacerWidget());
 		ownerTextboxPanel.add(ownerNameTextBox);
@@ -304,6 +337,10 @@ public class CQLIncludeLibraryView {
 		ownerTextboxPanel.add(cqlLibNameLabel);
 		ownerTextboxPanel.add(new SpacerWidget());
 		ownerTextboxPanel.add(cqlLibraryNameTextBox);
+		ownerTextboxPanel.add(new SpacerWidget());
+		/*ownerTextboxPanel.add(cqlRepLibLabel);
+		ownerTextboxPanel.add(new SpacerWidget());*/
+	//	ownerTextboxPanel.add(repLibItems);
 		createReadOnlyViewIncludesButtonBar();
 	}
 	
@@ -335,6 +372,9 @@ public class CQLIncludeLibraryView {
 		searchCellTablePanel.add(new SpacerWidget());
 		
 		searchCellTablePanel.add(cellTablePanel);
+		buttonPanel.clear();
+		buttonPanel.add(includesButtonBar);
+		buttonPanel.getElement().setAttribute("style", "margin-left:300px;");
 		createIncludesButtonBar();
 		//return searchCellTablePanel;
 	}
@@ -398,16 +438,22 @@ public class CQLIncludeLibraryView {
 	 * @return the CQL button tool bar
 	 */
 	private CQLButtonToolBar createReadOnlyViewIncludesButtonBar() {
-		includesButtonBar.getDeleteButton().setVisible(true);
-		includesButtonBar.getDeleteButton().setMarginLeft(-40.00);
-		includesButtonBar.getDeleteButton().setEnabled(false);
-		includesButtonBar.getCloseButton().setVisible(true);;
-		includesButtonBar.getSaveButton().setVisible(false);
-		includesButtonBar.getEraseButton().setVisible(false);
-		includesButtonBar.getInfoButton().removeFromParent();
-		includesButtonBar.getInsertButton().removeFromParent();
-		includesButtonBar.getTimingExpButton().removeFromParent();
-		return includesButtonBar;
+		
+		includesModifyButtonBar.getDeleteButton().setVisible(true);
+		/*includesButtonBar.getDeleteButton().setMarginLeft(-40.00);*/
+		includesModifyButtonBar.getEditButton().setVisible(true);
+		includesModifyButtonBar.getEditButton().setMarginLeft(-50.00);
+		includesModifyButtonBar.getCloseButton().setMarginLeft(10.00);
+		includesModifyButtonBar.getDeleteButton().setEnabled(false);
+		includesModifyButtonBar.getCloseButton().setVisible(true);;
+		includesModifyButtonBar.getSaveButton().setVisible(true);
+		includesModifyButtonBar.getSaveButton().setEnabled(false);
+		includesModifyButtonBar.getInfoButton().removeFromParent();
+		includesModifyButtonBar.getInsertButton().removeFromParent();
+		includesModifyButtonBar.getTimingExpButton().removeFromParent();
+		includesModifyButtonBar.getSaveButton().removeFromParent();
+		includesModifyButtonBar.getEraseButton().removeFromParent();
+		return includesModifyButtonBar;
 	}
 
 	
@@ -646,8 +692,8 @@ public class CQLIncludeLibraryView {
 				
 				if ((object != null)) {
 					if(includedList != null && includedList.contains(object.getId())){
-						sb.appendHtmlConstant("<img src =\"images/bullet_tick.png\" alt=\"Library already in use.\""
-					+ "title = \"Library already in use.\"/>");
+						sb.appendHtmlConstant("<i class=\"fa fa-check\" aria-hidden=\"true\" style=\"color:limegreen;\"></i>");
+						sb.appendHtmlConstant("<span style=\"color: transparent;\">Yes</span>");
 					} else {
 						cell.render(context, hasCell.getValue(object), sb);
 					}
@@ -776,6 +822,11 @@ public class CQLIncludeLibraryView {
 		return this.includesButtonBar;
 	}
 	
+	public CQLButtonToolBar getIncludesModifyButtonBar() {
+		return includesModifyButtonBar;
+	}
+
+
 	/**
 	 * Reset to default.
 	 */
@@ -823,6 +874,9 @@ public class CQLIncludeLibraryView {
 		return getIncludesButtonBar().getSaveButton();
 	}
 	
+	public Button getSaveModifyButton(){
+		return getIncludesModifyButtonBar().getEditButton();
+	}
 	/**
 	 * Gets the erase button.
 	 *
@@ -838,7 +892,7 @@ public class CQLIncludeLibraryView {
 	 * @return the delete button
 	 */
 	public Button getDeleteButton(){
-		return getIncludesButtonBar().getDeleteButton();
+		return getIncludesModifyButtonBar().getDeleteButton();
 	}
 	
 	
@@ -848,7 +902,7 @@ public class CQLIncludeLibraryView {
 	 * @return the close button
 	 */
 	public Button getCloseButton(){
-		return getIncludesButtonBar().getCloseButton();
+		return getIncludesModifyButtonBar().getCloseButton();
 	}
 	
 	/**
@@ -1043,5 +1097,74 @@ public class CQLIncludeLibraryView {
 		this.aliasNameGroup = aliasNameGroup;
 	}
 	
+	/**
+	 * Adds the available items.
+	 *
+	 * @param availableInsertItemList the available insert item list
+	 */
+	/*public void addAvailableItems( List<String> availableInsertItemList) {
+		repLibItems.clear();
+		repLibItems.addItem(MatContext.get().PLEASE_SELECT);
+		for (int i = 0; i < availableInsertItemList.size(); i++) {
+			if(!availableInsertItemList.get(i).equalsIgnoreCase(MatContext.get().PLEASE_SELECT)){
+				repLibItems.addItem(availableInsertItemList.get(i));
+			}
+		}
+		
+	}
+*/
+
+	/**
+	 * Gets the rep lib items.
+	 *
+	 * @return the rep lib items
+	 */
+/*	public ListBoxMVP getRepLibItems() {
+		return repLibItems;
+	}
+*/
+
+	/**
+	 * Sets the rep lib items.
+	 *
+	 * @param repLibItems the new rep lib items
+	 */
+	/*public void setRepLibItems(ListBoxMVP repLibItems) {
+		this.repLibItems = repLibItems;
+	}*/
 	
+	public Map<String, CQLLibraryDataSetObject> getReplaceLibraries() {
+		return replaceLibraries;
+	}
+
+
+	public void setReplaceLibraries(Map<String, CQLLibraryDataSetObject> replaceLibraries) {
+		this.replaceLibraries = replaceLibraries;
+	}
+
+
+	public Map<String, CQLLibraryDataSetObject> getAvailableLibraries() {
+		return availableLibraries;
+	}
+
+
+	public void setAvailableLibraries(Map<String, CQLLibraryDataSetObject> availableLibraries) {
+		this.availableLibraries = availableLibraries;
+	}
+	
+	public void setHeading(String text,String linkName) {
+		String linkStr = SkipListBuilder.buildEmbeddedString(linkName);
+		heading.setHTML(linkStr +"<h4><b>" + text + "</b></h4>");
+	}
+	
+	/**
+	 * Added this method as part of MAT-8882.
+	 * @param isEditable
+	 */
+	public void setReadOnly(boolean isEditable) {		
+		getSaveButton().setEnabled(isEditable);
+		getEraseButton().setEnabled(isEditable);
+		getSearchButton().setEnabled(isEditable);
+	}
+
 }

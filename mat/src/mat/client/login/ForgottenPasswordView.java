@@ -1,31 +1,27 @@
 package mat.client.login;
 
+import org.gwtbootstrap3.client.ui.Input;
+import org.gwtbootstrap3.client.ui.TextBox;
+import org.gwtbootstrap3.client.ui.constants.InputType;
+
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.event.dom.client.FocusEvent;
+import com.google.gwt.event.dom.client.FocusHandler;
+import com.google.gwt.event.dom.client.HasClickHandlers;
+import com.google.gwt.user.client.ui.HTML;
+import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.Panel;
+import com.google.gwt.user.client.ui.SimplePanel;
+import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.gwt.user.client.ui.Widget;
+
 import mat.client.shared.ErrorMessageAlert;
-import mat.client.shared.ErrorMessageDisplay;
-import mat.client.shared.ErrorMessageDisplayInterface;
 import mat.client.shared.LabelBuilder;
 import mat.client.shared.MessageAlert;
 import mat.client.shared.RequiredIndicator;
 import mat.client.shared.SaveCancelButtonBar;
 import mat.client.shared.SpacerWidget;
-
-import org.gwtbootstrap3.client.ui.TextBox;
-
-import com.google.gwt.dom.client.Element;
-import com.google.gwt.event.dom.client.BlurEvent;
-import com.google.gwt.event.dom.client.BlurHandler;
-import com.google.gwt.event.dom.client.FocusEvent;
-import com.google.gwt.event.dom.client.FocusHandler;
-import com.google.gwt.event.dom.client.HasClickHandlers;
-import com.google.gwt.user.client.ui.HTML;
-import com.google.gwt.user.client.ui.Hidden;
-import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.Panel;
-import com.google.gwt.user.client.ui.SimplePanel;
-
-import com.google.gwt.user.client.ui.VerticalPanel;
-import com.google.gwt.user.client.ui.Widget;
 
 /**
  * The Class ForgottenPasswordView.
@@ -42,7 +38,7 @@ public class ForgottenPasswordView implements ForgottenPasswordPresenter.Display
 	private Label securityQuestion;
 	
 	/** The security answer. */
-	private TextBox securityAnswer;
+	private Input securityAnswer;
 	
 	/** The button bar. */
 	private SaveCancelButtonBar buttonBar = new SaveCancelButtonBar("forgotPwd");
@@ -54,7 +50,7 @@ public class ForgottenPasswordView implements ForgottenPasswordPresenter.Display
 	private VerticalPanel securityQuestionAnsPanel = new  VerticalPanel();
 	
 	/** The security answer hidden. */
-	Hidden securityAnswerHidden = new Hidden();
+	//Hidden securityAnswerHidden = new Hidden();
 	
 	/** The is user id submit. */
 	public static boolean isUserIdSubmit = true;
@@ -128,7 +124,7 @@ public class ForgottenPasswordView implements ForgottenPasswordPresenter.Display
 	 */
 	@Override
 	public String getSecurityAnswer() {
-		return securityAnswerHidden.getValue();
+		return securityAnswer.getValue();
 	}
 
 	/* (non-Javadoc)
@@ -194,11 +190,11 @@ public class ForgottenPasswordView implements ForgottenPasswordPresenter.Display
 			securityQuestionAnsPanel.add(securityQuestion);
 			securityQuestionAnsPanel.add(new SpacerWidget());
 			
-			securityAnswer = new TextBox();
+			securityAnswer = new Input(InputType.PASSWORD);
 			securityAnswer.setTitle("Enter Security Question Answer");
 			securityQuestionAnsPanel.add(LabelBuilder.buildLabel(securityAnswer, "Security Question Answer"));
 			securityQuestionAnsPanel.add(securityAnswer);
-			securityQuestionAnsPanel.add(securityAnswerHidden);
+			//securityQuestionAnsPanel.add(securityAnswerHidden);
 			securityQuestionAnsPanel.add(new SpacerWidget());
 			
 			
@@ -220,18 +216,18 @@ public class ForgottenPasswordView implements ForgottenPasswordPresenter.Display
 			
 			setFocus(true);
 			
-			securityAnswer.addBlurHandler(new BlurHandler() {
-				@Override
-				public void onBlur(BlurEvent event) {
-					String ans = securityAnswer.getText();
-					securityAnswerHidden.setValue(ans);
-					String asterisks = "";
-					for (int i = 0; i < ans.length(); i++) {
-						asterisks += "*";
-					}
-					securityAnswer.setText(asterisks);
-				}
-			});
+//			securityAnswer.addBlurHandler(new BlurHandler() {
+//				@Override
+//				public void onBlur(BlurEvent event) {
+//					String ans = securityAnswer.getText();
+//					securityAnswerHidden.setValue(ans);
+//					String asterisks = "";
+//					for (int i = 0; i < ans.length(); i++) {
+//						asterisks += "*";
+//					}
+//					securityAnswer.setText(asterisks);
+//				}
+//			});
 			
 			securityAnswer.addFocusHandler(new FocusHandler() {
 				@Override

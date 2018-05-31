@@ -3,6 +3,7 @@ package mat.client.clause.cqlworkspace;
 import java.util.List;
 import java.util.Map;
 
+import org.gwtbootstrap3.client.ui.HelpBlock;
 import org.gwtbootstrap3.client.ui.Icon;
 import org.gwtbootstrap3.client.ui.InlineRadio;
 import org.gwtbootstrap3.client.ui.constants.IconSize;
@@ -16,6 +17,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
 import edu.ycp.cs.dh.acegwt.client.ace.AceEditor;
+import mat.client.Mat;
 import mat.client.shared.CQLButtonToolBar;
 import mat.client.shared.MatContext;
 import mat.client.shared.SpacerWidget;
@@ -74,6 +76,7 @@ public class CQLStandaloneWorkSpaceView implements CQLStandaloneWorkSpacePresent
 	
 	private HorizontalPanel lockedButtonHPanel = new HorizontalPanel();
 	
+	private HelpBlock helpBlock = new HelpBlock();
 	/**
 	 * Instantiates a new CQL standalone work space view.
 	 */
@@ -127,6 +130,7 @@ public class CQLStandaloneWorkSpaceView implements CQLStandaloneWorkSpacePresent
 	public void buildGeneralInformation() {
 		unsetEachSectionSelectedObject();
 		mainFlowPanel.clear();
+		setGeneralInfoHeading();
 		mainFlowPanel.add(generalInformationView.getCQLView());
 
 	}
@@ -157,10 +161,10 @@ public class CQLStandaloneWorkSpaceView implements CQLStandaloneWorkSpacePresent
 	 * @see mat.client.clause.cqlworkspace.CQLStandaloneWorkSpacePresenter.ViewDisplay#buildCQLFileView()
 	 */
 	@Override
-	public void buildCQLFileView() {
+	public void buildCQLFileView(boolean isEditable) {
 		unsetEachSectionSelectedObject();
 		mainFlowPanel.clear();
-		mainFlowPanel.add(cqlViewCQLView.buildView());
+		mainFlowPanel.add(cqlViewCQLView.buildView(isEditable));
 
 	}
 	
@@ -742,5 +746,24 @@ public class CQLStandaloneWorkSpaceView implements CQLStandaloneWorkSpacePresent
 	public void setLockedButtonVPanel(HorizontalPanel lockedButtonVPanel) {
 		this.lockedButtonHPanel = lockedButtonVPanel;
 	}
+	
+	@Override
+	public CQLView getViewCQLView(){
+		return cqlViewCQLView;
+	}
+	
+	@Override
+	public void setGeneralInfoHeading(){
+		getCqlGeneralInformationView().setHeading("CQL Library Workspace > General Information", "generalInfoMainHPanel_HPanel");
+		Mat.focusSkipLists("CqlComposer");
+	}
 
+	@Override
+	public HelpBlock getHelpBlock() {
+		return helpBlock;
+	}
+
+	public void setHelpBlock(HelpBlock helpBlock) {
+		this.helpBlock = helpBlock;
+	}
 }

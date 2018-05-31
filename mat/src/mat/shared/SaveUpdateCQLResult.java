@@ -23,6 +23,8 @@ public class SaveUpdateCQLResult extends GenericResult{
 	
 	private CQLObject cqlObject;
 	
+	private String libraryName;
+	
 	//private String expIdentifier;
 	
 	private String setId;
@@ -76,6 +78,8 @@ public class SaveUpdateCQLResult extends GenericResult{
 	
 	public static final int COMMEENT_INVALID = 8;
 	
+	public static final int BIRTHDATE_OR_DEAD_ERROR = 9;
+	
 	/** The cql applied QDM list. */
 	List<CQLQualityDataSetDTO> cqlAppliedQDMList ;
 	
@@ -103,6 +107,14 @@ public class SaveUpdateCQLResult extends GenericResult{
 		return cqlString;
 	}
 	
+	public String getLibraryName() {
+		return libraryName;
+	}
+
+	public void setLibraryName(String libraryName) {
+		this.libraryName = libraryName;
+	}
+
 	/**
 	 * Sets the cql string.
 	 *
@@ -367,6 +379,11 @@ public class SaveUpdateCQLResult extends GenericResult{
 	public int getDuplicateCode() {
 		return DUPLICATE_CODE;
 	}
+	
+	
+	public int getBirthdateOrDeadError() {
+		return BIRTHDATE_OR_DEAD_ERROR;
+	}
 
 	public boolean isValidCQLWhileSavingExpression() {
 		return isValidCQLWhileSavingExpression;
@@ -374,7 +391,7 @@ public class SaveUpdateCQLResult extends GenericResult{
 
 	public void setValidCQLWhileSavingExpression(boolean isValidCQLWhileSavingExpression) {
 		this.isValidCQLWhileSavingExpression = isValidCQLWhileSavingExpression;
-	}	
+	}
 
 	public String getJsonString() {
 		return jsonString;
@@ -383,6 +400,5 @@ public class SaveUpdateCQLResult extends GenericResult{
 	public void setJsonString(String jsonString) {
 		this.jsonString = jsonString;
 	}
-
 	
 }

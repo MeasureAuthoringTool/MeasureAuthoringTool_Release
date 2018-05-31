@@ -16,17 +16,11 @@ public class CQLWorkSpaceConstants {
 	public static int VALID_INCLUDE_COUNT =10;
 	
 	private static final ArrayList<String> AVAILABLE_ITEM_TO_INSERT = new ArrayList<String>();
-	
-	private static final ArrayList<String> PRIMARY_TIMINGS = new ArrayList<String>();
-	
+		
 	private static final ArrayList<String> TIMING_PRECISIONS = new ArrayList<String>();
 	
 	private static final ArrayList<String> QUANTITY_OFFSET_UNITS = new ArrayList<String>();
-	
-	private static final ArrayList<String> RELATIVE_QUALIFIER = new ArrayList<String>();
-	
-	private static final ArrayList<String> WITHIN_TIMING_EXP = new ArrayList<String>();	
-	
+			
 	/** The element look up name. */
 	public static Map<String, String> elementLookUpName;
 	
@@ -190,11 +184,48 @@ public class CQLWorkSpaceConstants {
 	public static final String CQL_ATTRIBUTE_RESULT = "result";
 	public static final String CQL_ATTRIBUTE_TARGET_OUTCOME = "targetOutcome";
 	public static final String CQL_INSERT_AS_CODE_IN = " as Code in ";
-	public static final String CQL_INSERT_AS_CODE = " as Code = ";
+	public static final String CQL_INSERT_AS_CODE = " ~ ";
 	public static final String CQL_INSERT_IN = " in ";
 	public static final String CQL_EQUALS = " = ";
+	public static final String CQL_CODE_EQUALS = " ~ "; 
 	public static final String CQL_DRAFT = "Draft";
 	public static final String CQL_CODE = "CODE:";
 	
+	public static final String CQL_INITIALPOPULATION = "initialpopulation";
+	public static final String CQL_NUMERATOR = "numerator";
+	public static final String CQL_DENOMINATOR = "denominator";
+	public static final String CQL_NUMERATOREXCLUSIONS = "numeratorexclusions";
+	public static final String CQL_DENOMINATOREXCLUSIONS = "denominatorexclusions";
+	public static final String CQL_DENOMINATOREXCEPTIONS = "denominatorexceptions";
+	public static final String CQL_MEASUREPOPULATIONS = "measurepopulations";
+	public static final String CQL_MEASUREPOPULATIONEXCLUSIONS = "measurepopulationexclusions";
+	public static final String CQL_STRATIFICATIONS = "stratifications";
+	public static final String CQL_MEASUREOBSERVATIONS = "measureobservations";
+	public static final String CQL_VIEWPOPULATIONS = "viewpopulations";
+	public static final String CQL_STRATUM = "Stratum";
+	public static final String SCORING = "scoring";
 	
+	public enum POPULATIONS {
+		INITIAL_POPULATIONS("Initial Populations"),
+	    NUMERATORS("Numerators"),
+	    DENOMINATORS("Denominators"),
+	    NUMERATOR_EXCLUSIONS("Numerator Exclusions"),
+	    DENOMINATOR_EXCLUSIONS("Denominator Exclusions"),
+	    DENOMINATOR_EXCEPTIONS("Denominator Exceptions"),
+	    MEASURE_POPULATIONS("Measure Populations"),
+	    MEASURE_POPULATION_EXCLUSIONS("Measure Population Exclusions"),
+	    STRATIFICATION("Stratification"),
+	    MEASURE_OBSERVATIONS("Measure Observations"),
+	    VIEW_POPULATIONS("View Populations");
+
+	    private String popName;
+
+	    POPULATIONS(String popName) {
+	        this.popName = popName;
+	    }
+
+	    public String popName() {
+	        return popName;
+	    }
+	}
 }

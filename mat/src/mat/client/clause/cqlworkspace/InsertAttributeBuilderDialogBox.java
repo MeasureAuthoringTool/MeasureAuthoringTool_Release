@@ -55,7 +55,7 @@ public class InsertAttributeBuilderDialogBox {
 	private static final String QUANTITY_UNIT_DATE_TIME_ALERT = "Date/Time fields are now enabled. Quantity field is now enabled. Units dropdown is now enabled.";
 	private static final String QUANTITY_UNIT_ALERT = "Quantity field is now enabled. Units dropdown is now enabled.";
 	private static final String FACILITY_LOCATIONS = "facilityLocations";
-	private static final String ID = "id";
+	private static final String ATTR_ID = "id";
 	private static final String DIAGNOSES = "diagnoses";
 	private static final String COMPONENTS = "components";
 	private static final String VALUE_SETS = "Value Sets";
@@ -292,7 +292,7 @@ public class InsertAttributeBuilderDialogBox {
 				} else {
 					ModelistBox.setEnabled(false);
 					ModeDetailslistBox.setEnabled(false);
-					ModelistBox.addItem(MatContext.get().PLEASE_SELECT);
+					ModelistBox.addItem(MatContext.PLEASE_SELECT);
 				}
 				setEnabled(false);
 				defaultFrmGrpValidations();
@@ -318,7 +318,7 @@ public class InsertAttributeBuilderDialogBox {
 					ModeDetailslistBox.setSelectedIndex(0);
 				} else {
 					ModeDetailslistBox.setEnabled(false);
-					ModeDetailslistBox.addItem(MatContext.get().PLEASE_SELECT);
+					ModeDetailslistBox.addItem(MatContext.PLEASE_SELECT);
 				}
 				setEnabled(false);
 				defaultFrmGrpValidations();
@@ -477,8 +477,7 @@ public class InsertAttributeBuilderDialogBox {
 	private static boolean isModeDisabledEntry(String attrSelected) {
 		
 		if(attrSelected.equalsIgnoreCase(COMPONENTS) || attrSelected.equalsIgnoreCase(DIAGNOSES) 
-				|| attrSelected.equalsIgnoreCase(FACILITY_LOCATIONS)
-				|| attrSelected.equalsIgnoreCase(ID)) {
+				|| attrSelected.equalsIgnoreCase(FACILITY_LOCATIONS) || attrSelected.equalsIgnoreCase(ATTR_ID)) {
 			return true; 
 		}
 		
@@ -1191,21 +1190,15 @@ private static void defaultFrmGrpValidations(){
 	}
 	
 	private static void addModelist(ListBoxMVP availableItemToInsert, List<String> attrModeList) {
-		availableItemToInsert.addItem(MatContext.get().PLEASE_SELECT);
+		availableItemToInsert.addItem(MatContext.PLEASE_SELECT);
 		for (int i = 0; i < attrModeList.size(); i++) {
-			if(!attrModeList.get(i).equalsIgnoreCase(MatContext.get().PLEASE_SELECT)){
+			if(!attrModeList.get(i).equalsIgnoreCase(MatContext.PLEASE_SELECT)){
 				availableItemToInsert.addItem(attrModeList.get(i));
 			}
 		}
 	}
 	
 	private static void addModeDetailslist(ListBoxMVP availableItemToInsert, List<ModeDetailModel> list) {
-		/*availableItemToInsert.addItem(MatContext.get().PLEASE_SELECT);
-		for (int i = 0; i < list.size(); i++) {
-			if(!list.get(i).equalsIgnoreCase(MatContext.get().PLEASE_SELECT)){
-				availableItemToInsert.addItem(list.get(i));
-			}
-		}*/
 		
 		List<NameValuePair> retList = new ArrayList<NameValuePair>();
 		for(int i=0; i < list.size();i++){
@@ -1277,20 +1270,23 @@ private static void defaultFrmGrpValidations(){
 			if(valueArray.length > 0){
 				type = valueArray[0];
 				value = valueArray[1];
+				sb.append(".").append(selectedAttrItem);
 				if(selectedAttrItem.equalsIgnoreCase(CQLWorkSpaceConstants.CQL_ATTRIBUTE_RESULT)
 						|| selectedAttrItem.equalsIgnoreCase(CQLWorkSpaceConstants.CQL_ATTRIBUTE_TARGET_OUTCOME)){
 					if(type.equalsIgnoreCase("valueset")) { // For Value Set
-						sb.append(".").append(selectedAttrItem).append(CQLWorkSpaceConstants.CQL_INSERT_AS_CODE_IN).append(value);
+						sb.append(CQLWorkSpaceConstants.CQL_INSERT_AS_CODE_IN);
 					} else { // For Code 
-						sb.append(".").append(selectedAttrItem).append(CQLWorkSpaceConstants.CQL_INSERT_AS_CODE).append(value);
+						sb.append(CQLWorkSpaceConstants.CQL_INSERT_AS_CODE);
 					}
 				}else{
 					if(type.equalsIgnoreCase("valueset")) { // For Value Set
-						sb.append(".").append(selectedAttrItem).append(CQLWorkSpaceConstants.CQL_INSERT_IN).append(value);
+						sb.append(CQLWorkSpaceConstants.CQL_INSERT_IN);
 					} else { // For Code
-						sb.append(".").append(selectedAttrItem).append(CQLWorkSpaceConstants.CQL_EQUALS).append(value);
+						sb.append(CQLWorkSpaceConstants.CQL_CODE_EQUALS);
 					}
 				}
+				
+				sb.append(value);
 			}
 			
 		}else if(QuantityTextBox.isEnabled()){
@@ -1298,7 +1294,7 @@ private static void defaultFrmGrpValidations(){
 			sb.append(".").append(selectedAttrItem).append(" ").append(selectedMDetailsItem).append(" ").append(selectedQuantity).append(" ");
 			if(nonQuoteUnits.contains(selectedUnit)){
 				 sb.append(selectedUnit);
-			} else if(!selectedUnit.equalsIgnoreCase(MatContext.get().PLEASE_SELECT)) {
+			} else if(!selectedUnit.equalsIgnoreCase(MatContext.PLEASE_SELECT)) {
 				sb.append("'").append(selectedUnit).append("'");
 			}
 		} 
@@ -1404,9 +1400,9 @@ private static void defaultFrmGrpValidations(){
 	 */
 	private static void addAvailableItems(ListBoxMVP availableItemToInsert, 
 			List<String> availableInsertItemList) {
-		availableItemToInsert.addItem(MatContext.get().PLEASE_SELECT);
+		availableItemToInsert.addItem(MatContext.PLEASE_SELECT);
 		for (int i = 0; i < availableInsertItemList.size(); i++) {
-			if(!availableInsertItemList.get(i).equalsIgnoreCase(MatContext.get().PLEASE_SELECT)){
+			if(!availableInsertItemList.get(i).equalsIgnoreCase(MatContext.PLEASE_SELECT)){
 				availableItemToInsert.addItem(availableInsertItemList.get(i));
 			}
 		}
@@ -1415,11 +1411,11 @@ private static void defaultFrmGrpValidations(){
 	
 	
 	/**
-	 * Gets the all attibutes by data type.
+	 * Gets the all attributes by data type.
 	 *
 	 * @param availableAttributesToInsert the available attributes to insert
 	 * @param dataType the data type
-	 * @return the all attibutes by data type
+	 * @return the all attributes by data type
 	 */
 	private static void getAllAttibutesByDataType(final ListBoxMVP availableAttributesToInsert, String dataType){
 		

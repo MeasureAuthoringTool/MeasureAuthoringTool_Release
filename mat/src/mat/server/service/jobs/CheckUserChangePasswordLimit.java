@@ -9,12 +9,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import mat.dao.EmailAuditLogDAO;
 import mat.dao.UserDAO;
+import mat.model.EmailAuditLog;
 import mat.model.User;
-import mat.model.UserPasswordHistory;
-import mat.server.service.UserIDNotUnique;
 import mat.server.service.UserService;
 import mat.server.util.ServerConstants;
+import mat.shared.ConstantMessages;
 
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.logging.Log;
@@ -36,6 +37,8 @@ public class CheckUserChangePasswordLimit {
 	/** The user dao. */
 	private UserDAO userDAO;
 	
+	private EmailAuditLogDAO emailAuditLogDAO; 
+
 	/** The mail sender. */
 	private MailSender mailSender;
 	
@@ -127,6 +130,15 @@ public class CheckUserChangePasswordLimit {
 	public void setUserDAO(UserDAO userDAO) {
 		this.userDAO = userDAO;
 	}
+	
+	public EmailAuditLogDAO getEmailAuditLogDAO() {
+		return emailAuditLogDAO;
+	}
+
+	public void setEmailAuditLogDAO(EmailAuditLogDAO emailAuditLogDAO) {
+		this.emailAuditLogDAO = emailAuditLogDAO;
+	}
+
 
 	/**
 	 * Gets the mail sender.
@@ -325,6 +337,7 @@ public class CheckUserChangePasswordLimit {
 				
 				final Map<String, Object> model= new HashMap<String, Object>();
 				final Map<String, String> content= new HashMap<String, String>();
+				final String envirUrl = ServerConstants.getEnvURL();
 				
 				for(User user:emailUsers){
 					
@@ -343,6 +356,9 @@ public class CheckUserChangePasswordLimit {
 						userRole = "("+user.getSecurityRole().getDescription()+")";
 					}
 					content.put("rolename",userRole);
+					
+					content.put(ConstantMessages.LOGINID, user.getLoginId());
+					content.put(ConstantMessages.URL, envirUrl);
 					
 					//5 days Expiry Date
 				     if(passwordexpiryDayLimit==noOfDaysPasswordLimit) {
@@ -368,7 +384,14 @@ public class CheckUserChangePasswordLimit {
 						//Update Termination Date for User.
 						//updateUserTerminationDate(user);
 					}	
+				
 					mailSender.send(simpleMailMessage);
+					EmailAuditLog emailAudit = new EmailAuditLog();
+					emailAudit.setActivityType("Password " + emailType + " email sent.");
+					emailAudit.setTime(new Date());
+					emailAudit.setLoginId(user.getLoginId());
+					emailAuditLogDAO.save(emailAudit);
+					
 					content.clear();
 					model.clear();
 					logger.info("Email Sent to "+user.getFirstName());
@@ -394,9 +417,6 @@ public class CheckUserChangePasswordLimit {
 	    logger.info(passwordDayLimit + "passwordDaysAgo:"+passwordDaysAgo);
 		
 	    for(User user:users){
-	    	if(user.getId().equals("8ae455ea4e4023fb014e40258ced0004")){
-	    		System.out.println("");
-	    	}
 			Date lastPasswordCreatedDate = user.getPassword().getCreatedDate();
 			
 			if(lastPasswordCreatedDate == null || !checkValidUser(user)){

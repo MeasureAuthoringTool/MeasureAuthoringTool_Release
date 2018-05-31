@@ -8,10 +8,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import mat.dao.EmailAuditLogDAO;
 import mat.dao.UserDAO;
+import mat.model.EmailAuditLog;
 import mat.model.Status;
 import mat.model.User;
 import mat.server.util.ServerConstants;
+import mat.shared.ConstantMessages;
 
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.logging.Log;
@@ -60,7 +63,9 @@ public class CheckUserLastLoginTask {
 	
 	/** The velocity engine. */
 	private VelocityEngine velocityEngine;
-	
+
+	private EmailAuditLogDAO emailAuditLogDAO;
+
 	/** The Constant WARNING_EMAIL_FLAG. */
 	private final static String WARNING_EMAIL_FLAG = "WARNING";
 	
@@ -103,6 +108,7 @@ public class CheckUserLastLoginTask {
 		
 		final Map<String, Object> model= new HashMap<String, Object>();
 		final Map<String, String> content= new HashMap<String, String>();
+		final String envirUrl = ServerConstants.getEnvURL();
 		
 		for(User user:emailUsers){
 			
@@ -123,6 +129,9 @@ public class CheckUserLastLoginTask {
 			}
 			content.put("rolename",userRole);
 			
+			content.put(ConstantMessages.LOGINID, user.getLoginId());
+			content.put(ConstantMessages.URL, envirUrl);
+			
 			model.put("content", content);
 			String text = null;
 			
@@ -141,7 +150,15 @@ public class CheckUserLastLoginTask {
 				//Update Termination Date for User.
 				updateUserTerminationDate(user);
 			}	
+			
 			mailSender.send(simpleMailMessage);
+			EmailAuditLog emailAudit = new EmailAuditLog();
+			emailAudit.setActivityType("User Account Termination " + emailType + " email sent.");
+			emailAudit.setTime(new Date());
+			emailAudit.setLoginId(user.getLoginId());
+			emailAuditLogDAO.save(emailAudit);
+			
+			
 			content.clear();
 			model.clear();
 			logger.info("Email Sent to "+user.getFirstName());
@@ -453,6 +470,15 @@ public class CheckUserLastLoginTask {
 	 */
 	public void setVelocityEngine(final VelocityEngine velocityEngine) {
 		this.velocityEngine = velocityEngine;
+	}
+	
+	public EmailAuditLogDAO getEmailAuditLogDAO() {
+		return emailAuditLogDAO;
+	}
+
+
+	public void setEmailAuditLogDAO(EmailAuditLogDAO emailAuditLogDAO) {
+		this.emailAuditLogDAO = emailAuditLogDAO;
 	}
 	
 }

@@ -23,11 +23,23 @@
 					<field name="codeListName" type="java.lang.String">
 						<bind-xml name="name" node="attribute" />
 					</field>
+					<field name="suffix" type="java.lang.String">
+						<bind-xml name="suffix" node="attribute" />
+					</field>
+					<field name="originalCodeListName" type="java.lang.String">
+						<bind-xml name="originalName" node="attribute" />
+					</field>
 					<field name="oid" type="java.lang.String">
 						<bind-xml name="oid" node="attribute" />
 					</field>
 					<field name="version" type="java.lang.String">
 						<bind-xml name="version" node="attribute" />
+					</field>
+					<field name="program" type="java.lang.String">
+						<bind-xml name=""program"" node="attribute" />
+					</field>
+					<field name="release" type="java.lang.String">
+						<bind-xml name="release" node="attribute" />
 					</field>
 					<!-- <field name="effectiveDate" type="java.lang.String">
                         <bind-xml name="effectiveDate" node="attribute" />

@@ -4,14 +4,15 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import mat.DTO.MeasureNoteDTO;
+import com.google.gwt.user.client.rpc.RemoteService;
+import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
+
 import mat.client.clause.clauseworkspace.model.MeasureDetailResult;
 import mat.client.clause.clauseworkspace.model.MeasureXmlModel;
 import mat.client.clause.clauseworkspace.model.SortedClauseMapResult;
 import mat.client.measure.ManageMeasureDetailModel;
 import mat.client.measure.ManageMeasureSearchModel;
 import mat.client.measure.ManageMeasureShareModel;
-import mat.client.measure.MeasureNotesModel;
 import mat.client.measure.TransferOwnerShipModel;
 import mat.client.shared.MatException;
 import mat.client.umls.service.VsacApiResult;
@@ -23,6 +24,7 @@ import mat.model.Organization;
 import mat.model.QualityDataModelWrapper;
 import mat.model.QualityDataSetDTO;
 import mat.model.RecentMSRActivityLog;
+import mat.model.cql.CQLCode;
 import mat.model.cql.CQLCodeWrapper;
 import mat.model.cql.CQLDefinition;
 import mat.model.cql.CQLFunctions;
@@ -34,9 +36,6 @@ import mat.model.cql.CQLQualityDataModelWrapper;
 import mat.model.cql.CQLQualityDataSetDTO;
 import mat.shared.GetUsedCQLArtifactsResult;
 import mat.shared.SaveUpdateCQLResult;
-
-import com.google.gwt.user.client.rpc.RemoteService;
-import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -82,14 +81,6 @@ public interface MeasureService extends RemoteService {
 	void createAndSaveCQLLookUp(List<QualityDataSetDTO> list, String measureID, String expProfileToAllQDM);
 	
 	/**
-	 * Delete measure notes.
-	 * 
-	 * @param measureNoteDTO
-	 *            the measure note dto
-	 */
-	void deleteMeasureNotes(MeasureNoteDTO measureNoteDTO);
-	
-	/**
 	 * Generate and save max emeasure id.
 	 * 
 	 * @param measureId
@@ -98,14 +89,6 @@ public interface MeasureService extends RemoteService {
 	 */
 	int generateAndSaveMaxEmeasureId(ManageMeasureDetailModel measureId);
 	
-	/**
-	 * Gets the all measure notes by measure id.
-	 * 
-	 * @param measureID
-	 *            the measure id
-	 * @return the all measure notes by measure id
-	 */
-	MeasureNotesModel getAllMeasureNotesByMeasureID(String measureID);
 	
 	/** Gets the all recent measure for user.
 	 * 
@@ -176,6 +159,8 @@ public interface MeasureService extends RemoteService {
 	/**
 	 * Gets the users for share.
 	 * 
+	 * @param userName
+	 *            the user name
 	 * @param measureId
 	 *            the measure id
 	 * @param startIndex
@@ -184,7 +169,7 @@ public interface MeasureService extends RemoteService {
 	 *            the page size
 	 * @return the users for share
 	 */
-	ManageMeasureShareModel getUsersForShare(String measureId, int startIndex, int pageSize);
+	ManageMeasureShareModel getUsersForShare(String userName, String measureId, int startIndex, int pageSize);
 	
 	/**
 	 * Checks if is measure locked.
@@ -254,18 +239,7 @@ public interface MeasureService extends RemoteService {
 	 * @return the save measure result
 	 */
 	SaveMeasureResult saveMeasureDetails(ManageMeasureDetailModel model);
-	
-	/**
-	 * Save measure note.
-	 *
-	 * @param model the model
-	 * @param measureId the measure id
-	 * @param userId the user id
-	 * @return the save measure notes result
-	 */
-	SaveMeasureNotesResult saveMeasureNote(MeasureNoteDTO model,
-			String measureId, String userId);
-	
+
 	/**
 	 * Save measure xml.
 	 * 
@@ -320,16 +294,6 @@ public interface MeasureService extends RemoteService {
 	 * @return the save measure result
 	 */
 	SaveMeasureResult updateLockedDate(String measureId,String userId);
-	
-	/**
-	 * Update measure notes.
-	 * 
-	 * @param measureNoteDTO
-	 *            the measure note dto
-	 * @param userId
-	 *            the user id
-	 */
-	void updateMeasureNotes(MeasureNoteDTO measureNoteDTO, String userId);
 	
 	/**
 	 * Update measure xml.
@@ -698,10 +662,19 @@ public interface MeasureService extends RemoteService {
 	VsacApiResult updateCQLVSACValueSets(String currentMeasureId, String expansionId);
 
 	SaveUpdateCQLResult saveCQLCodestoMeasure(MatCodeTransferObject transferObject);
+	
+	SaveUpdateCQLResult saveCQLCodeListToMeasure(List<CQLCode> codeList, String measureId);
+	
+	SaveUpdateCQLResult modifyCQLCodeInMeasure(CQLCode modifyCQLCode, CQLCode refCode, String measureId);
 
 	CQLCodeWrapper getCQLCodes(String measureID);
 
 	SaveUpdateCQLResult deleteCode(String toBeDeletedId, String measureID);
 
 	SaveUpdateCQLResult getMeasureCQLLibraryData(String measureId);
+
+	SaveUpdateCQLResult getMeasureCQLDataForLoad(String measureId);
+
+	CQLQualityDataModelWrapper saveValueSetList(List<CQLValueSetTransferObject> transferObjectList,
+			List<CQLQualityDataSetDTO> appliedValueSetList, String measureId);
 }

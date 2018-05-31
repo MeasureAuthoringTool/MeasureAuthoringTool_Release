@@ -26,6 +26,7 @@ import mat.client.MatPresenter;
 import mat.client.admin.ManageOrganizationSearchModel.Result;
 import mat.client.admin.ManageOrganizationView.Observer;
 import mat.client.admin.service.SaveUpdateOrganizationResult;
+import mat.client.clause.cqlworkspace.DeleteConfirmationDialogBox;
 import mat.client.shared.MatContext;
 import mat.client.shared.MessageAlert;
 import mat.client.shared.search.SearchResultUpdate;
@@ -120,9 +121,11 @@ public class ManageOrganizationPresenter implements MatPresenter {
 		 * @param title the new title
 		 */
 		void setTitle(String title);
+		
+	
 	}
 	/** The current details. */
-	private ManageOrganizationDetailModel currentDetails;
+	private ManageOrganizationDetailModel currentOrganizationDetails;
 	/** The detail display. */
 	private DetailDisplay detailDisplay;
 	/** The last search key. */
@@ -131,8 +134,6 @@ public class ManageOrganizationPresenter implements MatPresenter {
 	private SimplePanel panel = new SimplePanel();
 	/** The search display. */
 	private SearchDisplay searchDisplay;
-	/** ManageOrganizationDetailModel updatedDetails. */
-	private ManageOrganizationDetailModel updatedDetails;
 	
 	private boolean isOrgDetailsModified = false;
 	/** Instantiates a new manage Organizations presenter.
@@ -145,20 +146,13 @@ public class ManageOrganizationPresenter implements MatPresenter {
 		searchDisplay.getCreateNewButton().addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
+				isOrgDetailsModified = false;
 				searchDisplay.getErrorMessageDisplay().clearAlert();
 				searchDisplay.getSuccessMessageDisplay().clearAlert();
-				createNew();
+				createNewOrganization();
 			}
 		});
 		
-		/*searchDisplay.getGenerateCSVFileButton().addClickHandler(new ClickHandler() {
-			@Override
-			public void onClick(ClickEvent event) {
-				searchDisplay.getErrorMessageDisplay().clear();
-				searchDisplay.getSuccessMessageDisplay().clear();
-				generateCSVForActiveOids();
-			}
-		});*/
 		MatTextBox searchWidget = (MatTextBox) (searchDisplay.getSearchString());
 		searchWidget.addKeyUpHandler(new KeyUpHandler() {
 			@Override
@@ -175,12 +169,17 @@ public class ManageOrganizationPresenter implements MatPresenter {
 			public void onClick(ClickEvent event) {
 				searchDisplay.getErrorMessageDisplay().clearAlert();
 				searchDisplay.getSuccessMessageDisplay().clearAlert();
-				update();
+				if(isOrgDetailsModified) {
+					updateOrganization();
+				} else {
+					addOrganization();
+				}
 			}
 		});
 		detailDisplay.getCancelButton().addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
+				isOrgDetailsModified = false;
 				searchDisplay.getErrorMessageDisplay().clearAlert();
 				searchDisplay.getSuccessMessageDisplay().clearAlert();
 				displaySearch();
@@ -198,6 +197,7 @@ public class ManageOrganizationPresenter implements MatPresenter {
 		searchDisplay.getSelectIdForEditTool().addSelectionHandler(new SelectionHandler<ManageOrganizationSearchModel.Result>() {
 			@Override
 			public void onSelection(SelectionEvent<ManageOrganizationSearchModel.Result> event) {
+				isOrgDetailsModified = true;
 				searchDisplay.getErrorMessageDisplay().clearAlert();
 				searchDisplay.getSuccessMessageDisplay().clearAlert();
 				edit(event.getSelectedItem().getOid());
@@ -210,6 +210,7 @@ public class ManageOrganizationPresenter implements MatPresenter {
 	 */
 	@Override
 	public void beforeClosingDisplay() {
+		isOrgDetailsModified = false;
 	}
 	/*
 	 * (non-Javadoc)
@@ -221,9 +222,9 @@ public class ManageOrganizationPresenter implements MatPresenter {
 		Mat.focusSkipLists("Manage Organizations");
 	}
 	/** Creates the new. */
-	private void createNew() {
+	private void createNewOrganization() {
 		detailDisplay.setTitle("Add an Organization");
-		currentDetails = new ManageOrganizationDetailModel();
+		currentOrganizationDetails = new ManageOrganizationDetailModel();
 		displayDetail();
 	}
 	/** Display detail. */
@@ -243,13 +244,6 @@ public class ManageOrganizationPresenter implements MatPresenter {
 		searchDisplay.setTitle("");
 		search("");
 	}
-	/**
-	 * Generate csv of active user emails.
-	 */
-	/*private void generateCSVForActiveOids() {
-		String url = GWT.getModuleBaseURL() + "export?format=exportActiveOIDCSV";
-		Window.open(url + "&type=save", "_self", "");
-	}*/
 	/** Edits the.
 	 * @param key the key */
 	private void edit(String key) {
@@ -265,7 +259,7 @@ public class ManageOrganizationPresenter implements MatPresenter {
 			}
 			@Override
 			public void onSuccess(ManageOrganizationDetailModel result) {
-				currentDetails = result;
+				currentOrganizationDetails = result;
 				displayDetail();
 			}
 		});
@@ -293,19 +287,7 @@ public class ManageOrganizationPresenter implements MatPresenter {
 		widget.addStyleName("myAccountPanelContent");
 		return vPanel;
 	}
-	/** @param model - ManageOrganizationDetailModel.
-	 * @return boolean - isValid */
-	private boolean isValid(ManageOrganizationDetailModel model) {
-		AdminManageOrganizationModelValidator adminManageOrganizationModelValidator = new AdminManageOrganizationModelValidator();
-		List<String> message = adminManageOrganizationModelValidator.isValidOrganizationDetail(model);
-		boolean valid = message.size() == 0;
-		if (!valid) {
-			detailDisplay.getErrorMessageDisplay().createAlert(message);
-		} else {
-			detailDisplay.getErrorMessageDisplay().clearAlert();
-		}
-		return valid;
-	}
+
 	/** Reset messages. */
 	private void resetMessages() {
 		detailDisplay.getErrorMessageDisplay().clearAlert();
@@ -330,11 +312,11 @@ public class ManageOrganizationPresenter implements MatPresenter {
 			public void onSuccess(ManageOrganizationSearchModel result) {
 				SearchResultUpdate sru = new SearchResultUpdate();
 				sru.update(result, (MatTextBox) searchDisplay.getSearchString(), lastSearchKey);
-				sru = null;
+				
 				searchDisplay.setObserver(new Observer() {
 					@Override
 					public void onDeleteClicked(Result result) {
-						if(result.isUsed()){
+						if(!result.isUsed()){
 							deleteOrganization(result);
 						}
 						
@@ -348,24 +330,52 @@ public class ManageOrganizationPresenter implements MatPresenter {
 	}
 	
 	private void deleteOrganization(Result result) {
-		MatContext.get().getAdminService().deleteOrganization(result, new AsyncCallback<Void>() {
+		
+		searchDisplay.getErrorMessageDisplay().clearAlert();
+		searchDisplay.getSuccessMessageDisplay().clearAlert();
+		
+		DeleteConfirmationDialogBox deleteConfirmationDialogBox = new DeleteConfirmationDialogBox();
+		deleteConfirmationDialogBox.getMessageAlert().
+			createAlert("You have selected to delete organization " + 
+					(result.getOrgName().length()>60 ? result.getOrgName().substring(0, 59) : result.getOrgName()) + ". Please confirm that you want to remove this organization permanently.");
+		
+		deleteConfirmationDialogBox.show();
+		
+		deleteConfirmationDialogBox.getYesButton().addClickHandler(new ClickHandler() {
 			
 			@Override
-			public void onFailure(Throwable caught) {
-				searchDisplay.getErrorMessageDisplay().createAlert("Organization cannot be deleted.");
+			public void onClick(ClickEvent event) {
+				
+				MatContext.get().getAdminService().deleteOrganization(result, new AsyncCallback<Void>() {
+					
+					@Override
+					public void onFailure(Throwable caught) {
+						searchDisplay.getErrorMessageDisplay().createAlert("Organization cannot be deleted.");
+					}
+					@Override
+					public void onSuccess(Void res) {
+						displaySearch();
+						searchDisplay.getSuccessMessageDisplay().createAlert(result.getOrgName()+" successfully deleted.");
+					}
+				});
+				
 			}
+		});
+		
+				
+		deleteConfirmationDialogBox.getNoButton().addClickHandler(new ClickHandler() {
+			
 			@Override
-			public void onSuccess(Void result) {
-				displaySearch();
-				searchDisplay.getSuccessMessageDisplay().createAlert("Organization successfully deleted.");
+			public void onClick(ClickEvent event) {
+				deleteConfirmationDialogBox.hide();
 			}
 		});
 		
 	}
 	/** Sets the user details to view. */
 	private void setOrganizationDetailsToView() {
-		detailDisplay.getOid().setValue(currentDetails.getOid());
-		detailDisplay.getOrganization().setValue(currentDetails.getOrganization());
+		detailDisplay.getOid().setValue(currentOrganizationDetails.getOid());
+		detailDisplay.getOrganization().setValue(currentOrganizationDetails.getOrganization());
 	}
 	/** Show searching busy.
 	 * @param busy the busy */
@@ -378,82 +388,90 @@ public class ManageOrganizationPresenter implements MatPresenter {
 		((Button) searchDisplay.getSearchButton()).setEnabled(!busy);
 		((MatTextBox) (searchDisplay.getSearchString())).setEnabled(!busy);
 	}
-	/** Update. */
-	private void update() {
+	
+	private void updateOrganization() {
 		resetMessages();
-		updateOrganizationDetailsFromView();
-		//isOrganizationDetailModified();
-		detailDisplay.getErrorMessageDisplay().clearAlert();
-		detailDisplay.getSuccessMessageDisplay().clearAlert();
-		if (isValid(updatedDetails)) {
-			MatContext.get().getAdminService().saveUpdateOrganization(currentDetails, updatedDetails,
-					new AsyncCallback<SaveUpdateOrganizationResult>() {
+		ManageOrganizationDetailModel updatedOrganizationDetailModel = buildOrganizationDetailModelFromView();
+		AdminManageOrganizationModelValidator organizationValidator = new AdminManageOrganizationModelValidator();
+		if(organizationValidator.isManageOrganizationDetailModelValid(updatedOrganizationDetailModel)) {
+			MatContext.get().getAdminService().updateOrganization(currentOrganizationDetails.getId(), updatedOrganizationDetailModel, new AsyncCallback<SaveUpdateOrganizationResult>() {
 				@Override
 				public void onFailure(Throwable caught) {
 					detailDisplay.getErrorMessageDisplay().createAlert(caught.getLocalizedMessage());
-					currentDetails = updatedDetails;
-					currentDetails.setExistingOrg(true);
+					isOrgDetailsModified = false;
 				}
 				@Override
 				public void onSuccess(SaveUpdateOrganizationResult result) {
-					currentDetails = updatedDetails;
-					currentDetails.setExistingOrg(true);
-					if (result.isSuccess()) {
-						//displaySearch();
-						detailDisplay.getSuccessMessageDisplay().createAlert(MatContext.get()
-								.getMessageDelegate().getORGANIZATION_SUCCESS_MESSAGE());
-						detailDisplay.getOid().setValue(currentDetails.getOid());
-						detailDisplay.getOrganization().setValue(currentDetails.getOrganization());
-						if(isOrgDetailsModified){
-							List<String> event = new ArrayList<String>();
-							event.add("Oraganization Modified");
-							MatContext.get().recordUserEvent(MatContext.get().getLoggedinLoginId(), event, "", false);
-							isOrgDetailsModified = false;
-						}
+					isOrgDetailsModified = false;
+					if(result.isSuccess()) {
+						currentOrganizationDetails = updatedOrganizationDetailModel;
+						setOrganizationDetailsToView();
+						displaySearch();
+						searchDisplay.getSuccessMessageDisplay().createAlert(MatContext.get()
+								.getMessageDelegate().getORGANIZATION_MODIFIED_SUCCESS_MESSAGE());
 					} else {
-						List<String> messages = new ArrayList<String>();
-						switch (result.getFailureReason()) {
-							case
-							SaveUpdateOrganizationResult.OID_NOT_UNIQUE:
-								messages.add("OID already exists.");
-								break;
-							case
-							SaveUpdateOrganizationResult.SERVER_SIDE_VALIDATION:
-								messages = result.getMessages();
-								break;
-							default:
-								messages.add(MatContext.get().getMessageDelegate()
-										.getUnknownErrorMessage(result.getFailureReason()));
-						}
-						detailDisplay.getErrorMessageDisplay().createAlert(messages);
-						
-//						List<String> event = new ArrayList<String>();
-//						event.add("Oraganization Modified");
-						
-						
+						displayErrorMessages(result);
 					}
 				}
 			});
+		} else {
+			detailDisplay.getErrorMessageDisplay().createAlert(organizationValidator.getValidationErrors(updatedOrganizationDetailModel));
 		}
 	}
 	
-	
-	private void isOrganizationDetailModified() {
-			
-		if(currentDetails.getOrganization()!=null && 
-				!currentDetails.getOrganization().equalsIgnoreCase(updatedDetails.getOrganization())){
-			isOrgDetailsModified = true;
-		} else if(currentDetails.getOid()!=null && 
-				!currentDetails.getOid().equalsIgnoreCase(updatedDetails.getOid()) ) {
-			isOrgDetailsModified = true;
+	private void addOrganization() {
+		resetMessages();
+		ManageOrganizationDetailModel updatedOrganizationDetailModel = buildOrganizationDetailModelFromView();
+		AdminManageOrganizationModelValidator organizationValidator = new AdminManageOrganizationModelValidator();
+		if(organizationValidator.isManageOrganizationDetailModelValid(updatedOrganizationDetailModel)) {
+			MatContext.get().getAdminService().saveOrganization(updatedOrganizationDetailModel, new AsyncCallback<SaveUpdateOrganizationResult>() {
+				@Override
+				public void onFailure(Throwable caught) {
+					detailDisplay.getErrorMessageDisplay().createAlert(caught.getLocalizedMessage());
+					isOrgDetailsModified = false;
+				}
+				@Override
+				public void onSuccess(SaveUpdateOrganizationResult result) {
+					isOrgDetailsModified = false;
+					if(result.isSuccess()) {
+						currentOrganizationDetails = updatedOrganizationDetailModel;
+						setOrganizationDetailsToView();
+						displaySearch();
+						searchDisplay.getSuccessMessageDisplay().createAlert(MatContext.get()
+								.getMessageDelegate().getORGANIZATION_SUCCESS_MESSAGE());
+					} else {
+						displayErrorMessages(result);
+					}
+				}
+			});
+		} else {
+			detailDisplay.getErrorMessageDisplay().createAlert(organizationValidator.getValidationErrors(updatedOrganizationDetailModel));
 		}
 	}
 	
-	/** Update Organization details from view. */
-	private void updateOrganizationDetailsFromView() {
-		updatedDetails = new ManageOrganizationDetailModel();
-		updatedDetails.setOid(detailDisplay.getOid().getValue());
-		updatedDetails.setOrganization(detailDisplay.getOrganization().getValue());
-		updatedDetails.scrubForMarkUp();
+	protected void displayErrorMessages(SaveUpdateOrganizationResult result) {
+		List<String> messages = new ArrayList<String>();
+		switch (result.getFailureReason()) {
+			case
+			SaveUpdateOrganizationResult.OID_NOT_UNIQUE:
+				messages.add(MatContext.get().getMessageDelegate().getOIDExistsMessage());
+				break;
+			case
+			SaveUpdateOrganizationResult.SERVER_SIDE_VALIDATION:
+				messages = result.getMessages();
+				break;
+			default:
+				messages.add(MatContext.get().getMessageDelegate()
+						.getUnknownErrorMessage(result.getFailureReason()));
+		}
+		detailDisplay.getErrorMessageDisplay().createAlert(messages);
+	}
+	
+	private ManageOrganizationDetailModel buildOrganizationDetailModelFromView() {
+		ManageOrganizationDetailModel manageOrganizationDetailModel = new ManageOrganizationDetailModel();
+		manageOrganizationDetailModel.setOid(detailDisplay.getOid().getValue());
+		manageOrganizationDetailModel.setOrganization(detailDisplay.getOrganization().getValue());
+		manageOrganizationDetailModel.scrubForMarkUp();
+		return manageOrganizationDetailModel;
 	}
 }

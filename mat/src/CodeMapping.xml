@@ -40,6 +40,13 @@
 					<field name="codeIdentifier" type="java.lang.String">
 						<bind-xml name="codeIdentifier" node="attribute" />
 					</field>
+					
+					<field name="suffix" type="java.lang.String">
+						<bind-xml name="suffix" node="attribute" />
+					</field>
+					<field name="isCodeSystemVersionIncluded" type="java.lang.Boolean">
+						<bind-xml name="isCodeSystemVersionIncluded" node="attribute" />
+					</field>
 				</class>
 			</bind-xml>
 		</field>
