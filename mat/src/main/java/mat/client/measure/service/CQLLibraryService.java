@@ -5,6 +5,7 @@ import java.util.List;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
+import mat.client.shared.MatException;
 import mat.client.umls.service.VsacApiResult;
 import mat.model.CQLValueSetTransferObject;
 import mat.model.MatCodeTransferObject;
@@ -29,7 +30,7 @@ public interface CQLLibraryService extends RemoteService {
 
 	CQLLibraryDataSetObject findCQLLibraryByID(String cqlLibraryID);
 
-	SaveCQLLibraryResult save(CQLLibraryDataSetObject cqlModel);
+	SaveCQLLibraryResult saveCQLLibrary(CQLLibraryDataSetObject cqlModel);
 
 	SaveUpdateCQLResult getCQLData(String id);
 
@@ -48,12 +49,14 @@ public interface CQLLibraryService extends RemoteService {
 	
 	SaveCQLLibraryResult saveFinalizedVersion(String libraryId, boolean isMajor, String version, boolean ignoreUnusedLibraries);
 	
-	SaveCQLLibraryResult saveDraftFromVersion(String libraryId);
+	SaveCQLLibraryResult saveDraftFromVersion(String libraryId, String libraryName) throws MatException;
 	
 	SaveUpdateCQLResult getLibraryCQLFileData(String libraryId);
 
 	SaveUpdateCQLResult saveAndModifyCQLGeneralInfo(String libraryId, String libraryValue, String libraryComment);
 
+	SaveUpdateCQLResult saveCQLFile(String libraryid, String cql);
+	
 	SaveCQLLibraryResult getUserShareInfo(String cqlId, String searchText);
 
 	SaveCQLLibraryResult searchForIncludes(String setId, String libraryName, String searchText);
@@ -65,8 +68,7 @@ public interface CQLLibraryService extends RemoteService {
 	SaveUpdateCQLResult saveIncludeLibrayInCQLLookUp(String libraryId, CQLIncludeLibrary toBeModifiedObj,
 			CQLIncludeLibrary currentObj, List<CQLIncludeLibrary> incLibraryList) throws InvalidLibraryException;
 
-	SaveUpdateCQLResult deleteInclude(String libraryId, CQLIncludeLibrary toBeModifiedIncludeObj,
-			List<CQLIncludeLibrary> viewIncludeLibrarys);
+	SaveUpdateCQLResult deleteInclude(String libraryId, CQLIncludeLibrary toBeModifiedIncludeObj);
 
 	GetUsedCQLArtifactsResult getUsedCqlArtifacts(String libraryId);
 
@@ -85,19 +87,12 @@ public interface CQLLibraryService extends RemoteService {
 	SaveUpdateCQLResult saveAndModifyParameters(String libraryId, CQLParameter toBeModifiedObj, CQLParameter currentObj,
 			List<CQLParameter> parameterList, boolean isFormatable);
 	
-	SaveUpdateCQLResult deleteDefinition(String libraryId, CQLDefinition toBeDeletedObj, 
-			List<CQLDefinition> definitionList);
+	SaveUpdateCQLResult deleteDefinition(String libraryId, CQLDefinition toBeDeletedObj);
 	
-	SaveUpdateCQLResult deleteFunctions(String libraryId, CQLFunctions toBeDeletedObj, 
-			List<CQLFunctions> functionsList);
+	SaveUpdateCQLResult deleteFunction(String libraryId, CQLFunctions toBeDeletedObj);
 	
-	SaveUpdateCQLResult deleteParameter(String libraryId, CQLParameter toBeDeletedObj, 
-			List<CQLParameter> parameterList);
-		
-	SaveUpdateCQLResult saveCQLUserDefinedValueset(CQLValueSetTransferObject matValueSetTransferObject);
-	
-	SaveUpdateCQLResult modifyCQLValueSets(CQLValueSetTransferObject matValueSetTransferObject);
-	
+	SaveUpdateCQLResult deleteParameter(String libraryId, CQLParameter toBeDeletedObj);
+				
 	VsacApiResult updateCQLVSACValueSets(String currentCQLLibraryId, String expansionId);
 	 CQLKeywords getCQLKeywordsLists();
 	 void transferLibraryOwnerShipToUser(List<String> list, String toEmail);
@@ -105,9 +100,7 @@ public interface CQLLibraryService extends RemoteService {
 	SaveUpdateCQLResult saveCQLCodestoCQLLibrary(MatCodeTransferObject transferObject);
 	
 	SaveUpdateCQLResult saveCQLCodeListToCQLLibrary(List<CQLCode> codeList, String libraryId);
-	
-	SaveUpdateCQLResult modifyCQLCodeInCQLLibrary(CQLCode codeToReplace, CQLCode replacementCode, String cqlLibraryId);
-	
+		
 	SaveUpdateCQLResult deleteCode(String toBeDeletedId, String libraryId);
 
 	void deleteCQLLibrary(String cqllibId, String loginUserId, String password) throws AuthenticationException;

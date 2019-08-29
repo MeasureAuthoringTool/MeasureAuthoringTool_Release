@@ -18,8 +18,6 @@ import com.google.gwt.dom.client.SelectElement;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.user.client.ui.FocusPanel;
 import com.google.gwt.user.client.ui.Grid;
-import com.google.gwt.user.client.ui.HasHorizontalAlignment;
-import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
@@ -60,30 +58,25 @@ public class CQLStratificationDetailView implements CQLPopulationDetail {
 	 */
 	public VerticalPanel buildView(PopulationDataModel populationDataModel) {
 		mainPanel.clear();
+		mainPanel.setHeight("250px");
 		
 		
 		CQLPopulationTopLevelButtonGroup cqlPopulationTopLevelButtonGroup = new CQLPopulationTopLevelButtonGroup(
-				"Stratifications", "Stratifications", "Save", "Add New Stratification");
+				"Stratifications", "Stratifications", "Save", "Add New Stratification", 100.00);
 		scrollPanel.clear();
-		scrollPanel.setSize("700px", "450px");
+		scrollPanel.setWidth("700px");
 		this.populationDataModel = populationDataModel;
 		this.strataDataModel = populationDataModel.getStrataDataModel();
 		
 		mainPanel.add(new SpacerWidget());
-		
 		mainPanel.add(new SpacerWidget());
-		mainPanel.add(new SpacerWidget());
-		
-		HorizontalPanel btnPanel = new HorizontalPanel();
-		btnPanel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_RIGHT);
-		btnPanel.getElement().setAttribute("style", "margin-left:400px;");
-		btnPanel.add(cqlPopulationTopLevelButtonGroup.getButtonGroup());
 
 		cqlPopulationTopLevelButtonGroup.getAddNewButton().addClickHandler(event -> onAddNewStratificationClickHander(strataDataModel));
 		cqlPopulationTopLevelButtonGroup.getSaveButton().addClickHandler(event -> onSaveStratificationClickHander(strataDataModel));
 		
-		mainPanel.add(btnPanel);
+		mainPanel.add(cqlPopulationTopLevelButtonGroup.getAddNewButton());
 		mainPanel.add(scrollPanel);
+		mainPanel.add(cqlPopulationTopLevelButtonGroup.getSaveButton());
 		buildStratificationView();
 		return mainPanel;
 	}
@@ -169,8 +162,8 @@ public class CQLStratificationDetailView implements CQLPopulationDetail {
 
 		// select a definition name in the listbox
 		for (int j = 0; j < definitionListBox.getItemCount(); j++) {
-			String definitionName = definitionListBox.getItemText(j);
-			if (definitionName.equals(populationClauseObject.getCqlExpressionDisplayName())) {
+			String definitionUUID = definitionListBox.getValue(j);
+			if (definitionUUID.equals(populationClauseObject.getCqlExpressionUUID())) {
 				definitionListBox.setItemSelected(j, true);
 				break;
 			}
@@ -228,6 +221,7 @@ public class CQLStratificationDetailView implements CQLPopulationDetail {
 
 		if (!definitionListBox.getSelectedItemText().equals("--Select Definition--")) {
 			population.setCqlExpressionDisplayName(definitionListBox.getSelectedItemText());
+			population.setCqlExpressionType("cqldefinition");
 		} else {
 			population.setCqlExpressionDisplayName("");
 		}
@@ -453,7 +447,7 @@ public class CQLStratificationDetailView implements CQLPopulationDetail {
 					pc.setCqlExpressionUUID("");					
 				} else {					
 					pc.setCqlExpressionType("cqldefinition");
-					pc.setCqlExpressionDisplayName(l.getSelectedItemText());
+					pc.setCqlExpressionDisplayName(getSelectedName(l.getSelectedValue()));
 					pc.setCqlExpressionUUID(l.getSelectedValue());
 				}
 				modifiedStratumList.add(pc);
@@ -470,6 +464,16 @@ public class CQLStratificationDetailView implements CQLPopulationDetail {
 		strataDataModel.getStratificationObjectList().addAll(modifiedList);
 
 		return strataDataModel;		
+	}
+	
+	private String getSelectedName(String selectedUuid) {
+		for(ExpressionObject o : this.populationDataModel.getDefinitionNameList()) {
+			if(o.getUuid().equals(selectedUuid)) {
+				return o.getName();
+			}
+		}
+				
+		return "";
 	}
 
 }

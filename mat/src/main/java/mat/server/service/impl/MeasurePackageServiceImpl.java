@@ -1,5 +1,6 @@
 package mat.server.service.impl;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -9,6 +10,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import mat.CQLFormatter;
 import mat.client.clause.clauseworkspace.model.MeasureXmlModel;
 import mat.client.measure.ManageMeasureShareModel;
 import mat.client.measure.service.ValidateMeasureResult;
@@ -16,9 +18,9 @@ import mat.client.shared.MatContext;
 import mat.dao.CQLLibraryAuditLogDAO;
 import mat.dao.DataTypeDAO;
 import mat.dao.MeasureAuditLogDAO;
+import mat.dao.MeasureTypeDAO;
 import mat.dao.OrganizationDAO;
 import mat.dao.QualityDataSetDAO;
-import mat.dao.StewardDAO;
 import mat.dao.UserDAO;
 import mat.dao.clause.CQLLibraryDAO;
 import mat.dao.clause.CQLLibraryShareDAO;
@@ -47,11 +49,13 @@ import mat.model.cql.CQLLibraryShare;
 import mat.model.cql.CQLModel;
 import mat.server.CQLUtilityClass;
 import mat.server.LoggedInUserUtil;
+import mat.server.cqlparser.ReverseEngineerListener;
 import mat.server.export.ExportResult;
 import mat.server.export.MeasureArtifactGenerator;
 import mat.server.service.MeasurePackageService;
 import mat.server.service.SimpleEMeasureService;
 import mat.server.util.ExportSimpleXML;
+import mat.server.util.XmlProcessor;
 import mat.server.validator.measure.CompositeMeasurePackageValidator;
 import mat.shared.CompositeMeasurePackageValidationResult;
 import mat.shared.MeasureSearchModel;
@@ -72,6 +76,9 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 	
 	@Autowired
 	private MeasureDAO measureDAO;
+	
+	@Autowired
+	private MeasureTypeDAO measureTypeDAO;
 	
 	@Autowired
 	private OrganizationDAO organizationDAO;
@@ -98,9 +105,6 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 	private ShareLevelDAO shareLevelDAO;
 	
 	@Autowired
-	private StewardDAO stewardDAO;
-	
-	@Autowired
 	private UserDAO userDAO;
 		
 	@Autowired
@@ -117,7 +121,7 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 	
 	@Autowired
 	private CompositeMeasurePackageValidator compositeMeasurePackageValidator;
-	
+		
 	private String currentReleaseVersion;
 	
 	private ValidationUtility validator = new ValidationUtility();
@@ -158,7 +162,7 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 
 		if (measure.getReleaseVersion() != null && MatContext.get().isCQLMeasure(measure.getReleaseVersion())) {
 			final CQLModel cqlModel = CQLUtilityClass.getCQLModelFromXML(measureXML.getMeasureXMLAsString());
-			exportedXML = ExportSimpleXML.export(measureXML, measureDAO, organizationDAO, cqlLibraryDAO, cqlModel);
+			exportedXML = ExportSimpleXML.export(measureXML, measureDAO, organizationDAO, cqlLibraryDAO, cqlModel, measureTypeDAO);
 		} else {
 			exportedXML = ExportSimpleXML.export(measureXML, measureDAO, organizationDAO);
 		}
@@ -167,8 +171,18 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 	}
 	
 	private MeasureExport generateExport(final String measureId, final List<MatValueSet> matValueSetList) throws Exception {
-		final MeasureXML measureXML = measureXMLDAO.findForMeasure(measureId);
+		MeasureXML measureXML = measureXMLDAO.findForMeasure(measureId);
 		final Measure measure = measureDAO.find(measureId);
+		
+		String updatedMeasureXMLString = formatCQL(measureXML);
+		
+		MeasureXmlModel xmlModel = new MeasureXmlModel();
+		xmlModel.setMeasureId(measure.getId());
+		xmlModel.setXml(updatedMeasureXMLString);
+		
+		saveMeasureXml(xmlModel);
+		measureXML = measureXMLDAO.findForMeasure(measureId);
+		
 		final String simpleXML = generateSimpleXML(measure, measureXML, matValueSetList);
 		final ExportResult exportResult = eMeasureService.exportMeasureIntoSimpleXML(measure.getId(), simpleXML, matValueSetList);		
 
@@ -181,6 +195,21 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 		export.setSimpleXML(simpleXML);
 		export.setCodeListBarr(exportResult.wkbkbarr);
 		return export; 
+	}
+
+	private String formatCQL(final MeasureXML measureXML) throws IOException {
+		CQLModel model = CQLUtilityClass.getCQLModelFromXML(measureXML.getMeasureXMLAsString());
+		String cqlString = CQLUtilityClass.getCqlString(model, "");
+		CQLFormatter formatter = new CQLFormatter();
+		cqlString = formatter.format(cqlString);
+		ReverseEngineerListener listener = new ReverseEngineerListener(cqlString, model);
+		CQLModel reversedEngineeredCQLModel = listener.getCQLModel();	
+		String formattedXML = CQLUtilityClass.getXMLFromCQLModel(reversedEngineeredCQLModel);
+		
+		XmlProcessor processor = new XmlProcessor(measureXML.getMeasureXMLAsString());		
+		processor.replaceNode(formattedXML, "cqlLookUp", "measure");
+		String updatedMeasureXMLString =processor.transform(processor.getOriginalDoc());
+		return updatedMeasureXMLString;
 	}
 	
 	@Override
@@ -320,10 +349,11 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 			//Get All Family Measures for each Measure
 			final List<Measure> allMeasures = measureDAO.getAllMeasuresInSet(ms);
 			for (int j = 0; j < allMeasures.size(); j++) {
+			
 				String additionalInfo = "Measure Owner transferred from "
-						+ allMeasures.get(j).getOwner().getEmailAddress() + " to " + toEmail;
-				transferAssociatedCQLLibraryOnwnerShipToUser(allMeasures.get(j).getId(), userTo, 
-						allMeasures.get(j).getOwner().getEmailAddress());
+						+ allMeasures.get(j).getOwner().getFullName() + " to " + userTo.getFullName();
+				
+				transferAssociatedCQLLibraryOnwnerShipToUser(allMeasures.get(j).getId(), userTo, allMeasures.get(j).getOwner().getFullName());
 				allMeasures.get(j).setOwner(userTo);
 				measureDAO.saveMeasure(allMeasures.get(j));
 				measureAuditLogDAO.recordMeasureEvent(allMeasures.get(j), "Measure Ownership Changed", additionalInfo);
@@ -341,18 +371,18 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 		
 	}
 
-	private void transferAssociatedCQLLibraryOnwnerShipToUser(String measureId, User user, String emailUser){
+	private void transferAssociatedCQLLibraryOnwnerShipToUser(String measureId, User toUser, String fromUserFullName){
 		final CQLLibrary cqlLibrary = cqlLibraryDAO.getLibraryByMeasureId(measureId);
 		if(cqlLibrary != null){
 			final String additionalInfo = "CQL Library Owner transferred from "
-					+ emailUser + " to " + user.getEmailAddress();
-			cqlLibrary.setOwnerId(user);
+					+ fromUserFullName + " to " + toUser.getFullName();
+			cqlLibrary.setOwnerId(toUser);
 			cqlLibraryDAO.save(cqlLibrary);
 			cqlLibraryAuditLogDAO.recordCQLLibraryEvent(cqlLibrary, "CQL Library Ownership Changed", additionalInfo);
 			
 			final List<CQLLibraryShare> cqlLibShareInfo = cqlLibraryDAO.getLibraryShareInforForLibrary(cqlLibrary.getId());
 			for (int k = 0; k < cqlLibShareInfo.size(); k++) {
-				cqlLibShareInfo.get(k).setOwner(user);
+				cqlLibShareInfo.get(k).setOwner(toUser);
 				cqlLibraryShareDAO.save(cqlLibShareInfo.get(k));
 			}
 		}
@@ -408,7 +438,7 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 						auditLogAdditionlInfo.append(", ");
 					}
 					first = false;
-					auditLogAdditionlInfo.append(user.getEmailAddress());
+					auditLogAdditionlInfo.append(user.getFullName());
 					
 					measureShare.setShareLevel(sLevel);
 					measureShareDAO.save(measureShare);
@@ -422,7 +452,7 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 						auditLogForModifyRemove.append(", ");
 					}
 					firstRemove = false;
-					auditLogForModifyRemove.append(user.getEmailAddress());
+					auditLogForModifyRemove.append(user.getFullName());
 				}
 			}
 		}
@@ -466,7 +496,7 @@ public class MeasurePackageServiceImpl implements MeasurePackageService {
 	}
 	
 	private void createAndSaveExportsAndArtifacts(MeasureExport export, boolean shouldCreateArtifacts) {
-		final Measure measure = export.getMeasure();
+		final Measure measure = export.getMeasure();		
 		measure.setReleaseVersion(getCurrentReleaseVersion());
 		measure.setExportedDate(new Date());
 		measureDAO.save(measure);

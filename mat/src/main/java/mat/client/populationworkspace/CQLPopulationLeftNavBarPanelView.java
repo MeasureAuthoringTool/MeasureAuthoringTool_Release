@@ -7,18 +7,16 @@ import org.gwtbootstrap3.client.ui.constants.IconType;
 
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.xml.client.Document;
-import com.google.gwt.xml.client.Element;
-import com.google.gwt.xml.client.Node;
 
 import mat.client.cqlworkspace.DeleteConfirmationDialogBox;
-import mat.client.shared.CQLWorkSpaceConstants;
+import mat.client.event.MeasureSelectedEvent;
+import mat.client.shared.CQLWorkSpaceConstants.POPULATIONS;
 import mat.client.shared.ErrorMessageAlert;
 import mat.client.shared.MatContext;
 import mat.client.shared.MessageAlert;
 import mat.client.shared.SuccessMessageAlert;
 import mat.client.shared.WarningConfirmationMessageAlert;
 import mat.client.shared.WarningMessageAlert;
-import mat.client.shared.CQLWorkSpaceConstants.POPULATIONS;
 
 /**
  * The Class CQLPopulationLeftNavBarPanelView.
@@ -82,7 +80,6 @@ public class CQLPopulationLeftNavBarPanelView {
 	 * Builds the left hand nav nar.
 	 */
 	private void buildLeftHandNavBar(Document document) {
-
 		rightHandNavPanel.clear();
 		NavPills navPills = new NavPills();
 		navPills.setStacked(true);
@@ -98,9 +95,7 @@ public class CQLPopulationLeftNavBarPanelView {
 		stratifications = new AnchorListItem();
 		measureObservations = new AnchorListItem();
 		viewPopulations = new AnchorListItem();
-		
 		if(MatContext.get().getMeasureLockService().checkForEditPermission()) {
-			
 			setTextAndIcons(initialPopulation, POPULATIONS.INITIAL_POPULATIONS.popName(), IconType.PENCIL);
 			setTextAndIcons(denominator, POPULATIONS.DENOMINATORS.popName(), IconType.PENCIL);
 			setTextAndIcons(denominatorExclusions, POPULATIONS.DENOMINATOR_EXCLUSIONS.popName(), IconType.PENCIL);
@@ -111,56 +106,43 @@ public class CQLPopulationLeftNavBarPanelView {
 			setTextAndIcons(measurePopulationExclusions, POPULATIONS.MEASURE_POPULATION_EXCLUSIONS.popName(), IconType.PENCIL);
 			setTextAndIcons(stratifications, POPULATIONS.STRATIFICATION.popName(), IconType.PENCIL);
 			setTextAndIcons(measureObservations, POPULATIONS.MEASURE_OBSERVATIONS.popName(), IconType.PENCIL);
-			
-			/**
-			 * Find Scoring type for the measure from the Measure XML.
-			 */
-			Node scoringNode = document.getElementsByTagName(CQLWorkSpaceConstants.SCORING).item(0);
-			String scoringIdAttributeValue = ((Element) scoringNode).getAttribute("id");
-			
-			Node patientBasedMeasureNode = document.getElementsByTagName(CQLWorkSpaceConstants.PATIENT_BASED_INDICATOR).item(0);
-
-			addAchorsByScoring(navPills, scoringIdAttributeValue, ("true").equals(patientBasedMeasureNode.getFirstChild().getNodeValue()));
+			MeasureSelectedEvent measure = MatContext.get().getCurrentMeasureInfo();
+			addAnchorsByScoring(navPills, measure.getScoringType(), measure.isPatientBased());
 		}
-		
 		setTextAndIcons(viewPopulations, POPULATIONS.VIEW_POPULATIONS.popName(), IconType.BOOK);
 		navPills.add(viewPopulations);// View Populations is always present
 		viewPopulations.setActive(true);// View Populations is initially selected.
 
 		navPills.setWidth("200px");
-
 		messagePanel.add(successMessageAlert);
 		messagePanel.add(warningMessageAlert);
 		messagePanel.add(errorMessageAlert);
 		messagePanel.add(warningConfirmationMessageAlert);
 		messagePanel.add(globalWarningConfirmationMessageAlert);
 		messagePanel.setStyleName("marginLeft15px");
-		
 		rightHandNavPanel.add(navPills);
-		
 	}
 
-	private void addAchorsByScoring(NavPills navPills, String scoringIdAttributeValue, boolean isPatientBasedMeasure) {
+	private void addAnchorsByScoring(NavPills navPills, String scoringIdAttributeValue, boolean isPatientBasedMeasure) {
 		navPills.add(initialPopulation);
 		//COHORT scoring has the initial population and stratifications. 
-		if("PROPOR".equals(scoringIdAttributeValue)){			
+		if("PROPORTION".equalsIgnoreCase(scoringIdAttributeValue)){	
 			addNumDenoNavPills(navPills);
 			navPills.add(denominatorExceptions);			
 			navPills.add(stratifications);
-		} else if("CONTVAR".equals(scoringIdAttributeValue)){			
+		} else if("CONTINUOUS VARIABLE".equalsIgnoreCase(scoringIdAttributeValue)){
 			navPills.add(measurePopulations);
 			navPills.add(measurePopulationExclusions);
 			navPills.add(stratifications);
 			navPills.add(measureObservations);			
-		} else if("RATIO".equals(scoringIdAttributeValue)){			
+		} else if("RATIO".equalsIgnoreCase(scoringIdAttributeValue)){			
 			addNumDenoNavPills(navPills);
-			navPills.add(stratifications);
 			//Measure Observations are not available 
 			//for Patient based Ratio Measures
 			if (!isPatientBasedMeasure) {
 				navPills.add(measureObservations);
 			}
-		} else if("COHORT".equals(scoringIdAttributeValue)) {
+		} else if("COHORT".equalsIgnoreCase(scoringIdAttributeValue)) {
 			navPills.add(stratifications);
 		}
 

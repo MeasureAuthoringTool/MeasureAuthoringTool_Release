@@ -45,22 +45,7 @@ import mat.shared.measure.measuredetails.models.MeasureDetailsModel;
 public interface MeasureServiceAsync {
 	
 	void appendAndSaveNode(MeasureXmlModel measureXmlModel, String nodeName, AsyncCallback<Void> callback);
-	
-	/**
-	 * Clone measure xml.
-	 * 
-	 * @param creatingDraft
-	 *            the creating draft
-	 * @param oldMeasureId
-	 *            the old measure id
-	 * @param clonedMeasureId
-	 *            the cloned measure id
-	 * @param callback
-	 *            the callback
-	 */
-	void cloneMeasureXml(boolean creatingDraft, String oldMeasureId,
-			String clonedMeasureId, AsyncCallback<Void> callback);
-	
+		
 	/**
 	 * Creates the and save element look up.
 	 *
@@ -209,7 +194,7 @@ public interface MeasureServiceAsync {
 	 * @param callback
 	 *            the callback
 	 */
-	void save(ManageMeasureDetailModel model, AsyncCallback<SaveMeasureResult> callback);
+	void saveNewMeasure(ManageMeasureDetailModel model, AsyncCallback<SaveMeasureResult> callback);
 	
 	void saveCompositeMeasure(ManageCompositeMeasureDetailModel model, AsyncCallback<SaveMeasureResult> callback);
 	
@@ -247,7 +232,7 @@ public interface MeasureServiceAsync {
 	 * @param callback
 	 *            the callback
 	 */
-	void saveMeasureXml(MeasureXmlModel measureXmlModel,
+	void saveMeasureXml(MeasureXmlModel measureXmlModel, String measureId,
 			AsyncCallback<Void> callback);
 	
 	/**
@@ -508,15 +493,6 @@ public interface MeasureServiceAsync {
 			AsyncCallback<MeasureDetailResult> asyncCallback);
 	
 	/**
-	 * Update measure xml for deleted component measure and org.
-	 *
-	 * @param id the id
-	 * @param asyncCallback the async callback
-	 */
-	void updateMeasureXmlForDeletedComponentMeasureAndOrg(String id,
-			AsyncCallback<Void> asyncCallback);
-	
-	/**
 	 * Update measure xml for expansion identifier.
 	 *
 	 * @param list the list
@@ -563,6 +539,8 @@ public interface MeasureServiceAsync {
 	 * @param asyncCallback the async callback
 	 */
 	void parseCQL(String cqlBuilder , AsyncCallback<CQLModel> asyncCallback);
+	
+	void saveCQLFile(String measureId, String cql, AsyncCallback<SaveUpdateCQLResult> asyncCallback);
 	
 	/**
 	 * Save and modify definitions.
@@ -620,36 +598,27 @@ public interface MeasureServiceAsync {
 	 * 
 	 * @param measureId the measure id
 	 * @param toBeDeletedObj the to be deleted obj
-	 * @param currentObj the current obj
-	 * @param definitionList the definition list
 	 * @param callback the callback
 	 */
-	void deleteDefinition(String measureId, CQLDefinition toBeDeletedObj,  
-			List<CQLDefinition> definitionList, AsyncCallback<SaveUpdateCQLResult> callback); 	
+	void deleteDefinition(String measureId, CQLDefinition toBeDeletedObj, AsyncCallback<SaveUpdateCQLResult> callback); 	
 	
 	/**
 	 * Delete functions 
 	 * 
 	 * @param measureId the measure id
 	 * @param toBeDeletedObj the to be deleted obj
-	 * @param currentObj the current obj
-	 * @param functionsList the function list
 	 * @param callback the callback
 	 */
-	void deleteFunctions(String measureId, CQLFunctions toBeDeletedObj,  
-			List<CQLFunctions> functionsList, AsyncCallback<SaveUpdateCQLResult> callback);
+	void deleteFunction(String measureId, CQLFunctions toBeDeletedObj, AsyncCallback<SaveUpdateCQLResult> callback);
 	
 	/**
 	 * Delete parameter
 	 * 
 	 * @param measureId the measure id
 	 * @param toBeDeletedObj the to be deleted obj
-	 * @param currentObj the current obj
-	 * @param parameterList the parameter list
 	 * @param callback the callback
 	 */
-	void deleteParameter(String measureId, CQLParameter toBeDeletedObj, 
-			List<CQLParameter> parameterList, AsyncCallback<SaveUpdateCQLResult> callback);
+	void deleteParameter(String measureId, CQLParameter toBeDeletedObj, AsyncCallback<SaveUpdateCQLResult> callback);
 	
 	void getUsedCQLArtifacts(String currentMeasureId, AsyncCallback<GetUsedCQLArtifactsResult> asyncCallback);
 
@@ -670,12 +639,6 @@ public interface MeasureServiceAsync {
 	void saveCQLValuesettoMeasure(CQLValueSetTransferObject valueSetTransferObject, 
 			AsyncCallback<SaveUpdateCQLResult> callback);
 
-	void saveCQLUserDefinedValuesettoMeasure(CQLValueSetTransferObject valueSetTransferObject,
-			AsyncCallback<SaveUpdateCQLResult> callback);
-
-	void updateCQLValuesetsToMeasure(CQLValueSetTransferObject matValueSetTransferObject,
-			AsyncCallback<SaveUpdateCQLResult> callback);
-
 	void saveIncludeLibrayInCQLLookUp(String measureId, CQLIncludeLibrary toBeModifiedObj, CQLIncludeLibrary currentObj,
 			List<CQLIncludeLibrary> incLibraryList, AsyncCallback<SaveUpdateCQLResult> callback);
 
@@ -683,10 +646,7 @@ public interface MeasureServiceAsync {
 
 	void getMeasureCQLFileData(String measureId, AsyncCallback<SaveUpdateCQLResult> callback);
 
-	void deleteInclude(String currentMeasureId,
-			CQLIncludeLibrary toBeModifiedIncludeObj,
-			List<CQLIncludeLibrary> viewIncludeLibrarys,
-			AsyncCallback<SaveUpdateCQLResult> asyncCallback);
+	void deleteInclude(String currentMeasureId, CQLIncludeLibrary toBeModifiedIncludeObj, AsyncCallback<SaveUpdateCQLResult> asyncCallback);
 
 	void updateCQLVSACValueSets(String currentMeasureId, String expansionId,
 			AsyncCallback<VsacApiResult> asyncCallback);
@@ -707,9 +667,6 @@ public interface MeasureServiceAsync {
 			List<CQLQualityDataSetDTO> appliedValueSetList, String measureId,
 			AsyncCallback<CQLQualityDataModelWrapper> callback);
 
-	void modifyCQLCodeInMeasure(CQLCode modifyCQLCode, CQLCode refCode, String measureId,
-			AsyncCallback<SaveUpdateCQLResult> asyncCallback);
-
 	void searchComponentMeasures(MeasureSearchModel searchModel, AsyncCallback<ManageMeasureSearchModel> asyncCallback);
 	
 	void buildCompositeMeasure(ManageCompositeMeasureDetailModel manageCompositeMeasureDetailModel, AsyncCallback<ManageCompositeMeasureDetailModel> callback);
@@ -726,4 +683,6 @@ public interface MeasureServiceAsync {
 	void generateAndSaveMaxEmeasureId(boolean isEditable, String measureId, AsyncCallback<Integer> asyncCallback);
 
 	void getHumanReadableForMeasureDetails(String currentMeasureId, AsyncCallback<String> asyncCallback);
+	
+    void checkIfLibraryNameExists(String libraryName, String setId, AsyncCallback<Boolean> callback);
 }

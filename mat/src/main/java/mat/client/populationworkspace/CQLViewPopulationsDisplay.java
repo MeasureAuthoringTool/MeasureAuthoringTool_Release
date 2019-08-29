@@ -64,10 +64,10 @@ public class CQLViewPopulationsDisplay {
 		CellTree.Style cellTreeStyle();
 	}
 	
-	private void buildView(String scoringType) {
+	private void buildView(String scoringType, boolean patientBased) {
 		PopulationTreeBuilderStrategyFactory populationTreeBuilderStrategyFactory = new PopulationTreeBuilderStrategyFactory();
 		PopulationTreeBuilderStrategy populationTreeBuilderStrategy = populationTreeBuilderStrategyFactory.getPopulationTreeBuilderStrategy(scoringType);
-		CQLCellTreeNode parentNode = populationTreeBuilderStrategy.buildCQLTreeNode(scoringType, document);
+		CQLCellTreeNode parentNode = populationTreeBuilderStrategy.buildCQLTreeNode(scoringType, document, patientBased);
 		
 		CQLCellTreeNode topmainNode = new CQLCellTreeNodeImpl();
 		List<CQLCellTreeNode> topchilds = new ArrayList<CQLCellTreeNode>();
@@ -104,14 +104,10 @@ public class CQLViewPopulationsDisplay {
 					document = XMLParser.parse(measureXml);
 					PopulationWorkSpaceConstants.subTreeLookUpName = result.getClauseMap();
 					setMeasureElementsMap();
-					NodeList nodeList = document.getElementsByTagName("scoring");
-					if ((nodeList != null) && (nodeList.getLength() > 0)) {
-						Node scoringNode = nodeList.item(0);
-						Node scoringIdAttribute = scoringNode.getAttributes()
-								.getNamedItem("id");
-						String scoringIdAttributeValue = scoringIdAttribute.getNodeValue();
-						buildView(scoringIdAttributeValue);
-					}
+					String scoringIdAttributeValue = MatContext.get().getCurrentMeasureInfo().getScoringType();
+					boolean patientBased = MatContext.get().getCurrentMeasureInfo().isPatientBased();
+					
+					buildView(scoringIdAttributeValue, patientBased);
 					Mat.hideLoadingMessage();
 				}
 

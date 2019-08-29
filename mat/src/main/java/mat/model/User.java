@@ -23,6 +23,7 @@ import javax.persistence.UniqueConstraint;
 
 import org.hibernate.annotations.GenericGenerator;
 
+import mat.model.clause.CQLLibraryHistory;
 import mat.model.clause.MeasureShare;
 import mat.model.cql.CQLLibraryShare;
 
@@ -81,6 +82,10 @@ public class User  {
 	private String sessionId;
 	
 	private Set<UserPasswordHistory> passwordHistory;
+	
+	private UserPreference userPreference;
+	
+	private List<CQLLibraryHistory> cqlLibraryHistory;
 	
 	
 	@Id
@@ -258,7 +263,7 @@ public class User  {
 		this.userSecurityQuestions = securityQuestions;
 	}			
 
-	@Temporal(TemporalType.DATE)
+	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "SIGN_IN_DATE", length = 10)
 	public Date getSignInDate() {
 		return signInDate;
@@ -273,7 +278,7 @@ public class User  {
 		}
 	}
 
-	@Temporal(TemporalType.DATE)
+	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "SIGN_OUT_DATE", length = 10)
 	public Date getSignOutDate() {
 		return signOutDate;
@@ -287,7 +292,7 @@ public class User  {
 		}
 	}
 
-	@Temporal(TemporalType.DATE)
+	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "LOCKED_OUT_DATE", length = 10)
 	public Date getLockedOutDate() {
 		return lockedOutDate;
@@ -388,6 +393,28 @@ public class User  {
 	@Transient
 	public String getFullName() {
 		return this.firstName + " " + this.lastName;
+	}
+	
+	@OneToOne(fetch = FetchType.LAZY, mappedBy = "user", cascade=CascadeType.ALL)
+	public UserPreference getUserPreference() {
+		return userPreference;
+	}
+
+	public void setUserPreference(UserPreference userPreference) {
+		if(userPreference != null && userPreference.getUser() == null) {
+			userPreference.setUser(this);
+		}
+		
+		this.userPreference = userPreference;
+	}
+
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "lastModifiedBy", cascade=CascadeType.ALL)
+	public List<CQLLibraryHistory> getCqlLibraryHistory() {
+		return cqlLibraryHistory;
+	}
+
+	public void setCqlLibraryHistory(List<CQLLibraryHistory> cqlLibraryHistory) {
+		this.cqlLibraryHistory = cqlLibraryHistory;
 	}
 
 }

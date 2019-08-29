@@ -1,5 +1,7 @@
 package mat.client.expressionbuilder.component;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.gwtbootstrap3.client.ui.Button;
@@ -16,6 +18,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import mat.client.expressionbuilder.constant.ExpressionType;
 import mat.client.expressionbuilder.constant.OperatorType;
 import mat.client.expressionbuilder.modal.ExpressionBuilderModal;
+import mat.client.expressionbuilder.model.AliasModel;
 import mat.client.expressionbuilder.observer.BuildButtonObserver;
 import mat.client.shared.ListBoxMVP;
 
@@ -38,14 +41,16 @@ public class ExpressionTypeSelector extends Composite {
 	private BuildButtonObserver observer;
 
 	private VerticalPanel contentPanel;
-	private List<String> availableAliases;
+	private List<AliasModel> availableAliases;
 	private ExpressionBuilderModal parentModal;
 	
-	public ExpressionTypeSelector(List<ExpressionType> availableExpressionTypes, List<OperatorType> availableOperatorTypes, List<String> availableAliases, 
+	public ExpressionTypeSelector(List<ExpressionType> availableExpressionTypes, List<OperatorType> availableOperatorTypes, List<AliasModel> availableAliases, 
 			BuildButtonObserver observer, boolean isFirstSelection, ExpressionBuilderModal parentModal) {
 		this.availableExpressionTypes = availableExpressionTypes;
+		this.availableExpressionTypes.sort(Comparator.comparing(ExpressionType::getDisplayName));
 		this.availableOperatorTypes = availableOperatorTypes;
 		this.availableAliases = availableAliases;
+		Collections.sort(this.availableAliases, Comparator.comparing(AliasModel::getAlias, String.CASE_INSENSITIVE_ORDER));
 		this.observer = observer;
 		this.isFirstSelection = isFirstSelection;
 		
@@ -67,8 +72,7 @@ public class ExpressionTypeSelector extends Composite {
 		if(isFirstSelection) {
 			panel.add(buildExpressionTypeSelectorPanel());
 		} else {
-			Panel addMorePanel = buildAddMorePanel();
-			panel.add(addMorePanel);
+			panel.add(buildAddMorePanel());
 		}
 		
 		return panel;
@@ -122,15 +126,24 @@ public class ExpressionTypeSelector extends Composite {
 		
 		expressionTypeSelectorListBox.setWidth("100%");
 		
-		expressionTypeSelectorListBox.insertItem(SELECT_EXPRESSION_TYPE, SELECT_EXPRESSION_TYPE, SELECT_EXPRESSION_TYPE);
+		expressionTypeSelectorListBox.insertItem(SELECT_EXPRESSION_TYPE, SELECT_EXPRESSION_TYPE);
 		for(ExpressionType type : this.availableExpressionTypes) {
-			expressionTypeSelectorListBox.insertItem(type.getDisplayName(), type.getValue(), type.getDisplayName());
+			expressionTypeSelectorListBox.insertItem(type.getValue(), type.getDisplayName());
 		}
 		
-		for(String alias : this.availableAliases) {
-			expressionTypeSelectorListBox.insertItem(alias + " (Query Source)", alias, alias + " (Query Source)");
+		for(AliasModel alias : this.availableAliases) {
+			expressionTypeSelectorListBox.insertItem(alias.getAlias(), alias.getAlias() + " (" + alias.getAliasType() +")");
 		}
 		
+		expressionTypeSelectorBuildButtonPanel.add(expressionTypeSelectorListBox);
+		expressionTypeSelectorBuildButtonPanel.add(buildBuildButton());
+
+		expressionTypeSelectorPanel.add(expressionTypeSelectorBuildButtonPanel);
+		
+		return expressionTypeSelectorPanel;
+	}
+
+	private Button buildBuildButton() {
 		Button buildButton = new Button();
 		buildButton.setText("Build");
 		buildButton.setTitle("Build");
@@ -138,12 +151,7 @@ public class ExpressionTypeSelector extends Composite {
 		buildButton.setMarginLeft(5.0);
 		buildButton.setIcon(IconType.WRENCH);
 		buildButton.addClickHandler(event -> onBuildButtonClick());
-		
-		expressionTypeSelectorBuildButtonPanel.add(expressionTypeSelectorListBox);
-		expressionTypeSelectorBuildButtonPanel.add(buildButton);
-		expressionTypeSelectorPanel.add(expressionTypeSelectorBuildButtonPanel);
-		
-		return expressionTypeSelectorPanel;
+		return buildButton;
 	}
 	
 	private VerticalPanel buildExpressionAndOperatorTypeSelector() {
@@ -152,7 +160,6 @@ public class ExpressionTypeSelector extends Composite {
 		
 		expressionAndOperatorSelectorPanel.add(buildOperatorTypeSelectorPanel());
 		expressionAndOperatorSelectorPanel.add(buildExpressionTypeSelectorPanel());
-		
 		
 		return expressionAndOperatorSelectorPanel;
 	}

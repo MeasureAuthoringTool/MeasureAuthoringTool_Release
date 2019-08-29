@@ -14,6 +14,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -76,6 +77,24 @@ public class Measure {
 	private Boolean isCompositeMeasure = false;
 	
 	private List<ComponentMeasure> componentMeasures;
+
+	private List<MeasureTypeAssociation> measureTypes;
+	
+	private List<MeasureDeveloperAssociation> measureDevelopers;
+
+	private MeasureDetails measureDetails;
+	
+	private String measureStewardId;
+	
+	private String nqfNumber;
+	
+	private Timestamp measurementPeriodFrom;
+	
+	private Timestamp measurementPeriodTo;
+	
+	private List<CQLLibraryHistory> cqlLibraryHistory;
+	
+	private String cqlLibraryName;
 
 	@Column(name = "VALUE_SET_DATE", length = 19)
 	public Timestamp getValueSetDate() {
@@ -358,5 +377,90 @@ public class Measure {
 
 	public void setComponentMeasures(List<ComponentMeasure> componentMeasures) {
 		this.componentMeasures = componentMeasures;
+	}
+
+	@OneToOne(fetch = FetchType.LAZY, mappedBy = "measure", cascade=CascadeType.ALL)
+	public MeasureDetails getMeasureDetails() {
+		return measureDetails;
+	}
+
+	public void setMeasureDetails(MeasureDetails measureDetails) {
+		if(measureDetails != null && measureDetails.getMeasure() == null) {
+			measureDetails.setMeasure(this);
+		}
+		
+		this.measureDetails = measureDetails;
+	}
+	
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "measure", cascade=CascadeType.ALL)
+	public List<MeasureTypeAssociation> getMeasureTypes() {
+		return measureTypes;
+	}
+
+	public void setMeasureTypes(List<MeasureTypeAssociation> measureTypes) {
+		this.measureTypes = measureTypes;
+	}
+	
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "measure", cascade=CascadeType.ALL)
+	public List<MeasureDeveloperAssociation> getMeasureDevelopers() {
+		return measureDevelopers;
+	}
+
+	public void setMeasureDevelopers(List<MeasureDeveloperAssociation> measureDevelopers) {
+		this.measureDevelopers = measureDevelopers;
+	}
+
+	@Column(name = "MEASURE_STEWARD_ID")
+	public String getMeasureStewardId() {
+		return measureStewardId;
+	}
+
+	public void setMeasureStewardId(String measureStewardId) {
+		this.measureStewardId = measureStewardId;
+	}
+
+	@Column(name = "NQF_NUMBER")
+	public String getNqfNumber() {
+		return nqfNumber;
+	}
+
+	public void setNqfNumber(String nqfNumber) {
+		this.nqfNumber = nqfNumber;
+	}
+
+	@Column(name = "MEASUREMENT_PERIOD_FROM")
+	public Timestamp getMeasurementPeriodFrom() {
+		return measurementPeriodFrom;
+	}
+
+	public void setMeasurementPeriodFrom(Timestamp measurementPeriodFrom) {
+		this.measurementPeriodFrom = measurementPeriodFrom;
+	}
+
+	@Column(name = "MEASUREMENT_PERIOD_TO")
+	public Timestamp getMeasurementPeriodTo() {
+		return measurementPeriodTo;
+	}
+
+	public void setMeasurementPeriodTo(Timestamp measurementPeriodTo) {
+		this.measurementPeriodTo = measurementPeriodTo;
+	}
+
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "measure", cascade=CascadeType.ALL)
+	public List<CQLLibraryHistory> getCqlLibraryHistory() {
+		return cqlLibraryHistory;
+	}
+
+	public void setCqlLibraryHistory(List<CQLLibraryHistory> cqlLibraryHistory) {
+		this.cqlLibraryHistory = cqlLibraryHistory;
+	}
+
+	@Column(name = "CQL_NAME")
+	public String getCqlLibraryName() {
+		return cqlLibraryName;
+	}
+
+	public void setCqlLibraryName(String cqlLibraryName) {
+		this.cqlLibraryName = cqlLibraryName;
 	}
 }

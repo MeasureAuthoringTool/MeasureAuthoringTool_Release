@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.gwtbootstrap3.client.ui.Button;
 import org.gwtbootstrap3.client.ui.ButtonToolBar;
@@ -65,11 +66,9 @@ import mat.client.inapphelp.component.InAppHelp;
 import mat.client.shared.CustomQuantityTextBox;
 import mat.client.shared.LabelBuilder;
 import mat.client.shared.MatCheckBoxCell;
-import mat.client.shared.MatContext;
 import mat.client.shared.MatSimplePager;
 import mat.client.shared.SkipListBuilder;
 import mat.client.shared.SpacerWidget;
-import mat.client.umls.service.VsacApiResult;
 import mat.client.util.CellTableUtility;
 import mat.client.util.MatTextBox;
 import mat.model.CQLValueSetTransferObject;
@@ -368,6 +367,7 @@ public class CQLAppliedValueSetView implements HasSelectionHandlers<Boolean>{
 	}
 
 	public void buildAppliedValueSetCellTable(List<CQLQualityDataSetDTO> appliedValueSetList, boolean isEditable) {
+		appliedValueSetList = appliedValueSetList.stream().filter(v -> v.getOriginalCodeListName() != null).collect(Collectors.toList());
 		cellTablePanel.clear();
 		cellTablePanelBody.clear();
 		cellTablePanel.setStyleName("cellTablePanel");
@@ -391,8 +391,7 @@ public class CQLAppliedValueSetView implements HasSelectionHandlers<Boolean>{
 			table.redraw();
 			listDataProvider.refresh();
 			listDataProvider.getList().addAll(appliedValueSetList);
-			ListHandler<CQLQualityDataSetDTO> sortHandler = new ListHandler<>(
-					listDataProvider.getList());
+			ListHandler<CQLQualityDataSetDTO> sortHandler = new ListHandler<>(listDataProvider.getList());
 			table.addColumnSortHandler(sortHandler);
 			table = addColumnToTable(table, sortHandler, isEditable);
 			listDataProvider.addDataDisplay(table);
@@ -684,7 +683,7 @@ public class CQLAppliedValueSetView implements HasSelectionHandlers<Boolean>{
 					@Override
 					public void update(int index, CQLQualityDataSetDTO object,
 							SafeHtml value) {
-						if ((object != null) && !object.isUsed()) {
+						if (object != null) {
 							lastSelectedObject = object;
 							observer.onDeleteClicked(object, index);
 						}
@@ -698,13 +697,9 @@ public class CQLAppliedValueSetView implements HasSelectionHandlers<Boolean>{
 				String title = "Click to delete value set";
 				String cssClass = "btn btn-link";
 				String iconCss = "fa fa-trash fa-lg";
-				if (object.isUsed()) {
-					sb.appendHtmlConstant("<button type=\"button\" title='"
-							+ title + "' tabindex=\"0\" class=\" " + cssClass + "\" disabled style=\"margin-left: 0px;margin-right: 10px;\"><i class=\" "+iconCss + "\"></i> <span style=\"font-size:0;\">Delete</span></button>");
-				} else {
+
 					sb.appendHtmlConstant("<button type=\"button\" title='"
 							+ title + "' tabindex=\"0\" class=\" " + cssClass + "\" style=\"margin-left: 0px;margin-right: 10px;\" > <i class=\" " + iconCss + "\"></i><span style=\"font-size:0;\">Delete</button>");
-				}
 				return sb.toSafeHtml();
 			}
 			
@@ -999,24 +994,6 @@ public class CQLAppliedValueSetView implements HasSelectionHandlers<Boolean>{
 		return isUserDefined;
 	}
 
-	public String convertMessage(final int id) {
-		String message;
-		switch (id) {
-		case VsacApiResult.UMLS_NOT_LOGGEDIN:
-			message = MatContext.get().getMessageDelegate().getUMLS_NOT_LOGGEDIN();
-			break;
-		case VsacApiResult.OID_REQUIRED:
-			message = MatContext.get().getMessageDelegate().getUMLS_OID_REQUIRED();
-			break;
-		case VsacApiResult.VSAC_REQUEST_TIMEOUT:
-			message = MatContext.get().getMessageDelegate().getVSAC_RETRIEVE_TIMEOUT();
-			break;
-		default:
-			message = MatContext.get().getMessageDelegate().getVSAC_RETRIEVE_FAILED();
-		}
-		return message;
-	}
-
 	public void resetCQLValuesetearchPanel() {
 		HTML searchHeaderText = new HTML("<strong>Search</strong>");
 		getSearchHeader().clear();
@@ -1074,7 +1051,7 @@ public class CQLAppliedValueSetView implements HasSelectionHandlers<Boolean>{
 		return copyPasteClearButtonToolBar.getPasteButton();
 	}
 
-	public void setReadOnly(boolean isEditable) {		
+	public void setIsEditable(boolean isEditable) {		
 		getCancelQDMButton().setEnabled(isEditable);
 		getUpdateFromVSACButton().setEnabled(isEditable);
 		getRetrieveFromVSACButton().setEnabled(isEditable);
@@ -1136,7 +1113,7 @@ public class CQLAppliedValueSetView implements HasSelectionHandlers<Boolean>{
 			Iterator<CQLQualityDataSetDTO> iterator = appliedValueSetTableList.iterator();
 			while (iterator.hasNext()) {
 				CQLQualityDataSetDTO dataSetDTO = iterator.next();
-				if (dataSetDTO.getName().equalsIgnoreCase(userDefinedInput)) {
+				if (!dataSetDTO.getOriginalCodeListName().isEmpty() && dataSetDTO.getOriginalCodeListName() != null && dataSetDTO.getName().equalsIgnoreCase(userDefinedInput)) {
 					return true;
 				}
 			}

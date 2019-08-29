@@ -12,7 +12,12 @@ public class MessageDelegate {
 	public static final String SECURITY_QUESTION_ANSWERS_MUST_CONTAIN_AT_LEAST_THREE_CHARACTERS = "Security question answers must contain at least three characters.";
 	public static final String ALL_SECURITY_QUESTIONS_MUST_CONTAIN_A_VALID_SECURITY_ANSWER = "All security questions must contain a valid security answer";
 	public static final String GENERIC_ERROR_MESSAGE = "The Measure Authoring Tool was unable to process the request. Please try again. If the problem persists please contact the Help Desk.";
-	
+	public static final String DUPLICATE_LIBRARY_NAME = "The CQL library name is used by one or more CQL libraries within the MAT. Please edit the CQL library name.";
+	public static final String DUPLICATE_LIBRARY_NAME_SAVE = "The MAT was unable to save the change to the CQL library name. All CQL library names must be unique within the MAT.";
+	public static final String VERSION_LIBRARY_NAME_ERROR_MESSAGE = "The MAT is unable to version the measure. The CQL Library name associated with this measure is not unique. Please edit the CQL Library name before versioning.";
+	public static final String VERSION_STANDALONE_LIBRARY_NAME_ERROR_MESSAGE = "The MAT is unable to version the Library. The CQL Library name is not unique. Please edit the CQL Library name before versioning.";
+	public static final String VSAC_UNAUTHORIZED_ERROR = "Unable to retrieve information from VSAC. Please log in to UMLS again to re-establish a connection.";
+
 	private static final String WELCOME_MESSAGE = "You have successfully logged into the MAT.";
 	private static final String ALERT_LOADING_MESSAGE = "Please wait until loading is complete.";
 	private static final String CHANGES_SAVED = "Changes are successfully saved.";
@@ -23,7 +28,8 @@ public class MessageDelegate {
 	private static final String LAST_NAME_REQUIRED = "Last Name is required.";
 	private static final String LOGIN_ID_REQUIRED = "User ID is required.";
 	private static final String LIBRARY_NAME_REQUIRED = "Library Name is required.";
-	private static final String CQL_STAND_ALONE_LIBRARY_NAME_ERROR = "Invalid Library Name.Must start with an alpha-character or underscore followed by an alpha-numeric character(s) or underscore(s), and must not contain spaces.";
+	public static final String LIBRARY_NAME_IS_CQL_KEYWORD_ERROR = "The CQL Library Name can not be the same as a CQL Keyword.";
+	private static final String CQL_STAND_ALONE_LIBRARY_NAME_ERROR = "Invalid Library Name. Library names must start with an alpha-character or underscore, followed by an alpha-numeric character(s) or underscore(s), and must not contain spaces.";
 	private static final String EMAIL_ID_INCORRECT_FORMAT = "Email Address has an incorrect format.";
 	private static final String EMAIL_ID_REQUIRED = "Email Address is required.";
 	private static final String LOGIN_USER_REQUIRED = "User Name is required.";
@@ -59,7 +65,7 @@ public class MessageDelegate {
 	private static final String INVALID_COMMENT_CHARACTERS = "Comments can not contain /* or */.";
 	private static final String PACKAGER_CQL_ERROR = "Your CQL file contains validation errors. Errors must be corrected before proceeding to measure packaging. Please return to the CQL Workspace to make corrections.";
 	private static final String SUCCESSFULLY_SHARED = " sharing status has been successfully updated.";
-	private static final String UMLS_CODE_IDENTIFIER_REQUIRED = "Please enter a code identifier.";	
+	private static final String UMLS_CODE_IDENTIFIER_REQUIRED = "Please enter a Code URL.";	
 	private static final String ACCOUNT_REVOKED = "Your account has been revoked. Please contact Support.";
 	private static final String CLAUSE_WORK_SPACE_VALIDATION_SUCCESS = "Measure logic validation successful.";
 	private static final String ALL_PASSWORD_FIELDS_REQUIRED = "All password fields are required.";
@@ -955,5 +961,9 @@ public class MessageDelegate {
 			s = "invalid value set date.";
 		}
 		return pre + s;
+	}
+
+	public String getLibraryNameIsCqlKeywordError() {
+		return LIBRARY_NAME_IS_CQL_KEYWORD_ERROR;
 	}
 }

@@ -7,8 +7,10 @@ import java.sql.Blob;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -40,7 +42,7 @@ public class CQLLibrary {
 
 	private User ownerId;
 	
-	private String set_id;
+	private String setId;
 
 	private String version;
 
@@ -65,6 +67,8 @@ public class CQLLibrary {
 	private Set<CQLLibraryShare> shares;
 
 	private Blob cqlXML;
+	
+	private List<CQLLibraryHistory> cqlLibraryHistory;
 
 	@Id
 	@GeneratedValue(generator="uuid")
@@ -279,12 +283,12 @@ public class CQLLibrary {
 	}
 
 	@Column(name = "SET_ID", nullable = false, length = 45)
-	public String getSet_id() {
-		return set_id;
+	public String getSetId() {
+		return setId;
 	}
 
-	public void setSet_id(String set_id) {
-		this.set_id = set_id;
+	public void setSetId(String setId) {
+		this.setId = setId;
 	}
 	
 	@Column(name = "LAST_MODIFIED_ON", length = 19)
@@ -304,6 +308,15 @@ public class CQLLibrary {
 
 	public void setLastModifiedBy(User lastModifiedBy) {
 		this.lastModifiedBy = lastModifiedBy;
+	}
+
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "cqlLibrary", cascade=CascadeType.ALL)
+	public List<CQLLibraryHistory> getCqlLibraryHistory() {
+		return cqlLibraryHistory;
+	}
+
+	public void setCqlLibraryHistory(List<CQLLibraryHistory> cqlLibraryHistory) {
+		this.cqlLibraryHistory = cqlLibraryHistory;
 	}
 
 }

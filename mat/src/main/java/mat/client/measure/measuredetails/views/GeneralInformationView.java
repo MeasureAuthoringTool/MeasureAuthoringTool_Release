@@ -13,10 +13,10 @@ import org.gwtbootstrap3.client.ui.constants.ButtonType;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
@@ -31,7 +31,6 @@ import mat.client.shared.ListBoxMVP;
 import mat.client.shared.MatContext;
 import mat.client.shared.MessageDelegate;
 import mat.client.shared.SpacerWidget;
-import mat.client.shared.editor.RichTextEditor;
 import mat.shared.CompositeMethodScoringConstant;
 import mat.shared.MatConstants;
 import mat.shared.StringUtility;
@@ -42,6 +41,7 @@ public class GeneralInformationView implements MeasureDetailViewInterface {
 	private static final String EMPTY_STRING = "";
 	private static final String TEXT_BOX_WIDTH = "300px";
 	private static final int ECQM_ABBR_MAX_LENGTH = 32;
+	private static final int MEASURE_NAME_MAX_LENGTH = 500;
 	private FlowPanel mainPanel = new FlowPanel();
 	private GeneralInformationModel generalInformationModel;
 	private GeneralInformationModel originalModel;
@@ -419,6 +419,7 @@ public class GeneralInformationView implements MeasureDetailViewInterface {
 		measureNameInput.setId("measureNameInput");
 		measureNameInput.setText(generalInformationModel.getMeasureName());
 		measureNameInput.setWidth(TEXT_BOX_WIDTH);
+		measureNameInput.setMaxLength(MEASURE_NAME_MAX_LENGTH);
 		measureNamePanel.add(measureNameLabel);
 		measureNamePanel.add(measureNameInput);
 		return measureNamePanel;
@@ -648,6 +649,7 @@ public class GeneralInformationView implements MeasureDetailViewInterface {
 		compositeScoringMethod = StringUtility.isEmptyOrNull(compositeScoringMethod) ? MatContext.PLEASE_SELECT : compositeScoringMethod;
 		setScoringChoices(MatContext.get().getSelectionMap().get(compositeScoringMethod));
 		measureScoringInput.setValueMetadata(generalInformationModel.getScoringMethod());
+		setPatientBasedInputOptions(MatContext.get().getPatientBasedIndicatorOptions(generalInformationModel.getScoringMethod()));
 		setPatientbasedIndicator();
 	}
 
@@ -680,7 +682,7 @@ public class GeneralInformationView implements MeasureDetailViewInterface {
 	}
 
 	@Override
-	public RichTextEditor getRichTextEditor() {
+	public TextArea getTextEditor() {
 		//No rich text editor on this page
 		return null;
 	}

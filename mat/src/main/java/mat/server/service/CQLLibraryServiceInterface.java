@@ -3,6 +3,7 @@ package mat.server.service;
 import java.util.List;
 
 import mat.client.measure.service.SaveCQLLibraryResult;
+import mat.client.shared.MatException;
 import mat.client.umls.service.VsacApiResult;
 import mat.model.CQLLibraryOwnerReportDTO;
 import mat.model.CQLValueSetTransferObject;
@@ -32,7 +33,7 @@ public interface CQLLibraryServiceInterface {
 	void save(CQLLibrary cqlLibrary);
 
 	CQLLibraryDataSetObject findCQLLibraryByID(String cqlLibraryId);
-	public SaveCQLLibraryResult save(CQLLibraryDataSetObject cqlLibraryDataSetObject);
+	public SaveCQLLibraryResult saveLibrary(CQLLibraryDataSetObject cqlLibraryDataSetObject);
 
 	String createCQLLookUpTag(String libraryName,String version);
 
@@ -55,7 +56,7 @@ public interface CQLLibraryServiceInterface {
 
 	SaveCQLLibraryResult saveFinalizedVersion(String libraryId, boolean isMajor, String version, boolean ignoreUnusedLibraries);
 
-	SaveCQLLibraryResult saveDraftFromVersion(String libraryId);
+	SaveCQLLibraryResult draftExistingCQLLibrary(String libraryId, String libraryName) throws MatException;
 
 	SaveUpdateCQLResult saveAndModifyCQLGeneralInfo(String libraryId, String context, String libraryComment);
 
@@ -69,12 +70,13 @@ public interface CQLLibraryServiceInterface {
 
 	SaveUpdateCQLResult saveIncludeLibrayInCQLLookUp(String libraryId, CQLIncludeLibrary toBeModifiedObj, CQLIncludeLibrary currentObj, List<CQLIncludeLibrary> incLibraryList) throws InvalidLibraryException;
 
-	SaveUpdateCQLResult deleteInclude(String libraryId, CQLIncludeLibrary toBeModifiedIncludeObj,
-			List<CQLIncludeLibrary> viewIncludeLibrarys);
+	SaveUpdateCQLResult deleteInclude(String libraryId, CQLIncludeLibrary toBeModifiedIncludeObj);
 
 	GetUsedCQLArtifactsResult getUsedCqlArtifacts(String libraryId);
 
 	int countNumberOfAssociation(String id);
+	
+	SaveUpdateCQLResult saveCQLFile(String libraryId, String cql);
 	
 	SaveUpdateCQLResult saveAndModifyDefinitions(String libraryId, CQLDefinition toBeModifiedObj,
 			CQLDefinition currentObj, List<CQLDefinition> definitionList, boolean isFormatable);
@@ -85,23 +87,15 @@ public interface CQLLibraryServiceInterface {
 	SaveUpdateCQLResult saveAndModifyParameters(String libraryId, CQLParameter toBeModifiedObj, CQLParameter currentObj,
 			List<CQLParameter> parameterList, boolean isFormatable);
 
-	SaveUpdateCQLResult deleteDefinition(String libraryId, CQLDefinition toBeDeletedObj, 
-			List<CQLDefinition> definitionList);
+	SaveUpdateCQLResult deleteDefinition(String libraryId, CQLDefinition toBeDeletedObj);
 
-	SaveUpdateCQLResult deleteFunctions(String libraryId, CQLFunctions toBeDeletedObj, 
-			List<CQLFunctions> functionsList);
+	SaveUpdateCQLResult deleteFunction(String libraryId, CQLFunctions toBeDeletedObj);
 
-	SaveUpdateCQLResult deleteParameter(String libraryId, CQLParameter toBeDeletedObj, 
-			List<CQLParameter> parameterList);
-
+	SaveUpdateCQLResult deleteParameter(String libraryId, CQLParameter toBeDeletedObj);
 
 	SaveUpdateCQLResult saveCQLValueset(CQLValueSetTransferObject valueSetTransferObject);
 
 	SaveUpdateCQLResult deleteValueSet(String toBeDelValueSetId, String libraryId);
-
-	SaveUpdateCQLResult saveCQLUserDefinedValueset(CQLValueSetTransferObject matValueSetTransferObject);
-
-	SaveUpdateCQLResult modifyCQLValueSets(CQLValueSetTransferObject matValueSetTransferObject);
 
 	VsacApiResult updateCQLVSACValueSets(String cqlLibraryId, String expansionId, String sessionId);
 	CQLKeywords getCQLKeywordsLists();
@@ -128,8 +122,6 @@ public interface CQLLibraryServiceInterface {
 
 	CQLQualityDataModelWrapper saveValueSetList(List<CQLValueSetTransferObject> transferObjectList,
 			List<CQLQualityDataSetDTO> appliedValueSetList, String cqlLibraryId);
-
-	SaveUpdateCQLResult modifyCQLCodeInCQLLibrary(CQLCode codeToReplace, CQLCode replacementCode, String cqlLibraryId);
 	
 	public void saveCQLLibraryExport(CQLLibrary cqlLibrary, String cqlXML);
 }

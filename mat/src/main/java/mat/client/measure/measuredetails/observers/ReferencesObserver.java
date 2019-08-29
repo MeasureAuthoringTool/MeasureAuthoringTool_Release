@@ -5,29 +5,38 @@ import java.util.List;
 import mat.client.measure.measuredetails.MeasureDetailsObserver;
 import mat.client.measure.measuredetails.views.MeasureDetailViewInterface;
 import mat.client.measure.measuredetails.views.ReferencesView;
+import mat.client.shared.MessagePanel;
 import mat.shared.measure.measuredetails.models.ReferencesModel;
 
 public class ReferencesObserver implements MeasureDetailsComponentObserver {
 	private ReferencesView referencesView;
 	private MeasureDetailsObserver measureDetailsObserver;
-	public ReferencesObserver(ReferencesView referencesView, MeasureDetailsObserver measureDetailObserver) {
+	private MessagePanel messagePanel;
+	public ReferencesObserver(ReferencesView referencesView, MeasureDetailsObserver measureDetailObserver, MessagePanel messagePanel) {
 		this.referencesView = referencesView;
 		this.measureDetailsObserver = measureDetailObserver;
+		this.messagePanel = messagePanel;
 	}
 
 	@Override
 	public void handleValueChanged() {
-		if(referencesView.getRichTextEditor().getPlainText().trim().length() !=0) {
+		//checks if the plain text length is greater than zero
+		if(referencesView.getTextEditor().getText() != null && referencesView.getTextEditor().getText().trim().length() !=0) {
 			handleTextValueChanged();
 		}
 	}
 	
 	public void handleTextValueChanged() {
 		try {
-			referencesView.getReferencesModel().getReferences().set(referencesView.getEditingIndex(), referencesView.getRichTextEditor().getPlainText().trim());
+			String reference = nullCheckRichTextEditor();
+			referencesView.getReferencesModel().getReferences().set(referencesView.getEditingIndex(), reference.trim());
 		} catch(IndexOutOfBoundsException iobe) {
-			referencesView.getReferencesModel().getReferences().add(referencesView.getRichTextEditor().getPlainText().trim());
+			referencesView.getReferencesModel().getReferences().add(referencesView.getTextEditor().getText().trim());
 		}
+	}
+
+	private String nullCheckRichTextEditor() {
+		return referencesView.getTextEditor().getText() == null ? "" : referencesView.getTextEditor().getText();
 	}
 
 	@Override
@@ -35,12 +44,13 @@ public class ReferencesObserver implements MeasureDetailsComponentObserver {
 		// TODO Auto-generated method stub
 	}
 
-	public void handleEditClicked(int index, String reference) {
+	public void handleEditClicked(int index) {
+		messagePanel.clearAlerts();
 		List<String> referenceList = referencesView.getOriginalModel().getReferences();
 		referencesView.getReferencesModel().setReferences(referenceList);
 		if(referenceList != null && referenceList.get(index) != null) {
 			referencesView.setEditingIndex(index);
-			referencesView.getRichTextEditor().setValue(referenceList.get(index));
+			referencesView.getTextEditor().setText(referenceList.get(index));
 		}
 	}
 

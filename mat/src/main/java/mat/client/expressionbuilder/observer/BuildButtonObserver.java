@@ -19,6 +19,7 @@ import mat.client.expressionbuilder.modal.NotBuilderModal;
 import mat.client.expressionbuilder.modal.ParameterSelectorModal;
 import mat.client.expressionbuilder.modal.QuantityBuilderModal;
 import mat.client.expressionbuilder.modal.QueryBuilderModal;
+import mat.client.expressionbuilder.modal.RelationshipBuilderModal;
 import mat.client.expressionbuilder.modal.RetrieveBuilderModal;
 import mat.client.expressionbuilder.modal.TimeBoundaryBuilderModal;
 import mat.client.expressionbuilder.modal.TimingBuilderModal;
@@ -44,8 +45,10 @@ public class BuildButtonObserver {
 		this.mainModel = mainModel;
 	}
 
-	public void onBuildButtonClick(String expression, String operator) {		
+	public void onBuildButtonClick(String expression, String operator) {	
+		boolean isFirstSelection = true;
 		if(operator != null && !operator.isEmpty()) {
+			isFirstSelection = false;
 			this.parentModel.appendExpression(operatorModel(operator));
 		}
 		
@@ -55,7 +58,7 @@ public class BuildButtonObserver {
 		}
 		
 		else if(expression.equals(ExpressionType.DEFINITION.getValue())) {
-			ExpressionBuilderModal definitionModal = new DefinitionSelectorModal(this.parentModal, this.parentModel, this.mainModel);
+			ExpressionBuilderModal definitionModal = new DefinitionSelectorModal(this.parentModal, this.parentModel, this.mainModel, isFirstSelection);
 			definitionModal.show();
 		}
 		
@@ -95,7 +98,7 @@ public class BuildButtonObserver {
 		}
 		
 		else if(expression.equals(ExpressionType.PARAMETER.getValue())) {
-			ParameterSelectorModal parameterModal = new ParameterSelectorModal(this.parentModal, this.parentModel, this.mainModel);
+			ParameterSelectorModal parameterModal = new ParameterSelectorModal(this.parentModal, this.parentModel, this.mainModel, isFirstSelection);
 			parameterModal.show();
 		}
 		
@@ -140,7 +143,7 @@ public class BuildButtonObserver {
 		}
 		
 		else if(expression.equals(ExpressionType.FUNCTION.getValue())) {
-			ExpressionBuilderModal functionModal = new FunctionBuilderModal(this.parentModal, this.parentModel, this.mainModel);
+			ExpressionBuilderModal functionModal = new FunctionBuilderModal(this.parentModal, this.parentModel, this.mainModel, isFirstSelection);
 			functionModal.show();
 		}
 		
@@ -148,8 +151,13 @@ public class BuildButtonObserver {
 			ExpressionBuilderModal timingModal = new TimingBuilderModal(this.parentModal, this.parentModel, this.mainModel);
 			timingModal.show();
 		}
-
-		else if(QueryFinderHelper.findAliasNames(this.parentModel).contains(expression)) {
+		
+		else if(expression.equals(RelationshipBuilderModal.SOURCE)) {
+			ExpressionBuilderModal relationshipModal = new RelationshipBuilderModal(this.parentModal, this.parentModel, this.mainModel, operator);
+			relationshipModal.show();
+		}
+		
+		else if(QueryFinderHelper.findAliasNames(this.parentModel).stream().anyMatch(a -> a.getAlias().equals(expression))) {
 			AliasModel model = new AliasModel(this.parentModel);
 			model.setAlias(expression);
 			this.parentModel.appendExpression(model);

@@ -40,7 +40,7 @@ import mat.shared.measure.measuredetails.models.DenominatorExceptionsModel;
 import mat.shared.measure.measuredetails.models.DenominatorExclusionsModel;
 import mat.shared.measure.measuredetails.models.DenominatorModel;
 import mat.shared.measure.measuredetails.models.MeasureDetailsModel;
-import mat.shared.measure.measuredetails.models.MeasureDetailsRichTextAbstractModel;
+import mat.shared.measure.measuredetails.models.MeasureDetailsTextAbstractModel;
 import mat.shared.measure.measuredetails.models.MeasureObservationsModel;
 import mat.shared.measure.measuredetails.models.MeasurePopulationExclusionsModel;
 import mat.shared.measure.measuredetails.models.MeasurePopulationModel;
@@ -48,6 +48,7 @@ import mat.shared.measure.measuredetails.models.MeasureStewardDeveloperModel;
 import mat.shared.measure.measuredetails.models.NumeratorExclusionsModel;
 import mat.shared.measure.measuredetails.models.NumeratorModel;
 import mat.shared.measure.measuredetails.models.ReferencesModel;
+import mat.shared.measure.measuredetails.models.StratificationModel;
 import mat.shared.measure.measuredetails.translate.ManageMeasureDetailModelMapper;
 import mat.shared.measure.measuredetails.validate.GeneralInformationValidator;
 
@@ -292,13 +293,12 @@ public class MeasureDetailsPresenter implements MatPresenter, MeasureDetailsObse
 		});
 		measureDetailsView.getDeleteMeasureButton().addClickHandler(event -> handleDeleteMeasureButtonClick());
 		measureDetailsView.getSaveButton().addClickHandler(event -> handleSaveButtonClick());
+		measureDetailsView.getCancelButton().addClickHandler(event -> handleCancelButtonClick());
 		componentMeasureDisplay.getBackButton().addClickHandler(event -> displayCompositeMeasuresOnMeasureDetails(false));
 		componentMeasureDisplay.getCancelButton().addClickHandler(event -> displayCompositeMeasuresOnMeasureDetails(false));
 		componentMeasureDisplay.getSaveButton().addClickHandler(event -> saveCompositeMeasures());
 	}
 
-	
-	
 	private void saveCompositeMeasures() {
 
 		componentMeasureDisplay.setComponentBusy(true);
@@ -458,6 +458,12 @@ public class MeasureDetailsPresenter implements MatPresenter, MeasureDetailsObse
 			}
 		}
 	}
+	
+	private void handleCancelButtonClick() {
+		if(!isReadOnly) {
+			measureDetailsView.getComponentDetailView().resetForm();
+		}
+	}
 
 	private void showSaveConfirmationDialog(ConfirmationDialogBox confirmationDialog) {
 		confirmationDialog.getYesButton().addClickHandler(event -> saveMeasureDetails());
@@ -512,6 +518,7 @@ public class MeasureDetailsPresenter implements MatPresenter, MeasureDetailsObse
 				measureDetailsModel.setMeasurePopulationModel(new MeasurePopulationModel());
 				measureDetailsModel.setMeasurePopulationExclusionsModel(new MeasurePopulationExclusionsModel());
 				measureDetailsModel.setDenominatorExceptionsModel(new DenominatorExceptionsModel());
+				measureDetailsModel.setStratificationModel(new StratificationModel());
 				break;
 			default:
 				break;
@@ -531,6 +538,8 @@ public class MeasureDetailsPresenter implements MatPresenter, MeasureDetailsObse
 				MatDetailItem activeMenuItem = navigationPanel.getActiveMenuItem();
 				scoringType = measureDetailsModel.getGeneralInformationModel().getScoringMethod();
 				isPatientBased = measureDetailsModel.getGeneralInformationModel().isPatientBased();
+				MatContext.get().getCurrentMeasureInfo().setScoringType(scoringType);
+				MatContext.get().getCurrentMeasureInfo().setPatientBased(isPatientBased);
 				MatContext.get().setCurrentMeasureScoringType(scoringType);
 				MatContext.get().setCurrentMeasureName(measureDetailsModel.getGeneralInformationModel().getMeasureName());
 				measureHeading.updateMeasureHeading();
@@ -542,6 +551,7 @@ public class MeasureDetailsPresenter implements MatPresenter, MeasureDetailsObse
 				measureDetailsView.displaySuccessMessage("Changes for the " +  measureDetailsView.getCurrentMeasureDetail().displayName() + " section have been successfully saved.");
 				handleStateChanged();
 				navigationPanel.setActiveMenuItem(activeMenuItem);
+				measureDetailsModel.setCompositeMeasureDetailModel(result.getCompositeMeasureDetailModel());
 			}
 		};
 	}
@@ -677,9 +687,9 @@ public class MeasureDetailsPresenter implements MatPresenter, MeasureDetailsObse
 
 	}
 
-	private MeasureDetailState getRichTextEditableTabState(MeasureDetailsRichTextAbstractModel model) {
+	private MeasureDetailState getRichTextEditableTabState(MeasureDetailsTextAbstractModel model) {
 		if(model != null) {
-			if(model.getPlainText() == null || model.getPlainText().isEmpty()) {
+			if(model.getEditorText() == null || model.getEditorText().isEmpty()) {
 				return MeasureDetailState.BLANK;
 			} else {
 				return MeasureDetailState.COMPLETE;
@@ -689,7 +699,7 @@ public class MeasureDetailsPresenter implements MatPresenter, MeasureDetailsObse
 	}
 	
 	private MeasureDetailState getPopulationsState(MeasureDetailsModel measureDetailsModel) {
-		List<MeasureDetailsRichTextAbstractModel> applicableModels = new ArrayList<>();
+		List<MeasureDetailsTextAbstractModel> applicableModels = new ArrayList<>();
 		if(scoringType.equals(MeasureDetailsConstants.COHORT)) {
 			applicableModels.add(measureDetailsModel.getInitialPopulationModel());
 		} else if (scoringType.equals(MeasureDetailsConstants.CONTINUOUS_VARIABLE)) {
@@ -718,9 +728,9 @@ public class MeasureDetailsPresenter implements MatPresenter, MeasureDetailsObse
 		return calculateStateOffOfList(applicableModels);
 	}
 	
-	private MeasureDetailState calculateStateOffOfList(List<MeasureDetailsRichTextAbstractModel> applicableModels) {
+	private MeasureDetailState calculateStateOffOfList(List<MeasureDetailsTextAbstractModel> applicableModels) {
 		int completedPopulationCount = 0;
-		for(MeasureDetailsRichTextAbstractModel model : applicableModels) {
+		for(MeasureDetailsTextAbstractModel model : applicableModels) {
 			if(getRichTextEditableTabState(model) == MeasureDetailState.COMPLETE) {
 				completedPopulationCount++;
 			}

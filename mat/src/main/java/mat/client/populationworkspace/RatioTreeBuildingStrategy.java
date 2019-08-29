@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.List;
 
 import com.google.gwt.xml.client.Document;
-import com.google.gwt.xml.client.NodeList;
 
 import mat.client.clause.clauseworkspace.model.CQLCellTreeNode;
 import mat.client.clause.clauseworkspace.model.CQLCellTreeNodeImpl;
@@ -16,7 +15,7 @@ import mat.client.shared.MatContext;
 public class RatioTreeBuildingStrategy implements PopulationTreeBuilderStrategy{
 	
 	@Override
-	public CQLCellTreeNode buildCQLTreeNode(String scoringType, Document document) {
+	public CQLCellTreeNode buildCQLTreeNode(String scoringType, Document document, boolean isPatientBased) {
 		List<CQLCellTreeNode> parentchilds = new ArrayList<CQLCellTreeNode>();
 		CQLCellTreeNode parentNode = new CQLCellTreeNodeImpl();
 		parentNode.setName(MatContext.get().getCurrentShortName());
@@ -34,14 +33,7 @@ public class RatioTreeBuildingStrategy implements PopulationTreeBuilderStrategy{
 		populationsNode.setParent(parentNode);
 		populationsNode.setOpen(true);
 		
-		CQLCellTreeNode stratificationNode = CQLXmlConversionlHelper.createCQLCellTreeNode(document, PopulationWorkSpaceConstants.MASTER_ROOT_NODE_STRATA);
-		stratificationNode.setLabel(PopulationWorkSpaceConstants.get(PopulationWorkSpaceConstants.MASTER_ROOT_NODE_STRATA));
-		parentchilds.add(stratificationNode.getChilds().get(0));
-		stratificationNode.setParent(parentNode);
-		stratificationNode.setOpen(true);
-		
-		NodeList nodeList = document.getElementsByTagName("patientBasedIndicator");
-		if (nodeList != null && nodeList.getLength() > 0 && nodeList.item(0).getFirstChild() != null && !("true").equals(nodeList.item(0).getFirstChild().getNodeValue())) {
+		if (!isPatientBased) {
 			CQLCellTreeNode moNode = CQLXmlConversionlHelper.createCQLCellTreeNode(document, PopulationWorkSpaceConstants.ROOT_NODE_MEASURE_OBSERVATIONS);
 			moNode.setLabel(PopulationWorkSpaceConstants.get(PopulationWorkSpaceConstants.ROOT_NODE_MEASURE_OBSERVATIONS));
 			parentchilds.add(moNode.getChilds().get(0));

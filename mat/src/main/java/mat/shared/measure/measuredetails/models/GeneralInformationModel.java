@@ -119,7 +119,7 @@ public class GeneralInformationModel implements MeasureDetailsComponentModel, Is
 	public void setMeasureName(String measureName) {
 		this.measureName = measureName;
 	}
-	
+		
 	public String getScoringMethod() {
 		return scoringMethod;
 	}

@@ -16,12 +16,11 @@ import com.google.gwt.dom.client.SelectElement;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.user.client.ui.FocusPanel;
 import com.google.gwt.user.client.ui.Grid;
-import com.google.gwt.user.client.ui.HasHorizontalAlignment;
-import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.ScrollPanel;
 
 import mat.client.populationworkspace.model.PopulationClauseObject;
 import mat.client.populationworkspace.model.PopulationDataModel;
+import mat.client.populationworkspace.model.PopulationDataModel.ExpressionObject;
 import mat.client.populationworkspace.model.PopulationsObject;
 import mat.client.shared.CQLPopulationTopLevelButtonGroup;
 import mat.client.shared.SpacerWidget;
@@ -40,8 +39,9 @@ public class CQLPopulationDetailView implements CQLPopulationDetail {
 	@Override
 	public void displayPopulationDetail(FlowPanel mainFlowPanel) {
 		mainFlowPanel.clear();
+		mainFlowPanel.setHeight("250px");
 		CQLPopulationTopLevelButtonGroup cqlPopulationTopLevelButtonGroup = new CQLPopulationTopLevelButtonGroup("", "",
-				"Save", "Add New");
+				"Save", "Add New", 35.00);
 		List<PopulationClauseObject> popClauses = populationsObject.getPopulationClauseObjectList();
 		cqlPopulationTopLevelButtonGroup.getAddNewButton()
 				.setId("addNewButton_" + populationsObject.getPopulationType());
@@ -56,28 +56,20 @@ public class CQLPopulationDetailView implements CQLPopulationDetail {
 
 		for (int i = 0; i < popClauses.size(); i++) {
 			populateGrid(popClauses, populationGrid, i);
-
 		}
 
 		cqlPopulationTopLevelButtonGroup.getAddNewButton().addClickHandler(event -> onAddNewPopulationClickHandler(populationGrid, populationsObject));
 		cqlPopulationTopLevelButtonGroup.getSaveButton().addClickHandler(event -> onSavePopulationClickHandler(populationGrid, populationsObject));
+
 		ScrollPanel scrollPanel = new ScrollPanel(populationGrid);
-		scrollPanel.setSize("700px", "250px");
+		scrollPanel.setWidth("700px");
 
+		mainFlowPanel.add(new SpacerWidget());
 		mainFlowPanel.add(new SpacerWidget());
 		
-		mainFlowPanel.add(new SpacerWidget());
-		mainFlowPanel.add(new SpacerWidget());
-		
-		HorizontalPanel btnPanel = new HorizontalPanel();
-		btnPanel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_RIGHT);
-		btnPanel.setStyleName("marginLeftButtons");
-
-		btnPanel.add(cqlPopulationTopLevelButtonGroup.getButtonGroup());
-
-		mainFlowPanel.add(btnPanel);
+		mainFlowPanel.add(cqlPopulationTopLevelButtonGroup.getAddNewButton());
 		mainFlowPanel.add(scrollPanel);
-		mainFlowPanel.add(new SpacerWidget());
+		mainFlowPanel.add(cqlPopulationTopLevelButtonGroup.getSaveButton());
 		mainFlowPanel.add(new SpacerWidget());
 	}
 
@@ -116,8 +108,7 @@ public class CQLPopulationDetailView implements CQLPopulationDetail {
 		definitionListBox.setTitle("Select Definition List");
 		definitionListBox.setId("definitionList_" + populationClauseObject.getDisplayName());
 
-		populationDataModel.getDefinitionNameList()
-				.forEach(definition -> definitionListBox.addItem(definition.getName(), definition.getUuid()));
+		populationDataModel.getDefinitionNameList().forEach(definition -> definitionListBox.addItem(definition.getName(), definition.getUuid()));
 
 		SelectElement selectElement = SelectElement.as(definitionListBox.getElement());
 		com.google.gwt.dom.client.NodeList<OptionElement> options = selectElement.getOptions();
@@ -127,8 +118,8 @@ public class CQLPopulationDetailView implements CQLPopulationDetail {
 
 		// select a definition name in the listbox
 		for (int j = 0; j < definitionListBox.getItemCount(); j++) {
-			String definitionName = definitionListBox.getItemText(j);
-			if (definitionName.equals(populationClauseObject.getCqlExpressionDisplayName())) {
+			String definitionUUID = definitionListBox.getValue(j);
+			if (definitionUUID.equals(populationClauseObject.getCqlExpressionUUID())) {
 				definitionListBox.setItemSelected(j, true);
 				break;
 			}
@@ -259,7 +250,7 @@ public class CQLPopulationDetailView implements CQLPopulationDetail {
 				pc.setCqlExpressionUUID("");	
 			} else {
 				pc.setCqlExpressionType("cqldefinition");
-				pc.setCqlExpressionDisplayName(l.getSelectedItemText());
+				pc.setCqlExpressionDisplayName(getSelectedName(l.getSelectedValue()));
 				pc.setCqlExpressionUUID(l.getSelectedValue());
 			}
 						
@@ -270,5 +261,15 @@ public class CQLPopulationDetailView implements CQLPopulationDetail {
 		populationsObject.getPopulationClauseObjectList().addAll(modifiedList);
 		return populationsObject;
 		
+	}
+	
+	private String getSelectedName(String selectedUuid) {
+		for(ExpressionObject o : this.populationDataModel.getDefinitionNameList()) {
+			if(o.getUuid().equals(selectedUuid)) {
+				return o.getName();
+			}
+		}
+		
+		return "";
 	}
 }

@@ -5,7 +5,6 @@ import java.util.Map;
 
 import org.gwtbootstrap3.client.ui.HelpBlock;
 import org.gwtbootstrap3.client.ui.Icon;
-import org.gwtbootstrap3.client.ui.InlineRadio;
 import org.gwtbootstrap3.client.ui.constants.IconSize;
 import org.gwtbootstrap3.client.ui.constants.IconType;
 import org.gwtbootstrap3.client.ui.gwt.FlowPanel;
@@ -20,6 +19,7 @@ import edu.ycp.cs.dh.acegwt.client.ace.AceEditor;
 import mat.client.Mat;
 import mat.client.buttons.DefinitionFunctionButtonToolBar;
 import mat.client.cqlworkspace.codes.CQLCodesView;
+import mat.client.cqlworkspace.components.CQLComponentLibraryView;
 import mat.client.cqlworkspace.definitions.CQLDefinitionsView;
 import mat.client.cqlworkspace.functions.CQLFunctionsView;
 import mat.client.cqlworkspace.generalinformation.CQLGeneralInformationView;
@@ -44,13 +44,14 @@ public class CQLStandaloneWorkSpaceView implements CQLWorkspaceView {
 	private CQLParametersView cqlParametersView;
 	private CQLDefinitionsView cqlDefinitionsView;
 	private CQLFunctionsView cqlFunctionsView;
-	private CQLView cqlViewCQLView;
+	private CQLLibraryEditorView cqlViewCQLView;
 	private CQLLeftNavBarPanelView cqlLeftNavBarPanelView;
 	public String clickedMenu = CQLWorkSpaceConstants.CQL_GENERAL_MENU;
 	public String nextClickedMenu = CQLWorkSpaceConstants.CQL_GENERAL_MENU;
 	private HorizontalPanel lockedButtonHPanel = new HorizontalPanel();
 	private HelpBlock helpBlock = new HelpBlock();
 	private MessagePanel messagePanel;
+	
 	public CQLStandaloneWorkSpaceView() {
 		generalInformationView = new CQLGeneralInformationView();
 		cqlParametersView = new CQLParametersView();
@@ -59,18 +60,18 @@ public class CQLStandaloneWorkSpaceView implements CQLWorkspaceView {
 		codesView = new CQLCodesView();
 		valueSetView = new CQLAppliedValueSetView();
 		cqlIncludeLibraryView = new CQLIncludeLibraryView();
-		cqlViewCQLView = new CQLView();
+		cqlViewCQLView = new CQLLibraryEditorView();
 		cqlLeftNavBarPanelView = new CQLLeftNavBarPanelView();
 		resetAll();
 	}
 	
-	public void buildView(MessagePanel messagePanel, HelpBlock helpBlock) {
+	public void buildView(MessagePanel messagePanel, HelpBlock helpBlock, boolean isEditable) {
 		resetAll();
 		unsetEachSectionSelectedObject();
 		this.messagePanel = messagePanel;
 		this.messagePanel.getElement().getStyle().setProperty("marginLeft", "5px");
 		this.helpBlock = helpBlock;
-		buildGeneralInformation();
+		buildGeneralInformation(isEditable);
 		mainFlowPanel.setWidth("700px");
 		mainPanel.getElement().setId("CQLStandaloneWorkSpaceView.containerPanel");
 		buildLockedButtonPanel();
@@ -93,12 +94,11 @@ public class CQLStandaloneWorkSpaceView implements CQLWorkspaceView {
 	}
 	
 
-	public void buildGeneralInformation() {
+	public void buildGeneralInformation(boolean isEditable) {
 		unsetEachSectionSelectedObject();
 		mainFlowPanel.clear();
 		setGeneralInfoHeading();
-		mainFlowPanel.add(generalInformationView.getCQLView());
-
+		mainFlowPanel.add(generalInformationView.getView(isEditable));
 	}
 	
 	public void buildIncludesView() {
@@ -121,10 +121,10 @@ public class CQLStandaloneWorkSpaceView implements CQLWorkspaceView {
 	}
 	
 	
-	public void buildCQLFileView(boolean isEditable) {
+	public void buildCQLFileView(boolean isEditorEditable, boolean isPageEditable) {
 		unsetEachSectionSelectedObject();
 		mainFlowPanel.clear();
-		mainFlowPanel.add(cqlViewCQLView.buildView(isEditable));
+		mainFlowPanel.add(cqlViewCQLView.buildView(isEditorEditable, isPageEditable));
 
 	}
 	
@@ -322,26 +322,9 @@ public class CQLStandaloneWorkSpaceView implements CQLWorkspaceView {
 	public DefinitionFunctionButtonToolBar getFunctionButtonBar() {
 		return cqlFunctionsView.getFunctionButtonBar();
 	}
-	
-	public InlineRadio getContextDefinePATRadioBtn() {
-		return cqlDefinitionsView.getContextDefinePATRadioBtn();
-	}
-
-
-	public InlineRadio getContextDefinePOPRadioBtn() {
-		return cqlDefinitionsView.getContextDefinePOPRadioBtn();
-	}
 
 	public AceEditor getFunctionBodyAceEditor() {
 		return cqlFunctionsView.getFunctionBodyAceEditor();
-	}
-
-	public InlineRadio getContextFuncPATRadioBtn() {
-		return cqlFunctionsView.getContextFuncPATRadioBtn();
-	}
-
-	public InlineRadio getContextFuncPOPRadioBtn() {
-		return cqlFunctionsView.getContextFuncPOPRadioBtn();
 	}
 
 	public Map<String, CQLFunctionArgument> getFunctionArgNameMap() {
@@ -417,7 +400,7 @@ public class CQLStandaloneWorkSpaceView implements CQLWorkspaceView {
 		this.lockedButtonHPanel = lockedButtonVPanel;
 	}
 
-	public CQLView getViewCQLView(){
+	public CQLLibraryEditorView getCQLLibraryEditorView(){
 		return cqlViewCQLView;
 	}
 
@@ -437,5 +420,10 @@ public class CQLStandaloneWorkSpaceView implements CQLWorkspaceView {
 	@Override
 	public CQLLeftNavBarPanelView getCQLLeftNavBarPanelView() {
 		return cqlLeftNavBarPanelView;
+	}
+
+	@Override
+	public CQLComponentLibraryView getComponentView() {
+		return null;
 	}
 }

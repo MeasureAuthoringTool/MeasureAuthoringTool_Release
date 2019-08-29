@@ -25,12 +25,15 @@ import mat.client.expressionbuilder.model.NotModel;
 import mat.client.expressionbuilder.model.OperatorModel;
 import mat.client.expressionbuilder.model.QuantityModel;
 import mat.client.expressionbuilder.model.QueryModel;
+import mat.client.expressionbuilder.model.RelationshipModel;
 import mat.client.expressionbuilder.model.TimeBoundaryModel;
 import mat.client.expressionbuilder.model.TimingModel;
 import mat.client.expressionbuilder.model.TimingPhraseModel;
 import mat.client.shared.MatContext;
 
 public abstract class SubExpressionBuilderModal extends ExpressionBuilderModal {
+	private boolean firstSelection;
+
 	private Button cancelButton;
 	private Button applyButton;
 	private ExpressionBuilderModal parent;
@@ -42,7 +45,9 @@ public abstract class SubExpressionBuilderModal extends ExpressionBuilderModal {
 			ExpressionBuilderModel mainModel) {
 		super(parent.getModalTitle() + " > " + title, parentModel, mainModel);
 		this.parent = parent;
-		if (!ExpressionType.QUERY.getDisplayName().equals(title) && ExpressionBuilderUserAssistText.isKeyPresent(title)) {
+		if (!ExpressionType.QUERY.getDisplayName().equals(title) 
+				&& !RelationshipBuilderModal.SOURCE.equals(title)
+				&& ExpressionBuilderUserAssistText.isKeyPresent(title)) {
 			setLabel(ExpressionBuilderUserAssistText.getEnumByTitle(title).getValue());
 		}
 		this.getFooter().add(buildFooter());
@@ -114,8 +119,8 @@ public abstract class SubExpressionBuilderModal extends ExpressionBuilderModal {
 					lastModel instanceof TimingModel ||
 					lastModel instanceof TimingPhraseModel ||
 					lastModel instanceof DateTimeModel ||
-					lastModel instanceof QuantityModel) {
-
+					lastModel instanceof QuantityModel ||
+					lastModel instanceof RelationshipModel) {
 					
 				this.getParentModel().getChildModels().remove(size);
 				int newSize = this.getParentModel().getChildModels().size() - 1;
@@ -136,4 +141,13 @@ public abstract class SubExpressionBuilderModal extends ExpressionBuilderModal {
 
 	@Override
 	public abstract void display();
+
+	public boolean isFirstSelection() {
+		return firstSelection;
+	}
+
+	public void setFirstSelection(boolean firstSelection) {
+		this.firstSelection = firstSelection;
+	}
+
 }

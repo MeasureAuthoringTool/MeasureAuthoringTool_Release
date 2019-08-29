@@ -79,19 +79,6 @@ public interface MeasureLibraryService {
 	void checkForTimingElementsAndAppend(XmlProcessor xmlProcessor);
 	
 	/**
-	 * Clone measure xml.
-	 * 
-	 * @param creatingDraft
-	 *            the creating draft
-	 * @param oldMeasureId
-	 *            the old measure id
-	 * @param clonedMeasureId
-	 *            the cloned measure id
-	 */
-	void cloneMeasureXml(boolean creatingDraft, String oldMeasureId,
-			String clonedMeasureId);
-	
-	/**
 	 * Creates the and save element look up.
 	 *
 	 * @param list            the list
@@ -204,10 +191,11 @@ public interface MeasureLibraryService {
 	 * @param model
 	 *            the model
 	 * @return the save measure result
+	 * @throws MatException 
 	 */
-	SaveMeasureResult save(ManageMeasureDetailModel model);
+	SaveMeasureResult saveOrUpdateMeasure(ManageMeasureDetailModel model);
 	
-	SaveMeasureResult saveCompositeMeasure(ManageCompositeMeasureDetailModel model);
+	SaveMeasureResult saveCompositeMeasure(ManageCompositeMeasureDetailModel model) throws MatException;
 	
 	void deleteMeasure(String measureId, String loggedInUserId, String password) throws DeleteMeasureException, AuthenticationException;
 	
@@ -230,8 +218,9 @@ public interface MeasureLibraryService {
 	 * @param model
 	 *            the model
 	 * @return the save measure result
+	 * @throws MatException 
 	 */
-	SaveMeasureResult saveMeasureDetails(ManageMeasureDetailModel model);
+	SaveMeasureResult saveMeasureDetails(ManageMeasureDetailModel model) throws MatException;
 	
 	/**
 	 * Save measure xml.
@@ -239,7 +228,7 @@ public interface MeasureLibraryService {
 	 * @param measureXmlModel
 	 *            the measure xml model
 	 */
-	void saveMeasureXml(MeasureXmlModel measureXmlModel);
+	void saveMeasureXml(MeasureXmlModel measureXmlModel, String measureId);
 	
 	/**
 	 * Search.
@@ -413,13 +402,6 @@ public interface MeasureLibraryService {
 	 */
 	ValidateMeasureResult validateMeasureXmlAtCreateMeasurePackager(
 			MeasureXmlModel measureXmlModel);
-	
-	/**
-	 * Update component measures on deletion.
-	 *
-	 * @param measureId the measure id
-	 */
-	void updateMeasureXmlForDeletedComponentMeasureAndOrg(String measureId);
 	
 	/**
 	 * Validate for group.
@@ -623,36 +605,27 @@ public interface MeasureLibraryService {
 	 * 
 	 * @param measureId the measure id
 	 * @param toBeDeletedObj the to be deleted obj
-	 * @param currentObj the current obj
-	 * @param definitionList the definition list
 	 * @return the save and update cql result
 	 */
-	SaveUpdateCQLResult deleteDefinition(String measureId, CQLDefinition toBeDeletedObj, 
-			List<CQLDefinition> definitionList);
+	SaveUpdateCQLResult deleteDefinition(String measureId, CQLDefinition toBeDeletedObj);
 
 	/**
 	 * Delete functions
 	 * 
 	 * @param measureId the measure id
 	 * @param toBeDeletedObj the to be deleted obj
-	 * @param currentObj the current obj
-	 * @param functionsList the functions list
 	 * @return the save and update cql result
 	 */
-	SaveUpdateCQLResult deleteFunctions(String measureId, CQLFunctions toBeDeletedObj, 
-			List<CQLFunctions> functionsList);
+	SaveUpdateCQLResult deleteFunction(String measureId, CQLFunctions toBeDeletedObj);
 
 	/**
 	 * Delete parameter
 	 * 
 	 * @param measureId the measure id
 	 * @param toBeDeletedObj the to be deleted obj
-	 * @param currentObj the current obj
-	 * @param parameterList the parameter list
 	 * @return the save and update cql result
 	 */
-	SaveUpdateCQLResult deleteParameter(String measureId, CQLParameter toBeDeletedObj, 
-			List<CQLParameter> parameterList);
+	SaveUpdateCQLResult deleteParameter(String measureId, CQLParameter toBeDeletedObj);
 	
 	/**
 	 * Gets the CQL data type list.
@@ -686,10 +659,6 @@ public interface MeasureLibraryService {
 
 	SaveUpdateCQLResult saveCQLValuesettoMeasure(CQLValueSetTransferObject valueSetTransferObject);
 
-	SaveUpdateCQLResult saveCQLUserDefinedValuesettoMeasure(CQLValueSetTransferObject matValueSetTransferObject);
-
-	SaveUpdateCQLResult modifyCQLValueSetstoMeasure(CQLValueSetTransferObject matValueSetTransferObject);
-
 	void updateCQLLookUpTagWithModifiedValueSet(CQLQualityDataSetDTO modifyWithDTO, CQLQualityDataSetDTO modifyDTO,
 			String measureId);
 	SaveUpdateCQLResult saveIncludeLibrayInCQLLookUp(String measureId, CQLIncludeLibrary toBeModifiedObj, CQLIncludeLibrary currentObj, List<CQLIncludeLibrary> incLibraryList) throws InvalidLibraryException;
@@ -699,9 +668,7 @@ public interface MeasureLibraryService {
 	void updateCQLMeasureXMLForExpansionIdentifier(List<CQLQualityDataSetDTO> modifyWithDTOList, String measureId,
 			String expansionProfile);
 
-	SaveUpdateCQLResult deleteInclude(String currentMeasureId,
-			CQLIncludeLibrary toBeModifiedIncludeObj,
-			List<CQLIncludeLibrary> viewIncludeLibrarys);
+	SaveUpdateCQLResult deleteInclude(String currentMeasureId, CQLIncludeLibrary toBeModifiedIncludeObj);
 
 	VsacApiResult updateCQLVSACValueSets(String currentMeasureId, String expansionId, String sessionId);
 
@@ -719,8 +686,6 @@ public interface MeasureLibraryService {
 
 	CQLQualityDataModelWrapper saveValueSetList(List<CQLValueSetTransferObject> transferObjectList,
 			List<CQLQualityDataSetDTO> appliedValueSetList, String measureId);
-
-	SaveUpdateCQLResult modifyCQLCodeInMeasure(CQLCode modifyCQLCode, CQLCode refCode, String measureId);
 
 	SaveMeasureResult validateAndPackage(ManageMeasureDetailModel model, boolean shouldCreateArtifacts);
 
@@ -743,4 +708,8 @@ public interface MeasureLibraryService {
 	int generateAndSaveMaxEmeasureId(boolean isEditable, String measureId);
 
 	String getHumanReadableForMeasureDetails(String measureId);
+
+	SaveUpdateCQLResult saveCQLFile(String measureId, String cql);
+	
+	boolean libraryNameExists(String libraryName, String setId);
 }

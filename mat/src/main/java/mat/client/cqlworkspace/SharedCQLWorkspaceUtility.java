@@ -20,7 +20,6 @@ import mat.shared.SaveUpdateCQLResult;
 import mat.shared.StringUtility;
 
 public class SharedCQLWorkspaceUtility {
-	private static final String INCORRECT_VALUE_SET_CODE_DATATYPE_COMBINATION = " successfully saved with errors. There is an incorrect value set/code datatype combination.";
 	public static final String ERROR_PREFIX = "ERROR:";
 	public static final String WARNING_PREFIX = "WARNING:";
 
@@ -31,17 +30,32 @@ public class SharedCQLWorkspaceUtility {
 	}
 
 	public static boolean validateCQLArtifact(SaveUpdateCQLResult result, AceEditor aceEditor, MessagePanel messagePanel, String expressionType, String expressionName) {
-		result.getCqlErrors().forEach(error -> SharedCQLWorkspaceUtility.createCQLWorkspaceAnnotations(error, SharedCQLWorkspaceUtility.ERROR_PREFIX, AceAnnotationType.ERROR, aceEditor));
-		result.getCqlWarnings().forEach(error -> SharedCQLWorkspaceUtility.createCQLWorkspaceAnnotations(error, SharedCQLWorkspaceUtility.WARNING_PREFIX, AceAnnotationType.WARNING, aceEditor));		
+		displayAnnotations(result, aceEditor);		
 		SharedCQLWorkspaceUtility.displayMessageBanner(result, messagePanel, expressionType, expressionName); 
 		return !result.getCqlErrors().isEmpty();
 	}
+
+	public static void displayAnnotations(SaveUpdateCQLResult result, AceEditor aceEditor) {
+		aceEditor.clearAnnotations();
+		result.getCqlErrors().forEach(error -> SharedCQLWorkspaceUtility.createCQLWorkspaceAnnotations(error, SharedCQLWorkspaceUtility.ERROR_PREFIX, AceAnnotationType.ERROR, aceEditor));
+		result.getCqlWarnings().forEach(error -> SharedCQLWorkspaceUtility.createCQLWorkspaceAnnotations(error, SharedCQLWorkspaceUtility.WARNING_PREFIX, AceAnnotationType.WARNING, aceEditor));
+		aceEditor.setAnnotations();
+	}
 	
 	public static void displayMessagesForViewCQL(SaveUpdateCQLResult result, AceEditor aceEditor, MessagePanel messagePanel) {
+		aceEditor.clearAnnotations();
+		displayAnnotationForViewCQL(result, aceEditor);
+		SharedCQLWorkspaceUtility.displayMessageBannerForViewCQL(result, messagePanel);
+		aceEditor.setAnnotations();
+	}
+
+	public static void displayAnnotationForViewCQL(SaveUpdateCQLResult result, AceEditor aceEditor) {
+		aceEditor.clearAnnotations();
 		String formattedName = result.getCqlModel().getFormattedName();
 		SharedCQLWorkspaceUtility.createCQLWorkspaceAnnotations(result.getLibraryNameErrorsMap().get(formattedName), ERROR_PREFIX, AceAnnotationType.ERROR, aceEditor);
 		SharedCQLWorkspaceUtility.createCQLWorkspaceAnnotations(result.getLibraryNameWarningsMap().get(formattedName), WARNING_PREFIX, AceAnnotationType.WARNING, aceEditor);
-		SharedCQLWorkspaceUtility.displayMessageBannerForViewCQL(result, messagePanel);
+		SharedCQLWorkspaceUtility.createCQLWorkspaceAnnotations(result.getLinterErrors(), ERROR_PREFIX, AceAnnotationType.ERROR, aceEditor);
+		aceEditor.setAnnotations();
 	}
 
 	private static void displayMessageBannerForViewCQL(SaveUpdateCQLResult result, MessagePanel messagePanel) {
@@ -49,8 +63,18 @@ public class SharedCQLWorkspaceUtility {
 		List<String> errorMessages = new ArrayList<String>();
 		if(!result.isQDMVersionMatching()) {
 			errorMessages.add(AbstractCQLWorkspacePresenter.INVALID_QDM_VERSION_IN_INCLUDES);
-		} else if(!result.getCqlErrors().isEmpty()) {
-			errorMessages.add(AbstractCQLWorkspacePresenter.VIEW_CQL_ERROR_MESSAGE);
+		} else if(!result.getCqlErrors().isEmpty() || !result.getLinterErrorMessages().isEmpty()) {
+			if(result.isMeasureComposite() && result.isDoesMeasureHaveIncludedLibraries()) {
+				errorMessages.add(AbstractCQLWorkspacePresenter.VIEW_CQL_ERROR_MESSAGE_COMPOSITE_AND_INCLUDED);
+			} else if (result.isMeasureComposite()) {
+				errorMessages.add(AbstractCQLWorkspacePresenter.VIEW_CQL_ERROR_MESSAGE_COMPOSITE);
+			} else if (result.isDoesMeasureHaveIncludedLibraries()) {
+				errorMessages.add(AbstractCQLWorkspacePresenter.VIEW_CQL_ERROR_MESSAGE_INCLUDED);
+			} else {
+				errorMessages.add(AbstractCQLWorkspacePresenter.VIEW_CQL_ERROR_MESSAGE);
+			}
+			
+			result.getLinterErrorMessages().forEach(e -> errorMessages.add(e));
 		}
 		if(!result.isDatatypeUsedCorrectly()) {
 			errorMessages.add(AbstractCQLWorkspacePresenter.VIEW_CQL_ERROR_MESSAGE_BAD_VALUESET_DATATYPE);
@@ -70,7 +94,7 @@ public class SharedCQLWorkspaceUtility {
 		if(!result.getCqlErrors().isEmpty()) {
 			messagePanel.getErrorMessageAlert().createAlert(expressionType + " " + StringUtility.trimTextToSixtyChars(expressionName) + " successfully saved with errors.");
 		} else if(!result.isDatatypeUsedCorrectly()) {
-			messagePanel.getErrorMessageAlert().createAlert(expressionType + " " + StringUtility.trimTextToSixtyChars(expressionName) + INCORRECT_VALUE_SET_CODE_DATATYPE_COMBINATION);
+			messagePanel.getErrorMessageAlert().createAlert(expressionType + " " + StringUtility.trimTextToSixtyChars(expressionName) + "  successfully saved with errors. " + AbstractCQLWorkspacePresenter.INCORRECT_VALUE_SET_CODE_DATATYPE_COMBINATION);
 		} else if(!result.getCqlWarnings().isEmpty()) {
 			messagePanel.getWarningMessageAlert().createAlert(expressionType + " " + StringUtility.trimTextToSixtyChars(expressionName) + " successfully saved with warnings.");
 		}   else {

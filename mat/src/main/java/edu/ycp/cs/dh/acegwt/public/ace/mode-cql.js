@@ -33,20 +33,22 @@ var SqlHighlightRules = function() {
 	    		"Abs|AgeInDays|AgeInDaysAt|AgeInHours|AgeInHoursAt|AgeInMinutes|AgeInMinutesAt|AgeInMonths|AgeInMonthsAt|AgeInSeconds|" +
 	    		"AgeInSecondsAt|AgeInWeeks|AgeInWeeksAt|AgeInYears|AgeInYearsAt|AllTrue|AnyTrue|Avg|CalculateAgeInDays|CalculateAgeInDaysAt|CalculateAgeInHours|" +
 	    		"CalculateAgeInHoursAt|CalculateAgeInMinutes|CalculateAgeInMinutesAt|CalculateAgeInMonths|CalculateAgeInMonthsAt|CalculateAgeInSeconds|" +
-	    		"CalculateAgeInSecondsAt|CalculateAgeInWeeks|CalculateAgeInWeeksAt|CalculateAgeInYears|CalculateAgeInYearsAt|Ceiling|Coalesce|Count|DateTime|Exp|First|Floor|GeometricMean|IndexOf|Last|" +
-	    		"Length|Ln|Log|Max|Median|Min|Mode|Now|PopulationStdDev|PopulationVariance|Product|Round|StdDev|Sum|Time|TimeOfDay|ToDate|Today|" +
-	    		"Truncate|Variance"
+	    		"CalculateAgeInSecondsAt|CalculateAgeInWeeks|CalculateAgeInWeeksAt|CalculateAgeInYears|CalculateAgeInYearsAt|Ceiling|Coalesce|Count|DateTime|Exp|First|" +
+	    		"Floor|GeometricMean|HighBoundary|IndexOf|Last|Length|Ln|Log|LowBoundary|Lower|Matches|Max|Median|Min|Mode|Now|PopulationStdDev|PopulationVariance|Precision|" +
+	    		"Product|Round|Size|Skip|Split|SplitOnMatches|StartsWith|StdDev|Substring|Sum|Tail|Take|Time|TimeOfDay|ToBoolean|ToDate|ToDateTime|ToDecimal|ToInteger|ToQuantity|" +
+	    		"ToString|ToTime|Today|Truncate|Upper|Variance|"
 	    );
 
 	    var builtinConstants = (
 	        
 	    	//basic constants	
-	    	'Patient|Population|' + 
+	    	'Patient|' + 
 	    		        
 	        //data type attribute constants
-	        'activeDatetime|admissionSource|anatomicalLocationSite|authorDatetime|birthDatetime|category|cause|code|components|daysSupplied|denominator|diagnoses|dischargeDisposition|dispenserId|dosage|expiredDatetime|' +
-	        'facilityLocation|facilityLocations|frequency|high|id|incisionDatetime|lengthOfStay|locationPeriod|low|medium|method|negationRationale|numerator|ordinality|participationPeriod|prescriberId|prevalencePeriod|principalDiagnosis|' +
-	        'reason|recipient|recorder|referenceRange|refills|relatedTo|relationship|relevantPeriod|reporter|result|resultDatetime|route|sender|setting|severity|status|supply|targetOutcome|type'
+	        'activeDatetime|admissionSource|anatomicalLocationSite|authorDatetime|birthDatetime|category|cause|code|components|daysSupplied|denominator|diagnoses|dischargeDisposition|dispenser|dosage|expiredDatetime|' +
+	        'facilityLocation|facilityLocations|frequency|high|id|identifier|incisionDatetime|lengthOfStay|linkedPatientId|locationPeriod|low|medium|method|namingSystem|negationRationale|numerator|participationPeriod|patientId|performer|presentOnAdmissionIndicator|prevalencePeriod|' +
+	        'priority|prescriber|qualification|rank|reason|recipient|receivedDatetime|recorder|referenceRange|refills|relatedTo|relationship|relevantDatetime|relevantPeriod|result|resultDatetime|requester|role|route|sender|specialty|statusDate|sentDatetime|setting|severity|status|supply|targetOutcome|type|' + 
+	        'unit|value|Entity|PatientEntity|Organization|participant|Practitioner|CarePartner'
 	    );
 	    
     var keywordMapper = this.createKeywordMapper({
@@ -78,7 +80,7 @@ var SqlHighlightRules = function() {
             regex : "\\w+"
         }, {
             token : "keyword.operator",
-            regex : "\\+|\\-|\\/|\\/\\/|%|<@>|@>|<@|&|\\^|~|<|>|<=|=>|==|!=|<>|="
+            regex : "\\+|\\-|\\/|\\/\\/|\\*|%|<@>|@>|<@|&|\\^|~|!~|<|>|<=|=>|==|!=|<>|="
         }, {
             token : "paren.lparen",
             regex : "[\\(]"

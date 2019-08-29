@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.gwtbootstrap3.client.ui.CheckBox;
 import org.gwtbootstrap3.client.ui.Input;
+import org.gwtbootstrap3.client.ui.Panel;
 import org.gwtbootstrap3.client.ui.TextBox;
 
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -147,6 +149,12 @@ public class PersonalInformationPresenter implements MatPresenter {
 		public MessageAlert getSuccessMessageDisplay();
 
 		Input getPasswordInput();
+
+		boolean isFreeTextEditorEnabled();
+
+		CheckBox getFreeTextEditorCheckBox();
+		
+		public Panel getUserPreferencePanel();
 	}
 	
 	/** The submit on enter handler. */
@@ -231,8 +239,12 @@ public class PersonalInformationPresenter implements MatPresenter {
 									display.getTitle().setValue(currentModel.getTitle());
 									display.getEmailAddress().setValue(currentModel.getEmailAddress());
 									display.getPhoneNumber().setValue(currentModel.getPhoneNumber());
-									display.getOrganisation().setValue(currentModel.getOrganisation());
+									display.getOrganisation().setValue(currentModel.getOrganization());
 									display.getOID().setValue(currentModel.getOid());
+									display.getFreeTextEditorCheckBox().setValue(currentModel.isEnableFreeTextEditor());
+									
+									Mat.setSignedInAsName(currentModel.getFirstName(), currentModel.getLastName());
+									MatContext.get().getLoggedInUserPreference().setFreeTextEditorEnabled(currentModel.isEnableFreeTextEditor());
 								} else {
 									List<String> messages = new ArrayList<String>();
 									switch(result.getFailureReason()) {
@@ -322,13 +334,18 @@ public class PersonalInformationPresenter implements MatPresenter {
 		display.getEmailAddress().setValue(model.getEmailAddress());
 		display.getLoginId().setText(model.getLoginId());
 		display.getPhoneNumber().setValue(model.getPhoneNumber());
-		display.getOrganisation().setValue(model.getOrganisation());
-		display.getOrganisation().setTitle(model.getOrganisation());
+		display.getOrganisation().setValue(model.getOrganization());
+		display.getOrganisation().setTitle(model.getOrganization());
 		display.getOrganisation().setWidth(getRequiredWidth(display.getOrganisation().getValue().length()));
 		display.getOID().setValue(model.getOid());
 		display.getOID().setTitle(model.getOid());
 		display.getOID().setWidth(getRequiredWidth(display.getOID().getValue().length()));
+		display.getFreeTextEditorCheckBox().setValue(model.isEnableFreeTextEditor());
 		display.getPassword().setValue("");
+		if(ClientConstants.ADMINISTRATOR.equalsIgnoreCase(MatContext.get()
+				.getLoggedInUserRole())){
+			display.getUserPreferencePanel().setVisible(false);
+		}
 	}
 	
 	private String getRequiredWidth(int length) {
@@ -352,8 +369,9 @@ public class PersonalInformationPresenter implements MatPresenter {
 		model.setTitle(display.getTitle().getValue());
 		model.setEmailAddress(display.getEmailAddress().getValue());
 		model.setPhoneNumber(display.getPhoneNumber().getValue());
-		model.setOrganisation(display.getOrganisation().getValue());
+		model.setOrganization(display.getOrganisation().getValue());
 		model.setOid(display.getOID().getValue());
+		model.setEnableFreeTextEditor(display.isFreeTextEditorEnabled());
 		model.scrubForMarkUp();
 		return model;
 	}

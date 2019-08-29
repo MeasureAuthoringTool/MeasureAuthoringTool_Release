@@ -38,9 +38,9 @@ import mat.model.cql.CQLParameter;
 import mat.model.cql.CQLQualityDataModelWrapper;
 import mat.model.cql.CQLQualityDataSetDTO;
 import mat.server.service.MeasureLibraryService;
-import mat.shared.MeasureSearchModel;
 import mat.shared.CompositeMeasureValidationResult;
 import mat.shared.GetUsedCQLArtifactsResult;
+import mat.shared.MeasureSearchModel;
 import mat.shared.SaveUpdateCQLResult;
 import mat.shared.cql.error.InvalidLibraryException;
 import mat.shared.error.AuthenticationException;
@@ -57,14 +57,7 @@ public class MeasureServiceImpl extends SpringRemoteServiceServlet implements Me
 		this.getMeasureLibraryService().appendAndSaveNode(measureXmlModel, nodeName);
 		
 	}
-	
-	@Override
-	public void cloneMeasureXml(boolean creatingDraft, String oldMeasureId,
-			String clonedMeasureId) {
-		this.getMeasureLibraryService().cloneMeasureXml(creatingDraft, oldMeasureId, clonedMeasureId);
 		
-	}
-	
 	@Override
 	public void createAndSaveElementLookUp(List<QualityDataSetDTO> list,
 			String measureID, String expProfileToAllQDM) {
@@ -142,12 +135,12 @@ public class MeasureServiceImpl extends SpringRemoteServiceServlet implements Me
 	}
 	
 	@Override
-	public SaveMeasureResult save(ManageMeasureDetailModel model) {
-		return this.getMeasureLibraryService().save(model);
+	public SaveMeasureResult saveNewMeasure(ManageMeasureDetailModel model) {
+		return this.getMeasureLibraryService().saveOrUpdateMeasure(model);
 	}
 	
 	@Override
-	public SaveMeasureResult saveCompositeMeasure(ManageCompositeMeasureDetailModel model) {
+	public SaveMeasureResult saveCompositeMeasure(ManageCompositeMeasureDetailModel model) throws MatException {
 		return this.getMeasureLibraryService().saveCompositeMeasure(model);
 	}
 	
@@ -162,13 +155,13 @@ public class MeasureServiceImpl extends SpringRemoteServiceServlet implements Me
 	}
 	
 	@Override
-	public SaveMeasureResult saveMeasureDetails(ManageMeasureDetailModel model) {
+	public SaveMeasureResult saveMeasureDetails(ManageMeasureDetailModel model) throws MatException {
 		return this.getMeasureLibraryService().saveMeasureDetails(model);
 	}
 	
 	@Override
-	public void saveMeasureXml(MeasureXmlModel measureXmlModel) {
-		this.getMeasureLibraryService().saveMeasureXml(measureXmlModel);
+	public void saveMeasureXml(MeasureXmlModel measureXmlModel, String measureId) {
+		this.getMeasureLibraryService().saveMeasureXml(measureXmlModel, measureId);
 		
 	}
 	
@@ -266,12 +259,6 @@ public class MeasureServiceImpl extends SpringRemoteServiceServlet implements Me
 	}
 	
 	@Override
-	public void updateMeasureXmlForDeletedComponentMeasureAndOrg(String measureId) {
-		
-		this.getMeasureLibraryService().updateMeasureXmlForDeletedComponentMeasureAndOrg(measureId);
-	}
-	
-	@Override
 	public ValidateMeasureResult validateForGroup(ManageMeasureDetailModel model) {
 		
 		return this.getMeasureLibraryService().validateForGroup(model);
@@ -352,6 +339,11 @@ public class MeasureServiceImpl extends SpringRemoteServiceServlet implements Me
 	}
 	
 	@Override
+	public SaveUpdateCQLResult saveCQLFile(String measureId, String cql) {
+		return this.getMeasureLibraryService().saveCQLFile(measureId, cql);
+	}
+	
+	@Override
 	public SaveUpdateCQLResult saveAndModifyDefinitions(String measureId, CQLDefinition toBemodifiedObj,
 			CQLDefinition currentObj, List<CQLDefinition> definitionList, boolean isFormatable){
 		return this.getMeasureLibraryService().saveAndModifyDefinitions(measureId, toBemodifiedObj, currentObj, definitionList, isFormatable);
@@ -397,21 +389,18 @@ public class MeasureServiceImpl extends SpringRemoteServiceServlet implements Me
 	}
 
 	@Override
-	public SaveUpdateCQLResult deleteDefinition(String measureId, CQLDefinition toBeDeletedObj, 
-			List<CQLDefinition> definitionList) {
-		return this.getMeasureLibraryService().deleteDefinition(measureId, toBeDeletedObj, definitionList);
+	public SaveUpdateCQLResult deleteDefinition(String measureId, CQLDefinition toBeDeletedObj) {
+		return this.getMeasureLibraryService().deleteDefinition(measureId, toBeDeletedObj);
 	}
 
 	@Override
-	public SaveUpdateCQLResult deleteFunctions(String measureId, CQLFunctions toBeDeletedObj, 
-			List<CQLFunctions> functionsList) {
-		return this.getMeasureLibraryService().deleteFunctions(measureId, toBeDeletedObj, functionsList);
+	public SaveUpdateCQLResult deleteFunction(String measureId, CQLFunctions toBeDeletedObj) {
+		return this.getMeasureLibraryService().deleteFunction(measureId, toBeDeletedObj);
 	}
 
 	@Override
-	public SaveUpdateCQLResult deleteParameter(String measureId, CQLParameter toBeDeletedObj, 
-			List<CQLParameter> parameterList) {
-		return this.getMeasureLibraryService().deleteParameter(measureId, toBeDeletedObj, parameterList);
+	public SaveUpdateCQLResult deleteParameter(String measureId, CQLParameter toBeDeletedObj) {
+		return this.getMeasureLibraryService().deleteParameter(measureId, toBeDeletedObj);
 	}
 	
 	@Override
@@ -443,17 +432,6 @@ public class MeasureServiceImpl extends SpringRemoteServiceServlet implements Me
 	}
 	
 	@Override
-	public SaveUpdateCQLResult saveCQLUserDefinedValuesettoMeasure(CQLValueSetTransferObject valueSetTransferObject) {
-		return this.getMeasureLibraryService().saveCQLUserDefinedValuesettoMeasure(valueSetTransferObject);
-	}
-	
-	@Override
-	public SaveUpdateCQLResult updateCQLValuesetsToMeasure(
-			CQLValueSetTransferObject matValueSetTransferObject) {
-		return this.getMeasureLibraryService().modifyCQLValueSetstoMeasure(matValueSetTransferObject);
-	}
-	
-	@Override
 	public SaveUpdateCQLResult saveIncludeLibrayInCQLLookUp(String measureId, CQLIncludeLibrary toBeModifiedObj, CQLIncludeLibrary currentObj, List<CQLIncludeLibrary> incLibraryList) throws InvalidLibraryException{
 		return this.getMeasureLibraryService().saveIncludeLibrayInCQLLookUp(measureId, toBeModifiedObj, currentObj, incLibraryList);
 	}
@@ -478,10 +456,8 @@ public class MeasureServiceImpl extends SpringRemoteServiceServlet implements Me
 	}
 	
 	@Override
-	public SaveUpdateCQLResult deleteInclude(String currentMeasureId,
-			CQLIncludeLibrary toBeModifiedIncludeObj,
-			List<CQLIncludeLibrary> viewIncludeLibrarys) {
-		return this.getMeasureLibraryService().deleteInclude(currentMeasureId, toBeModifiedIncludeObj, viewIncludeLibrarys);
+	public SaveUpdateCQLResult deleteInclude(String currentMeasureId, CQLIncludeLibrary toBeModifiedIncludeObj) {
+		return this.getMeasureLibraryService().deleteInclude(currentMeasureId, toBeModifiedIncludeObj);
 	}
 	
 	@Override
@@ -508,11 +484,6 @@ public class MeasureServiceImpl extends SpringRemoteServiceServlet implements Me
 	public CQLQualityDataModelWrapper saveValueSetList(List<CQLValueSetTransferObject> transferObjectList,
 			List<CQLQualityDataSetDTO> appliedValueSetList, String measureId) {
 		 return this.getMeasureLibraryService().saveValueSetList(transferObjectList, appliedValueSetList, measureId);
-	}
-
-	@Override
-	public SaveUpdateCQLResult modifyCQLCodeInMeasure(CQLCode modifyCQLCode, CQLCode refCode, String measureId) {
-		return this.getMeasureLibraryService().modifyCQLCodeInMeasure(modifyCQLCode, refCode, measureId);
 	}
 
 	@Override
@@ -578,4 +549,10 @@ public class MeasureServiceImpl extends SpringRemoteServiceServlet implements Me
 	public String getHumanReadableForMeasureDetails(String measureId) {
 		return this.getMeasureLibraryService().getHumanReadableForMeasureDetails(measureId);
 	}
+
+	@Override
+	public boolean checkIfLibraryNameExists(String libraryName, String setId) {
+        return this.getMeasureLibraryService().libraryNameExists(libraryName, setId);
+	}
+	
 }

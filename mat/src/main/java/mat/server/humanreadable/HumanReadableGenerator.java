@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import javax.xml.xpath.XPathExpressionException;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.exolab.castor.mapping.MappingException;
@@ -57,6 +58,10 @@ public class HumanReadableGenerator {
 	private final String CQLDEFINITION = "cqldefinition";
 	
 	private static final Log logger = LogFactory.getLog(HumanReadableGenerator.class);
+	
+	private Map<String, Integer> populationCountMap = new HashMap<>();
+	private Map<String, Integer> popCountMultipleMap = new HashMap<>();
+	private Map<String, String> populationNameMap = new HashMap<>(); 
 
 	private static final String[] POPULATION_NAME_ARRAY = {MatConstants.INITIAL_POPULATION,
 			MatConstants.DENOMINATOR, MatConstants.DENOMINATOR_EXCLUSIONS, MatConstants.NUMERATOR,
@@ -112,6 +117,14 @@ public class HumanReadableGenerator {
 				XMLMarshalUtil xmlMarshalUtil = new XMLMarshalUtil();
 				
 				HumanReadableModel model = (HumanReadableModel) xmlMarshalUtil.convertXMLToObject("SimpleXMLHumanReadableModelMapping.xml", simpleXml, HumanReadableModel.class);
+				List<String> measureTypes = null;
+				if(CollectionUtils.isNotEmpty(model.getMeasureInformation().getMeasureTypes())) {
+					measureTypes = new ArrayList<>();
+					measureTypes.addAll(model.getMeasureInformation().getMeasureTypes());
+					Collections.sort(measureTypes);
+				}
+
+				model.getMeasureInformation().setMeasureTypes(measureTypes);
 				model.setPopulationCriterias(getPopulationCriteriaModels(processor));
 				model.setSupplementalDataElements(getSupplementalDataElements(processor));
 				model.setRiskAdjustmentVariables(getRiskAdjustmentVariables(processor));
@@ -186,6 +199,7 @@ public class HumanReadableGenerator {
 	
 	private HumanReadablePopulationModel getPopulationModel(String measureXML, Node populationNode) throws XPathExpressionException {
 		XmlProcessor processor = new XmlProcessor(measureXML);
+		resetPopulationMaps();
 		return getPopulationCriteria(processor, populationNode);
 	}
 	
@@ -461,6 +475,7 @@ public class HumanReadableGenerator {
 		
 		NodeList groupNodes = processor.findNodeList(processor.getOriginalDoc(), "/measure/measureGrouping/group");
 		for(int i = 0; i < groupNodes.getLength(); i++) {
+			resetPopulationMaps();
 			Node group = groupNodes.item(i);
 			
 			int populationCriteriaNumber = Integer.parseInt(group.getAttributes().getNamedItem("sequence").getNodeValue());
@@ -468,7 +483,14 @@ public class HumanReadableGenerator {
 			List<HumanReadablePopulationModel> populations = new ArrayList<>();
 			
 			NodeList populationNodes = group.getChildNodes();
-			for(int j = 0; j < populationNodes.getLength(); j++) {
+			int popCount = populationNodes.getLength();
+			for(int k = 0; k < popCount; k++) {
+				Node clauseNode = populationNodes.item(k);
+				String popType = clauseNode.getAttributes().getNamedItem("type").getNodeValue();
+				countSimilarPopulationsInGroup(populationCriteriaNumber, popType, processor);
+			}
+			
+			for(int j = 0; j < popCount; j++) {
 				Node populationNode = populationNodes.item(j);
 				HumanReadablePopulationModel population = getPopulationCriteria(processor, populationNode);
 				populations.add(population);
@@ -486,7 +508,20 @@ public class HumanReadableGenerator {
 		groups.sort(Comparator.comparing(HumanReadablePopulationCriteriaModel::getSequence));
 		return groups; 
 	}
-	 
+	
+	private void countSimilarPopulationsInGroup(int groupNo, String popTyp, XmlProcessor processor) {
+		if (!populationCountMap.containsKey(popTyp)) {
+			String xPathString = "count(//group[@sequence='" + groupNo + "']/clause[@type='" + popTyp + "'])";  
+			try {
+				int count = processor.getNodeCount(processor.getOriginalDoc(), xPathString);
+				populationCountMap.put(popTyp, count);
+			} catch (XPathExpressionException e) {
+				logger.debug("Exception in countPopulations : " + e);
+			}
+
+		}
+	}
+	
 	private List<HumanReadablePopulationModel> sortPopulations(List<HumanReadablePopulationModel> populations) {
 		List<HumanReadablePopulationModel> sortedPopulations = new ArrayList<>();  
 		
@@ -515,20 +550,29 @@ public class HumanReadableGenerator {
 		String name = "";
 		if (population != null) {
 			String type = population.getAttributes().getNamedItem("type").getNodeValue();
-			int numberOfPopulationsWithSameType = countSimilarPopulationsInGroup(type, population.getParentNode());
-			
-			// if there is only one of the population kind, then we only want to display the population name (without a number attached to it)
-			name = (numberOfPopulationsWithSameType == 1)? getPopulationNameByType(type) : population.getAttributes().getNamedItem("displayName").getNodeValue();
+			name = populationCountMap.containsKey(type) ? getNameForMeasurePackaging(type) : getNameForPopulationWorkspaceViewHR(type, population);  
 		}
-		
 		return name; 
+	}
+	
+	private String getNameForMeasurePackaging(String type) {
+		int numberOfPopulationsWithSameType = populationCountMap.get(type);
+		// if there is only one of the population kind, then we only want to display the population name (without a number attached to it)
+		return (numberOfPopulationsWithSameType == 1) ? getPopulationNameByType(type) : getPopulationNameByTypeAndNum(type);
+		
+	}
+	
+	private String getNameForPopulationWorkspaceViewHR(String type, Node population) {
+		int numberOfPopulationsWithSameType = countSimilarPopulationsInGroup(type, population.getParentNode());
+		return (numberOfPopulationsWithSameType == 1) ? getPopulationNameByType(type) : population.getAttributes().getNamedItem("displayName").getNodeValue();
 	}
 	
 	private int countSimilarPopulationsInGroup(String type, Node node) {
 		int count = 0;
 		NodeList childClauses = node.getChildNodes();
 		if (childClauses != null) {
-			for (int i = 0; i < childClauses.getLength(); i++) {
+			int length = childClauses.getLength();
+			for (int i = 0; i < length; i++) {
 				Node clauseNode = childClauses.item(i);
 				String popType = clauseNode.getAttributes().getNamedItem("type").getNodeValue();
 				if (popType.equals(type)) {
@@ -537,6 +581,18 @@ public class HumanReadableGenerator {
 			}
 		}
 		return count;
+	}
+	
+	private String getPopulationNameByTypeAndNum(String type) {
+		int total = populationCountMap.get(type);
+		int count = popCountMultipleMap.containsKey(type) ? popCountMultipleMap.get(type) : 0;
+		
+		if (total > count) {
+			count++; 
+			popCountMultipleMap.put(type, count);
+		}
+		
+		return getPopulationNameByType(type) + " " + count;
 	}
 	
 	private String getPopulationNameByType(String type) {
@@ -576,15 +632,18 @@ public class HumanReadableGenerator {
 		
 		if(populationNode.getAttributes().getNamedItem("associatedPopulationUUID") != null) {
 			String uuid = populationNode.getAttributes().getNamedItem("associatedPopulationUUID").getNodeValue();
-			associatedPopulationName = getPopulationNameByUUID(uuid, processor);
+			associatedPopulationName = populationNameMap.get(uuid);
 		}
 		
 		
 		if(populationNode.getAttributes().getNamedItem("isInGrouping") != null) {
 			isInGroup= Boolean.parseBoolean(populationNode.getAttributes().getNamedItem("isInGrouping").getNodeValue());
 		}
-				
-		String populationName = getPopulationNameByUUID(populationNode.getAttributes().getNamedItem("uuid").getNodeValue(), processor);
+		
+		String populationUUID = populationNode.getAttributes().getNamedItem("uuid").getNodeValue();
+		String populationName = getPopulationNameByUUID(populationUUID, processor);
+		populationNameMap.put(populationUUID, populationName);
+
 		String type = populationNode.getAttributes().getNamedItem("type").getNodeValue();
 		if(populationName.contains("Measure Observation")) {
 			
@@ -608,6 +667,7 @@ public class HumanReadableGenerator {
 
 				
 				if(aggregation != null) {
+					
 					logic = aggregation + " (\n  " + logic + "\n)"; // for measures, add in the aggregation
 				}
 			}
@@ -628,8 +688,14 @@ public class HumanReadableGenerator {
 			}
 		}
 		
+		populationNode.getAttributes().getNamedItem("displayName").setNodeValue(populationName);
 		HumanReadablePopulationModel population = new HumanReadablePopulationModel(populationName, logic, expressionName, expressionUUID, aggregation, associatedPopulationName, isInGroup, type);
 		return population;
 	}
 	
+	private void resetPopulationMaps() {
+		populationCountMap.clear();
+		popCountMultipleMap.clear();
+		populationNameMap.clear();
+	}
 }

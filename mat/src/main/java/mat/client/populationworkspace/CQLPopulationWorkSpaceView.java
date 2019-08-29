@@ -112,7 +112,7 @@ public class CQLPopulationWorkSpaceView implements CQLPopulationWorkSpacePresent
 
 		mainHPPanel.add(mainPanel);
 
-		mainVPanel.add(mainHPPanel);		
+		mainVPanel.add(mainHPPanel);
 	}
 
 	private void setCautionText(String displayName) {
@@ -131,7 +131,6 @@ public class CQLPopulationWorkSpaceView implements CQLPopulationWorkSpacePresent
 
 	@Override
 	public void displayMeasureObservations() {
-
 		mainFlowPanel.clear();
 		populationDataModel.loadPopulations(document);
 		cqlMeasureObservationDetailView = new CQLMeasureObservationDetailView(populationDataModel, 
@@ -146,6 +145,7 @@ public class CQLPopulationWorkSpaceView implements CQLPopulationWorkSpacePresent
 	@Override
 	public void displayStratification() {
 		mainFlowPanel.clear();
+		mainFlowPanel.setHeight("100%");
 		cqlStratificationDetailView  = new CQLStratificationDetailView();
 		populationDataModel.loadPopulations(document);
 		mainFlowPanel.add(cqlStratificationDetailView.buildView(populationDataModel));
@@ -183,11 +183,11 @@ public class CQLPopulationWorkSpaceView implements CQLPopulationWorkSpacePresent
 
 	@Override
 	public void buildViewPopulations() {
-		// resetAll();
 		mainFlowPanel.clear();
 		cautionPanel.clear();
 		cqlViewPopulationsDisplay.getMeasureXmlAndBuildView();
 		mainFlowPanel.add(cqlViewPopulationsDisplay.getMainPanel());
+		mainFlowPanel.setHeight("100%");
 	}
 
 	/*

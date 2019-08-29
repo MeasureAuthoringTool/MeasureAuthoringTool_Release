@@ -8,8 +8,11 @@ public class QueryModel extends ExpressionBuilderModel {
 	private ExpressionBuilderModel source;
 	private String alias;
 	private ExpressionBuilderModel filter;
+	private ExpressionBuilderModel returnClause;
 	private QuerySortModel sort;
-
+	private ExpressionBuilderModel relationship;
+	private String relationshipType;	
+	
 	public QueryModel(ExpressionBuilderModel source, String alias, ExpressionBuilderModel filter, ExpressionBuilderModel parent) {
 		super(parent);
 		this.source = source;
@@ -23,7 +26,9 @@ public class QueryModel extends ExpressionBuilderModel {
 		super(parent);
 		this.source = new ExpressionBuilderModel(this);
 		this.filter = new ExpressionBuilderModel(this); 
+		this.returnClause = new ExpressionBuilderModel(this);
 		this.sort = new QuerySortModel(this);
+		this.relationship = new ExpressionBuilderModel(this);
 		this.alias = "";
 	}
 	
@@ -43,9 +48,17 @@ public class QueryModel extends ExpressionBuilderModel {
 		return filter;
 	}
 	
+	public ExpressionBuilderModel getReturnClause() {
+		return returnClause;
+	}
+
 	public QuerySortModel getSort() {
 		return sort;
 	}	
+	
+	public ExpressionBuilderModel getRelationship() {
+		return relationship;
+	}
 
 	@Override
 	public String getCQL(String indentation) {		
@@ -59,22 +72,29 @@ public class QueryModel extends ExpressionBuilderModel {
 				
 		builder.append(" ");
 		builder.append(alias);
-		
-		String filterIdentation = indentation + "  ";
-		builder.append("\n" + filterIdentation);
-		builder.append("where ");
-		
-		
-		if(this.getChildModels().size() == 1) {
-			builder.append(this.getChildModels().get(0).getCQL(filterIdentation));
-		} else {
-			if (!filter.getChildModels().isEmpty()) {
-				builder.append(filter.getCQL(filterIdentation));
-			}
-		}
 
+		String queryContentIndentation = indentation + "  ";
+		
+		
+		if (!relationship.getChildModels().isEmpty()) {
+			 builder.append("\n").append(queryContentIndentation);
+			 builder.append(relationship.getCQL(indentation + "  "));
+		 }
+				
+		if (!filter.getChildModels().isEmpty()) {
+			builder.append("\n").append(queryContentIndentation);
+			builder.append("where ");
+			builder.append(filter.getCQL(queryContentIndentation));
+		}
+		
+		if (!returnClause.getChildModels().isEmpty()) {
+			builder.append("\n").append(queryContentIndentation);
+			builder.append("return ");
+			builder.append(returnClause.getCQL(indentation + "  "));
+		}
+		
 		if(!sort.getSortExpression().getChildModels().isEmpty()) {
-			builder.append("\n" + filterIdentation);
+			builder.append("\n").append(queryContentIndentation);
 			builder.append(sort.getCQL(""));
 		}
 		
@@ -94,4 +114,13 @@ public class QueryModel extends ExpressionBuilderModel {
 	public String getDisplayName() {
 		return ExpressionType.QUERY.getDisplayName();
 	}
+
+	public String getRelationshipType() {
+		return relationshipType;
+	}
+
+	public void setRelationshipType(String relationshipType) {
+		this.relationshipType = relationshipType;
+	}
+
 }

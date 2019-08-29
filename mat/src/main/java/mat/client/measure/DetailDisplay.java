@@ -11,40 +11,42 @@ import com.google.gwt.user.client.ui.HasValue;
 import mat.client.codelist.HasListBox;
 import mat.client.cqlworkspace.EditConfirmationDialogBox;
 import mat.client.shared.ListBoxMVP;
+import mat.client.shared.WarningConfirmationMessageAlert;
 
 public interface DetailDisplay extends BaseDisplay {
 	public void clearFields();
 
 	public HasClickHandlers getCancelButton();
 
-	public ListBoxMVP getMeasScoringChoice();
+	public ListBoxMVP getMeasureScoringListBox();
 
-	public String getMeasScoringValue();
+	public String getMeasureScoringValue();
 
 	public HasValue<String> getMeasureVersion();
 
-	public HasValue<String> getName();
+	public HasValue<String> getMeasureNameTextBox();
+	
+	public HasValue<String> getCQLLibraryNameTextBox();
 
 	public HasClickHandlers getSaveButton();
 
-	public HasValue<String> getShortName();
+	public HasValue<String> getECQMAbbreviatedTitleTextBox();
 
 	public void setMeasureName(String name);
-
+	
 	void setScoringChoices(List<? extends HasListBox> texts);
 
 	public void showCautionMsg(boolean show);
 
 	public void showMeasureName(boolean show);
 
-	
-	ListBoxMVP getPatientBasedInput();
+	ListBoxMVP getPatientBasedListBox();
 
 	HelpBlock getHelpBlock();
 
 	FormGroup getMessageFormGrp();
-
-	void setPatientBasedInput(ListBoxMVP patientBasedInput);
 	
 	EditConfirmationDialogBox getConfirmationDialogBox();
+
+	WarningConfirmationMessageAlert getWarningConfirmationMessageAlert();
 }

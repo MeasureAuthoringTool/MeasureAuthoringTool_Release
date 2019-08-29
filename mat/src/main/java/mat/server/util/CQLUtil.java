@@ -2,6 +2,7 @@ package mat.server.util;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,9 +19,8 @@ import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import mat.CQLtoELM;
 import org.cqframework.cql.cql2elm.CqlTranslatorException;
-import mat.MATCQLFilter;
+import org.cqframework.cql.elm.tracking.TrackBack;
 import org.hl7.elm.r1.FunctionDef;
 import org.hl7.elm.r1.OperandDef;
 import org.w3c.dom.Document;
@@ -28,6 +28,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import mat.CQLtoELM;
+import mat.MATCQLFilter;
 import mat.dao.clause.CQLLibraryDAO;
 import mat.model.clause.CQLLibrary;
 import mat.model.cql.CQLCode;
@@ -37,14 +39,16 @@ import mat.model.cql.CQLIncludeLibrary;
 import mat.model.cql.CQLModel;
 import mat.model.cql.CQLParameter;
 import mat.server.CQLUtilityClass;
+import mat.server.cqlparser.CQLLinter;
+import mat.server.cqlparser.CQLLinterConfig;
 import mat.shared.CQLError;
 import mat.shared.CQLExpressionObject;
 import mat.shared.CQLExpressionOprandObject;
 import mat.shared.CQLObject;
+import mat.shared.ConstantMessages;
 import mat.shared.GetUsedCQLArtifactsResult;
 import mat.shared.LibHolderObject;
 import mat.shared.SaveUpdateCQLResult;
-import mat.shared.ConstantMessages;
 
 /**
  * The Class CQLUtil.
@@ -469,6 +473,15 @@ public class CQLUtil {
 			List<String> exprList) {
 		return parseCQLLibraryForErrors(cqlModel, cqlLibraryDAO, exprList, false);
 	}
+	
+	public static CQLLinter lint(String cql, CQLLinterConfig config) {
+		try {
+			return new CQLLinter(cql, config);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 
 	/**
 	 * Parses the CQL library for errors.
@@ -604,6 +617,11 @@ public class CQLUtil {
 		Map<String, List<CQLError>> libraryNameErrorsMap = new HashMap<>(); 
 		Map<String, List<CQLError>> libraryNameWarningsMap = new HashMap<>(); 
 
+
+		if(cqlToELM.getErrors().isEmpty()) {
+			validateMeasurementPeriodReturnType(cqlToELM, parentLibraryName, errors, libraryNameErrorsMap);
+		}
+		
 		for (CqlTranslatorException cte : cqlToELM.getErrors()) {
 			setCQLErrors(parentLibraryName, errors, libraryNameErrorsMap, cte);
 		}
@@ -612,12 +630,30 @@ public class CQLUtil {
 		for (CqlTranslatorException cte : cqlToELM.getWarnings()) {
 			setCQLErrors(parentLibraryName, warnings, libraryNameWarningsMap, cte);
 		}
-		
+						
 		parsedCQL.setCqlModel(cqlModel);
 		parsedCQL.setCqlErrors(errors);
 		parsedCQL.setCqlWarnings(warnings);
 		parsedCQL.setLibraryNameErrorsMap(libraryNameErrorsMap);
 		parsedCQL.setLibraryNameWarningsMap(libraryNameWarningsMap);
+	}
+
+	private static void validateMeasurementPeriodReturnType(CQLtoELM cqlToELM, String libraryName, List<CQLError> errors, Map<String, List<CQLError>> libraryNameErrorsMap) {
+		if(!"interval<System.DateTime>".equals(cqlToELM.getExpressionReturnType("Measurement Period"))) {
+			TrackBack trackback = cqlToELM.getTrackBackMap().get("Measurement Period");
+			if(trackback != null) {
+				CQLError error = new CQLError();
+				error.setStartErrorInLine(trackback.getStartLine());
+				error.setErrorInLine(trackback.getStartLine());
+				error.setErrorAtOffeset(trackback.getStartChar());
+				error.setEndErrorInLine(trackback.getEndLine());
+				error.setEndErrorAtOffset(trackback.getEndChar());
+				error.setErrorMessage("A Parameter titled \"Measurement Period\" must return an Interval<DateTime>");
+				error.setSeverity(CqlTranslatorException.ErrorSeverity.Error.toString());
+				libraryNameErrorsMap.put(libraryName, Arrays.asList(error));
+				errors.add(error);
+			}
+		}
 	}
 
 	private static void setCQLErrors(String parentLibraryName, List<CQLError> errors, Map<String, List<CQLError>> libraryToErrorsMap, CqlTranslatorException cte) {
@@ -630,10 +666,13 @@ public class CQLUtil {
 		cqlError.setErrorMessage(cte.getMessage());
 		cqlError.setSeverity(cte.getSeverity().toString());
 
-		String libraryName = cte.getLocator().getLibrary().getId() + "-" + cte.getLocator().getLibrary().getVersion();
-		if(cte.getLocator().getLibrary().getId().equals("unknown")) {
+		String libraryName = "";
+		if(cte.getLocator().getLibrary() != null && !"unknown".equals(cte.getLocator().getLibrary().getId())) {
+			libraryName = cte.getLocator().getLibrary().getId() + "-" + cte.getLocator().getLibrary().getVersion();
+		} else {
 			libraryName = parentLibraryName; 
 		}
+		
 						
 		initializeErrorsListForLibraryIfNeeded(libraryToErrorsMap, libraryName);
 		libraryToErrorsMap.get(libraryName).add(cqlError);
@@ -725,6 +764,7 @@ public class CQLUtil {
 			
 			usedArtifacts.setIncludeLibMap(includedLibraries);
 			usedArtifacts.setNameToReturnTypeMap(cqlFilter.getAllNamesToReturnTypeMap());
+			usedArtifacts.setExpressionToReturnTypeMap(cqlFilter.getExpressionToReturnTypeMap());
 			parsedCQL.setUsedCQLArtifacts(usedArtifacts);
 		}
 		
@@ -763,9 +803,10 @@ public class CQLUtil {
 		for (CQLIncludeLibrary cqlIncludeLibrary : cqlIncludeLibraries) {
 
 			LibHolderObject libHolderObject = cqlModel.getIncludedCQLLibXMLMap().get(cqlIncludeLibrary.getCqlLibraryName() + "-" + cqlIncludeLibrary.getVersion() + "|" + cqlIncludeLibrary.getAliasName());
-			cqlIncludeLibrary.getAliasName();
-
-			libHolderObject.getMeasureXML();
+			if(libHolderObject != null) {
+				cqlIncludeLibrary.getAliasName();
+				libHolderObject.getMeasureXML();
+			}
 		}
 	}
 
@@ -1000,7 +1041,7 @@ public class CQLUtil {
 			libNode.setAttribute("alias", cqlLibrary.getAliasName());
 			libNode.setAttribute("name", cqlLibrary.getCqlLibraryName());
 			libNode.setAttribute("version", cqlLibrary.getVersion());
-			libNode.setAttribute("setId", cqlLibraryDAO.find(cqlLibrary.getCqlLibraryId()).getSet_id());
+			libNode.setAttribute("setId", cqlLibraryDAO.find(cqlLibrary.getCqlLibraryId()).getSetId());
 			libNode.setAttribute("isUnUsedGrandChild", "false");
 			//Marking if the library is a component measure
 			libNode.setAttribute("isComponent", cqlLibrary.getIsComponent());
@@ -1058,7 +1099,7 @@ public class CQLUtil {
 								libNode.setAttribute("alias", grandChildLib.getAliasName());
 								libNode.setAttribute("name", grandChildLib.getCqlLibraryName());
 								libNode.setAttribute("version", grandChildLib.getVersion());
-								libNode.setAttribute("setId", cqlLibraryDAO.find(grandChildLib.getCqlLibraryId()).getSet_id());
+								libNode.setAttribute("setId", cqlLibraryDAO.find(grandChildLib.getCqlLibraryId()).getSetId());
 								libNode.setAttribute("isUnUsedGrandChild", "true");
 								//Marking if the library is part of a component measure
 								libNode.setAttribute("isComponent", library.getIsComponent());

@@ -28,6 +28,16 @@ public class MeasureType implements IsSerializable{
 	
 	private String abbrName;//Added for XML conversion.
 	
+	public MeasureType(){
+		
+	}
+	
+	public MeasureType(String id, String description, String abbrName) {
+		this.id = id;
+		this.description = description;
+		this.abbrName = abbrName;
+	}
+	
 	@Id
 	@Column(name = "ID", unique = true, nullable = false, length = 32)
 	public String getId() {

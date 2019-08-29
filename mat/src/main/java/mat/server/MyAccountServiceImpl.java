@@ -7,14 +7,18 @@ import java.util.UUID;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import mat.client.myAccount.MyAccountModel;
 import mat.client.myAccount.SecurityQuestionsModel;
 import mat.client.myAccount.service.MyAccountService;
 import mat.client.myAccount.service.SaveMyAccountResult;
 import mat.dao.UserDAO;
+import mat.dao.UserSecurityQuestionDAO;
 import mat.model.SecurityQuestions;
 import mat.model.User;
+import mat.model.UserPreference;
 import mat.model.UserSecurityQuestion;
 import mat.server.service.SecurityQuestionsService;
 import mat.server.service.UserService;
@@ -29,11 +33,14 @@ import mat.shared.StringUtility;
  * The server side implementation of the RPC service.
  */
 @SuppressWarnings("serial")
+@Service
 public class MyAccountServiceImpl extends SpringRemoteServiceServlet implements
 MyAccountService {
 	
 	/** The Constant logger. */
 	private static final Log logger = LogFactory.getLog(MyAccountServiceImpl.class);
+	@Autowired private UserSecurityQuestionDAO userSecurityQuestionDAO;
+
 	
 	
 	/**
@@ -51,11 +58,12 @@ MyAccountService {
 		model.setEmailAddress(user.getEmailAddress());
 		model.setPhoneNumber(user.getPhoneNumber());
 		model.setTitle(user.getTitle());
-		model.setOrganisation(user.getOrganizationName());
+		model.setOrganization(user.getOrganizationName());
 		model.setOid(user.getOrgOID());
-		//model.setRootoid(user.getRootOID());
 		model.setLoginId(user.getLoginId());
-		logger.info("Model Object for User " + user.getLoginId() +" is updated and returned with Organisation ::: " + model.getOrganisation());
+		boolean enableFreeTextEditor = user.getUserPreference() != null && user.getUserPreference().isFreeTextEditorEnabled();
+		model.setEnableFreeTextEditor(enableFreeTextEditor);
+		logger.info("Model Object for User " + user.getLoginId() +" is updated and returned with Organisation ::: " + model.getOrganization());
 		return model;
 	}
 	
@@ -73,7 +81,11 @@ MyAccountService {
 		user.setLastName(model.getLastName());
 		user.setEmailAddress(model.getEmailAddress());
 		user.setPhoneNumber(model.getPhoneNumber());
-		user.setTitle(model.getTitle());	
+		user.setTitle(model.getTitle());
+		UserPreference userPreference = user.getUserPreference() == null ? new UserPreference() : user.getUserPreference();
+		userPreference.setUser(user);
+		userPreference.setFreeTextEditorEnabled(model.isEnableFreeTextEditor());
+		user.setUserPreference(userPreference);
 	}
 	
 	/**
@@ -193,6 +205,7 @@ MyAccountService {
 			List<UserSecurityQuestion> secQuestions = user.getUserSecurityQuestions();
 			while(secQuestions.size() < 3) {
 				UserSecurityQuestion newQuestion = new UserSecurityQuestion();
+				newQuestion.setUserId(user.getId());
 				secQuestions.add(newQuestion);
 			}
 						
@@ -202,12 +215,13 @@ MyAccountService {
 			secQuestions.get(0).setSecurityQuestions(secQue1);
 
 			String originalAnswer1 = secQuestions.get(0).getSecurityAnswer();
-			if(!StringUtility.isEmptyOrNull(originalAnswer1) && !originalAnswer1.equalsIgnoreCase(model.getQuestion1Answer())) {
+			if(StringUtility.isEmptyOrNull(originalAnswer1) || !originalAnswer1.equalsIgnoreCase(model.getQuestion1Answer())) {
 				String salt1 = UUID.randomUUID().toString();
 				secQuestions.get(0).setSalt(salt1);
 				String answer1 = HashUtility.getSecurityQuestionHash(salt1, model.getQuestion1Answer());
 				secQuestions.get(0).setSecurityAnswer(answer1);
 				secQuestions.get(0).setRowId("0");
+				userSecurityQuestionDAO.save(secQuestions.get(0));
 			}
 			
 			String newQuestion2 = model.getQuestion2();
@@ -216,12 +230,13 @@ MyAccountService {
 			secQuestions.get(1).setSecurityQuestions(secQue2);
 			
 			String originalAnswer2 = secQuestions.get(1).getSecurityAnswer();
-			if(!StringUtility.isEmptyOrNull(originalAnswer2) && !originalAnswer2.equalsIgnoreCase(model.getQuestion2Answer())) {
+			if(StringUtility.isEmptyOrNull(originalAnswer2) || !originalAnswer2.equalsIgnoreCase(model.getQuestion2Answer())) {
 				String salt2 = UUID.randomUUID().toString();
 				secQuestions.get(1).setSalt(salt2);
 				String answer2 = HashUtility.getSecurityQuestionHash(salt2, model.getQuestion2Answer());
 				secQuestions.get(1).setSecurityAnswer(answer2);
 				secQuestions.get(1).setRowId("1");
+				userSecurityQuestionDAO.save(secQuestions.get(1));
 			}
 			
 			String newQuestion3 = model.getQuestion3();
@@ -230,12 +245,13 @@ MyAccountService {
 			secQuestions.get(2).setSecurityQuestions(secQue3);
 
 			String originalAnswer3 = secQuestions.get(2).getSecurityAnswer();
-			if(!StringUtility.isEmptyOrNull(originalAnswer3) && !originalAnswer3.equalsIgnoreCase(model.getQuestion3Answer())) {
+			if(StringUtility.isEmptyOrNull(originalAnswer3) || !originalAnswer3.equalsIgnoreCase(model.getQuestion3Answer())) {
 				String salt3 = UUID.randomUUID().toString();
 				secQuestions.get(2).setSalt(salt3);
 				String answer3 = HashUtility.getSecurityQuestionHash(salt3, model.getQuestion3Answer());
 				secQuestions.get(2).setSecurityAnswer(answer3);
 				secQuestions.get(2).setRowId("2");
+				userSecurityQuestionDAO.save(secQuestions.get(2));
 			}
 			
 			user.setUserSecurityQuestions(secQuestions);

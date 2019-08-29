@@ -3,28 +3,23 @@ package mat.server;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.cqframework.cql.cql2elm.QdmModelInfoProvider;
 import org.cqframework.cql.cql2elm.SystemModelInfoProvider;
-import org.hl7.elm_modelinfo.r1.ChoiceTypeSpecifier;
 import org.hl7.elm_modelinfo.r1.ClassInfo;
 import org.hl7.elm_modelinfo.r1.ClassInfoElement;
 import org.hl7.elm_modelinfo.r1.ModelInfo;
-import org.hl7.elm_modelinfo.r1.NamedTypeSpecifier;
-import org.hl7.elm_modelinfo.r1.ProfileInfo;
 import org.hl7.elm_modelinfo.r1.TypeInfo;
-import org.hl7.elm_modelinfo.r1.TypeSpecifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.gson.Gson;
 
-import edu.emory.mathcs.backport.java.util.Arrays;
 import mat.DTO.DataTypeDTO;
 import mat.DTO.UnitDTO;
 import mat.client.cqlconstant.service.CQLConstantService;
@@ -37,10 +32,47 @@ import mat.model.cql.CQLKeywords;
 import mat.server.service.CodeListService;
 import mat.server.service.MeasureLibraryService;
 import mat.server.util.MATPropertiesService;
+import mat.server.util.QDMUtil;
 import mat.shared.cql.model.FunctionSignature;
 
 @Service
 public class CQLConstantServiceImpl extends SpringRemoteServiceServlet implements CQLConstantService {
+	private static final String TYPE = "type";
+
+	private static final String QUALIFICATION = "qualification";
+
+	private static final String SPECIALTY = "specialty";
+
+	private static final String ROLE = "role";
+
+	private static final String RELATIONSHIP = "relationship";
+
+	private static final String IDENTIFIER = "identifier";
+
+	private static final String ID = "id";
+
+	private static final String RANK = "rank";
+
+	private static final String PRESENT_ON_ADMISSION_INDICATOR = "presentOnAdmissionIndicator";
+
+	private static final String RESULT = "result";
+
+	private static final String UNIT = "unit";
+
+	private static final String REFERENCE_RANGE = "referenceRange";
+
+	private static final String HIGH = "high";
+
+	private static final String LOW = "low";
+
+	private static final String LOCATION_PERIOD = "locationPeriod";
+
+	private static final String CODE = "code";
+
+	private static final String VALUE = "value";
+
+	private static final String NAMING_SYSTEM = "namingSystem";
+
 	private static final long serialVersionUID = 1L;
 
 	@Autowired
@@ -52,7 +84,6 @@ public class CQLConstantServiceImpl extends SpringRemoteServiceServlet implement
 	@Autowired
 	private MeasureLibraryService measureLibraryService;
 	
-	QdmModelInfoProvider qdmModelInfoProvider = new QdmModelInfoProvider();
 	
 	@Override
 	public CQLConstantContainer getAllCQLConstants() {		
@@ -108,7 +139,6 @@ public class CQLConstantServiceImpl extends SpringRemoteServiceServlet implement
 		return cqlConstantContainer;
 	}
 	
-	@SuppressWarnings("unchecked")
 	private List<FunctionSignature> getFunctionSignatures() {		
 		ClassLoader classLoader = getClass().getClassLoader();
 		FunctionSignature[] signatureArray = {};
@@ -126,7 +156,6 @@ public class CQLConstantServiceImpl extends SpringRemoteServiceServlet implement
 		return (List<FunctionSignature>) Arrays.asList(signatureArray);
 	}
 	
-	@SuppressWarnings("unchecked")
 	private CQLTypeContainer getCQLTypeInformation() {
 		CQLTypeContainer container = new CQLTypeContainer();
 		
@@ -151,119 +180,29 @@ public class CQLConstantServiceImpl extends SpringRemoteServiceServlet implement
 		// TODO: Find a better way to do this instead of hardcoding.		
 		typeToTypeAttributeMap.remove("System.Code");
 		typeToTypeAttributeMap.remove("list<System.Code");
-		typeToTypeAttributeMap.put("QDM.Id", Arrays.asList(new String[]{"namingSystem", "value"}));
-		typeToTypeAttributeMap.put("list<QDM.Id>", Arrays.asList(new String[]{"namingSystem", "value"}));
-		typeToTypeAttributeMap.put("QDM.FacilityLocation", Arrays.asList(new String[]{"code", "locationPeriod"}));
-		typeToTypeAttributeMap.put("list<QDM.FacilityLocation>", Arrays.asList(new String[]{"code", "locationPeriod"}));
-		typeToTypeAttributeMap.put("interval<System.DateTime>", Arrays.asList(new String[]{"low", "high"}));
-		typeToTypeAttributeMap.put("interval<System.Quantity>", Arrays.asList(new String[]{"low", "high"}));
-		typeToTypeAttributeMap.put("list<QDM.Component>", Arrays.asList(new String[]{"code", "referenceRange", "result"}));
-		typeToTypeAttributeMap.put("list<QDM.ResultComponent>", Arrays.asList(new String[]{"code", "referenceRange", "result"}));
+		typeToTypeAttributeMap.put("QDM.Id", Arrays.asList(NAMING_SYSTEM, VALUE));
+		typeToTypeAttributeMap.put("list<QDM.Id>", Arrays.asList(NAMING_SYSTEM, VALUE));
+		typeToTypeAttributeMap.put("QDM.FacilityLocation", Arrays.asList(CODE, LOCATION_PERIOD));
+		typeToTypeAttributeMap.put("list<QDM.FacilityLocation>", Arrays.asList(CODE, LOCATION_PERIOD));
+		typeToTypeAttributeMap.put("interval<System.DateTime>", Arrays.asList(LOW, HIGH));
+		typeToTypeAttributeMap.put("System.Quantity", Arrays.asList(UNIT, VALUE));
+		typeToTypeAttributeMap.put("interval<System.Quantity>", Arrays.asList(LOW, HIGH));
+		typeToTypeAttributeMap.put("list<QDM.Component>", Arrays.asList(CODE, REFERENCE_RANGE, RESULT));
+		typeToTypeAttributeMap.put("list<QDM.ResultComponent>", Arrays.asList(CODE, REFERENCE_RANGE, RESULT));
+		typeToTypeAttributeMap.put("QDM.DiagnosisComponent", Arrays.asList(CODE, PRESENT_ON_ADMISSION_INDICATOR, RANK));
+		typeToTypeAttributeMap.put("list<QDM.DiagnosisComponent>", Arrays.asList(CODE, PRESENT_ON_ADMISSION_INDICATOR, RANK));
+		typeToTypeAttributeMap.put("QDM.PatientEntity", Arrays.asList(ID, IDENTIFIER));
+		typeToTypeAttributeMap.put("QDM.CarePartner", Arrays.asList(ID, IDENTIFIER, RELATIONSHIP));
+		typeToTypeAttributeMap.put("QDM.Practitioner", Arrays.asList(ID, IDENTIFIER, ROLE, SPECIALTY, QUALIFICATION));
+		typeToTypeAttributeMap.put("QDM.Organization", Arrays.asList(ID, IDENTIFIER, TYPE));
+		typeToTypeAttributeMap.put("QDM.Identifier", Arrays.asList(NAMING_SYSTEM, VALUE));
+		
 
 		container.setTypeToTypeAttributeMap(typeToTypeAttributeMap);
 		return container;
 	}
 	
 	private QDMContainer getQDMInformation() {
-		QDMContainer container = new QDMContainer();
-		ModelInfo modelInfo = qdmModelInfoProvider.load();
-		
-		Map<String, TypeInfo> nameToProfileInfoMap = new HashMap<>();
-		Map<String, ClassInfo> nameToClassInfoMap = new HashMap<>();
-
-		// pre-process this information to be more efficient
-		List<TypeInfo> typeInfos = modelInfo.getTypeInfo();
-		for(TypeInfo typeInfo : typeInfos) {
-			
-			if(typeInfo instanceof ProfileInfo) {
-				ProfileInfo currentProfileInfo = (ProfileInfo) typeInfo;
-				nameToProfileInfoMap.put(currentProfileInfo.getName(), currentProfileInfo);
-			}
-		}
-		
-		for(TypeInfo typeInfo : typeInfos) {
-			if(typeInfo instanceof ClassInfo) {
-				ClassInfo currentClassInfo = (ClassInfo) typeInfo;
-				nameToClassInfoMap.put(currentClassInfo.getName(), currentClassInfo);
-				
-				if(currentClassInfo.getLabel() != null) {
-					nameToProfileInfoMap.put(currentClassInfo.getName(), currentClassInfo);
-				}
-				
-			}
-		}
-				
-		Map<String, List<String>> dataTypeToAttributeMap = new HashMap<>();
-		Map<String, List<String>> attributeToCQLTypeMap = new HashMap<>();
-		// create the data type label --> attribute map
-		nameToProfileInfoMap.forEach((k, v) -> {
-			String label = ((ClassInfo) v).getLabel(); // e.g. Encounter, Performed
-			String baseType = v.getBaseType(); // e.g. QDM.EncounterPerformed
-			
-			// this accounts for elements that are not a profile
-			// for example QDM.CareGoal is not a profile and has a base type of QDM.QDMBaseType
-			// we still want to collect information about it, but we do not want attributes for the base type, but
-			// rather we want attributes for the current datatype so we will use it's name (QDM.CareGoal) so that
-			// we can look up information about the current datatypes attribute.
-			
-			// We only want to use base type information if it is a profile. For example, QDM.PositiveEncounterPerformed
-			// has a base type of QDM.EncounterPerformed. We can than use this base type to look up the attributes for 
-			// that datatype.
-			if(baseType.equals("QDM.QDMBaseType")) {
-				baseType = ((ClassInfo) v).getName();
-			}
-					
-			ClassInfo classInfo = nameToClassInfoMap.get(baseType);
-			if(!dataTypeToAttributeMap.containsKey(label)) {
-				dataTypeToAttributeMap.put(label, new ArrayList<>());
-			}
-			
-			List<ClassInfoElement> attributesForDataType = new ArrayList<>();
-			attributesForDataType.addAll(classInfo.getElement()); // adds data type specific attributes
-			attributesForDataType.addAll(nameToClassInfoMap.get("QDM.QDMBaseType").getElement()); // add base type attributes
-			
-			if(classInfo.getElement() != null) {
-				for(ClassInfoElement attribute : attributesForDataType) {
-					dataTypeToAttributeMap.get(label).add(attribute.getName());					
-					collectAttributeTypeInformation(attributeToCQLTypeMap, label, attribute);					
-				}		
-			}
-		});
-			
-		container.setDatatypeToAttributesMap(dataTypeToAttributeMap);
-		container.setQdmAttributeToTypeMap(attributeToCQLTypeMap);
-		return container;
-	}
-
-	private void collectAttributeTypeInformation(Map<String, List<String>> attributeToCQLTypeMap, String label,
-			ClassInfoElement attribute) {
-		if(!attributeToCQLTypeMap.containsKey(label)) {
-			attributeToCQLTypeMap.put(attribute.getName(), new ArrayList<>());
-		}
-		
-		// handles the case where the attribute has a type of choice type specifier
-		if(attribute.getTypeSpecifier() != null) {
-			getAttributesFromChoiceTypeSpecifier(attributeToCQLTypeMap, attribute);
-		} 
-		
-		// handle the case where it is a normal attribute
-		else {
-			
-			// we shouldn't put clarifying attributes for System.Code
-			attributeToCQLTypeMap.get(attribute.getName()).add(attribute.getType());
-			
-		}
-	}
-
-	private void getAttributesFromChoiceTypeSpecifier(Map<String, List<String>> attributeToCQLTypeMap,
-			ClassInfoElement attribute) {
-		ChoiceTypeSpecifier specifier = (ChoiceTypeSpecifier) attribute.getTypeSpecifier();
-		for(TypeSpecifier choice: specifier.getChoice()) {
-			NamedTypeSpecifier type = (NamedTypeSpecifier) choice;
-			String formattedType = type.getModelName()+ "." + type.getName();
-			
-			// we shouldn't put clarifying attributes for System.Code
-			attributeToCQLTypeMap.get(attribute.getName()).add(formattedType);
-		}	
+		return QDMUtil.getQDMContainer();
 	}
 }

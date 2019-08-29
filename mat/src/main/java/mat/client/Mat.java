@@ -28,10 +28,10 @@ import mat.client.admin.reports.ManageAdminReportingPresenter;
 import mat.client.admin.reports.ManageAdminReportingView;
 import mat.client.bonnie.BonnieModal;
 import mat.client.codelist.ListBoxCodeProvider;
-import mat.client.cql.CQLLibraryDetailView;
 import mat.client.cql.CQLLibraryHistoryView;
 import mat.client.cql.CQLLibraryShareView;
 import mat.client.cql.CQLLibraryVersionView;
+import mat.client.cql.NewLibraryView;
 import mat.client.event.BackToLoginPageEvent;
 import mat.client.event.BackToMeasureLibraryPage;
 import mat.client.event.CQLLibraryEditEvent;
@@ -43,13 +43,13 @@ import mat.client.export.ManageExportView;
 import mat.client.login.service.SessionManagementService;
 import mat.client.login.service.SessionManagementService.Result;
 import mat.client.measure.ComponentMeasureDisplay;
-import mat.client.measure.ManageCompositeMeasureDetailView;
-import mat.client.measure.ManageMeasureDetailView;
 import mat.client.measure.ManageMeasureHistoryView;
 import mat.client.measure.ManageMeasurePresenter;
 import mat.client.measure.ManageMeasureSearchView;
 import mat.client.measure.ManageMeasureShareView;
 import mat.client.measure.ManageMeasureVersionView;
+import mat.client.measure.NewCompositeMeasureView;
+import mat.client.measure.NewMeasureView;
 import mat.client.measure.TransferOwnershipView;
 import mat.client.myAccount.ChangePasswordPresenter;
 import mat.client.myAccount.ChangePasswordView;
@@ -153,7 +153,7 @@ public class Mat extends MainLayout implements EntryPoint, Enableable, TabObserv
 						final Date current = new Date();
 						final boolean isAlreadySignedIn = MatContext.get().isAlreadySignedIn(lastSignOut, lastSignIn, current);
 						MatContext.get().setUserSignInDate(result.userId);
-						MatContext.get().setUserInfo(result.userId, result.userEmail, result.userRole,result.loginId);
+						MatContext.get().setUserInfo(result.userId, result.userEmail, result.userRole,result.loginId, result.userPreference);
 						loadMatWidgets(result.userFirstName, result.userLastName, isAlreadySignedIn, resultMatVersion);
 					}
 				}
@@ -193,8 +193,8 @@ public class Mat extends MainLayout implements EntryPoint, Enableable, TabObserv
 					null, transferOS);
 		} else {
 			ManageMeasureSearchView measureSearchView = new ManageMeasureSearchView();
-			ManageMeasureDetailView measureDetailView = new ManageMeasureDetailView();
-			ManageCompositeMeasureDetailView compositeMeasureDetailView = new ManageCompositeMeasureDetailView();
+			NewMeasureView measureDetailView = new NewMeasureView();
+			NewCompositeMeasureView compositeMeasureDetailView = new NewCompositeMeasureView();
 			ManageMeasureVersionView versionView = new ManageMeasureVersionView();
 			ManageMeasureShareView measureShareView = new ManageMeasureShareView();
 			ManageMeasureHistoryView historyView = new ManageMeasureHistoryView();		
@@ -214,7 +214,7 @@ public class Mat extends MainLayout implements EntryPoint, Enableable, TabObserv
 
 	private CqlLibraryPresenter buildCqlLibraryWidget() {
 		CqlLibraryView cqlLibraryView = new CqlLibraryView();
-		CQLLibraryDetailView detailView = new CQLLibraryDetailView();
+		NewLibraryView detailView = new NewLibraryView();
 		CQLLibraryVersionView versionView = new CQLLibraryVersionView();
 		CQLLibraryShareView shareView = new CQLLibraryShareView();
 		CQLLibraryHistoryView historyView = new CQLLibraryHistoryView();
@@ -401,7 +401,7 @@ public class Mat extends MainLayout implements EntryPoint, Enableable, TabObserv
 			title = ClientConstants.TITLE_MEASURE_LIB;
 			mainTabLayout.add(measureLibrary.getWidget(), title, true);
 			presenterList.add(measureLibrary);
-			
+					
 			measureComposer= buildMeasureComposer();
 			title = ClientConstants.TITLE_MEASURE_COMPOSER;
 			mainTabLayout.add(measureComposer.getWidget(), title, true);
@@ -469,7 +469,7 @@ public class Mat extends MainLayout implements EntryPoint, Enableable, TabObserv
 
 		setHeader(resultMatVersion.replaceAll("[a-zA-Z]", ""), getHomeLink());
 		
-		setSignedInName(userFirstName + " " + userLastName);
+		setSignedInAsName(userFirstName, userLastName);
 		
 		getHomeLink().addClickHandler(event -> MatContext.get().redirectToMatPage(ClientConstants.HTML_MAT));
 		
@@ -537,9 +537,13 @@ public class Mat extends MainLayout implements EntryPoint, Enableable, TabObserv
 		MatContext.get().restartTimeoutWarning();
 	}
 	
+	public static void setSignedInAsName(String userFirstName, String userLastName) {
+		setSignedInName(userFirstName + " " + userLastName);
+	}
+	
 	private void showUMLSModal(String userFirstName, boolean isAlreadySignedIn) {
 		final UmlsLoginDialogBox login = new UmlsLoginDialogBox();
-		login.showUMLSLogInDialog();
+		login.showUMLSLogInDialog(this.measureComposer.getCQLWorkspacePresenter(), this.cqlComposer.getCQLStandaloneWorkspacePresenter());
 		new ManageUmlsPresenter(login, userFirstName, isAlreadySignedIn);
 		login.showModal();
 	}
@@ -661,6 +665,10 @@ public class Mat extends MainLayout implements EntryPoint, Enableable, TabObserv
 					((MeasureComposerPresenter) presenter).setTabTargets(mainTabLayout, presenter, targetPresenter);
 				} else if(presenter instanceof CqlComposerPresenter) {
 					((CqlComposerPresenter) presenter).setTabTargets(mainTabLayout, presenter, targetPresenter);
+				} else if(presenter instanceof ManageMeasurePresenter) {
+					((ManageMeasurePresenter) presenter).setTabTargets(mainTabLayout, presenter, targetPresenter);
+				} else if(presenter instanceof CqlLibraryPresenter) {
+					((CqlLibraryPresenter) presenter).setTabTargets(mainTabLayout, presenter, targetPresenter);
 				}
 			}
 			((TabObserver) presenter).showUnsavedChangesError();

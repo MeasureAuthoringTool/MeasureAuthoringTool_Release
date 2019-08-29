@@ -38,7 +38,7 @@ public class CQLMeasureWorkSpaceView implements CQLWorkspaceView {
 	private CQLParametersView cqlParametersView;
 	private CQLDefinitionsView cqlDefinitionsView;
 	private CQLFunctionsView cqlFunctionsView;
-	private CQLView cqlViewCQLView;
+	private CQLLibraryEditorView cqlViewCQLView;
 	private CQLLeftNavBarPanelView cqlLeftNavBarPanelView;
 	private CQLComponentLibraryPresenter componentPresenter;
 	private HelpBlock helpBlock = new HelpBlock();
@@ -53,21 +53,21 @@ public class CQLMeasureWorkSpaceView implements CQLWorkspaceView {
 		codesView = new CQLCodesView();
 		valueSetView = new CQLAppliedValueSetView();
 		inclView = new CQLIncludeLibraryView();
-		cqlViewCQLView = new CQLView();
+		cqlViewCQLView = new CQLLibraryEditorView();
 		cqlLeftNavBarPanelView = new CQLLeftNavBarPanelView();
 		
 		resetAll();
 	}
 
 
-	public void buildView(MessagePanel messagePanel, HelpBlock helpBlock) {
+	public void buildView(MessagePanel messagePanel, HelpBlock helpBlock, boolean isEditable) {
 		this.messagePanel = messagePanel;
 		this.messagePanel.getElement().getStyle().setProperty("marginLeft", "5px");
 		this.helpBlock = helpBlock;
 		resetAll();
 		unsetEachSectionSelectedObject();
 	
-		buildGeneralInformation();
+		buildGeneralInformation(isEditable);
 		mainFlowPanel.setWidth("700px");
 		mainPanel.getElement().setId("CQLWorkspaceView.containerPanel");
 		mainPanel.add(new SpacerWidget());
@@ -88,18 +88,18 @@ public class CQLMeasureWorkSpaceView implements CQLWorkspaceView {
         
 	}
 
-	public void buildCQLFileView(boolean isEditable) {
+	public void buildCQLFileView(boolean isEditorEditable, boolean isPageEditable) {
 		unsetEachSectionSelectedObject();
 		mainFlowPanel.clear();
-		mainFlowPanel.add(cqlViewCQLView.buildView(isEditable));
+		mainFlowPanel.add(cqlViewCQLView.buildView(isEditorEditable, isPageEditable));
 
 	}
 
-	public void buildGeneralInformation() {
+	public void buildGeneralInformation(boolean isEditable) {
 		unsetEachSectionSelectedObject();
 		mainFlowPanel.clear();
 		setGeneralInfoHeading();
-		mainFlowPanel.add(generalInformationView.getView());
+		mainFlowPanel.add(generalInformationView.getView(isEditable));
 
 	}
 
@@ -316,7 +316,7 @@ public class CQLMeasureWorkSpaceView implements CQLWorkspaceView {
 		return cqlParametersView;
 	}
 
-	public CQLView getViewCQLView(){
+	public CQLLibraryEditorView getCQLLibraryEditorView(){
 		return cqlViewCQLView;
 	}
 

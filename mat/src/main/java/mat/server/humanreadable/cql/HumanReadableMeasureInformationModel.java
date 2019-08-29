@@ -1,8 +1,17 @@
 package mat.server.humanreadable.cql;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import mat.client.measure.ManageCompositeMeasureDetailModel;
+import mat.client.measure.ManageMeasureDetailModel;
+
 public class HumanReadableMeasureInformationModel {
+	private double qdmVersion;
 	private String ecqmTitle; 
 	private String ecqmIdentifier;
 	private String ecqmVersionNumber; 
@@ -47,6 +56,82 @@ public class HumanReadableMeasureInformationModel {
  
 	public HumanReadableMeasureInformationModel() {
 		
+	}
+	
+	public HumanReadableMeasureInformationModel(ManageMeasureDetailModel model) {
+		if(StringUtils.isNotBlank(model.getQdmVersion())) {
+			this.qdmVersion = Double.parseDouble(model.getQdmVersion());
+		}
+		
+		this.ecqmTitle = model.getMeasureName();
+		this.ecqmIdentifier = model.geteMeasureId() == 0 ? "" : model.geteMeasureId() + "";		
+		this.ecqmVersionNumber = model.getFormattedVersion().replace("Draft based on", "").replace("v", "").trim();
+		this.nqfNumber = model.getNqfId();
+		this.guid = model.getMeasureSetId();
+		this.isCalendarYear = model.isCalenderYear();
+		this.measurementPeriodStartDate = model.getMeasFromPeriod(); 
+		this.measurementPeriodEndDate = model.getMeasToPeriod();
+		this.measureSteward = model.getStewardValue();
+		
+		if(!CollectionUtils.isEmpty(model.getAuthorSelectedList())) {
+			this.measureDevelopers = new ArrayList<>();
+			model.getAuthorSelectedList().forEach(d -> this.measureDevelopers.add(d.getAuthorName()));
+		}
+		
+		this.endorsedBy = model.getEndorsement();
+		this.description = model.getDescription();
+		this.copyright = model.getCopyright();
+		this.disclaimer = model.getDisclaimer();
+		
+		if(!CollectionUtils.isEmpty(model.getComponentMeasuresSelectedList())) {
+			ManageCompositeMeasureDetailModel compositeModel = (ManageCompositeMeasureDetailModel) model; 
+			this.componentMeasures = new ArrayList<>();
+			compositeModel.getComponentMeasuresSelectedList().forEach(r -> {
+				HumanReadableComponentMeasureModel componentModel = new HumanReadableComponentMeasureModel();
+				componentModel.setId(r.getId());
+				componentModel.setMeasureSetId(r.getMeasureSetId());
+				componentModel.setName(r.getName());
+				componentModel.setVersion(r.getVersion());
+				this.componentMeasures.add(componentModel);
+			});
+			
+			this.compositeScoringMethod = compositeModel.getCompositeScoringMethod();
+		}
+		
+		this.measureScoring = model.getMeasScoring();
+		
+		if(!CollectionUtils.isEmpty(model.getMeasureTypeSelectedList())) {
+			this.measureTypes = new ArrayList<>();
+			model.getMeasureTypeSelectedList().forEach(mt -> this.measureTypes.add(mt.getDescription()));
+			Collections.sort(this.measureTypes);
+		}
+		
+		this.stratification = model.getStratification();
+		this.riskAdjustment = model.getRiskAdjustment();
+		this.rateAggregation = model.getRateAggregation();
+		this.rationale = model.getRationale();
+		this.clinicalRecommendationStatement = model.getClinicalRecomms();
+		this.improvementNotation = model.getImprovNotations();
+		
+		if(!CollectionUtils.isEmpty(model.getReferencesList())) {
+			this.references = new ArrayList<>(model.getReferencesList());
+		}
+		
+		this.definition = model.getDefinitions();
+		this.guidance = model.getGuidance();
+		this.transmissionFormat = model.getTransmissionFormat();
+		this.initialPopulation = model.getInitialPop();
+		this.denominator = model.getDenominator();
+		this.denominatorExclusions = model.getDenominatorExclusions();
+		this.denominatorExceptions = model.getDenominatorExceptions();
+		this.numerator = model.getNumerator();
+		this.numeratorExclusions = model.getNumeratorExclusions();
+		this.measurePopulation = model.getMeasurePopulation();
+		this.measurePopulationExclusions = model.getMeasurePopulationExclusions();
+		this.measureObservations = model.getMeasureObservations();
+		this.supplementalDataElements = model.getSupplementalData();
+		this.measureSet = model.getGroupName(); 
+		this.patientBased = model.isPatientBased();
 	}
 	
 	public HumanReadableMeasureInformationModel(String eCQMTitle, String eCQMIdentifier, String eCQMVersionNumber, String nqfNumber,
@@ -368,6 +453,14 @@ public class HumanReadableMeasureInformationModel {
 
 	public void setPatientBased(boolean patientBased) {
 		this.patientBased = patientBased;
+	}
+
+	public double getQdmVersion() {
+		return qdmVersion;
+	}
+
+	public void setQdmVersion(double qdmVersion) {
+		this.qdmVersion = qdmVersion;
 	} 
 	
 	

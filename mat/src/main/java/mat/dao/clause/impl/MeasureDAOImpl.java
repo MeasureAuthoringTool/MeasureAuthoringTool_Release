@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import javax.persistence.NoResultException;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.CriteriaUpdate;
@@ -496,7 +497,8 @@ public class MeasureDAOImpl extends GenericDAO<Measure, String> implements Measu
 	}
 	
 	private boolean checkIfAdvancedSearchWasUsed(MeasureSearchModel measureSearchModel) {
-		return !measureSearchModel.isDraft().equals(SearchModel.VersionType.ALL) ||
+		return StringUtils.isNotBlank(measureSearchModel.getCqlLibraryName())|| 
+				!measureSearchModel.isDraft().equals(SearchModel.VersionType.ALL) ||
 				!measureSearchModel.isPatientBased().equals(MeasureSearchModel.PatientBasedType.ALL) ||
 				(CollectionUtils.isNotEmpty(measureSearchModel.getScoringTypes()) && measureSearchModel.getScoringTypes().size() < 4) ||
 				measureSearchModel.getModifiedDate() > 0 ||
@@ -517,6 +519,10 @@ public class MeasureDAOImpl extends GenericDAO<Measure, String> implements Measu
 			predicatesList.add(getSearchByMeasureOrOwnerNamePredicate(measureSearchModel.getSearchTerm(), cb, root));
 		}
 		
+		if (StringUtils.isNotBlank(measureSearchModel.getCqlLibraryName())) {
+			predicatesList.add(cb.like(root.get("cqlLibraryName"), "%" + measureSearchModel.getCqlLibraryName() + "%"));
+		}
+				
 		if(measureSearchModel.isDraft() != VersionType.ALL) {
 			predicatesList.add(cb.equal(root.get(DRAFT), measureSearchModel.isDraft() == VersionType.DRAFT));
 		}
@@ -928,6 +934,22 @@ public class MeasureDAOImpl extends GenericDAO<Measure, String> implements Measu
 		predicatesList.add(cb.greaterThanOrEqualTo(relVerInt, 5));
 		
 		return cb.and(predicatesList.toArray(new Predicate[predicatesList.size()]));
+	}
+	
+	public String getMeasureNameIfDraftAlreadyExists(String measureSetId) {
+		final Session session = getSessionFactory().getCurrentSession();
+		final CriteriaBuilder cb = session.getCriteriaBuilder();
+		final CriteriaQuery<String> query = cb.createQuery(String.class);
+		final Root<Measure> root = query.from(Measure.class);
+		
+		query.select(root.get("description")).where(cb.and(cb.equal(root.get(MEASURE_SET).get("id"), measureSetId), 
+				cb.equal(root.get(DRAFT), true)));
+		
+		try {
+			return session.createQuery(query).getSingleResult();	
+		} catch (NoResultException nre) {
+			return null;
+		}
 	}
 
 }

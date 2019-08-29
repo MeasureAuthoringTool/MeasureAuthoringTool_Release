@@ -20,7 +20,9 @@ import com.google.gwt.user.client.ui.Widget;
 import mat.client.Mat;
 import mat.client.MatPresenter;
 import mat.client.MeasureComposerPresenter;
+import mat.client.MeasureHeading;
 import mat.client.clause.QDSAppliedListModel;
+import mat.client.cqlworkspace.AbstractCQLWorkspacePresenter;
 import mat.client.measure.ManageMeasureDetailModel;
 import mat.client.measure.service.SaveMeasureResult;
 import mat.client.measure.service.ValidateMeasureResult;
@@ -41,6 +43,7 @@ import mat.model.RiskAdjustmentDTO;
 import mat.model.cql.CQLDefinition;
 import mat.shared.MeasurePackageClauseValidator;
 import mat.shared.SaveUpdateCQLResult;
+import mat.shared.StringUtility;
 import mat.shared.bonnie.error.BonnieUnauthorizedException;
 import mat.shared.bonnie.error.UMLSNotActiveException;
 import mat.shared.bonnie.result.BonnieUserInformationResult;
@@ -83,7 +86,11 @@ public class MeasurePackagePresenter implements MatPresenter {
 
 	private static final String INITIAL_BONNIE_UPLOAD_SUCCESS_MESSAGE = " has been successfully packaged and uploaded as a new measure in Bonnie. Please go to the Bonnie tool to create test cases for this measure.";
 	
+	private static final String VSAC_PACKAGE_UNAUTHORIZED_ERROR = "Unable to retrieve information from VSAC. The package has been created. Please log in to UMLS again to re-establish a connection and try the upload to Bonnie again.";
+	
 	private VsacTicketInformation vsacInfo = null;
+	
+	private MeasureHeading measureHeading;
 	
 	public List<CQLDefinition> getDbCQLSuppDataElements() {
 		return dbCQLSuppDataElements;
@@ -149,6 +156,7 @@ public class MeasurePackagePresenter implements MatPresenter {
 		MessageAlert getInProgressMessageDisplay();
 
 		WarningMessageAlert getMeasurePackageWarningMsg();
+		WarningMessageAlert getCqlLibraryNameWarningMsg();
 
 		WarningConfirmationMessageAlert getSaveErrorMessageDisplay();
 		WarningConfirmationMessageAlert getSaveErrorMessageDisplayOnEdit();
@@ -195,8 +203,9 @@ public class MeasurePackagePresenter implements MatPresenter {
 	
 	VSACAPIServiceAsync vsacapiServiceAsync = MatContext.get().getVsacapiServiceAsync();
 	
-	public MeasurePackagePresenter(PackageView packageView) {
+	public MeasurePackagePresenter(PackageView packageView, MeasureHeading measureHeading) {
 		view = packageView;
+		this.measureHeading = measureHeading;
 		addAllHandlers();
 	}
 	
@@ -224,7 +233,7 @@ public class MeasurePackagePresenter implements MatPresenter {
 					isExportToBonnie = false;
 					view.getInProgressMessageDisplay().createAlert(LOADING_WAIT_MESSAGE);
 					validateGroup();
-					clearMessages(); 
+					clearMessages();
 				}
 			}
 		});
@@ -348,6 +357,7 @@ public class MeasurePackagePresenter implements MatPresenter {
 							@Override
 							public void onFailure(final Throwable caught) {
 								Window.alert(MatContext.get().getMessageDelegate().getGenericErrorMessage());
+								getMeasurePackageOverview(MatContext.get().getCurrentMeasureId());
 								showMeasurePackagerBusy(false);
 							}
 							
@@ -355,8 +365,7 @@ public class MeasurePackagePresenter implements MatPresenter {
 							public void onSuccess(final MeasurePackageSaveResult result) {
 								if (result.isSuccess()) {
 									updateDetailsFromView(currentDetail);
-									getMeasurePackageOverview(MatContext.get()
-											.getCurrentMeasureId());
+									getMeasurePackageOverview(MatContext.get().getCurrentMeasureId());
 									view.getPackageSuccessMessageDisplay().createAlert(
 											MatContext.get().getMessageDelegate().
 											getGroupingSavedMessage());
@@ -368,6 +377,7 @@ public class MeasurePackagePresenter implements MatPresenter {
 									if (result.getMessages().size() > 0) {
 										view.getPackageErrorMessageDisplay().
 										createAlert(result.getMessages());
+										getMeasurePackageOverview(MatContext.get().getCurrentMeasureId());
 									} else {
 										view.getPackageErrorMessageDisplay().clearAlert();
 									}
@@ -377,12 +387,13 @@ public class MeasurePackagePresenter implements MatPresenter {
 						});
 						
 						showMeasurePackagerBusy(false);
+					} else {
+						getMeasurePackageOverview(MatContext.get().getCurrentMeasureId());
 					}
 				}
 			}
 		});
-	}
-	
+	}	
 	protected void validateUMLSLogIn() {
 		MatContext.get().getVsacapiServiceAsync().getTicketGrantingToken(new AsyncCallback<VsacTicketInformation>() {
 			
@@ -469,7 +480,8 @@ public class MeasurePackagePresenter implements MatPresenter {
 			@Override
 			public void onSuccess(ValidateMeasureResult result) {
 				if (result.isValid()) {
-					updateMeasureXmlForDeletedComponentMeasureAndOrg();
+					String measureId = MatContext.get().getCurrentMeasureId();
+					validateExports(measureId);
 				} else {
 					Mat.hideLoadingMessage();
 					if (result.getValidationMessages() != null) {
@@ -482,26 +494,6 @@ public class MeasurePackagePresenter implements MatPresenter {
 			
 		});
 		
-	}
-	
-	private void updateMeasureXmlForDeletedComponentMeasureAndOrg(){
-		
-		MatContext.get().getMeasureService().updateMeasureXmlForDeletedComponentMeasureAndOrg(model.getId(), new AsyncCallback<Void>() {
-			
-			@Override
-			public void onFailure(Throwable caught) {
-				Mat.hideLoadingMessage();
-				enablePackageButtons(true);
-				Window.alert(MatContext.get().getMessageDelegate().getGenericErrorMessage());
-				view.getInProgressMessageDisplay().clearAlert();
-			}
-			
-			@Override
-			public void onSuccess(Void result) {
-				String measureId = MatContext.get().getCurrentMeasureId();
-				validateExports(measureId);
-			}
-		});
 	}
 	
 	private void validateExports(final String measureId) {
@@ -542,6 +534,7 @@ private void saveMeasureAtPackage(){
 			@Override
 			public void onSuccess(SaveMeasureResult result) {
 				if (result.isSuccess()) {
+					MatContext.get().setCurrentMeasureVersion("Draft v" + result.getVersionStr());
 					createExports(MatContext.get().getCurrentMeasureId());
 					
 				} else {
@@ -587,6 +580,7 @@ private void saveMeasureAtPackage(){
 						handleSuccessfulPackage();
 					}
 					recordMeasurePackageEvent(measureId);
+					measureHeading.updateMeasureHeading();
 				} else {
 					handleUnsuccessfulPackage(result);
 				}
@@ -628,6 +622,7 @@ private void saveMeasureAtPackage(){
 	}
 	
 	private void clearMessages() {
+		view.getCqlLibraryNameWarningMsg().clearAlert();
 		view.getPackageSuccessMessageDisplay().clearAlert();
 		view.getSupplementalDataElementSuccessMessageDisplay().clearAlert();
 		view.getSupplementalDataElementErrorMessageDisplay().clearAlert(); 
@@ -678,9 +673,13 @@ private void saveMeasureAtPackage(){
 						@Override
 						public void onSuccess(SaveUpdateCQLResult result) {
 														
-							if(result.getCqlErrors().size() == 0){
+							if(result.getCqlErrors().isEmpty() && result.getLinterErrors().isEmpty()
+									&& result.getFailureReason() != SaveUpdateCQLResult.DUPLICATE_LIBRARY_NAME) {
 								getMeasure(MatContext.get().getCurrentMeasureId());
-							}else{
+								
+								checkAndDisplayLibraryNameWarning(result.getCqlModel().getLibraryName());
+								
+							} else{
 								panel.clear();
 								panel.getElement().setId("MeasurePackagerContentFlowPanel");
 								ErrorMessageAlert errorMessageAlert = new ErrorMessageAlert();
@@ -700,6 +699,12 @@ private void saveMeasureAtPackage(){
 		
 		MeasureComposerPresenter.setSubSkipEmbeddedLink("MeasurePackagerContentFlowPanel");
 		Mat.focusSkipLists("MeasureComposer");
+	}
+	
+	private void checkAndDisplayLibraryNameWarning(String libraryName) {
+		if (isEditable() && StringUtility.isNotBlank(libraryName) && libraryName.length() > AbstractCQLWorkspacePresenter.CQL_LIBRARY_NAME_WARNING_LENGTH) {
+			view.getCqlLibraryNameWarningMsg().createAlert(AbstractCQLWorkspacePresenter.CQL_LIBRARY_NAME_WARNING_MESSAGE);
+		}
 	}
 
 	@Override
@@ -862,6 +867,8 @@ private void saveMeasureAtPackage(){
 					if (mpDetail.getSequence().equalsIgnoreCase(
 							currentDetail.getSequence())) {
 						setMeasurePackage(result.getPackages().get(i).getSequence());
+					} else {
+						setMeasurePackageDetailsOnView();
 					}
 				}
 			} else {
@@ -965,6 +972,7 @@ private void saveMeasureAtPackage(){
 		List<MeasurePackageClauseDetail> remainingClauses = removeClauses(packageOverview.getClauses(), packageClauses);
 		view.setPackageName(currentDetail.getPackageName());
 		view.setClausesInPackage(packageClauses);
+		view.getPackageGroupingWidget().setPackageGroupingHeader("Package Grouping (Measure Grouping " + currentDetail.getSequence() + ")");
 		view.setClauses(remainingClauses);
 		if(packageOverview.getReleaseVersion() != null && MatContext.get().isCQLMeasure(packageOverview.getReleaseVersion())){
 			view.setCQLMeasure(true);
@@ -1072,16 +1080,19 @@ private void saveMeasureAtPackage(){
 			public void onFailure(Throwable caught) {
 				
 				if(caught instanceof UMLSNotActiveException) {
-					view.getMeasureErrorMessageDisplay().createAlert(SIGN_INTO_UMLS);
+					view.getMeasureErrorMessageDisplay().createAlert(VSAC_PACKAGE_UNAUTHORIZED_ERROR);
 					Mat.hideUMLSActive(true);
-				}
-				if(caught instanceof BonnieUnauthorizedException) {
+					MatContext.get().setUMLSLoggedIn(false);
+					
+				} else if(caught instanceof BonnieUnauthorizedException) {
 					view.getMeasureErrorMessageDisplay().createAlert(SIGN_INTO_BONNIE_MESSAGE);
 					loggedIntoBonnie = false;
 					Mat.hideBonnieActive(true);
+					
 				} else {
 					view.getMeasureErrorMessageDisplay().createAlert(MatContext.get().getMessageDelegate().getGenericErrorMessage());
 				}
+				
 				Mat.hideLoadingMessage();
 				resetPackageButtonsAndMessages();
 			}

@@ -72,6 +72,9 @@
   <mode mode="ValueSets" />
   <mode mode="Codes" />
  </attribute>
+ <attribute attribName="identifier">
+  <mode mode="Nullable" />
+ </attribute>
  <attribute attribName="incisionDatetime">
   <mode mode="Comparison" />
   <mode mode="Computative" />
@@ -99,18 +102,13 @@
  <mode mode="ValueSets" />
   <mode mode="Codes" />
  </attribute>
- <attribute attribName="ordinality">
-  <mode mode="Nullable" />
-  <mode mode="ValueSets" />
-  <mode mode="Codes" />
- </attribute>
  <attribute attribName="prevalencePeriod">
   <mode mode="Nullable" />
  </attribute>
- <attribute attribName="principalDiagnosis">
+ <attribute attribName="priority">
   <mode mode="Nullable" />
   <mode mode="ValueSets" />
-  <mode mode="Codes" />
+  <mode mode="Codes" /> 
  </attribute>
  <attribute attribName="radiationDosage">
   <mode mode="Comparison" />
@@ -130,6 +128,11 @@
  	<mode mode="ValueSets"/>
  	<mode mode="Codes"/>
  </attribute>
+ <attribute attribName="receivedDatetime">
+ 	<mode mode="Comparison"/>
+ 	<mode mode="Computative"/>
+ 	<mode mode="Nullable"/>
+ </attribute> 
  <attribute attribName="referenceRange">
   <mode mode="Nullable" />
  </attribute>
@@ -143,9 +146,14 @@
   <!-- <mode mode="Codes" /> -->
  </attribute>
  <attribute attribName="relationship">
-  <mode mode="Nullable" />
   <mode mode="ValueSets" />
   <mode mode="Codes" />
+  <mode mode="Nullable" />
+ </attribute>
+ <attribute attribName="relevantDatetime">
+ 	<mode mode="Comparison" />
+ 	<mode mode="Computative" />
+ 	<mode mode="Nullable" />
  </attribute>
  <attribute attribName="relevantPeriod">
   <mode mode="Nullable" />
@@ -176,6 +184,11 @@
  	<mode mode="ValueSets" />
  	<mode mode="Codes" />
  </attribute>
+  <attribute attribName="sentDatetime">
+ 	<mode mode="Comparison" />
+ 	<mode mode="Computative" />
+ 	<mode mode="Nullable" />
+ </attribute>
  <attribute attribName="severity">
   <mode mode="Nullable" />
   <mode mode="ValueSets" />
@@ -197,15 +210,20 @@
   <mode mode="ValueSets" />
   <mode mode="Codes" />
  </attribute>
- <attribute attribName="recorder">
-  <mode mode="ValueSets" />
-  <mode mode="Codes" />
+ <attribute attribName="rank">
+  <mode mode="Comparison" />
+  <mode mode="Nullable" />
  </attribute>
- <attribute attribName="reporter">
+ <attribute attribName="recorder">
   <mode mode="ValueSets" />
   <mode mode="Codes" />
  </attribute>
  <attribute attribName="participationPeriod">
   <mode mode="Nullable" />
  </attribute>
+ <attribute attribName="statusDate">
+  <mode mode="Comparison" />
+  <mode mode="Computative" />
+  <mode mode="Nullable" />
+ </attribute>	
 </matattributes>

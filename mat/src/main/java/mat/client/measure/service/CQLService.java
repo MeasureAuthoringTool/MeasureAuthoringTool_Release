@@ -9,6 +9,9 @@ import org.exolab.castor.xml.ValidationException;
 
 import mat.model.CQLValueSetTransferObject;
 import mat.model.MatCodeTransferObject;
+import mat.model.clause.CQLLibrary;
+import mat.model.clause.CQLLibraryHistory;
+import mat.model.clause.Measure;
 import mat.model.cql.CQLCodeSystem;
 import mat.model.cql.CQLCodeWrapper;
 import mat.model.cql.CQLDefinition;
@@ -20,6 +23,7 @@ import mat.model.cql.CQLModel;
 import mat.model.cql.CQLParameter;
 import mat.model.cql.CQLQualityDataModelWrapper;
 import mat.model.cql.CQLQualityDataSetDTO;
+import mat.server.cqlparser.CQLLinterConfig;
 import mat.shared.GetUsedCQLArtifactsResult;
 import mat.shared.SaveUpdateCQLResult;
 import mat.shared.cql.error.InvalidLibraryException;
@@ -100,36 +104,27 @@ public interface CQLService {
 	 * 
 	 * @param measureId the measure id
 	 * @param toBeDeletedObj the to be deleted obj
-	 * @param currentObj the current obj
-	 * @param definitionList the definition list
 	 * @return the save and update result
 	 */
-	SaveUpdateCQLResult deleteDefinition(String measureId, CQLDefinition toBeDeletedObj, 
-			List<CQLDefinition> definitionList);
+	SaveUpdateCQLResult deleteDefinition(String measureId, CQLDefinition toBeDeletedObj);
 	
 	/**
 	 * Delete functions
 	 * 
 	 * @param measureId the measure id
 	 * @param toBeDeltedObj the to be deleted obj
-	 * @param currentObj the current obj
-	 * @param functionsList the functions list
 	 * @return the save and update result
 	 */
-	SaveUpdateCQLResult deleteFunctions(String measureId, CQLFunctions toBeDeltedObj, 
-			List<CQLFunctions> functionsList);
+	SaveUpdateCQLResult deleteFunction(String measureId, CQLFunctions toBeDeltedObj);
 	
 	/**
 	 * Delete parameter
 	 * 
 	 * @param measureId the measure id
 	 * @param toBeDeletedObj the to be deleted obj
-	 * @param currentObj the current obj
-	 * @param parameterList the parameter list
 	 * @return the save and update result
 	 */
-	SaveUpdateCQLResult deleteParameter(String measureId, CQLParameter toBeDeletedObj, 
-			List<CQLParameter> parameterList);
+	SaveUpdateCQLResult deleteParameter(String measureId, CQLParameter toBeDeletedObj);
 	
 	/**
 	 * Gets the CQL data type list.
@@ -164,17 +159,11 @@ public interface CQLService {
 
 	CQLQualityDataModelWrapper getCQLValusets(String measureID, CQLQualityDataModelWrapper cqlQualityDataModelWrapper);
 
-	SaveUpdateCQLResult saveCQLValueset(CQLValueSetTransferObject valueSetTransferObject);
-
-	SaveUpdateCQLResult saveCQLUserDefinedValueset(CQLValueSetTransferObject matValueSetTransferObject);
-
-	SaveUpdateCQLResult modifyCQLValueSets(CQLValueSetTransferObject matValueSetTransferObject);
-
+	SaveUpdateCQLResult saveCQLValueset(String xml, CQLValueSetTransferObject valueSetTransferObject);
+	
 	SaveUpdateCQLResult saveAndModifyIncludeLibrayInCQLLookUp(String measureId, CQLIncludeLibrary toBeModifiedObj, CQLIncludeLibrary currentObj, List<CQLIncludeLibrary> incLibraryList) throws InvalidLibraryException;
 
-	SaveUpdateCQLResult deleteInclude(String currentMeasureId,
-			CQLIncludeLibrary toBeModifiedIncludeObj,
-			List<CQLIncludeLibrary> viewIncludeLibrarys);
+	SaveUpdateCQLResult deleteInclude(String currentMeasureId, CQLIncludeLibrary toBeModifiedIncludeObj);
 
 	void saveCQLAssociation(CQLIncludeLibrary currentObj, String measureId);
 
@@ -204,4 +193,10 @@ public interface CQLService {
 	SaveUpdateCQLResult getCQLDataForLoad(String xmlString);
 	
 	String createIncludeLibraryXML(CQLIncludeLibrary includeLibrary) throws MarshalException, ValidationException, IOException, MappingException;
+
+	SaveUpdateCQLResult saveCQLFile(String xml, String cql, CQLLinterConfig config);
+	
+	List<CQLLibraryHistory> createCQLLibraryHistory(List<CQLLibraryHistory> exsistingLibraryHistory, String CQLLibraryString, CQLLibrary cqlLibrary, Measure measure);
+	
+	boolean checkIfLibraryNameExists(String libraryName, String setId);
 }

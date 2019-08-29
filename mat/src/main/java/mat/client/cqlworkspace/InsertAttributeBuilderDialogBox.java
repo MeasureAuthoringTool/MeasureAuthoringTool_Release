@@ -1,6 +1,7 @@
 package mat.client.cqlworkspace;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -59,10 +60,18 @@ public class InsertAttributeBuilderDialogBox {
 	private static final String QUANTITY_UNIT_ALERT = "Quantity field is now enabled. Units dropdown is now enabled.";
 	private static final String FACILITY_LOCATIONS = "facilityLocations";
 	private static final String ATTR_ID = "id";
-	private static final String PRESCRIBER_ID = "prescriberId";
-	private static final String DISPENSER_ID = "dispenserId";
 	private static final String DIAGNOSES = "diagnoses";
+	private static final String DISPENSER = "dispenser";
 	private static final String COMPONENTS = "components";
+	private static final String PERFORMER = "performer";
+	private static final String REQUESTER = "requester";
+	private static final String LINKED_PATIENT_ID = "linkedPatientId";
+	private static final String PARTICIPANT = "participant";
+	private static final String PATIENT_ID = "patientId";
+	private static final String PRESCRIBER = "prescriber";
+	private static final String SENDER = "sender";
+	private static final String RECIPIENT = "recipient";
+	private static final String RECORDER = "recorder";
 	private static final String VALUE_SETS = "Value Sets";
 	private static final String CODES = "Codes";
 	private static final String NULLABLE = "Nullable";
@@ -441,9 +450,9 @@ public class InsertAttributeBuilderDialogBox {
 	}
 
 	private static boolean isModeDisabledEntry(final String attrSelected) {
-		return attrSelected.equalsIgnoreCase(COMPONENTS) || attrSelected.equalsIgnoreCase(DIAGNOSES)
-				|| attrSelected.equalsIgnoreCase(FACILITY_LOCATIONS) || attrSelected.equalsIgnoreCase(ATTR_ID)
-				|| attrSelected.equalsIgnoreCase(PRESCRIBER_ID) || attrSelected.equalsIgnoreCase(DISPENSER_ID);
+		Set<String> hashset = new HashSet<>(Arrays.asList(COMPONENTS, DIAGNOSES, DISPENSER, FACILITY_LOCATIONS, LINKED_PATIENT_ID, PARTICIPANT, PATIENT_ID, PERFORMER, 
+				PRESCRIBER, REQUESTER, RECIPIENT, SENDER, RECORDER, ATTR_ID));
+		return hashset.contains(attrSelected);
 	}
 
 	private static void clearAllFormGroups() {
@@ -719,6 +728,8 @@ public class InsertAttributeBuilderDialogBox {
 		String modeName = modelistBox.getItemText(modelistBox.getSelectedIndex());
 		attributeName = attributeName.toLowerCase();
 		modeName = modeName.toLowerCase();
+
+
 		if (modeName.equalsIgnoreCase("comparison") || modeName.equalsIgnoreCase("computative")) {
 			if (attributeName.contains("datetime") && modeName.equalsIgnoreCase("comparison")) {
 				// the date time field is about to be enabled. If the it is currently disabled,
@@ -728,12 +739,18 @@ public class InsertAttributeBuilderDialogBox {
 						&& !dtw.getMsTxtBox().isEnabled()) {
 					messageHelpBlock.setText(DATE_TIME_ALERT);
 				}
-
 				dtw.setDateTimeEnabled(true);
 				quantityTextBox.setEnabled(false);
 				unitslistBox.setEnabled(false);
+				
 			} else if (attributeName.equalsIgnoreCase("result")) {
 				setEnabled(true);
+				
+			} else if(attributeName.contains("statusdate") && modeName.equalsIgnoreCase("comparison")) {
+				dtw.setDateTimeEnabled(true);
+				quantityTextBox.setEnabled(false);
+				unitslistBox.setEnabled(false);
+				
 			} else {
 				dtw.setDateTimeEnabled(false);
 
@@ -742,6 +759,7 @@ public class InsertAttributeBuilderDialogBox {
 				if(!quantityTextBox.isEnabled() && !unitslistBox.isEnabled()) {
 					messageHelpBlock.setText(QUANTITY_UNIT_ALERT);
 				}
+
 
 				quantityTextBox.setEnabled(true);
 				unitslistBox.setEnabled(true);

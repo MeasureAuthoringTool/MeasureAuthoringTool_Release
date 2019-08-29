@@ -3,7 +3,11 @@ package mat.server.clause;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -18,13 +22,11 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.xerces.dom.ElementImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.CollectionUtils;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -35,19 +37,26 @@ import org.xml.sax.SAXException;
 
 import mat.client.measure.ManageMeasureDetailModel;
 import mat.client.measure.ManageMeasureSearchModel;
+import mat.client.measure.ManageMeasureSearchModel.Result;
 import mat.client.measure.service.CQLService;
 import mat.client.measure.service.MeasureCloningService;
 import mat.client.shared.CQLWorkSpaceConstants;
 import mat.client.shared.MatContext;
 import mat.client.shared.MatException;
+import mat.client.shared.MessageDelegate;
+import mat.dao.OrganizationDAO;
 import mat.dao.UserDAO;
 import mat.dao.clause.MeasureDAO;
 import mat.dao.clause.MeasureSetDAO;
 import mat.dao.clause.MeasureXMLDAO;
+import mat.model.Author;
+import mat.model.Organization;
 import mat.model.User;
 import mat.model.clause.ComponentMeasure;
 import mat.model.clause.Measure;
+import mat.model.clause.MeasureDeveloperAssociation;
 import mat.model.clause.MeasureSet;
+import mat.model.clause.MeasureTypeAssociation;
 import mat.model.clause.MeasureXML;
 import mat.model.cql.CQLParameter;
 import mat.server.CQLLibraryService;
@@ -55,13 +64,15 @@ import mat.server.LoggedInUserUtil;
 import mat.server.SpringRemoteServiceServlet;
 import mat.server.service.impl.MatContextServiceUtil;
 import mat.server.service.impl.XMLUtility;
+import mat.server.util.CQLValidationUtil;
 import mat.server.util.MATPropertiesService;
+import mat.server.util.ManageMeasureDetailModelConversions;
 import mat.server.util.MeasureUtility;
 import mat.server.util.XmlProcessor;
 import mat.shared.ConstantMessages;
 import mat.shared.SaveUpdateCQLResult;
 import mat.shared.UUIDUtilClient;
-import mat.shared.model.util.MeasureDetailsUtil;
+import mat.shared.validator.measure.ManageMeasureModelValidator;
 
 /**
  * The Class MeasureCloningServiceImpl.
@@ -74,86 +85,52 @@ public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet implem
 	private static final String QDM_BIRTHDATE_NON_DEFAULT = "birthdate";
 	@Autowired
 	private CQLLibraryService cqlLibraryService;
-	/** The measure dao. */
+	
 	@Autowired
 	private MeasureDAO measureDAO;
 	
-	/** The measure xml dao. */
 	@Autowired
 	private MeasureXMLDAO measureXmlDAO;
 	
-	/** The measure set dao. */
 	@Autowired
 	private MeasureSetDAO measureSetDAO;
 	
-	/** The user dao. */
+	@Autowired
+	private OrganizationDAO organizationDAO;
+	
 	@Autowired
 	private UserDAO userDAO;
 	
 	private CQLService cqlService;
 	
-	/** The Constant logger. */
 	private static final Log logger = LogFactory.getLog(MeasureCloningServiceImpl.class);
 	
-	/** The Constant MEASURE_DETAILS. */
 	private static final String MEASURE_DETAILS = "measureDetails";
 	
-	/** The Constant MEASURE_GROUPING. */
 	private static final String MEASURE_GROUPING = "measureGrouping";
 	
-	/** The Constant UU_ID. */
 	private static final String UU_ID = "uuid";
 	
 	private static final String OID = "oid";
 	
 	private static final String DATATYPE = "datatype";
 	
-	/** The Constant TITLE. */
-	private static final String TITLE = "title";
-	
-	/** The Constant SHORT_TITLE. */
-	private static final String SHORT_TITLE = "shortTitle";
-	
-	/** The Constant GUID. */
-	private static final String GUID = "guid";
-	
-	/** The Constant VERSION. */
 	private static final String VERSION = "version";
 	
-	/** The Constant MEASURE_SCORING. */
-	private static final String MEASURE_SCORING = "scoring";
-	
-	/** The Constant MEASUREMENT_PERIOD. */
-	private static final String MEASUREMENT_PERIOD = "period";
-	
-	/** The Constant START_DATE. */
-	private static final String START_DATE = "startDate";
-	
-	/** The Constant STOP_DATE. */
-	private static final String STOP_DATE = "stopDate";
-	
-	/** The Constant SUPPLEMENTAL_DATA_ELEMENTS. */
 	private static final String SUPPLEMENTAL_DATA_ELEMENTS = "supplementalDataElements";
 	
-	/** The Constant Risk_ADJUSTMENT_VARIABLES. */
 	private static final String RISK_ADJUSTMENT_VARIABLES = "riskAdjustmentVariables";
 	
-	/** The Constant VERSION_ZERO. */
 	private static final String VERSION_ZERO = "0.0";
 	
-	/** The Constant PATIENT_CHARACTERISTIC_BIRTH_DATE_OID. */
 	private static final String PATIENT_CHARACTERISTIC_BIRTH_DATE_OID = "21112-8";
 	
-	/** The Constant PATIENT_CHARACTERISTIC_EXPIRED_OID. */
 	private static final String PATIENT_CHARACTERISTIC_EXPIRED_OID = "419099009";
 	
-	/** The Constant PATIENT_CHARACTERISTIC_BIRTH_DATE. */
 	private static final String PATIENT_CHARACTERISTIC_BIRTH_DATE = "Patient Characteristic Birthdate";
 	
-	/** The Constant PATIENT_CHARACTERISTIC_EXPIRED. */
 	private static final String PATIENT_CHARACTERISTIC_EXPIRED = "Patient Characteristic Expired";
 	
-	/** The Constant TIMING_ELEMENT. */
 	private static final String TIMING_ELEMENT ="Timing ELement";
 	
 	private static final String ORIGINAL_NAME = "originalName";
@@ -166,18 +143,44 @@ public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet implem
 	private static final String GROUPING = "Grouping";
 	private static final String EXTENSIONAL = "Extensional";
 	
-	/** The cloned doc. */
+	private static final String CANNOT_ACCESS_MEASURE = "Cannot access this measure.";
+	
 	private Document clonedDoc;
 	
-	/** The cloned measure. */
 	Measure clonedMeasure;
 	
-	
-	/* (non-Javadoc)
-	 * @see mat.client.measure.service.MeasureCloningService#clone(mat.client.measure.ManageMeasureDetailModel, java.lang.String, boolean)
-	 */
 	@Override
-	public ManageMeasureSearchModel.Result clone(ManageMeasureDetailModel currentDetails, String loggedinUserId, boolean creatingDraft) throws MatException {
+	public ManageMeasureSearchModel.Result cloneExistingMeasure(ManageMeasureDetailModel currentDetails) throws MatException {
+		
+		currentDetails.setMeasureSetId(null);
+		if (!MatContextServiceUtil.get().isCurrentMeasureClonable(measureDAO, currentDetails.getId())) {
+			createException(CANNOT_ACCESS_MEASURE);
+		}
+		
+		return clone(currentDetails, false);
+	}
+	
+	@Override
+	public Result draftExistingMeasure(ManageMeasureDetailModel currentDetails) throws MatException {
+		if (!MatContextServiceUtil.get().isCurrentMeasureDraftable(measureDAO, userDAO, currentDetails.getId())) {
+			createException(CANNOT_ACCESS_MEASURE);
+		}
+			
+		String name = measureDAO.getMeasureNameIfDraftAlreadyExists(currentDetails.getMeasureSetId());
+		if (StringUtils.isNotBlank(name)) {
+			createException("This draft can not be created. A draft of " + name + " has already been created in the system.");
+		}
+	
+		return clone(currentDetails, true);
+	}
+
+	private void createException(String message) throws MatException {
+		Exception e = new Exception(message);
+		log(e.getMessage(), e);
+		throw new MatException(e.getMessage());
+	}
+	
+	private ManageMeasureSearchModel.Result clone(ManageMeasureDetailModel currentDetails, boolean creatingDraft) throws MatException {
 		logger.info("In MeasureCloningServiceImpl.clone() method..");
 		measureDAO = (MeasureDAO) context.getBean("measureDAO");
 		measureXmlDAO = (MeasureXMLDAO) context.getBean("measureXMLDAO");
@@ -186,24 +189,26 @@ public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet implem
 		cqlService = (CQLService) context.getBean("cqlService");
 
 		cqlLibraryService = (CQLLibraryService) context.getBean("cqlLibraryService");
-
-		boolean isMeasureClonable = false;
-		if(creatingDraft){
-			isMeasureClonable = MatContextServiceUtil.get().isCurrentMeasureDraftable(measureDAO, userDAO, currentDetails.getId());
-		}else{
-			isMeasureClonable = MatContextServiceUtil.get().isCurrentMeasureClonable(measureDAO, currentDetails.getId());
+		
+		ManageMeasureModelValidator validator = new ManageMeasureModelValidator();
+		List<String> messages = validator.validateMeasure(currentDetails);
+		
+		if(!messages.isEmpty()) {
+			throw new MatException(MessageDelegate.GENERIC_ERROR_MESSAGE);
 		}
 		
-		if(!isMeasureClonable){
-			Exception e = new Exception("Cannot access this measure.");
-			log(e.getMessage(), e);
-			throw new MatException(e.getMessage());
+		if(CQLValidationUtil.isCQLReservedWord(currentDetails.getCQLLibraryName())) {
+			throw new MatException(MessageDelegate.LIBRARY_NAME_IS_CQL_KEYWORD_ERROR);
+		}
+
+		if (cqlService.checkIfLibraryNameExists(currentDetails.getCQLLibraryName(), currentDetails.getMeasureSetId())){
+			throw new MatException(MessageDelegate.DUPLICATE_LIBRARY_NAME);
 		}
 		
 		try {
 			ManageMeasureSearchModel.Result result = new ManageMeasureSearchModel.Result();
 			Measure measure = measureDAO.find(currentDetails.getId());
-			
+
 			if(checkNonCQLCloningValidation(measure, creatingDraft)){
 				Exception e = new Exception("Cannot clone this measure.");
 				log(e.getMessage(), e);
@@ -221,13 +226,14 @@ public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet implem
 			Document originalDoc = docBuilder.parse(oldXmlstream);
 			clonedDoc = originalDoc;
 			clonedMeasure.setaBBRName(currentDetails.getShortName());
-			clonedMeasure.setDescription(currentDetails.getName());
-			
+			clonedMeasure.setDescription(currentDetails.getMeasureName());
+			clonedMeasure.setCqlLibraryName(currentDetails.getCQLLibraryName());
 			clonedMeasure.setQdmVersion(MATPropertiesService.get().getQmdVersion());
 			clonedMeasure.setReleaseVersion(measure.getReleaseVersion());			
 			clonedMeasure.setDraft(Boolean.TRUE);
 			clonedMeasure.setPatientBased(currentDetails.isPatientBased());
-			if(!CollectionUtils.isEmpty(measure.getComponentMeasures()) && measure.getIsCompositeMeasure()){
+			
+			if(CollectionUtils.isNotEmpty(measure.getComponentMeasures()) && measure.getIsCompositeMeasure()){
 				clonedMeasure.setIsCompositeMeasure(measure.getIsCompositeMeasure());
 				clonedMeasure.setCompositeScoring(measure.getCompositeScoring());
 				clonedMeasure.setComponentMeasures(cloneAndSetComponentMeasures(measure.getComponentMeasures(),clonedMeasure));
@@ -238,14 +244,20 @@ public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet implem
 			} else {
 				clonedMeasure.setMeasureScoring(measure.getMeasureScoring());
 			}
+			
 			// when creating a draft of a shared version  Measure then the Measure Owner should not change
 			boolean isNonCQLtoCQLDraft = false; 
 			if (creatingDraft) {
-				isNonCQLtoCQLDraft = createDraftAndDetermineIfNonCQL(currentDetails.getVersionNumber(), measure);
+				isNonCQLtoCQLDraft = createDraftAndDetermineIfNonCQL(currentDetails, measure);
 				
 			} else { 
-				cloneMeasure(currentDetails.isPatientBased());
+				cloneMeasure();
 			}
+			
+			String formattedVersion = MeasureUtility.formatVersionText(clonedMeasure.getRevisionNumber(), clonedMeasure.getVersion());
+			
+			String formattedVersionWithText = MeasureUtility.getVersionTextWithRevisionNumber(clonedMeasure.getVersion(), 
+					clonedMeasure.getRevisionNumber(), clonedMeasure.isDraft());
 			
 			SaveUpdateCQLResult saveUpdateCQLResult = cqlService.getCQLLibraryData(originalXml);
 			List<String> usedCodeList = saveUpdateCQLResult.getUsedCQLArtifacts().getUsedCQLcodes();
@@ -263,55 +275,131 @@ public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet implem
 			XmlProcessor xmlProcessor = new XmlProcessor(clonedXml.getMeasureXMLAsString());
 			xmlProcessor.removeUnusedDefaultCodes(usedCodeList);
 			
+			removeMeasureDetailsNodes(xmlProcessor);
+			
 			if (!measure.getMeasureScoring().equals(currentDetails.getMeasScoring()) || currentDetails.isPatientBased()) {
 
-				String scoringTypeId = MeasureDetailsUtil.getScoringAbbr(clonedMeasure.getMeasureScoring());
-				xmlProcessor.removeNodesBasedOnScoring(scoringTypeId);
-				xmlProcessor.createNewNodesBasedOnScoring(scoringTypeId,MATPropertiesService.get().getQmdVersion());  
+				String scoringTypeId = clonedMeasure.getMeasureScoring();
+				xmlProcessor.removeNodesBasedOnScoring(scoringTypeId, currentDetails.isPatientBased());
+				xmlProcessor.createNewNodesBasedOnScoring(scoringTypeId, MATPropertiesService.get().getQmdVersion(), clonedMeasure.getPatientBased());  
 				clonedXml.setMeasureXMLAsByteArray(xmlProcessor.transform(xmlProcessor.getOriginalDoc()));
 			}
 			
 			boolean isUpdatedForCQL = updateForCQLMeasure(measure, xmlProcessor, clonedMeasure, isNonCQLtoCQLDraft);
 			xmlProcessor.clearValuesetVersionAttribute();
-			if (!creatingDraft) {
+			
+			if (creatingDraft) {
+				updateCQLLookUpVersionOnDraft(xmlProcessor, formattedVersion);
+			} else {
 				resetVersionOnCloning(xmlProcessor);
 			}
-			
+
+			//this means this is a CQL Measure to CQL Measure draft/clone.
 			if(!isUpdatedForCQL){
-				//this means this is a CQL Measure to CQL Measure draft/clone.
-				
 				//create the default 4 CMS supplemental definitions
 				appendSupplementalDefinitions(xmlProcessor, false);
-				xmlProcessor.updateCQLLibraryName();
 				// Always set latest QDM Version.
 				MeasureUtility.updateLatestQDMVersion(xmlProcessor);
 			}
-			
+	
+			// Update CQL Library Name from the UI field
+			xmlProcessor.updateCQLLibraryName(clonedMeasure.getCqlLibraryName());
+
 			clonedXml.setMeasureXMLAsByteArray(xmlProcessor.transform(xmlProcessor.getOriginalDoc()));
 			
 			logger.info("Final XML after cloning/draft" + clonedXml.getMeasureXMLAsString());
 			measureXmlDAO.save(clonedXml);
+			
 			result.setId(clonedMeasure.getId());
-			result.setName(currentDetails.getName());
+			result.setName(currentDetails.getMeasureName());
 			result.setShortName(currentDetails.getShortName());
 			result.setScoringType(currentDetails.getMeasScoring());
-			String formattedVersion = MeasureUtility.getVersionTextWithRevisionNumber(clonedMeasure.getVersion(), 
-					clonedMeasure.getRevisionNumber(), clonedMeasure.isDraft());
-			result.setVersion(formattedVersion);
+			result.setVersion(formattedVersionWithText);
 			result.setEditable(Boolean.TRUE);
 			result.setClonable(Boolean.TRUE);
+			result.setPatientBased(clonedMeasure.getPatientBased());
+			
 			return result;
+			
 		} catch (Exception e) {
 			log(e.getMessage(), e);
 			throw new MatException(e.getMessage());
 		}
 	}
 	
+	public void removeMeasureDetailsNodes(XmlProcessor xmlProcessor) {
+		try {
+			Node measureDetailNode = xmlProcessor.findNode(xmlProcessor.getOriginalDoc(), "/measure/measureDetails");
+			if(measureDetailNode != null) {
+				Node parentNode = measureDetailNode.getParentNode();
+				parentNode.removeChild(measureDetailNode);
+			}
+		} catch (XPathExpressionException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private Timestamp getTimestampFromDateString(String date) {
+		if(StringUtils.isEmpty(date)) {
+			return null;
+		}
+		try {
+			SimpleDateFormat datetimeFormatter1 = new SimpleDateFormat(
+	                "MM/dd/yyyy");
+			Date fromDate = datetimeFormatter1.parse(date);
+			return new Timestamp(fromDate.getTime());
+		} catch (ParseException e) {
+			logger.error("Cant convert measure date");
+			return null;
+		}
+		
+	}
+	
+	private boolean isOrgPresentCheckByOID(String stewardOID) {
+		return organizationDAO.getAllOrganizations().stream().anyMatch(org -> String.valueOf(org.getOrganizationOID()).equals(stewardOID)); 
+	}
+	
+	private boolean isOrgPresentCheckByID(String stewardID) {
+		return organizationDAO.getAllOrganizations().stream().anyMatch(org -> String.valueOf(org.getId()).equals(stewardID)); 
+	}
+
+	private void createMeasureDevelopers(Measure clonedMeasure, ManageMeasureDetailModel currentDetails) {
+		if(currentDetails.getAuthorSelectedList() != null) {
+			List<MeasureDeveloperAssociation> developerAssociations =  currentDetails.getAuthorSelectedList().stream()
+					.map(author -> createMeasureDetailsAssociation(author, clonedMeasure))
+					.collect(Collectors.toList());
+			clonedMeasure.setMeasureDevelopers(developerAssociations);
+		}
+	}
+
+	private MeasureDeveloperAssociation createMeasureDetailsAssociation(Author author, Measure measure) {
+		String authorId = author.getId();
+		if(isOrgPresentCheckByOID(authorId) || isOrgPresentCheckByID(authorId)) {
+			Organization organization = organizationDAO.findByOidOrId(author.getId());
+			if(organization != null) {
+				return new MeasureDeveloperAssociation(measure, organization);
+			}
+		}
+		return null;
+	}
+	
+	private void createMeasureType(Measure clonedMeasure, ManageMeasureDetailModel currentDetails) {
+		if(currentDetails.getMeasureTypeSelectedList() != null) {
+			List<MeasureTypeAssociation> typesAssociations = currentDetails.getMeasureTypeSelectedList().stream()
+					.map(type -> new MeasureTypeAssociation(clonedMeasure, type))
+					.collect(Collectors.toList());
+			clonedMeasure.setMeasureTypes(typesAssociations);
+		}
+	}
+
 	private List<ComponentMeasure> cloneAndSetComponentMeasures(List<ComponentMeasure> componentMeasures, Measure clonedMeasure) {
 		return componentMeasures.stream().map(f -> new ComponentMeasure(clonedMeasure,f.getComponentMeasure(),f.getAlias())).collect(Collectors.toList());
 	}
 
-	private boolean createDraftAndDetermineIfNonCQL(String version, Measure measure) {
+	private boolean createDraftAndDetermineIfNonCQL(ManageMeasureDetailModel currentDetails, Measure measure ) {
+		
+		copyMeasureDetails(currentDetails);
+		
 		boolean isNonCQLtoCQLDraft = false;
 		clonedMeasure.setOwner(measure.getOwner());
 		clonedMeasure.setMeasureSet(measure.getMeasureSet());
@@ -321,18 +409,34 @@ public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet implem
 			draftVer = measure.getVersion();
 		}else {
 			isNonCQLtoCQLDraft = true;
-			draftVer = getVersionOnNonCQLDraft(version);
+			draftVer = getVersionOnNonCQLDraft(currentDetails.getVersionNumber());
 		}
 		clonedMeasure.setVersion(draftVer);
 		clonedMeasure.setRevisionNumber("000");
 		clonedMeasure.seteMeasureId(measure.geteMeasureId());
 		measureDAO.saveMeasure(clonedMeasure);
-		createNewMeasureDetailsForDraft();
 		
 		return isNonCQLtoCQLDraft;
 	}
+
+	private void copyMeasureDetails(ManageMeasureDetailModel currentDetails) {
+		String stewardId = currentDetails.getStewardId();
+		if(isOrgPresentCheckByID(stewardId) || isOrgPresentCheckByOID(stewardId)) {
+			Organization organization = organizationDAO.findByOidOrId(currentDetails.getStewardId());
+			if(organization != null) {
+				clonedMeasure.setMeasureStewardId(String.valueOf(organization.getId()));
+			}
+		}
+		clonedMeasure.setNqfNumber(currentDetails.getNqfId());
+		clonedMeasure.setMeasurementPeriodFrom(getTimestampFromDateString(currentDetails.getMeasFromPeriod()));
+		clonedMeasure.setMeasurementPeriodTo(getTimestampFromDateString(currentDetails.getMeasToPeriod()));
+		ManageMeasureDetailModelConversions conversion = new ManageMeasureDetailModelConversions();
+		conversion.createMeasureDetails(clonedMeasure, currentDetails);
+		createMeasureType(clonedMeasure, currentDetails);
+		createMeasureDevelopers(clonedMeasure, currentDetails);
+	}
 	
-	private void cloneMeasure(boolean isPatientBased) {
+	private void cloneMeasure() {
 		 
 		// Clear the measureDetails tag
 		if (LoggedInUserUtil.getLoggedInUser() != null) {
@@ -348,15 +452,6 @@ public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet implem
 		clonedMeasure.setVersion(VERSION_ZERO);
 		clonedMeasure.setRevisionNumber("000");
 		measureDAO.saveMeasure(clonedMeasure);
-		createNewMeasureDetails();
-		
-		//copy over value of "Patient based indicator" from the original measure.
-		Node patientBasedIndicatorNode = clonedDoc.createElement("patientBasedIndicator");
-		patientBasedIndicatorNode.setTextContent(BooleanUtils.toStringTrueFalse(isPatientBased));
-		
-		NodeList nodeList = clonedDoc.getElementsByTagName(MEASURE_DETAILS);
-		Node measureDetailsNode = nodeList.item(0);		
-		measureDetailsNode.appendChild(patientBasedIndicatorNode);
 	
 	}
 
@@ -377,17 +472,6 @@ public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet implem
 		}
 		
 		clonedMsr.setReleaseVersion(MATPropertiesService.get().getCurrentReleaseVersion());
-		//MAT-9206 changes
-		if (isNonCQLtoCQLDraft) {
-			Node versionNode = xmlProcessor.findNode(xmlProcessor.getOriginalDoc(), "/measure/measureDetails/version");
-			if (versionNode != null) {				
-				String major = StringUtils.substringBeforeLast(measure.getVersion(), ".");
-				String minor = StringUtils.substringAfterLast(measure.getVersion(), ".");
-				minor = StringUtils.stripStart(minor, "0");
-				String ver = major + "." + minor + ".000";
-				versionNode.setTextContent(ver);
-			}	
-		}
 		
 		Node populationsNode = xmlProcessor.findNode(xmlProcessor.getOriginalDoc(), "/measure/populations");
 		if(populationsNode != null){
@@ -407,17 +491,16 @@ public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet implem
 			strataParentNode.removeChild(stratificationNode);
 		}
 		
-		String scoringTypeId = MeasureDetailsUtil.getScoringAbbr(clonedMeasure.getMeasureScoring());
+		String scoringTypeId = clonedMeasure.getMeasureScoring();
 		
-		xmlProcessor.createNewNodesBasedOnScoring(scoringTypeId, MATPropertiesService.get().getQmdVersion());
+		xmlProcessor.createNewNodesBasedOnScoring(scoringTypeId, MATPropertiesService.get().getQmdVersion(), clonedMeasure.getPatientBased());
 		
 		// This section generates CQL Look Up tag from CQLXmlTemplate.xml
 
 		XmlProcessor cqlXmlProcessor = cqlLibraryService.loadCQLXmlTemplateFile();
-		javax.xml.xpath.XPath xPath = XPathFactory.newInstance().newXPath();
-		String libraryName = (String) xPath.evaluate("/measure/measureDetails/title/text()", xmlProcessor.getOriginalDoc().getDocumentElement(), XPathConstants.STRING);
+		String libraryName = clonedMsr.getDescription();
 		
-		String version = (String) xPath.evaluate("/measure/measureDetails/version/text()", xmlProcessor.getOriginalDoc().getDocumentElement(), XPathConstants.STRING);
+		String version = clonedMsr.getVersion();
 		
 		
 		String cqlLookUpTag = cqlLibraryService.getCQLLookUpXml((MeasureUtility.cleanString(libraryName)), version, cqlXmlProcessor, "//measure");
@@ -731,67 +814,7 @@ public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet implem
 			}
 		}
 	}
-	
-	
-	/**
-	 * Creates the new measure details.
-	 */
-	private void createNewMeasureDetails() {
-		NodeList nodeList = clonedDoc.getElementsByTagName(MEASURE_DETAILS);
-		Node parentNode = nodeList.item(0);
-		Node uuidNode = clonedDoc.createElement(UU_ID);
-		uuidNode.setTextContent(clonedMeasure.getId());
-		Node titleNode = clonedDoc.createElement(TITLE);
-		titleNode.setTextContent(clonedMeasure.getDescription());
-		Node shortTitleNode = clonedDoc.createElement(SHORT_TITLE);
-		shortTitleNode.setTextContent(clonedMeasure.getaBBRName());
-		Node guidNode = clonedDoc.createElement(GUID);
-		guidNode.setTextContent(clonedMeasure.getMeasureSet().getId());
-		Node versionNode = clonedDoc.createElement(VERSION);
-		versionNode.setTextContent(MeasureUtility.getVersionText(String.valueOf(clonedMeasure.getVersionNumber()),
-				clonedMeasure.getRevisionNumber(), clonedMeasure.isDraft()));
-		Node measurementPeriodNode = createMeasurementPeriodNode();
-		Node measureScoringNode = clonedDoc.createElement(MEASURE_SCORING);
-		String measureScoring = clonedMeasure.getMeasureScoring();
-		ElementImpl element = (ElementImpl) measureScoringNode;
-		element.setAttribute("id", MeasureDetailsUtil.getScoringAbbr(measureScoring));
-		measureScoringNode.setTextContent(measureScoring);
-		parentNode.appendChild(uuidNode);
-		parentNode.appendChild(titleNode);
-		parentNode.appendChild(shortTitleNode);
-		parentNode.appendChild(guidNode);
-		parentNode.appendChild(versionNode);
-		parentNode.appendChild(measurementPeriodNode);
-		parentNode.appendChild(measureScoringNode);
-	}
-	
-	/**
-	 * Creates the measurement period node.
-	 *
-	 * @return the node
-	 */
-	private Node createMeasurementPeriodNode() {
-		Node measurementPeriodNode = clonedDoc.createElement(MEASUREMENT_PERIOD);
-		ElementImpl element = (ElementImpl) measurementPeriodNode;
-		element.setAttribute("calenderYear","true");
-		element.setAttribute(UU_ID,UUID.randomUUID().toString());
-		Node startDateNode = clonedDoc.createElement(START_DATE);
-		startDateNode.setTextContent("01/01/20XX");
-		Node stopDateNode = clonedDoc.createElement(STOP_DATE);
-		stopDateNode.setTextContent("12/31/20XX");
-		measurementPeriodNode.appendChild(startDateNode);
-		measurementPeriodNode.appendChild(stopDateNode);
-		return measurementPeriodNode;
-	}
 
-	/**
-	 * Creates the new measure details for draft.
-	 */
-	private void createNewMeasureDetailsForDraft() {
-		clonedDoc.getElementsByTagName(UU_ID).item(0).setTextContent(clonedMeasure.getId());
-		clonedDoc.getElementsByTagName(TITLE).item(0).setTextContent(clonedMeasure.getDescription());
-		clonedDoc.getElementsByTagName(SHORT_TITLE).item(0).setTextContent(clonedMeasure.getaBBRName());
-	}
 	
 	/**
 	 * Method to check If a user is trying to Clone a measure whose release version is not 
@@ -870,4 +893,19 @@ public class MeasureCloningServiceImpl extends SpringRemoteServiceServlet implem
 		}
 
 	}
+	
+	private void updateCQLLookUpVersionOnDraft(XmlProcessor processor, String version) {
+		javax.xml.xpath.XPath xPath = XPathFactory.newInstance().newXPath();
+		String cqlVersionXPath = "//cqlLookUp/version";
+		try {
+			Node node = (Node) xPath.evaluate(cqlVersionXPath, processor.getOriginalDoc().getDocumentElement(), XPathConstants.NODE);
+			if (node != null) {
+				node.setTextContent(version);
+			}
+		} catch (XPathExpressionException e) {
+			logger.error(e.getMessage());
+		}
+
+	}
+
 }

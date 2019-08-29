@@ -7,10 +7,16 @@ import java.util.Map;
 
 import javax.xml.xpath.XPathExpressionException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import mat.client.measurepackage.MeasurePackageClauseDetail;
 import mat.client.measurepackage.MeasurePackageDetail;
 import mat.client.shared.MatContext;
 import mat.dao.clause.CQLLibraryDAO;
+import mat.model.clause.Measure;
 import mat.model.cql.CQLModel;
 import mat.server.CQLUtilityClass;
 import mat.server.util.CQLUtil;
@@ -18,10 +24,6 @@ import mat.server.util.XmlProcessor;
 import mat.shared.CQLExpressionObject;
 import mat.shared.CQLExpressionOprandObject;
 import mat.shared.SaveUpdateCQLResult;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.w3c.dom.Node;
 
 public class PatientBasedValidator {
 	
@@ -48,19 +50,15 @@ public class PatientBasedValidator {
 
 	private static final String MEASURE_OBSERVATION = "measureObservation";
 
-	private static final String XPATH_FOR_MEASURE_SCORING = "/measure/measureDetails/scoring";
-
-	private static final String XPATH_FOR_PATIENT_BASED_INDICATOR = "/measure/measureDetails/patientBasedIndicator";
-
 	//Indicator for CQL return types of Integer,Decimal, or Quantity.
 	private static final String CQL_RETURN_TYPE_NUMERIC = "NUMERIC";
 
 	//Indicator for CQL return types of Boolean.
-	private static final String CQL_RETURN_TYPE_BOOLEAN = "BOOLEAN";	
+	private static final String CQL_RETURN_TYPE_BOOLEAN = "BOOLEAN";
+		
 	
 	
-	
-	public static List<String> checkPatientBasedValidations(String measureXmlL, MeasurePackageDetail detail, CQLLibraryDAO cqlLibraryDAO) throws XPathExpressionException {
+	public static List<String> checkPatientBasedValidations(String measureXmlL, MeasurePackageDetail detail, CQLLibraryDAO cqlLibraryDAO, Measure measure) throws XPathExpressionException {
 		Map<String, List<String>> expressionPopMap = new HashMap<String,List<String>>();
 		Map<String, List<String>> assoExpressionPopMap = new HashMap<String,List<String>>();
 		
@@ -68,8 +66,7 @@ public class PatientBasedValidator {
 		
 		XmlProcessor xmlProcessor = new XmlProcessor(measureXmlL);
 
-		Node scoringNode = xmlProcessor.findNode(xmlProcessor.getOriginalDoc(), XPATH_FOR_MEASURE_SCORING);
-		String scoringType = scoringNode.getTextContent();
+		String scoringType = measure.getMeasureScoring();
 		
 		List<String> exprList = new ArrayList<String>();
 		List<String> msrObsFunctionList = new ArrayList<String>();
@@ -80,14 +77,25 @@ public class PatientBasedValidator {
 			String populationUUID = measurePackageClauseDetail.getId();
 			String type = measurePackageClauseDetail.getType();
 			String name = measurePackageClauseDetail.getName();
-			//ignore "stratification" nodes.
-			if(type.equalsIgnoreCase("stratification")){
-				continue;
-			}
 			
 			Node clauseNode = xmlProcessor.findNode(xmlProcessor.getOriginalDoc(), "/measure//clause[@uuid='"+populationUUID+"']");
+			
+			if(type.equalsIgnoreCase("stratification")){
+				Node stratificationNode = xmlProcessor.findNode(xmlProcessor.getOriginalDoc(), "/measure//stratification[@uuid='"+populationUUID+"']");
+				NodeList childNodes = stratificationNode.getChildNodes();
+				for(int i = 0; i < childNodes.getLength(); i++) {
+					Node child = childNodes.item(i);
 					
-			if(type.equals(MEASURE_OBSERVATION)){
+					String stratumName = child.getAttributes().getNamedItem(DISPLAY_NAME).getNodeValue();
+					
+					String definitionName = child.getFirstChild().getAttributes().getNamedItem(DISPLAY_NAME).getNodeValue();
+					
+					createExpressionsToBeCheckedData(expressionPopMap, exprList, name + " - " + stratumName, definitionName);
+				}
+				
+				
+			}
+			else if(type.equals(MEASURE_OBSERVATION)){
 				
 				//find the cqlfunction here
 				Node firstChildNode = clauseNode.getFirstChild();
@@ -135,22 +143,11 @@ public class PatientBasedValidator {
 				
 			}else{
 				
-				//find cqldefinition here
 				Node firstChildNode = clauseNode.getFirstChild();
 				
 				String definitionName = firstChildNode.getAttributes().getNamedItem(DISPLAY_NAME).getNodeValue();
 				
-				if(expressionPopMap.containsKey(definitionName)){
-					expressionPopMap.get(definitionName).add(name);
-				} else {
-					List<String> populationTypes = new ArrayList<String>();
-					populationTypes.add(name);
-					expressionPopMap.put(definitionName, populationTypes);
-				}
-				
-				if(!exprList.contains(definitionName)){
-					exprList.add(definitionName);
-				}
+				createExpressionsToBeCheckedData(expressionPopMap, exprList, name, definitionName);
 			}
 		}
 		
@@ -181,9 +178,7 @@ public class PatientBasedValidator {
 				}
 			}
 
-			Node patientBasedIndicatorNode = xmlProcessor.findNode(xmlProcessor.getOriginalDoc(), XPATH_FOR_PATIENT_BASED_INDICATOR);
-			String patientBasedIndicator = patientBasedIndicatorNode.getTextContent();
-			boolean isPatientBasedIndicator = patientBasedIndicator.equals("true");
+			boolean isPatientBasedIndicator = measure.getPatientBased();
 			
 			if(isPatientBasedIndicator){
 
@@ -236,7 +231,22 @@ public class PatientBasedValidator {
 			
 		return errorMessages;
 	}
-	
+
+	private static void createExpressionsToBeCheckedData(Map<String, List<String>> expressionPopMap,
+			List<String> exprList, String name, String definitionName) {
+		if(expressionPopMap.containsKey(definitionName)){
+			expressionPopMap.get(definitionName).add(name);
+		} else {
+			List<String> populationTypes = new ArrayList<String>();
+			populationTypes.add(name);
+			expressionPopMap.put(definitionName, populationTypes);
+		}
+		
+		if(!exprList.contains(definitionName)){
+			exprList.add(definitionName);
+		}
+	}
+
 	private static  String findMeasurePopInGrouping(List<MeasurePackageClauseDetail> packageClauses) {
 		String measurePopUUID = null;
 		for(MeasurePackageClauseDetail measurePackageClauseDetail : packageClauses){
@@ -256,29 +266,15 @@ public class PatientBasedValidator {
 			List<CQLExpressionOprandObject> argumentList =  cqlExpressionObject.getOprandList();
 			if(argumentList.isEmpty() || argumentList.size() > 1){
 				if(!expressionAlreadyEval.contains(cqlExpressionObject.getName())){
-					/*List<String> values = expressionPopMap.get(cqlExpressionObject.getName());
-					for(int i=0;i<values.size();i++){
-						String message = values.get(i) + " : " +MatContext.get().getMessageDelegate().getMEASURE_OBSERVATION_USER_DEFINED_FUNC_VALIDATION_MESSAGE();
-						returnMessages.add(message);
-					}*/
 					
 					List<String> generatedMessages = generateMessageList(cqlExpressionObject.getName(), expressionPopMap, MatContext.get().getMessageDelegate().getMEASURE_OBSERVATION_USER_DEFINED_FUNC_VALIDATION_MESSAGE());
 					returnMessages.addAll(generatedMessages);
 				}
-				//returnMessages.add(MatContext.get().getMessageDelegate().getMEASURE_OBSERVATION_USER_DEFINED_FUNC_VALIDATION_MESSAGE());
-				//This is commented as Sridhar and Gayathri thinks if illegal number of arguments are passed then this check should not be made.
-				/*returnMessages.add("For an added measure observation, the argument in the user-defined function must match the return type"
-						+ " of the definition directly applied to the Associated Population.");*/
+
 			} else {
 				String funcArgumentReturnType = argumentList.get(0).getReturnType();
 				logger.info("funcArgumentReturnType Start ==========" + funcArgumentReturnType);
 				// for now parser returns  positive with positive qdm data model and negative of positive for negative qdm data model for function argument return type.
-				// Definition dont return positive or negative. It return only qdm data model. For comparison we have to drop positive/negative if it is present in return type.
-				/*if(funcArgumentReturnType.contains(POSITIVE)){
-					funcArgumentReturnType = funcArgumentReturnType.replaceAll(POSITIVE, "");
-				} else if(funcArgumentReturnType.contains(NEGATIVE)){
-					funcArgumentReturnType = funcArgumentReturnType.replaceAll(NEGATIVE, "");
-				}*/
 				for(CQLExpressionObject expressionObject : associatedPopExpressionTobeChecked){
 					String returnTypeOfExpression = expressionObject.getReturnType();
 					String expressionName = expressionObject.getName();
@@ -294,11 +290,6 @@ public class PatientBasedValidator {
 					logger.info("funcArgumentReturnType ==========" + funcArgumentReturnType);
 					if(!returnTypeOfExpression.equalsIgnoreCase(funcArgumentReturnType)){
 						if(!expressionAlreadyEval.contains(expressionName)){
-							/*List<String> values = assoExpressionPopMap.get(expressionName);
-							for(int i=0;i<values.size();i++){
-								String message = values.get(i) + " : " +MatContext.get().getMessageDelegate().getMEASURE_OBSERVATION_RETURN_SAME_TYPE_VALIDATION_MESSAGE();
-								returnMessages.add(message);
-							}*/
 							List<String> generatedMessages = generateMessageList(expressionName, assoExpressionPopMap, MatContext.get().getMessageDelegate().getMEASURE_OBSERVATION_RETURN_SAME_TYPE_VALIDATION_MESSAGE());
 							returnMessages.addAll(generatedMessages);
 						}
@@ -334,22 +325,12 @@ public class PatientBasedValidator {
 			boolean isList = expressionReturnType.toLowerCase().startsWith("list");
 			
 			if(!isList && !expressionAlreadyEval.contains(cqlExpressionObject.getName())){
-				/*List<String> values = expressionPopMap.get(cqlExpressionObject.getName());
-				for(int i=0;i<values.size();i++){
-					String message = values.get(i) + " : " +MatContext.get().getMessageDelegate().getEPISODE_BASED_DEFINITIONS_SAVE_GROUPING_VALIDATION_MESSAGE();
-					returnMessages.add(message);
-				}*/
 				List<String> generatedMessages = generateMessageList(cqlExpressionObject.getName(), expressionPopMap, MatContext.get().getMessageDelegate().getEPISODE_BASED_DEFINITIONS_SAVE_GROUPING_VALIDATION_MESSAGE());
 				returnMessages.addAll(generatedMessages);
 			}else{
 				if(returnType == null){
 					returnType = expressionReturnType;
 				}else if(!returnType.equals(expressionReturnType) && !expressionAlreadyEval.contains(cqlExpressionObject.getName())){
-					/*List<String> values = expressionPopMap.get(cqlExpressionObject.getName());
-					for(int i=0;i<values.size();i++){
-						String message = values.get(i) + " : " +MatContext.get().getMessageDelegate().getEPISODE_BASED_DEFINITIONS_SAVE_GROUPING_VALIDATION_MESSAGE();
-						returnMessages.add(message);
-					}*/
 					List<String> generatedMessages = generateMessageList(cqlExpressionObject.getName(), expressionPopMap, MatContext.get().getMessageDelegate().getEPISODE_BASED_DEFINITIONS_SAVE_GROUPING_VALIDATION_MESSAGE());
 					returnMessages.addAll(generatedMessages);
 
@@ -383,11 +364,6 @@ public class PatientBasedValidator {
 			if(returnTypeCheck.equals(CQL_RETURN_TYPE_BOOLEAN)){
 				
 				if(!cqlExpressionObject.getReturnType().equals(SYSTEM_BOOLEAN) && !expressionAlreadyEval.contains(cqlExpressionObject.getName())){
-					/*List<String> values = expressionPopMap.get(cqlExpressionObject.getName());
-					for(int i=0;i<values.size();i++){
-						String message = values.get(i) + " : " +MatContext.get().getMessageDelegate().getPATIENT_BASED_DEFINITIONS_SAVE_GROUPING_VALIDATION_MESSAGE();
-						returnMessages.add(message);
-					}*/
 					
 					List<String> generatedMessages = generateMessageList(cqlExpressionObject.getName(), expressionPopMap, MatContext.get().getMessageDelegate().getPATIENT_BASED_DEFINITIONS_SAVE_GROUPING_VALIDATION_MESSAGE());
 					returnMessages.addAll(generatedMessages);
@@ -399,11 +375,6 @@ public class PatientBasedValidator {
 				if(!exprReturnType.equals(SYSTEM_INTEGER) && 
 						!exprReturnType.equals(SYSTEM_DECIMAL) && 
 							!exprReturnType.equals(SYSTEM_QUANTITY)){
-					/*List<String> values = expressionPopMap.get(cqlExpressionObject.getName());
-					for(int i=0;i<values.size();i++){
-						String message = values.get(i) + " : " +MatContext.get().getMessageDelegate().getMEASURE_OBSERVATION_USER_DEFINED_FUNC_REURN_TYPE_VALIDATION_MESSAGE();
-						returnMessages.add(message);
-					}*/
 					
 					List<String> generatedMessages = generateMessageList(cqlExpressionObject.getName(), expressionPopMap, MatContext.get().getMessageDelegate().getMEASURE_OBSERVATION_USER_DEFINED_FUNC_REURN_TYPE_VALIDATION_MESSAGE());
 					returnMessages.addAll(generatedMessages);

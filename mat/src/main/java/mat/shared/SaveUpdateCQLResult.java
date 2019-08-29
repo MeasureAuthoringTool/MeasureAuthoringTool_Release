@@ -38,6 +38,12 @@ public class SaveUpdateCQLResult extends GenericResult{
 	
 	private List<CQLError> cqlWarnings = new ArrayList<>();
 	
+	private List<CQLError> linterErrors = new ArrayList<>();
+	
+	private List<String> linterErrorMessages = new ArrayList<>();
+	
+	private List<String> linterWarningMessages = new ArrayList<>();
+	
 	/** The definition. */
 	private CQLDefinition definition;
 	
@@ -83,6 +89,10 @@ public class SaveUpdateCQLResult extends GenericResult{
 	
 	public static final int DUPLICATE_CQL_KEYWORD = 10;
 	
+	public static final int SYNTAX_ERRORS = 11;
+	
+	public static final int DUPLICATE_LIBRARY_NAME = 12;
+	
 	/** The cql applied QDM list. */
 	List<CQLQualityDataSetDTO> cqlAppliedQDMList ;
 	
@@ -104,7 +114,11 @@ public class SaveUpdateCQLResult extends GenericResult{
 	private boolean isQDMVersionMatching = true;
 
 	private Map<String, List<CQLError>> libraryNameErrorsMap = new HashMap<>(); 
-	private Map<String, List<CQLError>> libraryNameWarningsMap = new HashMap<>(); 
+	private Map<String, List<CQLError>> libraryNameWarningsMap = new HashMap<>();
+	
+	private boolean isMeasureComposite = false;
+	
+	private boolean doesMeasureHaveIncludedLibraries = false;
 	
 	/**
 	 * Gets the cql string.
@@ -431,6 +445,52 @@ public class SaveUpdateCQLResult extends GenericResult{
 
 	public void setLibraryNameWarningsMap(Map<String, List<CQLError>> libraryNameWarningsMap) {
 		this.libraryNameWarningsMap = libraryNameWarningsMap;
+	}
+
+	public List<CQLError> getLinterErrors() {
+		return linterErrors;
+	}
+
+	public void setLinterErrors(List<CQLError> linterErrors) {
+		this.linterErrors = linterErrors;
+	}
+
+	public List<String> getLinterErrorMessages() {
+		return linterErrorMessages;
+	}
+
+	public void setLinterErrorMessages(List<String> linterErrorMessages) {
+		this.linterErrorMessages = linterErrorMessages;
+	}
+
+	public List<String> getLinterWarningMessages() {
+		return linterWarningMessages;
+	}
+
+	public void setLinterWarningMessages(List<String> linterWarningMessages) {
+		this.linterWarningMessages = linterWarningMessages;
+	}
+	
+	public void resetErrors() {
+		getCqlErrors().clear();
+		getLibraryNameErrorsMap().clear();
+		getLibraryNameWarningsMap().clear();
+	}
+
+	public boolean isMeasureComposite() {
+		return isMeasureComposite;
+	}
+
+	public void setMeasureComposite(boolean isMeasureComposite) {
+		this.isMeasureComposite = isMeasureComposite;
+	}
+
+	public boolean isDoesMeasureHaveIncludedLibraries() {
+		return doesMeasureHaveIncludedLibraries;
+	}
+
+	public void setDoesMeasureHaveIncludedLibraries(boolean doesMeasureHaveIncludedLibraries) {
+		this.doesMeasureHaveIncludedLibraries = doesMeasureHaveIncludedLibraries;
 	}
 	
 }

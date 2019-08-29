@@ -21,6 +21,7 @@ import org.gwtbootstrap3.client.ui.constants.IconType;
 import org.gwtbootstrap3.client.ui.constants.Pull;
 import org.gwtbootstrap3.client.ui.constants.Toggle;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.OptionElement;
 import com.google.gwt.dom.client.SelectElement;
 import com.google.gwt.event.dom.client.ChangeEvent;
@@ -55,6 +56,7 @@ import mat.model.cql.CQLParameter;
 import mat.model.cql.CQLQualityDataSetDTO;
 
 public class CQLLeftNavBarPanelView {
+	private static final String CQL_LIBRARY_EDITOR_ANCHOR = "cqlLibraryEditor_Anchor";
 	private VerticalPanel rightHandNavPanel = new VerticalPanel();
 	private Map<String, String> defineNameMap = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
 	private Map<String, String> funcNameMap = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
@@ -80,7 +82,7 @@ public class CQLLeftNavBarPanelView {
 	PanelCollapse includesCollapse = new PanelCollapse();
 	PanelCollapse codesCollapse = new PanelCollapse();
 	PanelCollapse valueSetCollapse = new PanelCollapse();
-	private AnchorListItem viewCQL;
+	private AnchorListItem cqlLibraryEditorTab;
 	private AnchorListItem appliedQDM;
 	private AnchorListItem codesLibrary;
 	private AnchorListItem generalInformation;
@@ -202,11 +204,15 @@ public class CQLLeftNavBarPanelView {
 				event.stopPropagation();
 			}
 		});
+		
+		anchor.addClickHandler(event -> {
+			this.anchor.setDataToggle(Toggle.COLLAPSE);
+			this.anchor.setHref("#collapseComponent");
+		});
+		
 		anchor.add(componentLabel);
 		anchor.add(badge);
 		anchor.setDataParent("#navGroup");
-		this.anchor.setDataToggle(Toggle.COLLAPSE);
-		this.anchor.setHref("#collapseComponent");
 		this.anchor.add(collapse);
 	}
 	
@@ -235,7 +241,7 @@ public class CQLLeftNavBarPanelView {
 		parameterLibrary = new AnchorListItem();
 		definitionLibrary = new AnchorListItem();
 		functionLibrary = new AnchorListItem();
-		viewCQL = new AnchorListItem();
+		cqlLibraryEditorTab = new AnchorListItem();
 
 		
 		buildGeneralInfoTab();
@@ -246,7 +252,7 @@ public class CQLLeftNavBarPanelView {
 		buildParameterTab();
 		buildDefinitionsTab();
 		buildFunctionsTab();
-		buildViewCQLTab();
+		buildCQLLibraryEditorTab();
 		
 		navPills.add(generalInformation);
 		navPills.add(anchor);
@@ -256,7 +262,7 @@ public class CQLLeftNavBarPanelView {
 		navPills.add(parameterLibrary);
 		navPills.add(definitionLibrary);
 		navPills.add(functionLibrary);
-		navPills.add(viewCQL);
+		navPills.add(cqlLibraryEditorTab);
 
 		rightHandNavPanel.add(navPills);
 	}
@@ -281,6 +287,12 @@ public class CQLLeftNavBarPanelView {
 				event.stopPropagation();
 			}
 		});
+		
+		includesAnchor.addClickHandler(event -> {
+			includesLibrary.setDataToggle(Toggle.COLLAPSE);
+			includesLibrary.setHref("#collapseIncludes");
+		});
+		
 		includesLabel.setStyleName("transparentLabel");
 		includesLabel.setId("includesLabel_Label");
 		includesAnchor.add(includesLabel);
@@ -289,8 +301,6 @@ public class CQLLeftNavBarPanelView {
 		includesBadge.setId("includesBadge_Badge");
 		includesAnchor.add(includesBadge);
 		includesAnchor.setDataParent("#navGroup");
-		includesLibrary.setDataToggle(Toggle.COLLAPSE);
-		includesLibrary.setHref("#collapseIncludes");
 		includesLibrary.setId("includesLibrary_Anchor");
 		includesLibrary.add(includesCollapse);
 	}
@@ -348,6 +358,13 @@ public class CQLLeftNavBarPanelView {
 				event.stopPropagation();
 			}
 		});
+		
+		
+		paramAnchor.addClickHandler(event -> {
+			parameterLibrary.setDataToggle(Toggle.COLLAPSE);
+			parameterLibrary.setHref("#collapseParameter");
+		});
+		
 		paramLabel.setStyleName("transparentLabel");
 		paramLabel.setId("paramLabel_Label");
 		paramAnchor.add(paramLabel);
@@ -355,8 +372,6 @@ public class CQLLeftNavBarPanelView {
 		paramBadge.setId("paramBadge_Badge");
 		paramAnchor.add(paramBadge);
 		paramAnchor.setDataParent("#navGroup");
-		paramAnchor.setDataToggle(Toggle.COLLAPSE);
-		parameterLibrary.setHref("#collapseParameter");
 		parameterLibrary.setId("parameterLibrary_Anchor");
 		parameterLibrary.add(paramCollapse);
 	}
@@ -373,6 +388,12 @@ public class CQLLeftNavBarPanelView {
 				event.stopPropagation();
 			}
 		});
+		
+		defineAnchor.addClickHandler(event -> {
+			definitionLibrary.setDataToggle(Toggle.COLLAPSE);
+			definitionLibrary.setHref("#collapseDefine");
+		});
+				
 		defineLabel.setStyleName("transparentLabel");
 		defineLabel.setId("defineLabel_Label");
 		defineAnchor.add(defineLabel);
@@ -380,8 +401,7 @@ public class CQLLeftNavBarPanelView {
 		defineAnchor.add(defineBadge);
 		defineBadge.setId("defineBadge_Badge");
 		defineAnchor.setDataParent("#navGroup");
-		definitionLibrary.setDataToggle(Toggle.COLLAPSE);
-		definitionLibrary.setHref("#collapseDefine");
+
 		definitionLibrary.add(defineCollapse);
 
 	}
@@ -399,6 +419,12 @@ public class CQLLeftNavBarPanelView {
 				event.stopPropagation();
 			}
 		});
+		
+		funcAnchor.addClickHandler(event -> {
+			functionLibrary.setDataToggle(Toggle.COLLAPSE);
+			functionLibrary.setHref("#collapseFunction");
+		});
+		
 		functionLibLabel.setStyleName("transparentLabel");
 		functionLibLabel.setId("functionLibLabel_label");
 		funcAnchor.add(functionLibLabel);
@@ -407,16 +433,14 @@ public class CQLLeftNavBarPanelView {
 		funcAnchor.add(functionBadge);
 		functionBadge.setId("functionBadge_Badge");
 		funcAnchor.setDataParent("#navGroup");
-		functionLibrary.setDataToggle(Toggle.COLLAPSE);
-		functionLibrary.setHref("#collapseFunction");
 		functionLibrary.add(functionCollapse);
 	}
 	
-	private void buildViewCQLTab() {
-		viewCQL.setIcon(IconType.BOOK);
-		viewCQL.setText("View CQL");
-		viewCQL.setTitle("View CQL");
-		viewCQL.setId("viewCQL_Anchor");
+	private void buildCQLLibraryEditorTab() {
+		cqlLibraryEditorTab.setIcon(IconType.BOOK);
+		cqlLibraryEditorTab.setText("CQL Library Editor");
+		cqlLibraryEditorTab.setTitle("CQL Library Editor");
+		cqlLibraryEditorTab.setId(CQL_LIBRARY_EDITOR_ANCHOR);
 	}
 	
 	
@@ -636,7 +660,9 @@ public class CQLLeftNavBarPanelView {
 			includesNameListbox.clear();
 			viewIncludeLibrarys = sortAliasList(viewIncludeLibrarys);
 			for (CQLIncludeLibrary incl : viewIncludeLibrarys) {
-				includesNameListbox.addItem(incl.getAliasName(), incl.getId());
+				if(incl.getId() != null) {
+					includesNameListbox.addItem(incl.getAliasName(), incl.getId());
+				}
 			}
 
 			SelectElement selectElement = SelectElement.as(includesNameListbox.getElement());
@@ -869,8 +895,6 @@ public class CQLLeftNavBarPanelView {
 		}
 		updateSuggestIncludeOracle();
 	}
-	
-	
 	
 	public void updateSuggestParamOracle() {
 		if (searchSuggestParamTextBox != null) {
@@ -1126,12 +1150,12 @@ public class CQLLeftNavBarPanelView {
 		this.functionLibrary = functionLibrary;
 	}
 
-	public AnchorListItem getViewCQL() {
-		return viewCQL;
+	public AnchorListItem getCQLLibraryEditorTab() {
+		return cqlLibraryEditorTab;
 	}
 
-	public void setViewCQL(AnchorListItem viewCQL) {
-		this.viewCQL = viewCQL;
+	public void setCQLLibraryEditorTab(AnchorListItem viewCQL) {
+		this.cqlLibraryEditorTab = viewCQL;
 	}
 
 	public List<CQLQualityDataSetDTO> getAppliedQdmTableList() {
@@ -1496,6 +1520,6 @@ public class CQLLeftNavBarPanelView {
 		getFunctionLibrary().setActive(false);
 		getParameterLibrary().setActive(false);
 		getDefinitionLibrary().setActive(false);
-		getViewCQL().setActive(false);
+		getCQLLibraryEditorTab().setActive(false);
 	}
 }

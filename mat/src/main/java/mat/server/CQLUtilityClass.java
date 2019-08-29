@@ -1,12 +1,20 @@
 package mat.server;
 
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.exolab.castor.mapping.Mapping;
+import org.exolab.castor.mapping.MappingException;
+import org.exolab.castor.xml.MarshalException;
+import org.exolab.castor.xml.Marshaller;
+import org.exolab.castor.xml.ValidationException;
 import org.springframework.util.CollectionUtils;
 
 import mat.client.shared.CQLWorkSpaceConstants;
@@ -20,6 +28,7 @@ import mat.model.cql.CQLParameter;
 import mat.model.cql.CQLQualityDataModelWrapper;
 import mat.model.cql.CQLQualityDataSetDTO;
 import mat.server.service.impl.XMLMarshalUtil;
+import mat.server.util.ResourceLoader;
 import mat.server.util.XmlProcessor;
 
 public final class CQLUtilityClass {
@@ -29,6 +38,8 @@ public final class CQLUtilityClass {
 	private static final String PATIENT = "Patient";
 
 	private static final String POPULATION = "Population";
+	
+	public static final String VERSION = " version ";
 
 	private static StringBuilder toBeInsertedAtEnd;
 
@@ -40,6 +51,31 @@ public final class CQLUtilityClass {
 
 	public static StringBuilder getStrToBeInserted(){
 		return toBeInsertedAtEnd;
+	}
+	
+	public static String replaceFirstWhitespaceInLineForExpression(String expression) {
+		Scanner scanner = new Scanner(expression);
+		StringBuilder builder = new StringBuilder();
+
+		// go through and rebuild the the format
+		// this will remove the first whitespace in a line so
+		// it properly displays in the ace editor.
+		// without doing this, the the ace editor display
+		// would be indented one too many
+		while (scanner.hasNextLine()) {
+			String line = scanner.nextLine();
+
+			if (!line.isEmpty()) {
+				if(line.startsWith(CQLUtilityClass.getWhiteSpaceString(true, 2))) {
+					line = line.replaceFirst(CQLUtilityClass.getWhiteSpaceString(true, 2), "");
+				}
+			}
+
+			builder.append(line + "\n");
+		}
+		
+		scanner.close();
+		return builder.toString();
 	}
 
 	public static String getWhiteSpaceString(boolean isSpaces, int indentSize) {
@@ -99,7 +135,7 @@ public final class CQLUtilityClass {
 		if (StringUtils.isNotBlank(cqlModel.getLibraryName())) {
 
 			sb.append("library ").append(cqlModel.getLibraryName());
-			sb.append(" version ").append("'" + cqlModel.getVersionUsed()).append("'");
+			sb.append(VERSION).append("'" + cqlModel.getVersionUsed()).append("'");
 			sb.append(System.lineSeparator()).append(System.lineSeparator());
 			
 			if(StringUtils.isNotBlank(cqlModel.getLibraryComment())) {
@@ -107,7 +143,8 @@ public final class CQLUtilityClass {
 				sb.append(System.lineSeparator()).append(System.lineSeparator());
 			}
 			
-			sb.append("using QDM version ");			
+			sb.append("using ").append(cqlModel.getUsingName());
+			sb.append(VERSION);			
 			sb.append("'").append(cqlModel.getQdmVersion()).append("'");
 			sb.append("\n\n");			
 		}
@@ -226,7 +263,7 @@ public final class CQLUtilityClass {
 
 
 			cqlStr = cqlStr.append(func + "(");
-			if(function.getArgumentList()!=null) {
+			if(function.getArgumentList() != null && !function.getArgumentList().isEmpty()) {
 				for (CQLFunctionArgument argument : function.getArgumentList()) {
 					StringBuilder argumentType = new StringBuilder();
 					if (argument.getArgumentType().equalsIgnoreCase("QDM Datatype")) {
@@ -291,6 +328,24 @@ public final class CQLUtilityClass {
 			}
 		}
 		return cqlModel;
+	}
+	
+	public static String getXMLFromCQLModel(CQLModel cqlModel) {
+		String xml = "";
+
+		try (ByteArrayOutputStream stream = new ByteArrayOutputStream();) {
+			Mapping mapping = new Mapping();
+			mapping.loadMapping(new ResourceLoader().getResourceAsURL("CQLModelMapping.xml"));
+			Marshaller marshaller = new Marshaller(new OutputStreamWriter(stream));
+			marshaller.setMapping(mapping);
+			marshaller.marshal(cqlModel);
+			xml = stream.toString();
+		} catch (MarshalException | ValidationException | IOException | MappingException e) {
+			e.printStackTrace();
+		}
+
+
+		return xml;
 	}
 	
 	public static void getValueSet(CQLModel cqlModel, String cqlLookUpXMLString){
@@ -376,7 +431,7 @@ public final class CQLUtilityClass {
 		if(!CollectionUtils.isEmpty(includeLibList)){
 			for(CQLIncludeLibrary includeLib : includeLibList){
 				sb.append("include ").append(includeLib.getCqlLibraryName());
-				sb.append(" version ").append("'").append(includeLib.getVersion()).append("' ");
+				sb.append(VERSION).append("'").append(includeLib.getVersion()).append("' ");
 				sb.append("called ").append(includeLib.getAliasName());
 				sb.append("\n");
 			}
@@ -391,27 +446,26 @@ public final class CQLUtilityClass {
 
 		List<String> codeSystemAlreadyUsed = new ArrayList<>();
 
-		if(!CollectionUtils.isEmpty(codeSystemList)){
-
+		if(!CollectionUtils.isEmpty(codeSystemList)) {
 			for(CQLCode codes : codeSystemList){
+				if(codes.getCodeSystemOID() != null && !codes.getCodeSystemOID().isEmpty() && !"null".equals(codes.getCodeSystemOID())) {
+					String codeSysStr = codes.getCodeSystemName();
+					String codeSysVersion = "";
 
-				String codeSysStr = codes.getCodeSystemName();
-				String codeSysVersion = "";
+					if(codes.isIsCodeSystemVersionIncluded()) {
+						codeSysStr = codeSysStr + ":" + codes.getCodeSystemVersion().replaceAll(" ", "%20");
+						codeSysVersion = "version 'urn:hl7:version:" + codes.getCodeSystemVersion() + "'";
+					}
 
-				if(codes.isIsCodeSystemVersionIncluded()) {
-					codeSysStr = codeSysStr + ":" + codes.getCodeSystemVersion().replaceAll(" ", "%20");
-					codeSysVersion = "version 'urn:hl7:version:" + codes.getCodeSystemVersion() + "'";
+					if(!codeSystemAlreadyUsed.contains(codeSysStr)){
+						sb.append("codesystem \"").append(codeSysStr).append('"').append(": ");
+						sb.append("'urn:oid:").append(codes.getCodeSystemOID()).append("' ");
+						sb.append(codeSysVersion);
+						sb.append("\n");
+
+						codeSystemAlreadyUsed.add(codeSysStr);
+					}
 				}
-
-				if(!codeSystemAlreadyUsed.contains(codeSysStr)){
-					sb.append("codesystem \"").append(codeSysStr).append('"').append(": ");
-					sb.append("'urn:oid:").append(codes.getCodeSystemOID()).append("' ");
-					sb.append(codeSysVersion);
-					sb.append("\n");
-
-					codeSystemAlreadyUsed.add(codeSysStr);
-				}
-
 			}
 
 			sb.append("\n");
@@ -421,7 +475,6 @@ public final class CQLUtilityClass {
 	}
 
 	private static String createValueSetsSection(List<CQLQualityDataSetDTO> valueSetList) {
-
 		StringBuilder sb = new StringBuilder();
 
 		List<String> valueSetAlreadyUsed = new ArrayList<>();
@@ -442,6 +495,7 @@ public final class CQLUtilityClass {
 					sb.append("\n");
 					valueSetAlreadyUsed.add(valueset.getName());
 				}
+
 			}
 
 			sb.append("\n");
@@ -473,6 +527,7 @@ public final class CQLUtilityClass {
 					sb.append("\n");
 					codesAlreadyUsed.add(codesStr);
 				}
+
 			}
 
 			sb.append("\n");

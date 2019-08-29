@@ -3,6 +3,7 @@ package mat.dao.impl;
 import java.util.List;
 
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaDelete;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Repository;
 import mat.DTO.MeasureTypeDTO;
 import mat.dao.search.GenericDAO;
 import mat.model.MeasureType;
+import mat.model.clause.MeasureTypeAssociation;
 
 
 @Repository("measureTypeDAO")
@@ -42,5 +44,30 @@ public class MeasureTypeDAOImpl extends GenericDAO<MeasureType, String> implemen
 						root.get("abbrName")));
 		
 		return session.createQuery(query).getResultList();
+	}
+	
+	@Override
+	public MeasureType getMeasureTypeByName(String name) {
+        final Session session = getSessionFactory().getCurrentSession();
+        final CriteriaBuilder cb = session.getCriteriaBuilder();
+        final CriteriaQuery<MeasureType> query = cb.createQuery(MeasureType.class);
+        final Root<MeasureType> root = query.from(MeasureType.class);
+
+        query.select(root).where(cb.equal(root.get("description"), name));
+        
+        return session.createQuery(query).getResultList().get(0);
+ }
+
+	@Override
+	public void deleteAllMeasureTypeAssociationsByMeasureId(String measureId) {
+		final Session session = getSessionFactory().getCurrentSession();
+		final CriteriaBuilder cb = session.getCriteriaBuilder();
+		final CriteriaDelete<MeasureTypeAssociation> deleteQuery = cb.createCriteriaDelete(MeasureTypeAssociation.class);
+		final Root<MeasureTypeAssociation> root = deleteQuery.from(MeasureTypeAssociation.class);
+		
+		
+		deleteQuery.where(cb.equal(root.get("measure").get("id"), measureId));
+		
+		session.createQuery(deleteQuery).executeUpdate();
 	}
 }
